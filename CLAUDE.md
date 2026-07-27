@@ -19,10 +19,3 @@ git push origin main
 
 万一已经在别的分支上,把提交合回 main 再继续。那个分支不用清理——留着无害,而且本
 环境的 git 代理对删除远程分支返回 403,删不掉。
-
-## Git:提交身份
-
-直接 `git commit`,用环境自带的 git 配置(`Claude <noreply@anthropic.com>`)。不要加
-`-c user.name` / `-c user.email` 把作者改成用户。
-
-提交消息末尾的 `Co-Authored-By` 尾行照常保留。
