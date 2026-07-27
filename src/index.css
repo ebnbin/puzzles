@@ -197,13 +197,68 @@ footer p {
   font-size: 0.85rem;
 }
 
-.game .controls {
+/* --- host for the compiled puzzle --- */
+
+.host[data-status='loading'] {
+  opacity: 0;
+}
+
+.host-error {
+  margin: 0 0 1rem;
+  color: #c0392b;
+  font-size: 0.9rem;
+}
+
+/* The module sizes the canvas itself, inline. All we owe it is the font it
+   draws puzzle text in, which upstream also sets here. */
+.host #puzzlecanvas {
+  display: block;
+  font-family: sans-serif;
+  touch-action: none;
+}
+
+.host #puzzlecanvas:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.host #statusbar {
+  overflow: hidden;
+  margin-top: 0.5rem;
+  color: var(--fg-dim);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Presets. The module fills this in as <li><label><input type=radio>. */
+.host #gamemenu,
+.host #gamemenu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.host #gametype {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.9rem;
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+}
+
+.host #gametype label {
+  cursor: pointer;
+}
+
+.host-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  margin-top: 1rem;
 }
 
-.game .controls button {
+.host-controls button {
   padding: 0.35rem 0.7rem;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -211,15 +266,14 @@ footer p {
   color: inherit;
   font: inherit;
   font-size: 0.85rem;
+  cursor: pointer;
 }
 
-.game .controls button:disabled {
-  color: var(--fg-dim);
+.host-controls button:hover:not(:disabled) {
+  border-color: var(--link);
 }
 
-.game .status {
-  min-height: 1.4em;
-  margin: 1rem 0 0;
+.host-controls button:disabled {
   color: var(--fg-dim);
-  font-size: 0.85rem;
+  cursor: default;
 }

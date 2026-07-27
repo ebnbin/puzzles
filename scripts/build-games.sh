@@ -16,6 +16,13 @@ BUILD="$ROOT/.build"
 EMSDK_DIR="$BUILD/emsdk"
 OUT_GAMES="$ROOT/public/games"
 OUT_DOC="$ROOT/public/doc"
+OUT_ENGINE="$ROOT/public/engine"
+
+# Puzzles to additionally build as ES modules for the TypeScript rewrite to
+# mount inside React. Add a name here when its rewrite starts; the WebAssembly
+# build under public/games is produced for every puzzle either way and is not
+# affected by this list.
+TS_ENGINE_GAMES=(net)
 
 EMSDK_VERSION=6.0.4
 
@@ -85,6 +92,35 @@ mkdir -p "$OUT_DOC"
   -Chtml-template-filename:%k.html \
   -Chtml-template-fragment:%k \
   "$SRC/puzzles.but")
+
+# --- Second build: ES modules for the TypeScript rewrite ------------------
+# Same sources, same flags, same resulting .wasm — only the JavaScript wrapper
+# differs. Upstream's build leaves the glue in global scope and runs main() on
+# load, which cannot be mounted twice or torn down; MODULARIZE wraps it in a
+# factory so React can instantiate a puzzle per mount. STRICT_JS is dropped
+# because ES modules are strict already and emcc rejects the combination.
+#
+# The link flags go through CMAKE_EXE_LINKER_FLAGS rather than
+# CMAKE_C_LINK_FLAGS: upstream's emscripten.cmake assigns the latter
+# unconditionally, so passing it on the command line would be overwritten.
+echo "==> building ES modules for ${TS_ENGINE_GAMES[*]}"
+emcmake cmake -S "$SRC" -B "$BUILD/esm" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMIN_CHROME_VERSION="$MIN_CHROME_VERSION" \
+  -DMIN_FIREFOX_VERSION="$MIN_FIREFOX_VERSION" \
+  -DMIN_SAFARI_VERSION="$MIN_SAFARI_VERSION" \
+  -DCMAKE_EXE_LINKER_FLAGS="-sSTRICT_JS=0 -sMODULARIZE=1 -sEXPORT_ES6=1"
+
+rm -rf "$OUT_ENGINE"
+mkdir -p "$OUT_ENGINE"
+for name in "${TS_ENGINE_GAMES[@]}"; do
+  cmake --build "$BUILD/esm" --target "$name"
+  cp "$BUILD/esm/$name.js" "$BUILD/esm/$name.wasm" "$OUT_ENGINE/"
+  # The two builds should differ only in their wrapper. If the binaries ever
+  # diverge the rewrite is no longer comparing against the same puzzle.
+  cmp "$OUT_GAMES/js/$name.wasm" "$OUT_ENGINE/$name.wasm" ||
+    { echo "$name.wasm differs between the two builds" >&2; exit 1; }
+done
 
 # --- Metadata for the launcher -------------------------------------------
 echo "==> extracting game metadata"

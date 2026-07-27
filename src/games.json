@@ -3,240 +3,280 @@
     "name": "net",
     "displayName": "Net",
     "description": "Network jigsaw puzzle",
-    "objective": "Rotate each tile to reassemble the network."
+    "objective": "Rotate each tile to reassemble the network.",
+    "hasEngine": true
   },
   {
     "name": "cube",
     "displayName": "Cube",
     "description": "Rolling cube puzzle",
-    "objective": "Pick up all the blue squares by rolling the cube over them."
+    "objective": "Pick up all the blue squares by rolling the cube over them.",
+    "hasEngine": false
   },
   {
     "name": "fifteen",
     "displayName": "Fifteen",
     "description": "Sliding block puzzle",
-    "objective": "Slide the tiles around to arrange them into order."
+    "objective": "Slide the tiles around to arrange them into order.",
+    "hasEngine": false
   },
   {
     "name": "sixteen",
     "displayName": "Sixteen",
     "description": "Toroidal sliding block puzzle",
-    "objective": "Slide a row at a time to arrange the tiles into order."
+    "objective": "Slide a row at a time to arrange the tiles into order.",
+    "hasEngine": false
   },
   {
     "name": "twiddle",
     "displayName": "Twiddle",
     "description": "Rotational sliding block puzzle",
-    "objective": "Rotate the tiles around themselves to arrange them into order."
+    "objective": "Rotate the tiles around themselves to arrange them into order.",
+    "hasEngine": false
   },
   {
     "name": "rect",
     "displayName": "Rectangles",
     "description": "Rectangles puzzle",
-    "objective": "Divide the grid into rectangles with areas equal to the numbers."
+    "objective": "Divide the grid into rectangles with areas equal to the numbers.",
+    "hasEngine": false
   },
   {
     "name": "netslide",
     "displayName": "Netslide",
     "description": "Toroidal sliding network puzzle",
-    "objective": "Slide a row at a time to reassemble the network."
+    "objective": "Slide a row at a time to reassemble the network.",
+    "hasEngine": false
   },
   {
     "name": "pattern",
     "displayName": "Pattern",
     "description": "Pattern puzzle",
-    "objective": "Fill in the pattern in the grid, given only the lengths of runs of black squares."
+    "objective": "Fill in the pattern in the grid, given only the lengths of runs of black squares.",
+    "hasEngine": false
   },
   {
     "name": "solo",
     "displayName": "Solo",
     "description": "Number placement puzzle",
-    "objective": "Fill in the grid so that each row, column and square block contains one of every digit."
+    "objective": "Fill in the grid so that each row, column and square block contains one of every digit.",
+    "hasEngine": false
   },
   {
     "name": "mines",
     "displayName": "Mines",
     "description": "Mine-finding puzzle",
-    "objective": "Find all the mines without treading on any of them."
+    "objective": "Find all the mines without treading on any of them.",
+    "hasEngine": false
   },
   {
     "name": "samegame",
     "displayName": "Same Game",
     "description": "Block-clearing puzzle",
-    "objective": "Clear the grid by removing touching groups of the same colour squares."
+    "objective": "Clear the grid by removing touching groups of the same colour squares.",
+    "hasEngine": false
   },
   {
     "name": "flip",
     "displayName": "Flip",
     "description": "Tile inversion puzzle",
-    "objective": "Flip groups of squares to light them all up at once."
+    "objective": "Flip groups of squares to light them all up at once.",
+    "hasEngine": false
   },
   {
     "name": "guess",
     "displayName": "Guess",
     "description": "Combination-guessing puzzle",
-    "objective": "Guess the hidden combination of colours."
+    "objective": "Guess the hidden combination of colours.",
+    "hasEngine": false
   },
   {
     "name": "pegs",
     "displayName": "Pegs",
     "description": "Peg solitaire puzzle",
-    "objective": "Jump pegs over each other to remove all but one."
+    "objective": "Jump pegs over each other to remove all but one.",
+    "hasEngine": false
   },
   {
     "name": "dominosa",
     "displayName": "Dominosa",
     "description": "Domino tiling puzzle",
-    "objective": "Tile the rectangle with a full set of dominoes."
+    "objective": "Tile the rectangle with a full set of dominoes.",
+    "hasEngine": false
   },
   {
     "name": "untangle",
     "displayName": "Untangle",
     "description": "Planar graph layout puzzle",
-    "objective": "Reposition the points so that the lines do not cross."
+    "objective": "Reposition the points so that the lines do not cross.",
+    "hasEngine": false
   },
   {
     "name": "blackbox",
     "displayName": "Black Box",
     "description": "Ball-finding puzzle",
-    "objective": "Find the hidden balls in the box by bouncing laser beams off them."
+    "objective": "Find the hidden balls in the box by bouncing laser beams off them.",
+    "hasEngine": false
   },
   {
     "name": "slant",
     "displayName": "Slant",
     "description": "Maze-drawing puzzle",
-    "objective": "Draw a maze of slanting lines that matches the clues."
+    "objective": "Draw a maze of slanting lines that matches the clues.",
+    "hasEngine": false
   },
   {
     "name": "lightup",
     "displayName": "Light Up",
     "description": "Light-bulb placing puzzle",
-    "objective": "Place bulbs to light up all the squares."
+    "objective": "Place bulbs to light up all the squares.",
+    "hasEngine": false
   },
   {
     "name": "map",
     "displayName": "Map",
     "description": "Map-colouring puzzle",
-    "objective": "Colour the map so that adjacent regions are never the same colour."
+    "objective": "Colour the map so that adjacent regions are never the same colour.",
+    "hasEngine": false
   },
   {
     "name": "loopy",
     "displayName": "Loopy",
     "description": "Loop-drawing puzzle",
-    "objective": "Draw a single closed loop, given clues about number of adjacent edges."
+    "objective": "Draw a single closed loop, given clues about number of adjacent edges.",
+    "hasEngine": false
   },
   {
     "name": "inertia",
     "displayName": "Inertia",
     "description": "Gem-collecting puzzle",
-    "objective": "Collect all the gems without running into any of the mines."
+    "objective": "Collect all the gems without running into any of the mines.",
+    "hasEngine": false
   },
   {
     "name": "tents",
     "displayName": "Tents",
     "description": "Tent-placing puzzle",
-    "objective": "Place a tent next to each tree."
+    "objective": "Place a tent next to each tree.",
+    "hasEngine": false
   },
   {
     "name": "bridges",
     "displayName": "Bridges",
     "description": "Bridge-placing puzzle",
-    "objective": "Connect all the islands with a network of bridges."
+    "objective": "Connect all the islands with a network of bridges.",
+    "hasEngine": false
   },
   {
     "name": "unequal",
     "displayName": "Unequal",
     "description": "Latin square puzzle",
-    "objective": "Complete the latin square in accordance with the > signs."
+    "objective": "Complete the latin square in accordance with the > signs.",
+    "hasEngine": false
   },
   {
     "name": "galaxies",
     "displayName": "Galaxies",
     "description": "Symmetric polyomino puzzle",
-    "objective": "Divide the grid into rotationally symmetric regions each centred on a dot."
+    "objective": "Divide the grid into rotationally symmetric regions each centred on a dot.",
+    "hasEngine": false
   },
   {
     "name": "filling",
     "displayName": "Filling",
     "description": "Polyomino puzzle",
-    "objective": "Mark every square with the area of its containing region."
+    "objective": "Mark every square with the area of its containing region.",
+    "hasEngine": false
   },
   {
     "name": "keen",
     "displayName": "Keen",
     "description": "Arithmetic Latin square puzzle",
-    "objective": "Complete the latin square in accordance with the arithmetic clues."
+    "objective": "Complete the latin square in accordance with the arithmetic clues.",
+    "hasEngine": false
   },
   {
     "name": "towers",
     "displayName": "Towers",
     "description": "Tower-placing Latin square puzzle",
-    "objective": "Complete the latin square of towers in accordance with the clues."
+    "objective": "Complete the latin square of towers in accordance with the clues.",
+    "hasEngine": false
   },
   {
     "name": "singles",
     "displayName": "Singles",
     "description": "Number-removing puzzle",
-    "objective": "Black out the right set of duplicate numbers."
+    "objective": "Black out the right set of duplicate numbers.",
+    "hasEngine": false
   },
   {
     "name": "magnets",
     "displayName": "Magnets",
     "description": "Magnet-placing puzzle",
-    "objective": "Place magnets to satisfy the clues and avoid like poles touching."
+    "objective": "Place magnets to satisfy the clues and avoid like poles touching.",
+    "hasEngine": false
   },
   {
     "name": "signpost",
     "displayName": "Signpost",
     "description": "Square-connecting puzzle",
-    "objective": "Connect the squares into a path following the arrows."
+    "objective": "Connect the squares into a path following the arrows.",
+    "hasEngine": false
   },
   {
     "name": "range",
     "displayName": "Range",
     "description": "Visible-distance puzzle",
-    "objective": "Place black squares to limit the visible distance from each numbered cell."
+    "objective": "Place black squares to limit the visible distance from each numbered cell.",
+    "hasEngine": false
   },
   {
     "name": "pearl",
     "displayName": "Pearl",
     "description": "Loop-drawing puzzle",
-    "objective": "Draw a single closed loop, given clues about corner and straight squares."
+    "objective": "Draw a single closed loop, given clues about corner and straight squares.",
+    "hasEngine": false
   },
   {
     "name": "undead",
     "displayName": "Undead",
     "description": "Monster-placing puzzle",
-    "objective": "Place ghosts, vampires and zombies so that the right numbers of them can be seen in mirrors."
+    "objective": "Place ghosts, vampires and zombies so that the right numbers of them can be seen in mirrors.",
+    "hasEngine": false
   },
   {
     "name": "unruly",
     "displayName": "Unruly",
     "description": "Black and white grid puzzle",
-    "objective": "Fill in the black and white grid to avoid runs of three."
+    "objective": "Fill in the black and white grid to avoid runs of three.",
+    "hasEngine": false
   },
   {
     "name": "flood",
     "displayName": "Flood",
     "description": "Flood-filling puzzle",
-    "objective": "Turn the grid the same colour in as few flood fills as possible."
+    "objective": "Turn the grid the same colour in as few flood fills as possible.",
+    "hasEngine": false
   },
   {
     "name": "tracks",
     "displayName": "Tracks",
     "description": "Path-finding railway track puzzle",
-    "objective": "Fill in the railway track according to the clues."
+    "objective": "Fill in the railway track according to the clues.",
+    "hasEngine": false
   },
   {
     "name": "palisade",
     "displayName": "Palisade",
     "description": "Grid-division puzzle",
-    "objective": "Divide the grid into equal-sized areas in accordance with the clues."
+    "objective": "Divide the grid into equal-sized areas in accordance with the clues.",
+    "hasEngine": false
   },
   {
     "name": "mosaic",
     "displayName": "Mosaic",
     "description": "Grid-filling puzzle",
-    "objective": "Fill in the grid given clues about number of nearby black squares."
+    "objective": "Fill in the grid given clues about number of nearby black squares.",
+    "hasEngine": false
   }
 ]

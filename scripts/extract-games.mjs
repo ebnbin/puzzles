@@ -38,9 +38,22 @@ const manual = fs.readFileSync(path.join(root, 'vendor/sgtpuzzles/puzzles.but'),
 const chapters = [...manual.matchAll(/^\\C\{(\w+)\}/gm)].map((m) => m[1])
 const chapterIndex = new Map(chapters.map((name, i) => [name, i]))
 
+// Puzzles that also have an ES module build, which the TypeScript rewrite can
+// mount inside React. Driven by what build-games.sh actually produced.
+const engineDir = path.join(root, 'public/engine')
+const withEngine = new Set(
+  fs.existsSync(engineDir)
+    ? fs
+        .readdirSync(engineDir)
+        .filter((f) => f.endsWith('.js'))
+        .map((f) => f.replace(/\.js$/, ''))
+    : [],
+)
+
 const games = declared
   .filter((g) => shipped.has(g.name))
   .sort((a, b) => chapterIndex.get(a.name) - chapterIndex.get(b.name))
+  .map((g) => ({ ...g, hasEngine: withEngine.has(g.name) }))
 
 const missing = [...shipped].filter((n) => !games.some((g) => g.name === n))
 if (missing.length) {

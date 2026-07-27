@@ -1,10 +1,12 @@
 import games from './games.json'
 import { gameHref } from './engine'
+import PuzzleHost from './PuzzleHost'
 import { onNavClick } from './router'
 
 /**
- * Shell for a puzzle under the TypeScript rewrite. No puzzle is implemented
- * yet; this is the frame they will render into.
+ * A puzzle under the TypeScript rewrite. Where a rewrite has started, the
+ * puzzle runs as upstream's compiled WebAssembly inside our own markup — the
+ * starting point the TypeScript is to replace piece by piece.
  */
 export default function GamePage({ name }: { name: string }) {
   const game = games.find((g) => g.name === name)
@@ -29,25 +31,19 @@ export default function GamePage({ name }: { name: string }) {
         <a href="/" onClick={onNavClick}>
           ← All puzzles
         </a>
-        <a href={gameHref(game.name, 'wasm')}>Play the WebAssembly build</a>
+        <a href={gameHref(game.name, 'wasm')}>Compare with the original page</a>
       </nav>
 
       <h1>{game.displayName}</h1>
       <p className="objective">{game.objective}</p>
 
-      {/* The board mounts here once this puzzle is rewritten. */}
-      <div className="board" role="presentation">
-        <p>Not implemented yet</p>
-      </div>
-
-      <div className="controls">
-        <button type="button" disabled>New game</button>
-        <button type="button" disabled>Restart</button>
-        <button type="button" disabled>Undo</button>
-        <button type="button" disabled>Redo</button>
-      </div>
-
-      <p className="status" />
+      {game.hasEngine ? (
+        <PuzzleHost name={game.name} />
+      ) : (
+        <div className="board">
+          <p>The rewrite has not started on this puzzle.</p>
+        </div>
+      )}
     </main>
   )
 }
