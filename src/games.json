@@ -172,7 +172,7 @@
     "displayName": "Unequal",
     "description": "Latin square puzzle",
     "objective": "Complete the latin square in accordance with the > signs.",
-    "hasEngine": false
+    "hasEngine": true
   },
   {
     "name": "galaxies",
@@ -186,21 +186,21 @@
     "displayName": "Filling",
     "description": "Polyomino puzzle",
     "objective": "Mark every square with the area of its containing region.",
-    "hasEngine": false
+    "hasEngine": true
   },
   {
     "name": "keen",
     "displayName": "Keen",
     "description": "Arithmetic Latin square puzzle",
     "objective": "Complete the latin square in accordance with the arithmetic clues.",
-    "hasEngine": false
+    "hasEngine": true
   },
   {
     "name": "towers",
     "displayName": "Towers",
     "description": "Tower-placing Latin square puzzle",
     "objective": "Complete the latin square of towers in accordance with the clues.",
-    "hasEngine": false
+    "hasEngine": true
   },
   {
     "name": "singles",
@@ -242,7 +242,7 @@
     "displayName": "Undead",
     "description": "Monster-placing puzzle",
     "objective": "Place ghosts, vampires and zombies so that the right numbers of them can be seen in mirrors.",
-    "hasEngine": false
+    "hasEngine": true
   },
   {
     "name": "unruly",

@@ -121,20 +121,6 @@ function initPuzzle() {
             }
         },
 
-        // Which keys this puzzle wants offered, for the on-screen keypad.
-        // See engine/keys-shim.c.
-        keyLabels: function() {
-            var get = Module.cwrap('get_key_labels', 'number', []);
-            var free = Module.cwrap('free_key_labels', 'void', ['number']);
-            var ptr = get();
-            var text = UTF8ToString(ptr);
-            free(ptr);
-            return text.split('\n').filter(Boolean).map(function(line) {
-                var parts = line.split('\t');
-                return { button: Number(parts[0]), label: parts[1] };
-            });
-        },
-
         stopTimer: function() {
             if (timer !== null) window.cancelAnimationFrame(timer);
             timer = null;

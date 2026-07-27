@@ -62,12 +62,6 @@ export interface PuzzleApi {
   saveGame(): string
   loadGame(text: string): void
 
-  /**
-   * Keys this puzzle wants offered, for devices without a keyboard. Empty for
-   * puzzles played entirely with the pointer.
-   */
-  keyLabels(): KeyLabel[]
-
   /** Stop the frame timer. Must be called when the puzzle is discarded. */
   stopTimer(): void
 }

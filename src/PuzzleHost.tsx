@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import { createPuzzle } from './engine/createPuzzle'
+import { keysFor } from './engine/keys'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { usePuzzleFit } from './usePuzzleFit'
@@ -55,14 +56,18 @@ export default function PuzzleHost({ name }: { name: string }) {
           apiRef.current = api
           if (!live) return api.stopTimer()
           setPresets(list)
-          setKeys(api.keyLabels())
           setReady(true)
         },
         onError: setError,
         onStatus: setStatus,
         onUndoRedo: (undo, redo) => setUndoRedo({ undo, redo }),
         onKeyLabels: () => {},
-        onPermalinks: (desc, seed) => setPermalink({ desc, seed }),
+        onPermalinks: (desc, seed) => {
+          setPermalink({ desc, seed })
+          // The keypad follows the game id: it is where the grid size lives,
+          // and it is reissued whenever the preset changes.
+          setKeys(keysFor(name, decodeURIComponent(desc)))
+        },
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
         onDialog: setDialog,

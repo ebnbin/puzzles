@@ -22,7 +22,7 @@ OUT_ENGINE="$ROOT/public/engine"
 # mount inside React. Add a name here when its rewrite starts; the WebAssembly
 # build under public/games is produced for every puzzle either way and is not
 # affected by this list.
-TS_ENGINE_GAMES=(net solo)
+TS_ENGINE_GAMES=(net solo keen towers unequal filling undead)
 
 EMSDK_VERSION=6.0.4
 
@@ -115,9 +115,6 @@ rm -rf "$BUILD/src-esm"
 cp -r "$SRC" "$BUILD/src-esm"
 cp "$ROOT/engine/puzzle-pre.js" "$BUILD/src-esm/emccpre.js"
 cp "$ROOT/engine/puzzle-lib.js" "$BUILD/src-esm/emcclib.js"
-# Reaches midend_request_keys, which needs the static `me` in this file. See
-# engine/keys-shim.c for why an on-screen keyboard cannot be built without it.
-cat "$ROOT/engine/keys-shim.c" >> "$BUILD/src-esm/emcc.c"
 
 emcmake cmake -S "$BUILD/src-esm" -B "$BUILD/esm" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
@@ -132,18 +129,11 @@ for name in "${TS_ENGINE_GAMES[@]}"; do
   cmake --build "$BUILD/esm" --target "$name"
   cp "$BUILD/esm/$name.js" "$BUILD/esm/$name.wasm" "$OUT_ENGINE/"
 
-  # The two builds were byte-identical until keys-shim.c was appended, which
-  # adds about 600 bytes. They are still the same puzzle, so hold them to a
-  # size that only the shim can account for — a real divergence, from a build
-  # flag going astray, would be far larger than this. What actually proves the
-  # two behave alike is the comparison test, which plays the same game id
-  # through both and checks the boards come out pixel for pixel the same.
-  control=$(wc -c <"$OUT_GAMES/js/$name.wasm")
-  engine=$(wc -c <"$OUT_ENGINE/$name.wasm")
-  if [ "$((engine - control))" -gt 4096 ] || [ "$((engine - control))" -lt 0 ]; then
-    echo "$name.wasm: engine build is $((engine - control)) bytes off the control build" >&2
-    exit 1
-  fi
+  # Only the JavaScript wrapper differs between the two builds, so the
+  # binaries must stay identical. If they ever diverge, the rewrite is no
+  # longer being compared against the same puzzle.
+  cmp "$OUT_GAMES/js/$name.wasm" "$OUT_ENGINE/$name.wasm" ||
+    { echo "$name.wasm differs between the two builds" >&2; exit 1; }
 done
 
 # --- Metadata for the launcher -------------------------------------------
