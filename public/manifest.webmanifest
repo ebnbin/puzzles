@@ -1,0 +1,19 @@
+{
+  "name": "Simon Tatham's Portable Puzzle Collection",
+  "short_name": "Puzzles",
+  "description": "40 puzzles compiled to WebAssembly, playable offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

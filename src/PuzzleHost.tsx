@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import PuzzleDialog from './PuzzleDialog'
+import PuzzleKeypad from './PuzzleKeypad'
 import { createPuzzle } from './engine/createPuzzle'
 import type { CanvasRenderer } from './engine/renderer'
-import type { DialogSpec, Preset, PuzzleApi } from './engine/types'
+import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
+import { usePuzzleFit } from './usePuzzleFit'
+import { usePuzzlePointer } from './usePuzzlePointer'
 
 /**
  * A compiled puzzle, hosted entirely by React.
  *
- * The C code no longer reaches for the page: it hands over presets, status
- * text, undo state and dialogs as data, and everything below is ordinary
- * React. What remains of upstream's front end is the canvas — the back end
- * draws in immediate mode, so the board is painted by our renderer rather
- * than composed of elements.
+ * The C code hands over presets, status text, undo state and dialogs as data;
+ * everything below is ordinary React. The board is a canvas because the back
+ * end draws in immediate mode, and our renderer paints it.
  */
 export default function PuzzleHost({ name }: { name: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const areaRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<PuzzleApi | null>(null)
   const rendererRef = useRef<CanvasRenderer | null>(null)
   const startedRef = useRef(false)
@@ -26,29 +28,34 @@ export default function PuzzleHost({ name }: { name: string }) {
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
+  const [keys, setKeys] = useState<KeyLabel[]>([])
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const [showMore, setShowMore] = useState(false)
 
   useEffect(() => {
-    // The module cannot be torn down or instantiated twice into the same
-    // canvas, and StrictMode runs effects twice in development.
+    // No teardown exists, and StrictMode runs effects twice in development.
     if (startedRef.current) return
     startedRef.current = true
 
     const canvas = canvasRef.current
-    if (!canvas) return
+    const area = areaRef.current
+    if (!canvas || !area) return
 
     let live = true
     createPuzzle({
       name,
       canvas,
-      // Permalinks put the game id in the fragment, the same as upstream.
       gameId: decodeURIComponent(window.location.hash.replace(/^#/, '')),
+      // Start at the size it will settle at, rather than resizing on the
+      // first frame.
+      available: area.getBoundingClientRect(),
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
           if (!live) return api.stopTimer()
           setPresets(list)
+          setKeys(api.keyLabels())
           setReady(true)
         },
         onError: setError,
@@ -65,156 +72,156 @@ export default function PuzzleHost({ name }: { name: string }) {
         rendererRef.current = renderer
       })
       .catch((err) => {
-        if (!live) return
-        console.error(`could not start ${name}`, err)
-        setError('Could not start the puzzle. See the console.')
-      })
+      if (!live) return
+      console.error(`could not start ${name}`, err)
+      setError('Could not start the puzzle. See the console.')
+    })
 
     return () => {
       live = false
-      // The frame timer re-arms itself, and would otherwise go on calling
-      // into an instance nothing can reach any more.
       apiRef.current?.stopTimer()
     }
   }, [name])
 
-  // --- input --------------------------------------------------------------
-  // Physical button -> logical button, so a move or release is reported with
-  // the same button the press was, and so a drag with no button held is not
-  // reported at all. Shift and Ctrl stand in for the middle and right buttons.
+  usePuzzleFit(areaRef, apiRef, ready)
+  const pointer = usePuzzlePointer(apiRef, rendererRef)
 
-  const heldRef = useRef<(number | null)[]>([null, null, null])
-
-  const coords = (e: React.MouseEvent) =>
-    rendererRef.current?.eventCoords(e.nativeEvent) ?? { x: 0, y: 0 }
-
-  const onMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const api = apiRef.current
-    if (!api || e.button >= 3) return
-    const logical = e.shiftKey ? 1 : e.ctrlKey ? 2 : e.button
-    const { x, y } = coords(e)
-    if (api.mousedown(x, y, logical)) e.preventDefault()
-    heldRef.current[e.button] = logical
-  }, [])
-
-  // Keep receiving move and release events if the pointer leaves the board
-  // mid-drag, which several puzzles rely on.
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }, [])
-
-  const onMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const api = apiRef.current
-    if (!api) return
-    const mask = heldRef.current.reduce<number>(
-      (acc, logical) => (logical === null ? acc : acc | (1 << logical)),
-      0,
-    )
-    if (!mask) return
-    const { x, y } = coords(e)
-    if (api.mousemove(x, y, mask)) e.preventDefault()
-  }, [])
-
-  const onMouseUp = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const api = apiRef.current
-    if (!api || e.button >= 3) return
-    const logical = heldRef.current[e.button]
-    if (logical === null) return
-    const { x, y } = coords(e)
-    if (api.mouseup(x, y, logical)) e.preventDefault()
-    heldRef.current[e.button] = null
-  }, [])
+  const act = useCallback(
+    (fn: (api: PuzzleApi) => void) => () => {
+      // A dialog is modal to the game: the C side is waiting for its answer
+      // and will not accept anything else meanwhile.
+      if (!apiRef.current || dialog) return
+      fn(apiRef.current)
+      canvasRef.current?.focus()
+    },
+    [dialog],
+  )
 
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
-    if (
-      api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0)
-    )
+    if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
   }, [])
 
-  // --- interface ----------------------------------------------------------
+  // Desktop shortcuts, on the page rather than the board so they work
+  // wherever focus is. Skipped while a dialog is up or a field has focus.
+  useEffect(() => {
+    if (!ready) return
+    const onKey = (e: KeyboardEvent) => {
+      if (dialog || e.metaKey || e.ctrlKey || e.altKey) return
+      const target = e.target as HTMLElement | null
+      if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
+      const api = apiRef.current
+      if (!api) return
+      const shortcut: Record<string, () => void> = {
+        u: () => api.undo(),
+        r: () => api.redo(),
+        n: () => api.newGame(),
+      }
+      const run = shortcut[e.key.toLowerCase()]
+      if (!run) return
+      run()
+      e.preventDefault()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [ready, dialog])
 
-  const api = apiRef.current
-  const act = (fn: (api: PuzzleApi) => void) => () => {
-    // A dialog is modal to the game: while one is up the C side is waiting
-    // for its answer and will not accept anything else.
-    if (!apiRef.current || dialog) return
-    fn(apiRef.current)
+  const pressKey = useCallback((key: KeyLabel) => {
+    const api = apiRef.current
+    if (!api) return
+    api.pressKey(key.button)
     canvasRef.current?.focus()
-  }
+  }, [])
 
   return (
     <div className="host" data-ready={ready}>
       {error && <p className="host-error">{error}</p>}
 
-      <canvas
-        ref={canvasRef}
-        className="host-board"
-        tabIndex={0}
-        onContextMenu={(e) => e.preventDefault()}
-        onPointerDown={onPointerDown}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onKeyDown={onKeyDown}
-      />
+      <div className="host-board-area" ref={areaRef}>
+        <canvas
+          ref={canvasRef}
+          className="host-board"
+          tabIndex={0}
+          onContextMenu={(e) => e.preventDefault()}
+          onKeyDown={onKeyDown}
+          {...pointer}
+        />
+      </div>
 
-      {status !== null && <p className="host-status">{status}</p>}
+      <p className="host-status" aria-live="polite">{status}</p>
+
+      <PuzzleKeypad keys={keys} onPress={pressKey} />
 
       <div className="host-controls">
-        <button type="button" onClick={act((a) => a.newGame())}>New game</button>
-        <button type="button" onClick={act((a) => a.restart())}>Restart</button>
+        <button type="button" onClick={act((a) => a.newGame())}>New</button>
         <button type="button" disabled={!undoRedo.undo} onClick={act((a) => a.undo())}>
           Undo
         </button>
         <button type="button" disabled={!undoRedo.redo} onClick={act((a) => a.redo())}>
           Redo
         </button>
-        {canSolve && (
-          <button type="button" onClick={act((a) => a.solve())}>Solve</button>
-        )}
-        <button type="button" onClick={act((a) => a.enterGameId())}>Game ID…</button>
-        <button type="button" onClick={act((a) => a.enterSeed())}>Seed…</button>
-        <button type="button" onClick={act((a) => a.preferences())}>Preferences…</button>
+        <button
+          type="button"
+          aria-expanded={showMore}
+          onClick={() => setShowMore((v) => !v)}
+        >
+          More…
+        </button>
       </div>
 
-      {presets && (
-        <PresetList
-          presets={presets}
-          selected={selected}
-          onSelect={(value) => {
-            setSelected(value)
-            api?.selectPreset(value)
-          }}
-        />
-      )}
+      {showMore && (
+        <div className="host-more">
+          <div className="host-controls">
+            <button type="button" onClick={act((a) => a.restart())}>Restart</button>
+            {canSolve && (
+              <button type="button" onClick={act((a) => a.solve())}>Solve</button>
+            )}
+            <button type="button" onClick={act((a) => a.enterGameId())}>Game ID…</button>
+            <button type="button" onClick={act((a) => a.enterSeed())}>Seed…</button>
+            <button type="button" onClick={act((a) => a.preferences())}>
+              Preferences…
+            </button>
+          </div>
 
-      {permalink && (
-        <p className="host-permalinks">
-          Link to this puzzle: <a href={`#${permalink.desc}`}>by game ID</a>
-          {permalink.seed && (
-            <>
-              {' '}
-              <a href={`#${permalink.seed}`}>by random seed</a>
-            </>
+          {presets && (
+            <PresetList
+              presets={presets}
+              selected={selected}
+              onSelect={(value) => {
+                setSelected(value)
+                apiRef.current?.selectPreset(value)
+              }}
+            />
           )}
-        </p>
+
+          {permalink && (
+            <p className="host-permalinks">
+              Link to this puzzle: <a href={`#${permalink.desc}`}>by game ID</a>
+              {permalink.seed && (
+                <>
+                  {' · '}
+                  <a href={`#${permalink.seed}`}>by random seed</a>
+                </>
+              )}
+            </p>
+          )}
+        </div>
       )}
 
-      {dialog && api && (
+      {dialog && apiRef.current && (
         <PuzzleDialog
           spec={dialog}
-          onOk={() => api.dialogOk()}
-          onCancel={() => api.dialogCancel()}
+          onOk={() => apiRef.current?.dialogOk()}
+          onCancel={() => apiRef.current?.dialogCancel()}
         />
       )}
     </div>
   )
 }
 
-/** Presets can nest one or more levels; render the tree as grouped radios. */
+/** Presets can nest; render the tree as grouped radios. */
 function PresetList({
   presets,
   selected,

@@ -26,7 +26,10 @@
 
 body {
   margin: 0;
-  padding: 2rem 1rem 3rem;
+  /* Keep clear of a notch in landscape and the home indicator at the bottom. */
+  padding: 1.5rem max(1rem, env(safe-area-inset-left)) 3rem;
+  padding-bottom: max(3rem, env(safe-area-inset-bottom));
+  overscroll-behavior-y: contain;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   color: var(--fg);
@@ -209,12 +212,27 @@ footer p {
   font-size: 0.9rem;
 }
 
-/* The renderer sizes the board itself, inline. All we owe it is the font it
-   draws puzzle text in, which upstream also takes from the canvas. */
+/*
+ * The box the board is fitted into. Its size comes only from CSS, never from
+ * what is inside it — the board is measured against this and then resized, so
+ * if the content could grow the box the two would chase each other.
+ */
+.host-board-area {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: min(58vh, 100vw);
+}
+
 .host-board {
   display: block;
   font-family: sans-serif;
+  /* The board handles its own gestures; the page must not also scroll or
+     zoom under a finger that is drawing a line. */
   touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .host-board:focus-visible {
@@ -229,6 +247,35 @@ footer p {
   font-size: 0.85rem;
 }
 
+/* --- keys the puzzle asked for --- */
+
+.keypad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.keypad button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keypad button:active {
+  background: var(--line);
+}
+
+/* --- controls --- */
+
 .host-controls {
   display: flex;
   flex-wrap: wrap;
@@ -237,23 +284,33 @@ footer p {
 }
 
 .host-controls button {
-  padding: 0.35rem 0.7rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 6px;
   background: none;
   color: inherit;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .host-controls button:hover:not(:disabled) {
   border-color: var(--link);
 }
 
+.host-controls button:active:not(:disabled) {
+  background: var(--line);
+}
+
 .host-controls button:disabled {
   color: var(--fg-dim);
   cursor: default;
+}
+
+.host-more {
+  margin-top: 0.25rem;
 }
 
 .host-presets,
@@ -264,7 +321,7 @@ footer p {
   margin: 1rem 0 0;
   padding: 0;
   list-style: none;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .host-presets ul {
@@ -274,6 +331,10 @@ footer p {
 }
 
 .host-presets label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
   cursor: pointer;
 }
 
@@ -287,21 +348,48 @@ footer p {
   font-size: 0.8rem;
 }
 
+/* Room to breathe on a pointer device, where the board can be bigger and the
+   controls need not be thumb-sized. */
+@media (min-width: 48em) {
+  .host-board-area {
+    width: min(100%, 34rem);
+    height: min(70vh, 34rem);
+  }
+
+  .host-controls button,
+  .keypad button {
+    min-height: 2.1rem;
+  }
+
+  .keypad button {
+    min-width: 2.1rem;
+  }
+
+  .host-presets label {
+    min-height: 0;
+  }
+}
+
 /* --- dialogs --- */
 
 .dialog-dimmer {
   position: fixed;
   inset: 0;
+  z-index: 10;
   display: grid;
   place-items: center;
   padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
   background: rgb(0 0 0 / 0.5);
 }
 
 .dialog {
+  width: 100%;
   max-width: 26rem;
+  max-height: 85vh;
+  overflow-y: auto;
   padding: 1.25rem;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--bg);
   box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
 }
@@ -322,37 +410,56 @@ footer p {
   display: block;
   width: 100%;
   margin-top: 0.2rem;
-  padding: 0.3rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.5rem;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--bg);
   color: inherit;
   font: inherit;
-  font-size: 0.9rem;
+  /* Anything under 16px makes iOS zoom the page when the field is focused. */
+  font-size: 1rem;
+}
+
+.dialog-boolean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
 }
 
 .dialog-boolean input {
-  margin-right: 0.4rem;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .dialog-buttons {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin-top: 1.25rem;
 }
 
 .dialog-buttons button {
-  padding: 0.35rem 0.9rem;
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 6px;
   background: none;
   color: inherit;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
 .dialog-buttons button[type='submit'] {
   border-color: var(--link);
   color: var(--link);
+}
+
+@media (min-width: 48em) {
+  .dialog-buttons button {
+    flex: 0 0 auto;
+    min-height: 2.1rem;
+  }
 }

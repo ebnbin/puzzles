@@ -14,10 +14,14 @@ export async function createPuzzle(options: {
   canvas: HTMLCanvasElement
   /** Game id to restore, as it appears after the # in a permalink. */
   gameId?: string
+  /** Room the board has, in CSS pixels, so its first size already fits. */
+  available?: { width: number; height: number }
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
-  const { name, canvas, gameId = '', callbacks } = options
+  const { name, canvas, gameId = '', available, callbacks } = options
   const renderer = new CanvasRenderer(canvas)
+  if (available && available.width > 0 && available.height > 0)
+    renderer.setAvailable(available.width, available.height)
 
   let api: PuzzleApi | null = null
   const prefsKey = `puzzles.prefs.${name}`

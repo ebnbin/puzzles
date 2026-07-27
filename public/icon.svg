@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Puzzles">
+  <rect width="512" height="512" rx="96" fill="#1a1a1a"/>
+  <g stroke="#e8e8e8" stroke-width="18" stroke-linecap="square" fill="none">
+    <path d="M128 128h128v96"/>
+    <path d="M384 160H288v128"/>
+    <path d="M128 288v96h96"/>
+    <path d="M288 384h96v-96"/>
+  </g>
+  <g fill="#4f7fff">
+    <rect x="104" y="104" width="48" height="48" rx="6"/>
+    <rect x="360" y="136" width="48" height="48" rx="6"/>
+    <rect x="200" y="360" width="48" height="48" rx="6"/>
+    <rect x="360" y="264" width="48" height="48" rx="6"/>
+  </g>
+  <rect x="232" y="232" width="48" height="48" rx="6" fill="#e8e8e8"/>
+</svg>

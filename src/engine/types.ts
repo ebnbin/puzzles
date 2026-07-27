@@ -62,8 +62,27 @@ export interface PuzzleApi {
   saveGame(): string
   loadGame(text: string): void
 
+  /**
+   * Keys this puzzle wants offered, for devices without a keyboard. Empty for
+   * puzzles played entirely with the pointer.
+   */
+  keyLabels(): KeyLabel[]
+
+  /**
+   * Press one of those keys. Takes the midend button value from a KeyLabel,
+   * not a DOM key name — `key` is for real keyboard events.
+   */
+  pressKey(button: number): boolean
+
   /** Stop the frame timer. Must be called when the puzzle is discarded. */
   stopTimer(): void
+}
+
+export interface KeyLabel {
+  /** What to show on the key. */
+  label: string
+  /** Midend button value, for pressKey. */
+  button: number
 }
 
 /** Everything the running game wants the interface to show. */

@@ -60,7 +60,7 @@
     "displayName": "Solo",
     "description": "Number placement puzzle",
     "objective": "Fill in the grid so that each row, column and square block contains one of every digit.",
-    "hasEngine": false
+    "hasEngine": true
   },
   {
     "name": "mines",

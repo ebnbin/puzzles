@@ -291,11 +291,24 @@ export class CanvasRenderer {
   // --- size ----------------------------------------------------------------
 
   /**
-   * Offer the back end a size to start at. Returning null lets it choose,
-   * which is what upstream's own pages do.
+   * Room the board has been given, in CSS pixels. Set before the puzzle
+   * starts so its first size already fits; null leaves the back end to pick,
+   * which is what upstream's pages get.
    */
+  private available: Size | null = null
+
+  setAvailable(w: number, h: number) {
+    this.available = { w, h }
+  }
+
+  /** Physical pixels, which is what the back end measures in. */
   preferredSize(): Size | null {
-    return null
+    if (!this.available) return null
+    const dpr = window.devicePixelRatio || 1
+    return {
+      w: Math.max(1, Math.round(this.available.w * dpr)),
+      h: Math.max(1, Math.round(this.available.h * dpr)),
+    }
   }
 
   setSize(w: number, h: number, scale: number) {
