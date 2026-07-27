@@ -4,3 +4,6 @@ dist
 *.local
 .DS_Store
 .vercel
+
+# Emscripten SDK and CMake output, created by scripts/build-games.sh.
+.build

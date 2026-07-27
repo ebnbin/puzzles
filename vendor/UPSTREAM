@@ -1,0 +1,21 @@
+Simon Tatham's Portable Puzzle Collection
+=========================================
+
+vendor/sgtpuzzles/ is a verbatim copy of the upstream working tree, with the
+.git directory removed. No local modifications have been made to it.
+
+    repository  https://git.tartarus.org/simon/puzzles.git
+    commit      3c3632259d298ab62aafa8a5858823569ab1af46
+    date        2026-07-19
+    subject     Click-and-type puzzles: clicks outside grid hide cursor
+    licence     MIT (see vendor/sgtpuzzles/LICENCE)
+
+To refresh:
+
+    git clone https://git.tartarus.org/simon/puzzles.git /tmp/sgtpuzzles
+    rm -rf vendor/sgtpuzzles && cp -r /tmp/sgtpuzzles vendor/sgtpuzzles
+    rm -rf vendor/sgtpuzzles/.git
+    ./scripts/build-games.sh
+
+Then update the commit details above and commit both the source and the
+regenerated public/games and public/doc output together.
