@@ -47,21 +47,3 @@ void free_key_labels(char *p)
 {
     sfree(p);
 }
-
-/*
- * Press one of those keys.
- *
- * key() cannot be used for this: it takes a DOM key name and translates it
- * into a midend button, and what get_key_labels() hands out is already a
- * midend button. Round-tripping it back through a key name loses the ones
- * with no DOM spelling — the cursor keys, and anything carrying
- * MOD_NUM_KEYPAD, which the 8-way puzzles need. This is the same two lines
- * key() runs once it has finished translating.
- */
-EMSCRIPTEN_KEEPALIVE
-bool press_key(int button)
-{
-    int result = midend_process_key(me, 0, 0, button);
-    post_move();
-    return result != PKR_UNUSED;
-}

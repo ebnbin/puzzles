@@ -68,12 +68,6 @@ export interface PuzzleApi {
    */
   keyLabels(): KeyLabel[]
 
-  /**
-   * Press one of those keys. Takes the midend button value from a KeyLabel,
-   * not a DOM key name — `key` is for real keyboard events.
-   */
-  pressKey(button: number): boolean
-
   /** Stop the frame timer. Must be called when the puzzle is discarded. */
   stopTimer(): void
 }
@@ -81,7 +75,10 @@ export interface PuzzleApi {
 export interface KeyLabel {
   /** What to show on the key. */
   label: string
-  /** Midend button value, for pressKey. */
+  /**
+   * Midend button value. Every puzzle that asks for keys asks only for
+   * ASCII ones, so this reaches the game as a one-character `key` string.
+   */
   button: number
 }
 

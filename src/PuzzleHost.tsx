@@ -131,7 +131,10 @@ export default function PuzzleHost({ name }: { name: string }) {
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
     if (!api) return
-    api.pressKey(key.button)
+    // Every puzzle that requests keys requests ASCII ones, so the ordinary
+    // key path carries them: a one-character string is taken as the button
+    // itself, and the midend folds 8 and 127 together into backspace.
+    api.key(0, String.fromCharCode(key.button), '', 0, 0, 0)
     canvasRef.current?.focus()
   }, [])
 

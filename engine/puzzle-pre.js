@@ -135,8 +135,6 @@ function initPuzzle() {
             });
         },
 
-        pressKey: Module.cwrap('press_key', 'boolean', ['number']),
-
         stopTimer: function() {
             if (timer !== null) window.cancelAnimationFrame(timer);
             timer = null;
