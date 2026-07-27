@@ -103,8 +103,20 @@ mkdir -p "$OUT_DOC"
 # The link flags go through CMAKE_EXE_LINKER_FLAGS rather than
 # CMAKE_C_LINK_FLAGS: upstream's emscripten.cmake assigns the latter
 # unconditionally, so passing it on the command line would be overwritten.
+#
+# Upstream's cmake names emccpre.js and emcclib.js directly, and emcc appends
+# --pre-js rather than replacing it, so ours cannot simply be added: both
+# would run, and upstream's assignment to Module would discard what the host
+# passed in. Build from a throwaway copy of the tree with the two files
+# swapped instead, which leaves vendor/ untouched and keeps the substitution
+# visible here rather than hidden in a patch.
 echo "==> building ES modules for ${TS_ENGINE_GAMES[*]}"
-emcmake cmake -S "$SRC" -B "$BUILD/esm" -G Ninja \
+rm -rf "$BUILD/src-esm"
+cp -r "$SRC" "$BUILD/src-esm"
+cp "$ROOT/engine/puzzle-pre.js" "$BUILD/src-esm/emccpre.js"
+cp "$ROOT/engine/puzzle-lib.js" "$BUILD/src-esm/emcclib.js"
+
+emcmake cmake -S "$BUILD/src-esm" -B "$BUILD/esm" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DMIN_CHROME_VERSION="$MIN_CHROME_VERSION" \
   -DMIN_FIREFOX_VERSION="$MIN_FIREFOX_VERSION" \

@@ -199,8 +199,8 @@ footer p {
 
 /* --- host for the compiled puzzle --- */
 
-.host[data-status='loading'] {
-  opacity: 0;
+.host[data-ready='false'] .host-board {
+  visibility: hidden;
 }
 
 .host-error {
@@ -209,46 +209,24 @@ footer p {
   font-size: 0.9rem;
 }
 
-/* The module sizes the canvas itself, inline. All we owe it is the font it
-   draws puzzle text in, which upstream also sets here. */
-.host #puzzlecanvas {
+/* The renderer sizes the board itself, inline. All we owe it is the font it
+   draws puzzle text in, which upstream also takes from the canvas. */
+.host-board {
   display: block;
   font-family: sans-serif;
   touch-action: none;
 }
 
-.host #puzzlecanvas:focus-visible {
+.host-board:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
 }
 
-.host #statusbar {
-  overflow: hidden;
-  margin-top: 0.5rem;
+.host-status {
+  min-height: 1.4em;
+  margin: 0.5rem 0 0;
   color: var(--fg-dim);
   font-size: 0.85rem;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* Presets. The module fills this in as <li><label><input type=radio>. */
-.host #gamemenu,
-.host #gamemenu ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.host #gametype {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.9rem;
-  margin: 1rem 0 0;
-  font-size: 0.85rem;
-}
-
-.host #gametype label {
-  cursor: pointer;
 }
 
 .host-controls {
@@ -276,4 +254,105 @@ footer p {
 .host-controls button:disabled {
   color: var(--fg-dim);
   cursor: default;
+}
+
+.host-presets,
+.host-presets ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.9rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.host-presets ul {
+  width: 100%;
+  margin-top: 0.15rem;
+  padding-left: 1rem;
+}
+
+.host-presets label {
+  cursor: pointer;
+}
+
+.host-preset-group {
+  color: var(--fg-dim);
+}
+
+.host-permalinks {
+  margin: 1rem 0 0;
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+}
+
+/* --- dialogs --- */
+
+.dialog-dimmer {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.dialog {
+  max-width: 26rem;
+  padding: 1.25rem;
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
+}
+
+.dialog h2 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.dialog label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.dialog-string input,
+.dialog-choices select {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.dialog-boolean input {
+  margin-right: 0.4rem;
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+}
+
+.dialog-buttons button {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dialog-buttons button[type='submit'] {
+  border-color: var(--link);
+  color: var(--link);
 }
