@@ -30,13 +30,27 @@ const shipped = new Set(
     .map((f) => f.replace(/\.html$/, '')),
 )
 
+// Order the launcher the way the manual orders its chapters, which is roughly
+// the order the puzzles joined the collection — Net first, newest last. The
+// upstream website lists them alphabetically instead; both orders are its own,
+// this one just makes for a friendlier first screen.
+const manual = fs.readFileSync(path.join(root, 'vendor/sgtpuzzles/puzzles.but'), 'utf8')
+const chapters = [...manual.matchAll(/^\\C\{(\w+)\}/gm)].map((m) => m[1])
+const chapterIndex = new Map(chapters.map((name, i) => [name, i]))
+
 const games = declared
   .filter((g) => shipped.has(g.name))
-  .sort((a, b) => a.displayName.localeCompare(b.displayName))
+  .sort((a, b) => chapterIndex.get(a.name) - chapterIndex.get(b.name))
 
 const missing = [...shipped].filter((n) => !games.some((g) => g.name === n))
 if (missing.length) {
   console.error(`no metadata for: ${missing.join(', ')}`)
+  process.exit(1)
+}
+
+const unchaptered = games.filter((g) => !chapterIndex.has(g.name))
+if (unchaptered.length) {
+  console.error(`no manual chapter for: ${unchaptered.map((g) => g.name).join(', ')}`)
   process.exit(1)
 }
 

@@ -1,15 +1,9 @@
 [
   {
-    "name": "blackbox",
-    "displayName": "Black Box",
-    "description": "Ball-finding puzzle",
-    "objective": "Find the hidden balls in the box by bouncing laser beams off them."
-  },
-  {
-    "name": "bridges",
-    "displayName": "Bridges",
-    "description": "Bridge-placing puzzle",
-    "objective": "Connect all the islands with a network of bridges."
+    "name": "net",
+    "displayName": "Net",
+    "description": "Network jigsaw puzzle",
+    "objective": "Rotate each tile to reassemble the network."
   },
   {
     "name": "cube",
@@ -18,160 +12,10 @@
     "objective": "Pick up all the blue squares by rolling the cube over them."
   },
   {
-    "name": "dominosa",
-    "displayName": "Dominosa",
-    "description": "Domino tiling puzzle",
-    "objective": "Tile the rectangle with a full set of dominoes."
-  },
-  {
     "name": "fifteen",
     "displayName": "Fifteen",
     "description": "Sliding block puzzle",
     "objective": "Slide the tiles around to arrange them into order."
-  },
-  {
-    "name": "filling",
-    "displayName": "Filling",
-    "description": "Polyomino puzzle",
-    "objective": "Mark every square with the area of its containing region."
-  },
-  {
-    "name": "flip",
-    "displayName": "Flip",
-    "description": "Tile inversion puzzle",
-    "objective": "Flip groups of squares to light them all up at once."
-  },
-  {
-    "name": "flood",
-    "displayName": "Flood",
-    "description": "Flood-filling puzzle",
-    "objective": "Turn the grid the same colour in as few flood fills as possible."
-  },
-  {
-    "name": "galaxies",
-    "displayName": "Galaxies",
-    "description": "Symmetric polyomino puzzle",
-    "objective": "Divide the grid into rotationally symmetric regions each centred on a dot."
-  },
-  {
-    "name": "guess",
-    "displayName": "Guess",
-    "description": "Combination-guessing puzzle",
-    "objective": "Guess the hidden combination of colours."
-  },
-  {
-    "name": "inertia",
-    "displayName": "Inertia",
-    "description": "Gem-collecting puzzle",
-    "objective": "Collect all the gems without running into any of the mines."
-  },
-  {
-    "name": "keen",
-    "displayName": "Keen",
-    "description": "Arithmetic Latin square puzzle",
-    "objective": "Complete the latin square in accordance with the arithmetic clues."
-  },
-  {
-    "name": "lightup",
-    "displayName": "Light Up",
-    "description": "Light-bulb placing puzzle",
-    "objective": "Place bulbs to light up all the squares."
-  },
-  {
-    "name": "loopy",
-    "displayName": "Loopy",
-    "description": "Loop-drawing puzzle",
-    "objective": "Draw a single closed loop, given clues about number of adjacent edges."
-  },
-  {
-    "name": "magnets",
-    "displayName": "Magnets",
-    "description": "Magnet-placing puzzle",
-    "objective": "Place magnets to satisfy the clues and avoid like poles touching."
-  },
-  {
-    "name": "map",
-    "displayName": "Map",
-    "description": "Map-colouring puzzle",
-    "objective": "Colour the map so that adjacent regions are never the same colour."
-  },
-  {
-    "name": "mines",
-    "displayName": "Mines",
-    "description": "Mine-finding puzzle",
-    "objective": "Find all the mines without treading on any of them."
-  },
-  {
-    "name": "mosaic",
-    "displayName": "Mosaic",
-    "description": "Grid-filling puzzle",
-    "objective": "Fill in the grid given clues about number of nearby black squares."
-  },
-  {
-    "name": "net",
-    "displayName": "Net",
-    "description": "Network jigsaw puzzle",
-    "objective": "Rotate each tile to reassemble the network."
-  },
-  {
-    "name": "netslide",
-    "displayName": "Netslide",
-    "description": "Toroidal sliding network puzzle",
-    "objective": "Slide a row at a time to reassemble the network."
-  },
-  {
-    "name": "palisade",
-    "displayName": "Palisade",
-    "description": "Grid-division puzzle",
-    "objective": "Divide the grid into equal-sized areas in accordance with the clues."
-  },
-  {
-    "name": "pattern",
-    "displayName": "Pattern",
-    "description": "Pattern puzzle",
-    "objective": "Fill in the pattern in the grid, given only the lengths of runs of black squares."
-  },
-  {
-    "name": "pearl",
-    "displayName": "Pearl",
-    "description": "Loop-drawing puzzle",
-    "objective": "Draw a single closed loop, given clues about corner and straight squares."
-  },
-  {
-    "name": "pegs",
-    "displayName": "Pegs",
-    "description": "Peg solitaire puzzle",
-    "objective": "Jump pegs over each other to remove all but one."
-  },
-  {
-    "name": "range",
-    "displayName": "Range",
-    "description": "Visible-distance puzzle",
-    "objective": "Place black squares to limit the visible distance from each numbered cell."
-  },
-  {
-    "name": "rect",
-    "displayName": "Rectangles",
-    "description": "Rectangles puzzle",
-    "objective": "Divide the grid into rectangles with areas equal to the numbers."
-  },
-  {
-    "name": "samegame",
-    "displayName": "Same Game",
-    "description": "Block-clearing puzzle",
-    "objective": "Clear the grid by removing touching groups of the same colour squares."
-  },
-  {
-    "name": "signpost",
-    "displayName": "Signpost",
-    "description": "Square-connecting puzzle",
-    "objective": "Connect the squares into a path following the arrows."
-  },
-  {
-    "name": "singles",
-    "displayName": "Singles",
-    "description": "Number-removing puzzle",
-    "objective": "Black out the right set of duplicate numbers."
   },
   {
     "name": "sixteen",
@@ -180,10 +24,28 @@
     "objective": "Slide a row at a time to arrange the tiles into order."
   },
   {
-    "name": "slant",
-    "displayName": "Slant",
-    "description": "Maze-drawing puzzle",
-    "objective": "Draw a maze of slanting lines that matches the clues."
+    "name": "twiddle",
+    "displayName": "Twiddle",
+    "description": "Rotational sliding block puzzle",
+    "objective": "Rotate the tiles around themselves to arrange them into order."
+  },
+  {
+    "name": "rect",
+    "displayName": "Rectangles",
+    "description": "Rectangles puzzle",
+    "objective": "Divide the grid into rectangles with areas equal to the numbers."
+  },
+  {
+    "name": "netslide",
+    "displayName": "Netslide",
+    "description": "Toroidal sliding network puzzle",
+    "objective": "Slide a row at a time to reassemble the network."
+  },
+  {
+    "name": "pattern",
+    "displayName": "Pattern",
+    "description": "Pattern puzzle",
+    "objective": "Fill in the pattern in the grid, given only the lengths of runs of black squares."
   },
   {
     "name": "solo",
@@ -192,34 +54,94 @@
     "objective": "Fill in the grid so that each row, column and square block contains one of every digit."
   },
   {
+    "name": "mines",
+    "displayName": "Mines",
+    "description": "Mine-finding puzzle",
+    "objective": "Find all the mines without treading on any of them."
+  },
+  {
+    "name": "samegame",
+    "displayName": "Same Game",
+    "description": "Block-clearing puzzle",
+    "objective": "Clear the grid by removing touching groups of the same colour squares."
+  },
+  {
+    "name": "flip",
+    "displayName": "Flip",
+    "description": "Tile inversion puzzle",
+    "objective": "Flip groups of squares to light them all up at once."
+  },
+  {
+    "name": "guess",
+    "displayName": "Guess",
+    "description": "Combination-guessing puzzle",
+    "objective": "Guess the hidden combination of colours."
+  },
+  {
+    "name": "pegs",
+    "displayName": "Pegs",
+    "description": "Peg solitaire puzzle",
+    "objective": "Jump pegs over each other to remove all but one."
+  },
+  {
+    "name": "dominosa",
+    "displayName": "Dominosa",
+    "description": "Domino tiling puzzle",
+    "objective": "Tile the rectangle with a full set of dominoes."
+  },
+  {
+    "name": "untangle",
+    "displayName": "Untangle",
+    "description": "Planar graph layout puzzle",
+    "objective": "Reposition the points so that the lines do not cross."
+  },
+  {
+    "name": "blackbox",
+    "displayName": "Black Box",
+    "description": "Ball-finding puzzle",
+    "objective": "Find the hidden balls in the box by bouncing laser beams off them."
+  },
+  {
+    "name": "slant",
+    "displayName": "Slant",
+    "description": "Maze-drawing puzzle",
+    "objective": "Draw a maze of slanting lines that matches the clues."
+  },
+  {
+    "name": "lightup",
+    "displayName": "Light Up",
+    "description": "Light-bulb placing puzzle",
+    "objective": "Place bulbs to light up all the squares."
+  },
+  {
+    "name": "map",
+    "displayName": "Map",
+    "description": "Map-colouring puzzle",
+    "objective": "Colour the map so that adjacent regions are never the same colour."
+  },
+  {
+    "name": "loopy",
+    "displayName": "Loopy",
+    "description": "Loop-drawing puzzle",
+    "objective": "Draw a single closed loop, given clues about number of adjacent edges."
+  },
+  {
+    "name": "inertia",
+    "displayName": "Inertia",
+    "description": "Gem-collecting puzzle",
+    "objective": "Collect all the gems without running into any of the mines."
+  },
+  {
     "name": "tents",
     "displayName": "Tents",
     "description": "Tent-placing puzzle",
     "objective": "Place a tent next to each tree."
   },
   {
-    "name": "towers",
-    "displayName": "Towers",
-    "description": "Tower-placing Latin square puzzle",
-    "objective": "Complete the latin square of towers in accordance with the clues."
-  },
-  {
-    "name": "tracks",
-    "displayName": "Tracks",
-    "description": "Path-finding railway track puzzle",
-    "objective": "Fill in the railway track according to the clues."
-  },
-  {
-    "name": "twiddle",
-    "displayName": "Twiddle",
-    "description": "Rotational sliding block puzzle",
-    "objective": "Rotate the tiles around themselves to arrange them into order."
-  },
-  {
-    "name": "undead",
-    "displayName": "Undead",
-    "description": "Monster-placing puzzle",
-    "objective": "Place ghosts, vampires and zombies so that the right numbers of them can be seen in mirrors."
+    "name": "bridges",
+    "displayName": "Bridges",
+    "description": "Bridge-placing puzzle",
+    "objective": "Connect all the islands with a network of bridges."
   },
   {
     "name": "unequal",
@@ -228,15 +150,93 @@
     "objective": "Complete the latin square in accordance with the > signs."
   },
   {
+    "name": "galaxies",
+    "displayName": "Galaxies",
+    "description": "Symmetric polyomino puzzle",
+    "objective": "Divide the grid into rotationally symmetric regions each centred on a dot."
+  },
+  {
+    "name": "filling",
+    "displayName": "Filling",
+    "description": "Polyomino puzzle",
+    "objective": "Mark every square with the area of its containing region."
+  },
+  {
+    "name": "keen",
+    "displayName": "Keen",
+    "description": "Arithmetic Latin square puzzle",
+    "objective": "Complete the latin square in accordance with the arithmetic clues."
+  },
+  {
+    "name": "towers",
+    "displayName": "Towers",
+    "description": "Tower-placing Latin square puzzle",
+    "objective": "Complete the latin square of towers in accordance with the clues."
+  },
+  {
+    "name": "singles",
+    "displayName": "Singles",
+    "description": "Number-removing puzzle",
+    "objective": "Black out the right set of duplicate numbers."
+  },
+  {
+    "name": "magnets",
+    "displayName": "Magnets",
+    "description": "Magnet-placing puzzle",
+    "objective": "Place magnets to satisfy the clues and avoid like poles touching."
+  },
+  {
+    "name": "signpost",
+    "displayName": "Signpost",
+    "description": "Square-connecting puzzle",
+    "objective": "Connect the squares into a path following the arrows."
+  },
+  {
+    "name": "range",
+    "displayName": "Range",
+    "description": "Visible-distance puzzle",
+    "objective": "Place black squares to limit the visible distance from each numbered cell."
+  },
+  {
+    "name": "pearl",
+    "displayName": "Pearl",
+    "description": "Loop-drawing puzzle",
+    "objective": "Draw a single closed loop, given clues about corner and straight squares."
+  },
+  {
+    "name": "undead",
+    "displayName": "Undead",
+    "description": "Monster-placing puzzle",
+    "objective": "Place ghosts, vampires and zombies so that the right numbers of them can be seen in mirrors."
+  },
+  {
     "name": "unruly",
     "displayName": "Unruly",
     "description": "Black and white grid puzzle",
     "objective": "Fill in the black and white grid to avoid runs of three."
   },
   {
-    "name": "untangle",
-    "displayName": "Untangle",
-    "description": "Planar graph layout puzzle",
-    "objective": "Reposition the points so that the lines do not cross."
+    "name": "flood",
+    "displayName": "Flood",
+    "description": "Flood-filling puzzle",
+    "objective": "Turn the grid the same colour in as few flood fills as possible."
+  },
+  {
+    "name": "tracks",
+    "displayName": "Tracks",
+    "description": "Path-finding railway track puzzle",
+    "objective": "Fill in the railway track according to the clues."
+  },
+  {
+    "name": "palisade",
+    "displayName": "Palisade",
+    "description": "Grid-division puzzle",
+    "objective": "Divide the grid into equal-sized areas in accordance with the clues."
+  },
+  {
+    "name": "mosaic",
+    "displayName": "Mosaic",
+    "description": "Grid-filling puzzle",
+    "objective": "Fill in the grid given clues about number of nearby black squares."
   }
 ]
