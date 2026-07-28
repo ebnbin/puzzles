@@ -55,6 +55,10 @@ export default function PuzzleHost({ name }: { name: string }) {
         onReady(list, api) {
           apiRef.current = api
           if (!live) return api.stopTimer()
+          // A handle on the running puzzle, for the icon build and the
+          // browser tests: both need to drive a puzzle from outside React —
+          // load a position, step the animation clock, read the board back.
+          window.__puzzle = api
           setPresets(list)
           setReady(true)
         },
@@ -71,6 +75,7 @@ export default function PuzzleHost({ name }: { name: string }) {
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
         onDialog: setDialog,
+        onTimer: (running) => { window.__animating = running },
       },
     })
       .then(({ renderer }) => {
@@ -85,6 +90,7 @@ export default function PuzzleHost({ name }: { name: string }) {
     return () => {
       live = false
       apiRef.current?.stopTimer()
+      delete window.__puzzle
     }
   }, [name])
 

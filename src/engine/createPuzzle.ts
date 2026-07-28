@@ -50,6 +50,7 @@ export async function createPuzzle(options: {
     onPresetSelected: callbacks.onPresetSelected,
     onSolveRemoved: callbacks.onSolveRemoved,
     onDialog: callbacks.onDialog,
+    onTimer: callbacks.onTimer,
 
     focusCanvas() {
       canvas.focus()

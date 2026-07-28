@@ -121,6 +121,11 @@ function initPuzzle() {
             }
         },
 
+        // Advance the animation clock by hand, in seconds. Pair with
+        // stopTimer to take the frame loop away from requestAnimationFrame,
+        // which is how the icon build lands on an exact frame.
+        tick: function(seconds) { timer_callback(seconds); },
+
         stopTimer: function() {
             if (timer !== null) window.cancelAnimationFrame(timer);
             timer = null;

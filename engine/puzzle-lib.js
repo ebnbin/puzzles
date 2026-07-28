@@ -116,6 +116,7 @@ mergeInto(LibraryManager.library, {
      * kept where the host can cancel it on teardown.
      */
     js_activate_timer: function() {
+        PZ.onTimer(true);
         timer_reference = performance.now();
         var frame = function(now) {
             timer = window.requestAnimationFrame(frame);
@@ -129,6 +130,7 @@ mergeInto(LibraryManager.library, {
     js_deactivate_timer: function() {
         if (timer !== null) window.cancelAnimationFrame(timer);
         timer = null;
+        PZ.onTimer(false);
     },
 
     /* ----------------------------------------------------------------

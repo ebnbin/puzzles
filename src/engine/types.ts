@@ -62,6 +62,12 @@ export interface PuzzleApi {
   saveGame(): string
   loadGame(text: string): void
 
+  /**
+   * Advance the animation clock by hand, in seconds. Only meaningful once
+   * stopTimer has taken the frame loop away from requestAnimationFrame.
+   */
+  tick(seconds: number): void
+
   /** Stop the frame timer. Must be called when the puzzle is discarded. */
   stopTimer(): void
 }
@@ -88,4 +94,15 @@ export interface PuzzleCallbacks {
   onPresetSelected(index: number): void
   onSolveRemoved(): void
   onDialog(spec: DialogSpec | null): void
+  /** The puzzle has started or finished animating. */
+  onTimer(running: boolean): void
+}
+
+declare global {
+  interface Window {
+    /** The running puzzle, for the icon build and the browser tests. */
+    __puzzle?: PuzzleApi
+    /** Whether the puzzle is mid-animation. */
+    __animating?: boolean
+  }
 }

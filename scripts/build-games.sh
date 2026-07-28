@@ -146,5 +146,22 @@ done
 echo "==> extracting game metadata"
 node "$ROOT/scripts/extract-games.mjs"
 
+# --- Thumbnails -----------------------------------------------------------
+# Rendered in a browser against a preview of the site, so the site has to be
+# built and served first. See scripts/build-icons.mjs for why they come from
+# upstream's saved positions.
+echo "==> rendering icons"
+npm --prefix "$ROOT" run build
+npm --prefix "$ROOT" exec -- vite preview --port 4173 --strictPort &
+preview=$!
+trap 'kill $preview 2>/dev/null' EXIT
+for _ in $(seq 30); do
+  curl -sf -o /dev/null http://localhost:4173/ && break
+  sleep 1
+done
+node "$ROOT/scripts/build-icons.mjs"
+kill $preview 2>/dev/null
+trap - EXIT
+
 echo
 echo "done: $(ls "$OUT_GAMES"/*.html | wc -l) games, $(ls "$OUT_DOC"/*.html | wc -l) manual pages"

@@ -66,7 +66,9 @@ a {
 }
 
 .games a {
-  display: block;
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
   padding: 0.7rem 0.85rem;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -76,6 +78,19 @@ a {
 
 .games a:hover {
   border-color: var(--link);
+}
+
+/* Rendered from the position upstream picked for each puzzle's icon. */
+.games img {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 4px;
+  background: #e8e8e8;
+}
+
+.games-text {
+  min-width: 0;
 }
 
 .games strong {

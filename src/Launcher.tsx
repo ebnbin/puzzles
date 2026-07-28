@@ -38,8 +38,18 @@ export default function Launcher() {
               href={gameHref(game.name, engine)}
               onClick={ts ? onNavClick : undefined}
             >
-              <strong>{game.displayName}</strong>
-              <span>{game.description}</span>
+              <img
+                src={`/icons/${game.name}.png`}
+                alt=""
+                width={48}
+                height={48}
+                loading="lazy"
+                decoding="async"
+              />
+              <span className="games-text">
+                <strong>{game.displayName}</strong>
+                <span>{game.description}</span>
+              </span>
             </a>
           </li>
         ))}
