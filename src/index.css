@@ -24,6 +24,17 @@
   box-sizing: border-box;
 }
 
+/*
+ * While a puzzle is open, a pull-down must not reload the page — it would
+ * take the position with it. Only the root element's value reaches the
+ * viewport, and only `none` suppresses the refresh; `contain` merely stops
+ * scroll chaining. The class is put on by the puzzle screen, so the launcher
+ * keeps the gesture.
+ */
+html.playing {
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   /* Keep clear of a notch in landscape and the home indicator at the bottom. */
@@ -207,6 +218,22 @@ footer p {
   visibility: hidden;
 }
 
+/*
+ * None of the puzzle screen scrolls, so no swipe across it is a scroll — and
+ * a downward one starting off the board is the easiest way to reload the page
+ * by accident. The scrollable parts, the sheet and the landscape keypad, say
+ * otherwise for themselves.
+ */
+.play-bar,
+.play-board,
+.play-actions,
+.keypad {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* One line: back, which puzzle, how it is going. */
 .play-bar {
   display: flex;
@@ -279,6 +306,9 @@ footer p {
      zoom under a finger that is drawing a line. */
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  /* A long press on the board is our right click. iOS would otherwise answer
+     it with the selection callout, which touch-action does not suppress. */
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -369,6 +399,9 @@ footer p {
   width: 100%;
   max-height: 85dvh;
   overflow-y: auto;
+  /* Reaching the end of the sheet must not start scrolling the page behind
+     it, or hand the gesture on to the browser. */
+  overscroll-behavior: contain;
   padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
   border-radius: 14px 14px 0 0;
   background: var(--bg);
@@ -542,6 +575,9 @@ footer p {
     align-content: center;
     width: 9.5rem;
     overflow-y: auto;
+    /* The only place the keypad scrolls, so the only place it may be panned. */
+    touch-action: pan-y;
+    overscroll-behavior: contain;
     padding: 0.3rem;
   }
 
@@ -587,6 +623,7 @@ footer p {
   max-width: 26rem;
   max-height: 85dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.25rem;
   border-radius: 10px;
   background: var(--bg);

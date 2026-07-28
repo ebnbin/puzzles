@@ -8,6 +8,7 @@ import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { onNavClick } from './router'
 import { useFullscreen } from './useFullscreen'
+import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { contentBox, usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
@@ -53,6 +54,7 @@ export default function PuzzleHost({
   const [menuOpen, setMenuOpen] = useState(false)
 
   const fullscreen = useFullscreen()
+  useNoPullToRefresh()
 
   useEffect(() => {
     // No teardown exists, and StrictMode runs effects twice in development.
