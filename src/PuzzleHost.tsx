@@ -47,6 +47,7 @@ export default function PuzzleHost({
   const apiRef = useRef<PuzzleApi | null>(null)
   const rendererRef = useRef<CanvasRenderer | null>(null)
   const startedRef = useRef(false)
+  const titleRef = useRef<HTMLButtonElement>(null)
 
   const [status, setStatus] = useState<string | null>(null)
   const [presets, setPresets] = useState<Preset[] | null>(null)
@@ -236,6 +237,7 @@ export default function PuzzleHost({
             nothing it was not already spending. */}
         <h1>
           <button
+            ref={titleRef}
             type="button"
             className="play-title"
             aria-haspopup="dialog"
@@ -385,7 +387,11 @@ export default function PuzzleHost({
       )}
 
       {switcherOpen && (
-        <PuzzleSwitcher current={name} onClose={() => setSwitcherOpen(false)} />
+        <PuzzleSwitcher
+          current={name}
+          anchor={titleRef}
+          onClose={() => setSwitcherOpen(false)}
+        />
       )}
 
       {menuOpen && (

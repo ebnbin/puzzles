@@ -814,28 +814,54 @@ footer p {
  * is how much of the collection is in front of you at once.
  */
 
-/* The sheet is the scroll container, so the header sticks to its padding edge
-   — which means the sheet cannot also hold the top padding, or content would
-   show through the gap above the header on the way past. */
-.sheet-switch {
-  padding-top: 0;
+/* Catches the click that dismisses, and nothing else. No dim: this hangs off
+   the title, and darkening the board behind it would say "modal" about a
+   thing you are meant to glance at and let go of. */
+.pop-catcher {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
 }
 
-.sheet-switch .switch-head {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: 0 -1rem;
-  padding: 0.5rem 1rem 0.35rem;
+/* Placed by measurement — top, left, width and max-height all arrive as inline
+   values from the button that opened it. Grown from its top-left corner, which
+   is the corner pinned to the name. */
+.pop {
+  position: fixed;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+  border-radius: var(--r);
   background: var(--surface);
+  box-shadow: var(--shadow-3);
+  transform-origin: top left;
+  animation: pop-in var(--dur) var(--ease) backwards;
 }
 
-.sheet-switch .sheet-handle {
-  margin: 0 -1rem 0.4rem;
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
 }
 
-.sheet-switch h2 {
-  margin: 0;
+/* The list is always longer than the panel, so both edges get a fade: a row
+   cut in half by a hard edge reads as a bug, the same row under a fade reads
+   as "there is more". */
+.pop-switch {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 0.5rem,
+    #000 calc(100% - 0.5rem),
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop {
+    animation: none;
+  }
 }
 
 .switch-grid {
@@ -1324,17 +1350,6 @@ footer p {
     display: none;
   }
 
-  /* Repeated because `.sheet` above resets all four sides, and content
-     scrolling through a padding gap over the pinned header is exactly what
-     the zero is for. */
-  .sheet-switch {
-    padding-top: 0;
-  }
-
-  .sheet-switch .switch-head {
-    margin: 0 -1.25rem;
-    padding: 1.25rem 1.25rem 0.5rem;
-  }
 
   .dialog-buttons {
     justify-content: flex-end;
