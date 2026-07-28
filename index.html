@@ -8,15 +8,36 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafaf9" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101013" />
+    <!-- One value, kept in step with the resolved theme by the script below
+         and by useTheme; a media-scoped pair would ignore a manual choice. -->
+    <meta name="theme-color" content="#fafaf9" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Puzzle" />
+    <meta name="apple-mobile-web-app-title" content="Puzzles" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon.svg" />
-    <title>Puzzle</title>
+    <title>Puzzles</title>
+    <!--
+      Resolve the theme before anything is painted. useTheme does exactly this
+      once React is up; without it here, a reader who has chosen dark — or whose
+      system has — gets a white page for a frame first.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var choice = localStorage.getItem('puzzles.theme')
+          var dark =
+            choice === 'dark' ||
+            (choice !== 'light' &&
+              matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', dark ? '#101013' : '#fafaf9')
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

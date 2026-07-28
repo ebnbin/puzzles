@@ -1,6 +1,6 @@
 {
-  "name": "Puzzle",
-  "short_name": "Puzzle",
+  "name": "Puzzles",
+  "short_name": "Puzzles",
   "description": "Forty logic puzzles, playable offline.",
   "start_url": "/",
   "scope": "/",

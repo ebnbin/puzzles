@@ -78,38 +78,44 @@ a {
 /* --- the gallery -------------------------------------------------------- */
 
 .masthead {
-  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .masthead h1 {
-  margin: 0 0 0.4rem;
+  margin: 0;
   font-size: var(--t-2xl);
   font-weight: 650;
   letter-spacing: -0.025em;
   line-height: 1.15;
 }
 
-.masthead-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 1rem;
-  margin: 0;
-  color: var(--text-2);
-  font-size: var(--t-sm);
-}
+/* --- the two things there are to decide ---------------------------------- */
 
-.engine {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.settings {
   margin-bottom: 1.75rem;
-  padding: 0.8rem 1rem;
   border-radius: var(--r);
   background: var(--surface);
   box-shadow: var(--shadow-1);
-  cursor: pointer;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
   user-select: none;
+}
+
+.setting + .setting {
+  border-top: 1px solid var(--edge);
+}
+
+.engine {
+  cursor: pointer;
 }
 
 .engine input {
@@ -119,14 +125,14 @@ a {
   opacity: 0;
 }
 
-.engine-text {
+.setting-text {
   flex: 1;
   min-width: 0;
   font-size: var(--t-md);
   font-weight: 500;
 }
 
-.engine-text em {
+.setting-text em {
   display: block;
   margin-top: 0.1rem;
   color: var(--text-2);
@@ -170,23 +176,69 @@ a {
   outline-offset: 2px;
 }
 
+/* Three states side by side rather than a menu: the whole point is to see
+   which one is on and change it in a tap. */
+.segmented {
+  display: inline-flex;
+  flex: none;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+}
+
+.segmented label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  min-height: 1.875rem;
+  padding: 0 0.55rem;
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.segmented label[data-selected='true'] {
+  background: var(--raised);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+}
+
+.segmented input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /*
- * Two columns on a phone rather than three: the thumbnail is the reason the
- * grid exists, and at a third of a narrow screen it is back to being a
- * favicon. Six columns by the time there is a desktop's worth of room.
+ * Three across on a phone, seven once there is a desktop's worth of room.
+ * The thumbnail still leads, just at a size that puts a screenful of the
+ * collection in front of you rather than four of it.
  */
 .games {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: 0.6rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* A block rather than a flex column: as a flex item the description's display
+   is blockified, and -webkit-line-clamp stops working. */
 .games a {
-  display: flex;
-  flex-direction: column;
+  display: block;
   height: 100%;
   overflow: hidden;
   border-radius: var(--r);
@@ -216,17 +268,27 @@ a {
 }
 
 .games strong {
-  padding: 0.6rem 0.7rem 0;
-  font-size: var(--t-md);
+  display: block;
+  padding: 0.45rem 0.5rem 0;
+  font-size: var(--t-sm);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
+/* Two lines, then an ellipsis: at this width the longest description would
+   otherwise be four, and the tile would be mostly caption. The space below is
+   a margin rather than padding — the clip happens at the padding box, so a
+   third line would show through it. */
 .games-desc {
-  padding: 0.1rem 0.7rem 0.7rem;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-bottom: 0.55rem;
+  padding: 0.05rem 0.5rem 0;
   color: var(--text-2);
-  font-size: var(--t-xs);
-  line-height: 1.35;
+  font-size: var(--t-2xs);
+  line-height: 1.3;
 }
 
 @media (hover: hover) {
@@ -728,71 +790,6 @@ footer p {
   text-transform: uppercase;
 }
 
-/* One row each for the two addresses this position has. A tap copies the
-   link; the row is still an anchor, so it also has one to copy by hand. */
-.sheet-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: var(--touch);
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text);
-  text-decoration: none;
-  transition: background var(--dur) var(--ease);
-}
-
-.sheet-link + .sheet-link {
-  margin-top: 0.4rem;
-}
-
-@media (hover: hover) {
-  .sheet-link:hover {
-    background: var(--surface-3);
-  }
-}
-
-.sheet-link:active {
-  background: var(--surface-3);
-}
-
-.sheet-link-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.sheet-link-text strong {
-  display: block;
-  font-size: var(--t-sm);
-  font-weight: 500;
-}
-
-/* The id itself, which is long, cryptic and worth a glance to confirm you are
-   copying the right one. */
-.sheet-link-text span {
-  display: block;
-  overflow: hidden;
-  color: var(--text-3);
-  font-size: var(--t-xs);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.sheet-link-copy {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 0.3rem;
-  color: var(--text-2);
-  font-size: var(--t-xs);
-  font-weight: 500;
-}
-
-.sheet-link-copy[data-copied='true'] {
-  color: var(--accent);
-}
 
 /* --- dialogs --- */
 
@@ -909,6 +906,11 @@ footer p {
   background: var(--accent-hover);
 }
 
+/* Neither accepting nor abandoning, so it does not sit with the two that do. */
+.dialog-share[data-copied='true'] {
+  color: var(--accent);
+}
+
 /* The rules, on request from the bar rather than parked in the menu. */
 .dialog-help p {
   margin: 0;
@@ -926,6 +928,11 @@ footer p {
 
   .masthead h1 {
     font-size: var(--t-3xl);
+  }
+
+  .games {
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: 0.75rem;
   }
 
   .play-bar {
@@ -971,6 +978,10 @@ footer p {
 
   .dialog-buttons {
     justify-content: flex-end;
+  }
+
+  .dialog-share {
+    margin-right: auto;
   }
 
   .dialog-buttons button {

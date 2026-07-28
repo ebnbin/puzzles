@@ -46,12 +46,15 @@ export default function PuzzleHost({
   const [canSolve, setCanSolve] = useState(true)
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
-  const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   const [keys, setKeys] = useState<KeyLabel[]>([])
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  // Which of our own actions asked for the dialog currently up. Only the two
+  // that put an address in a field are worth offering to share; the C opens
+  // dialogs for preferences and custom parameters through the same door.
+  const [dialogShareable, setDialogShareable] = useState(false)
 
   const fullscreen = useFullscreen()
   useNoPullToRefresh()
@@ -85,11 +88,13 @@ export default function PuzzleHost({
         onStatus: setStatus,
         onUndoRedo: (undo, redo) => setUndoRedo({ undo, redo }),
         onKeyLabels: () => {},
-        onPermalinks: (desc, seed) => {
-          setPermalink({ desc, seed })
+        onPermalinks: (desc) => {
           // The keypad follows the game id: it is where the grid size lives,
           // and it is reissued whenever the preset changes.
           setKeys(keysFor(name, decodeURIComponent(desc)))
+          // The id is no longer on screen outside its own dialog, and the
+          // browser tests need to know which puzzle they are looking at.
+          window.__gameId = desc
         },
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
@@ -289,13 +294,17 @@ export default function PuzzleHost({
           presets={presets}
           selected={selected}
           canSolve={canSolve}
-          permalink={permalink}
           onSelectPreset={(value) => {
             setSelected(value)
+            // Custom… opens a dialog of its own, which is not an address.
+            setDialogShareable(false)
             act((a) => a.selectPreset(value))
             setMenuOpen(false)
           }}
           onAction={(action) => {
+            setDialogShareable(
+              action === 'enterGameId' || action === 'enterSeed',
+            )
             act((a) => a[action]())
             setMenuOpen(false)
           }}
@@ -306,6 +315,7 @@ export default function PuzzleHost({
       {dialog && apiRef.current && (
         <PuzzleDialog
           spec={dialog}
+          shareable={dialogShareable}
           onOk={() => apiRef.current?.dialogOk()}
           onCancel={() => apiRef.current?.dialogCancel()}
         />

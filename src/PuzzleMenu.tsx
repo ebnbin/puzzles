@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import Icon from './Icon'
 import type { IconName } from './Icon'
 import type { Preset } from './engine/types'
@@ -36,7 +35,6 @@ export default function PuzzleMenu({
   presets,
   selected,
   canSolve,
-  permalink,
   onSelectPreset,
   onAction,
   onClose,
@@ -44,7 +42,6 @@ export default function PuzzleMenu({
   presets: Preset[] | null
   selected: number
   canSolve: boolean
-  permalink?: { desc: string; seed: string | null }
   onSelectPreset: (value: number) => void
   onAction: (action: Action) => void
   onClose: () => void
@@ -91,61 +88,8 @@ export default function PuzzleMenu({
           </section>
         )}
 
-        {permalink && (
-          <section className="sheet-links">
-            <h2>Share</h2>
-            <ShareRow label="Game ID" value={permalink.desc} />
-            {permalink.seed && (
-              <ShareRow label="Random seed" value={permalink.seed} />
-            )}
-          </section>
-        )}
       </div>
     </div>
-  )
-}
-
-/**
- * A link to this exact puzzle, which copies itself.
- *
- * Still an anchor, so its address is real: it can be opened, and the browser's
- * own copy-link is there for anyone who reaches for it. If the clipboard is out
- * of reach — an insecure origin, where it simply does not exist — the click is
- * left alone and the browser puts the link in the address bar instead, which is
- * the next most useful thing that can happen.
- */
-function ShareRow({ label, value }: { label: string; value: string }) {
-  const [copied, setCopied] = useState(false)
-  const href = `#${value}`
-
-  useEffect(() => {
-    if (!copied) return
-    const timer = window.setTimeout(() => setCopied(false), 1600)
-    return () => window.clearTimeout(timer)
-  }, [copied])
-
-  return (
-    <a
-      className="sheet-link"
-      href={href}
-      onClick={(e) => {
-        if (!navigator.clipboard) return
-        e.preventDefault()
-        navigator.clipboard
-          .writeText(new URL(href, window.location.href).href)
-          .then(() => setCopied(true))
-          .catch(() => {})
-      }}
-    >
-      <span className="sheet-link-text">
-        <strong>{label}</strong>
-        <span>{decodeURIComponent(value)}</span>
-      </span>
-      <span className="sheet-link-copy" data-copied={copied}>
-        <Icon name={copied ? 'check' : 'copy'} size={17} />
-        {copied ? 'Copied' : 'Copy'}
-      </span>
-    </a>
   )
 }
 

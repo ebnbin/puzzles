@@ -12,10 +12,15 @@
  * boards. The accent is the collection's own blue — #0000ff, as the puzzles
  * actually draw it — pulled just far enough to be legible as text and spent
  * only on state: what is selected, what has focus, what is on.
+ *
+ * Which of the two is in force is decided in one place — `useTheme` resolves
+ * the reader's choice, or the system's if they have not made one, and writes
+ * `data-theme` on the root before first paint. So there is no media query
+ * here, and no second copy of the dark values guarded by one.
  */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* --- surface ladder ---------------------------------------------------
    * Depth by tone rather than by hairlines. `2` is what a tonal button or a
@@ -25,6 +30,10 @@
   --surface: #ffffff;
   --surface-2: #f0f0ef;
   --surface-3: #e4e4e2;
+  /* Sits on top of `2` and has to read as raised from it. On light that means
+     lighter; on dark it means the other way, which is why this is a token and
+     not just `--surface`. */
+  --raised: #ffffff;
   --edge: #e4e4e2;
   /* `edge` is a hairline between blocks and may be as faint as it likes.
      `edge-strong` draws the boundary of a control — a text field, an
@@ -88,37 +97,37 @@
   --touch: 2.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #101013;
-    --surface: #17171b;
-    --surface-2: #212128;
-    --surface-3: #2c2c34;
-    --edge: #26262d;
-    --edge-strong: #6b6b7d;
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #101013;
+  --surface: #17171b;
+  --surface-2: #212128;
+  --surface-3: #2c2c34;
+  --raised: #2c2c34;
+  --edge: #26262d;
+  --edge-strong: #6b6b7d;
 
-    --text: #ececef;
-    --text-2: #a2a2ad;
-    --text-3: #93939d;
+  --text: #ececef;
+  --text-2: #a2a2ad;
+  --text-3: #93939d;
 
-    --accent: #a6a6ff;
-    --accent-hover: #bcbcff;
-    --accent-on: #14143a;
-    --accent-soft: #23234a;
-    --accent-soft-text: #c3c3ff;
+  --accent: #a6a6ff;
+  --accent-hover: #bcbcff;
+  --accent-on: #14143a;
+  --accent-soft: #23234a;
+  --accent-soft-text: #c3c3ff;
 
-    --danger: #f2b8b5;
+  --danger: #f2b8b5;
 
-    --grid-line: rgb(236 236 239 / 0.05);
+  --grid-line: rgb(236 236 239 / 0.05);
 
-    /* Black shadows are invisible against near-black. Depth comes from the
-       ring and from the surface ladder; the board gets a halo instead,
-       because at #e6e6e6 it really is the brightest thing on screen. */
-    --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.05);
-    --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.7);
-    --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -12px rgb(0 0 0 / 0.8);
-    --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.12),
-      0 8px 24px -6px rgb(0 0 0 / 0.75), 0 0 64px -16px rgb(230 230 230 / 0.22);
-    --scrim: rgb(0 0 0 / 0.6);
-  }
+  /* Black shadows are invisible against near-black. Depth comes from the
+     ring and from the surface ladder; the board gets a halo instead,
+     because at #e6e6e6 it really is the brightest thing on screen. */
+  --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.05);
+  --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.7);
+  --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -12px rgb(0 0 0 / 0.8);
+  --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.12),
+    0 8px 24px -6px rgb(0 0 0 / 0.75), 0 0 64px -16px rgb(230 230 230 / 0.22);
+  --scrim: rgb(0 0 0 / 0.6);
 }

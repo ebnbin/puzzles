@@ -104,5 +104,7 @@ declare global {
     __puzzle?: PuzzleApi
     /** Whether the puzzle is mid-animation. */
     __animating?: boolean
+    /** The current game id, encoded as a permalink fragment. */
+    __gameId?: string
   }
 }

@@ -27,7 +27,7 @@ export type IconName =
   | 'external'
   | 'check'
   | 'help'
-  | 'copy'
+  | 'share'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -133,10 +133,15 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="12" cy="17.1" r="1.05" fill="currentColor" stroke="none" />
     </>
   ),
-  copy: (
+  /* Three nodes and the lines between them — a network, like half the
+     collection. */
+  share: (
     <>
-      <rect x="9" y="9" width="11" height="11" rx="2.5" />
-      <path d="M15 6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15" />
+      <circle cx="17.5" cy="5.5" r="2.75" />
+      <circle cx="6.5" cy="12" r="2.75" />
+      <circle cx="17.5" cy="18.5" r="2.75" />
+      <path d="m9 10.7 6-3.4" />
+      <path d="m9 13.3 6 3.4" />
     </>
   ),
 }
