@@ -1,28 +1,37 @@
+import { useEffect, useState } from 'react'
 import Icon from './Icon'
+import LauncherSettings from './LauncherSettings'
 import games from './games.json'
 import { gameHref, useEngine } from './engine'
 import { onNavClick } from './router'
 import type { Theme } from './useTheme'
-import { useTheme } from './useTheme'
-
-const THEMES: { value: Theme; label: string }[] = [
-  { value: 'system', label: 'System' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-]
 
 /**
  * The gallery.
  *
  * Forty thumbnails rendered from the positions upstream chose are the best
- * thing this app has to show, so they are the thing it shows: art first, on the
- * collection's own grey so each one bleeds to the edges of its tile. Names like
- * Twiddle and Flip tell you nothing on their own, so the description stays.
+ * thing this app has to show, so they are all it shows: art and a name, three
+ * across on a phone, on the collection's own grey so each one bleeds to the
+ * edges of its tile. What each puzzle actually is belongs in the puzzle, where
+ * the manual's own description is a tap away.
  */
-export default function Launcher() {
+export default function Launcher({
+  theme: [theme, setTheme],
+}: {
+  theme: [Theme, (next: Theme) => void]
+}) {
   const [engine, setEngine] = useEngine()
-  const [theme, setTheme] = useTheme()
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const ts = engine === 'ts'
+
+  useEffect(() => {
+    if (!settingsOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSettingsOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [settingsOpen])
 
   return (
     <div className="launcher">
@@ -32,46 +41,17 @@ export default function Launcher() {
           Manual
           <Icon name="external" size={14} />
         </a>
+        <button
+          type="button"
+          className="masthead-icon"
+          aria-label="Settings"
+          aria-haspopup="dialog"
+          aria-expanded={settingsOpen}
+          onClick={() => setSettingsOpen(true)}
+        >
+          <Icon name="prefs" />
+        </button>
       </header>
-
-      <div className="settings">
-        <label className="setting engine">
-          <input
-            type="checkbox"
-            checked={ts}
-            onChange={(e) => setEngine(e.target.checked ? 'ts' : 'wasm')}
-          />
-          {/* Both states say what you get, rather than one of them repeating
-              what the switch already shows. */}
-          <span className="setting-text">
-            New design
-            <em>
-              {ts ? 'Redesigned for phone and desktop' : 'The original layout'}
-            </em>
-          </span>
-          <span className="engine-track" aria-hidden="true">
-            <span className="engine-knob" />
-          </span>
-        </label>
-
-        <div className="setting">
-          <span className="setting-text">Appearance</span>
-          <div className="segmented" role="radiogroup" aria-label="Appearance">
-            {THEMES.map((option) => (
-              <label key={option.value} data-selected={theme === option.value}>
-                <input
-                  type="radio"
-                  name="theme"
-                  value={option.value}
-                  checked={theme === option.value}
-                  onChange={() => setTheme(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
 
       <ul className="games">
         {games.map((game) => (
@@ -93,7 +73,6 @@ export default function Launcher() {
                 />
               </span>
               <strong>{game.displayName}</strong>
-              <span className="games-desc">{game.description}</span>
             </a>
           </li>
         ))}
@@ -112,6 +91,16 @@ export default function Launcher() {
           </a>
         </p>
       </footer>
+
+      {settingsOpen && (
+        <LauncherSettings
+          engine={engine}
+          setEngine={setEngine}
+          theme={theme}
+          setTheme={setTheme}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   )
 }

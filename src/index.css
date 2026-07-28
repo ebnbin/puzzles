@@ -79,13 +79,14 @@ a {
 
 .masthead {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.85rem;
   margin-bottom: 1.25rem;
 }
 
 .masthead h1 {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: var(--t-2xl);
   font-weight: 650;
@@ -93,20 +94,44 @@ a {
   line-height: 1.15;
 }
 
-/* --- the two things there are to decide ---------------------------------- */
-
-.settings {
-  margin-bottom: 1.75rem;
-  border-radius: var(--r);
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
+/* Bare, like the puzzle screen's bar buttons: no fill until touched. */
+.masthead-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
+
+@media (hover: hover) {
+  .masthead-icon:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.masthead-icon:active {
+  background: var(--surface-3);
+  transform: scale(0.92);
+}
+
+/* --- the two things there are to decide, now in their own dialog ---------- */
 
 .setting {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.8rem 1rem;
+  margin: 0;
+  padding: 0.85rem 0;
+  color: var(--text);
+  font-size: var(--t-md);
   user-select: none;
 }
 
@@ -235,8 +260,6 @@ a {
   list-style: none;
 }
 
-/* A block rather than a flex column: as a flex item the description's display
-   is blockified, and -webkit-line-clamp stops working. */
 .games a {
   display: block;
   height: 100%;
@@ -267,28 +290,17 @@ a {
   aspect-ratio: 1;
 }
 
+/* The name and nothing else. What a puzzle is takes a paragraph, not a
+   caption, and there is a paragraph of it a tap away inside the puzzle. */
 .games strong {
   display: block;
-  padding: 0.45rem 0.5rem 0;
+  overflow: hidden;
+  padding: 0.45rem 0.5rem 0.5rem;
   font-size: var(--t-sm);
   font-weight: 600;
   letter-spacing: -0.01em;
-}
-
-/* Two lines, then an ellipsis: at this width the longest description would
-   otherwise be four, and the tile would be mostly caption. The space below is
-   a margin rather than padding — the clip happens at the padding box, so a
-   third line would show through it. */
-.games-desc {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  margin-bottom: 0.55rem;
-  padding: 0.05rem 0.5rem 0;
-  color: var(--text-2);
-  font-size: var(--t-2xs);
-  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 @media (hover: hover) {
@@ -791,6 +803,56 @@ footer p {
 }
 
 
+/* One row each for the two addresses this position has: a verb, not a display.
+   The id itself is thirty characters nobody reads and nobody types. */
+.sheet-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--touch);
+  padding: 0 0.9rem;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: background var(--dur) var(--ease);
+}
+
+.sheet-link + .sheet-link {
+  margin-top: 0.4rem;
+}
+
+@media (hover: hover) {
+  .sheet-link:hover {
+    background: var(--surface-3);
+  }
+}
+
+.sheet-link:active {
+  background: var(--surface-3);
+}
+
+.sheet-link-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+.sheet-link-copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-weight: 500;
+}
+
+.sheet-link-copy[data-copied='true'] {
+  color: var(--accent);
+}
+
 /* --- dialogs --- */
 
 .dialog-dimmer {
@@ -827,7 +889,13 @@ footer p {
   letter-spacing: -0.015em;
 }
 
-.dialog label {
+/* The back end's own control rows, each of which carries its kind as a class.
+   A bare `.dialog label` would also catch the labels inside the settings rows
+   and the segmented control nested in one of them — which is exactly what it
+   was doing. */
+.dialog-string,
+.dialog-choices,
+.dialog-boolean {
   display: block;
   margin-bottom: 0.75rem;
   color: var(--text-2);
@@ -857,10 +925,8 @@ footer p {
   outline-offset: -2px;
 }
 
-/* Scoped past `.dialog label`, which is a class and a type and would
-   otherwise keep this one at `display: block` however far down the file it
-   sits — the reason the box and its label used to sit 3px apart. */
-.dialog .dialog-boolean {
+/* Later than the shared rule above, so this display wins. */
+.dialog-boolean {
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -906,17 +972,77 @@ footer p {
   background: var(--accent-hover);
 }
 
-/* Neither accepting nor abandoning, so it does not sit with the two that do. */
-.dialog-share[data-copied='true'] {
-  color: var(--accent);
-}
-
-/* The rules, on request from the bar rather than parked in the menu. */
-.dialog-help p {
-  margin: 0;
+/* The manual's own prose, on request from the bar. */
+.dialog-prose {
   color: var(--text-2);
   font-size: var(--t-md);
-  line-height: 1.55;
+  line-height: 1.6;
+  /* The chapters cite their sources, and some of those URLs are longer than a
+     phone is wide. */
+  overflow-wrap: break-word;
+}
+
+.dialog-prose p,
+.dialog-prose ul,
+.dialog-prose pre {
+  margin: 0 0 0.8rem;
+}
+
+.dialog-prose > :last-child {
+  margin-bottom: 0;
+}
+
+.dialog-prose ul {
+  padding-left: 1.15rem;
+}
+
+.dialog-prose li {
+  margin-bottom: 0.3rem;
+}
+
+.dialog-prose code,
+.dialog-prose pre {
+  font-size: 0.9em;
+}
+
+.dialog-prose pre {
+  overflow-x: auto;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+/* Long enough to be worth reading in, on a screen that has the room. */
+.dialog-help,
+.dialog-settings {
+  max-width: 30rem;
+}
+
+/* Some chapters run to a screenful and a half, so the prose scrolls inside the
+   dialog rather than the dialog scrolling: the heading and the way out both
+   stay put, which they would not if the whole thing moved. */
+.dialog-help {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dialog-help h2 {
+  flex: none;
+}
+
+.dialog-help .dialog-prose {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog-help .dialog-buttons {
+  flex: none;
+  margin: 0 -1.25rem -1.25rem;
+  padding: 0.85rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--edge);
 }
 
 /* --- pointer devices: more room, smaller targets --- */
@@ -978,10 +1104,6 @@ footer p {
 
   .dialog-buttons {
     justify-content: flex-end;
-  }
-
-  .dialog-share {
-    margin-right: auto;
   }
 
   .dialog-buttons button {

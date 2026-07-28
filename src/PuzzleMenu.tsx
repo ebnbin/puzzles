@@ -1,6 +1,7 @@
 import Icon from './Icon'
 import type { IconName } from './Icon'
 import type { Preset } from './engine/types'
+import { useShare } from './useShare'
 import { useSheetDrag } from './useSheetDrag'
 
 type Action =
@@ -35,6 +36,7 @@ export default function PuzzleMenu({
   presets,
   selected,
   canSolve,
+  permalink,
   onSelectPreset,
   onAction,
   onClose,
@@ -42,6 +44,7 @@ export default function PuzzleMenu({
   presets: Preset[] | null
   selected: number
   canSolve: boolean
+  permalink?: { desc: string; seed: string | null }
   onSelectPreset: (value: number) => void
   onAction: (action: Action) => void
   onClose: () => void
@@ -88,8 +91,53 @@ export default function PuzzleMenu({
           </section>
         )}
 
+        {permalink && (
+          <section className="sheet-links">
+            <h2>Share</h2>
+            <ShareRow label="Game ID" value={permalink.desc} />
+            {permalink.seed && (
+              <ShareRow label="Random seed" value={permalink.seed} />
+            )}
+          </section>
+        )}
       </div>
     </div>
+  )
+}
+
+/**
+ * A link to this exact puzzle, which hands itself out.
+ *
+ * The address is not shown. It is thirty characters of base-36 that nobody
+ * reads and nobody types — the row is a verb, not a display — and either of
+ * these two is the whole game, so they get a row each rather than one button
+ * and a choice.
+ *
+ * Still an anchor, so the address is real: it can be opened, and the browser's
+ * own copy-link is there for anyone who reaches for it. If there is no share
+ * sheet and no clipboard — an insecure origin — the click is left alone, and
+ * the browser puts the link in the address bar instead.
+ */
+function ShareRow({ label, value }: { label: string; value: string }) {
+  const { share, copied } = useShare()
+  const href = `#${value}`
+
+  return (
+    <a
+      className="sheet-link"
+      href={href}
+      onClick={(e) => {
+        if (!navigator.share && !navigator.clipboard) return
+        e.preventDefault()
+        share(new URL(href, window.location.href).href, label)
+      }}
+    >
+      <span className="sheet-link-text">{label}</span>
+      <span className="sheet-link-copy" data-copied={copied}>
+        <Icon name={copied ? 'check' : 'share'} size={17} />
+        {copied ? 'Copied' : 'Share'}
+      </span>
+    </a>
   )
 }
 
