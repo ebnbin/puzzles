@@ -845,19 +845,6 @@ footer p {
   }
 }
 
-/* The list is always longer than the panel, so both edges get a fade: a row
-   cut in half by a hard edge reads as a bug, the same row under a fade reads
-   as "there is more". */
-.pop-switch {
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0,
-    #000 0.5rem,
-    #000 calc(100% - 0.5rem),
-    transparent 100%
-  );
-}
-
 @media (prefers-reduced-motion: reduce) {
   .pop {
     animation: none;
@@ -873,14 +860,20 @@ footer p {
   list-style: none;
 }
 
+/* Each one a card with its own edges. That is what lets the panel stop
+   halfway down a row: a half card is obviously a card that continues, where a
+   half of something unbounded is just a rendering fault. */
 .switch-grid a {
   display: block;
-  padding: 0.25rem 0.15rem 0.3rem;
+  padding: 0.3rem 0.3rem 0.35rem;
   border-radius: var(--r-sm);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--edge);
   color: var(--text);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 
 /* The board's own grey under every thumbnail, so the art bleeds to the tile's
@@ -913,10 +906,11 @@ footer p {
   white-space: nowrap;
 }
 
-/* Where you already are. A ring rather than a fill: the thumbnail is the
-   thing being marked, and a fill behind it would tint the art. */
-.switch-grid a[aria-current='page'] .switch-art {
-  box-shadow: 0 0 0 2px var(--accent);
+/* Where you already are: the card's own edge, drawn in the accent and drawn
+   heavier. Marking the card rather than the art keeps the ring off the
+   picture, which has enough going on. */
+.switch-grid a[aria-current='page'] {
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .switch-grid a[aria-current='page'] .switch-name {
@@ -926,12 +920,13 @@ footer p {
 
 @media (hover: hover) {
   .switch-grid a:hover {
-    background: var(--surface-2);
+    background: var(--surface-3);
   }
 }
 
 .switch-grid a:active {
   background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--edge-strong);
 }
 
 .sheet p {

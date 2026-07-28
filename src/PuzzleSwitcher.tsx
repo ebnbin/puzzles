@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gameHref } from './engine'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
@@ -28,13 +28,18 @@ const MARGIN = 8
 const GAP = 6
 const MAX_WIDTH_REM = 26
 /**
- * A panel, not a screen. Four rows or so, with the next one cut off at the
- * bottom so it is obvious there is more — and enough of the board still
- * showing that you have not lost the thing you were looking at.
+ * A panel, not a screen: three whole rows and half of the fourth. The half is
+ * the point — a row cut across the middle is the plainest possible statement
+ * that the list continues, and it costs nothing to read because each tile is
+ * a card with its own edges. Whole rows and a flush bottom would say the
+ * opposite, which would be a lie ten rows long.
  */
+const ROWS = 3
+
+/** Never past this, however tall the tiles come out. */
 const MAX_HEIGHT_VH = 0.6
 
-type Placement = { top: number; left: number; width: number; maxHeight: number }
+type Placement = { top: number; left: number; width: number }
 
 function place(anchor: HTMLElement | null): Placement {
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
@@ -48,8 +53,29 @@ function place(anchor: HTMLElement | null): Placement {
     Math.max(MARGIN, box ? box.left : MARGIN),
     view.w - MARGIN - width,
   )
-  const maxHeight = Math.min(view.h - top - MARGIN, view.h * MAX_HEIGHT_VH)
-  return { top, left, width, maxHeight }
+  return { top, left, width }
+}
+
+/**
+ * How tall three and a half rows of whatever the grid decided on comes to.
+ *
+ * Measured rather than worked out: the column count is `auto-fill`'s to
+ * choose, and re-deriving its arithmetic here would be a second copy of the
+ * layout that could disagree with the first.
+ */
+function fit(panel: HTMLElement, grid: HTMLElement, top: number) {
+  const items = [...grid.children] as HTMLElement[]
+  const first = items[0]
+  const wrapped = first && items.find((el) => el.offsetTop > first.offsetTop)
+  if (!first || !wrapped) return
+  // Layout metrics, not painted ones: this runs while the opening animation
+  // still has the panel at scale(0.97), and a measured rectangle would come
+  // back three per cent short.
+  const pitch = wrapped.offsetTop - first.offsetTop
+  const padding = parseFloat(getComputedStyle(panel).paddingTop) || 0
+  const rows = padding + pitch * ROWS + first.offsetHeight / 2
+  const room = window.innerHeight - top - MARGIN
+  panel.style.maxHeight = `${Math.min(rows, room, window.innerHeight * MAX_HEIGHT_VH)}px`
 }
 
 export default function PuzzleSwitcher({
@@ -64,6 +90,8 @@ export default function PuzzleSwitcher({
   const t = useStrings()
   const games = useGames()
   const currentRef = useRef<HTMLAnchorElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLUListElement>(null)
   // The trigger is already on screen, so the first render can be in the right
   // place — no frame at the top-left corner on the way there.
   const [at, setAt] = useState<Placement>(() => place(anchor.current))
@@ -74,28 +102,33 @@ export default function PuzzleSwitcher({
     return () => window.removeEventListener('resize', remeasure)
   }, [anchor])
 
+  // Keyed on the width, which is what decides how many columns `auto-fill`
+  // lays out and therefore how tall a row is. Before paint, so the panel is
+  // never shown at one height and then another.
+  useLayoutEffect(() => {
+    if (panelRef.current && gridRef.current)
+      fit(panelRef.current, gridRef.current, at.top)
+  }, [at.width, at.top])
+
   // Open on the puzzle you are playing, wherever it falls in the list — the
-  // one at the bottom should not need a scroll to be found.
-  useEffect(() => {
+  // one at the bottom should not need a scroll to be found. After the height
+  // is settled, or it would centre against the wrong box.
+  useLayoutEffect(() => {
     currentRef.current?.scrollIntoView({ block: 'center' })
   }, [])
 
   return (
     <div className="pop-catcher" onClick={onClose}>
       <div
+        ref={panelRef}
         className="pop pop-switch"
         role="dialog"
         aria-modal="true"
         aria-label={t.play.switcher}
-        style={{
-          top: at.top,
-          left: at.left,
-          width: at.width,
-          maxHeight: at.maxHeight,
-        }}
+        style={{ top: at.top, left: at.left, width: at.width }}
         onClick={(e) => e.stopPropagation()}
       >
-        <ul className="switch-grid">
+        <ul className="switch-grid" ref={gridRef}>
           {games.map((game) => {
             const here = game.name === current
             return (
