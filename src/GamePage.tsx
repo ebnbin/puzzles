@@ -1,6 +1,6 @@
 import games from './games.json'
-import { gameHref } from './engine'
 import PuzzleHost from './PuzzleHost'
+import { gameHref } from './engine'
 import { onNavClick } from './router'
 
 /**
@@ -26,18 +26,11 @@ export default function GamePage({ name }: { name: string }) {
   }
 
   return (
-    <main className="game">
-      <nav>
-        <a href="/" onClick={onNavClick}>
-          ← All puzzles
-        </a>
-        <a href={gameHref(game.name, 'wasm')}>Compare with the original page</a>
-      </nav>
-
-      <h1>{game.displayName}</h1>
-      <p className="objective">{game.objective}</p>
-
-      <PuzzleHost name={game.name} />
-    </main>
+    <PuzzleHost
+      name={game.name}
+      title={game.displayName}
+      objective={game.objective}
+      compareHref={gameHref(game.name, 'wasm')}
+    />
   )
 }

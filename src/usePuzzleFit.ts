@@ -2,6 +2,27 @@ import { useEffect } from 'react'
 import type { PuzzleApi } from './engine/types'
 
 /**
+ * The room inside an element, padding excluded.
+ *
+ * getBoundingClientRect measures the border box, which is not where the board
+ * goes: sizing the puzzle to that puts it over the padding and the overflow is
+ * silently clipped.
+ */
+export function contentBox(element: HTMLElement) {
+  const style = getComputedStyle(element)
+  return {
+    width:
+      element.clientWidth -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight),
+    height:
+      element.clientHeight -
+      parseFloat(style.paddingTop) -
+      parseFloat(style.paddingBottom),
+  }
+}
+
+/**
  * Keep the board sized to the room it has been given.
  *
  * Upstream's pages let the back end pick a size once and leave it: fine on a
@@ -25,7 +46,7 @@ export function usePuzzleFit(
     const fit = () => {
       const api = apiRef.current
       if (!api) return
-      const { width, height } = area.getBoundingClientRect()
+      const { width, height } = contentBox(area)
       if (width < 1 || height < 1) return
       const key = `${Math.round(width)}x${Math.round(height)}`
       if (key === last) return

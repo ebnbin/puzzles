@@ -1,21 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
+import PuzzleMenu from './PuzzleMenu'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
-import { usePuzzleFit } from './usePuzzleFit'
+import { onNavClick } from './router'
+import { useFullscreen } from './useFullscreen'
+import { contentBox, usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 /**
- * A compiled puzzle, hosted entirely by React.
+ * A puzzle, hosted entirely by React.
  *
- * The C code hands over presets, status text, undo state and dialogs as data;
- * everything below is ordinary React. The board is a canvas because the back
- * end draws in immediate mode, and our renderer paints it.
+ * The screen is laid out for the board's benefit: one line of bar above, the
+ * two controls worth reaching for below, and the board taking everything left
+ * over. Everything else lives in a sheet that covers the board only while it
+ * is open, so none of it costs the puzzle any room.
+ *
+ * What sits on the bottom row is a judgement about frequency, not importance.
+ * Undo is pressed constantly. New game is pressed once a sitting and throws
+ * the position away if hit by mistake, so it is behind the menu.
  */
-export default function PuzzleHost({ name }: { name: string }) {
+export default function PuzzleHost({
+  name,
+  title,
+  objective,
+  compareHref,
+}: {
+  name: string
+  title: string
+  objective: string
+  compareHref: string
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const areaRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<PuzzleApi | null>(null)
@@ -32,7 +50,9 @@ export default function PuzzleHost({ name }: { name: string }) {
   const [keys, setKeys] = useState<KeyLabel[]>([])
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
-  const [showMore, setShowMore] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const fullscreen = useFullscreen()
 
   useEffect(() => {
     // No teardown exists, and StrictMode runs effects twice in development.
@@ -48,16 +68,13 @@ export default function PuzzleHost({ name }: { name: string }) {
       name,
       canvas,
       gameId: decodeURIComponent(window.location.hash.replace(/^#/, '')),
-      // Start at the size it will settle at, rather than resizing on the
-      // first frame.
-      available: area.getBoundingClientRect(),
+      available: contentBox(area),
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
           if (!live) return api.stopTimer()
           // A handle on the running puzzle, for the icon build and the
-          // browser tests: both need to drive a puzzle from outside React —
-          // load a position, step the animation clock, read the board back.
+          // browser tests: both need to drive a puzzle from outside React.
           window.__puzzle = api
           setPresets(list)
           setReady(true)
@@ -75,17 +92,19 @@ export default function PuzzleHost({ name }: { name: string }) {
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
         onDialog: setDialog,
-        onTimer: (running) => { window.__animating = running },
+        onTimer: (running) => {
+          window.__animating = running
+        },
       },
     })
       .then(({ renderer }) => {
         rendererRef.current = renderer
       })
       .catch((err) => {
-      if (!live) return
-      console.error(`could not start ${name}`, err)
-      setError('Could not start the puzzle. See the console.')
-    })
+        if (!live) return
+        console.error(`could not start ${name}`, err)
+        setError('Could not start the puzzle. See the console.')
+      })
 
     return () => {
       live = false
@@ -97,10 +116,9 @@ export default function PuzzleHost({ name }: { name: string }) {
   usePuzzleFit(areaRef, apiRef, ready)
   const pointer = usePuzzlePointer(apiRef, rendererRef)
 
+  /** A dialog is modal to the game; the C side is waiting for its answer. */
   const act = useCallback(
-    (fn: (api: PuzzleApi) => void) => () => {
-      // A dialog is modal to the game: the C side is waiting for its answer
-      // and will not accept anything else meanwhile.
+    (fn: (api: PuzzleApi) => void) => {
       if (!apiRef.current || dialog) return
       fn(apiRef.current)
       canvasRef.current?.focus()
@@ -115,12 +133,19 @@ export default function PuzzleHost({ name }: { name: string }) {
       e.preventDefault()
   }, [])
 
-  // Desktop shortcuts, on the page rather than the board so they work
-  // wherever focus is. Skipped while a dialog is up or a field has focus.
+  // Shortcuts on the page rather than the board, so they work wherever focus
+  // is. Skipped while a dialog is up or a field has focus.
   useEffect(() => {
     if (!ready) return
     const onKey = (e: KeyboardEvent) => {
       if (dialog || e.metaKey || e.ctrlKey || e.altKey) return
+      // Escape dismisses wherever focus is — including on a control inside
+      // the sheet, which is exactly where it will be after picking a preset.
+      if (e.key === 'Escape' && menuOpen) {
+        setMenuOpen(false)
+        e.preventDefault()
+        return
+      }
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
       const api = apiRef.current
@@ -129,6 +154,7 @@ export default function PuzzleHost({ name }: { name: string }) {
         u: () => api.undo(),
         r: () => api.redo(),
         n: () => api.newGame(),
+        f: () => fullscreen.toggle(),
       }
       const run = shortcut[e.key.toLowerCase()]
       if (!run) return
@@ -137,7 +163,7 @@ export default function PuzzleHost({ name }: { name: string }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, dialog])
+  }, [ready, dialog, menuOpen, fullscreen])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
@@ -150,10 +176,20 @@ export default function PuzzleHost({ name }: { name: string }) {
   }, [])
 
   return (
-    <div className="host" data-ready={ready}>
-      {error && <p className="host-error">{error}</p>}
+    <div className="play" data-ready={ready}>
+      <header className="play-bar">
+        <a className="play-back" href="/" onClick={onNavClick} aria-label="All puzzles">
+          ←
+        </a>
+        <h1>{title}</h1>
+        <span className="play-status" aria-live="polite">
+          {status}
+        </span>
+      </header>
 
-      <div className="host-board-area" ref={areaRef}>
+      {error && <p className="play-error">{error}</p>}
+
+      <div className="play-board" ref={areaRef}>
         <canvas
           ref={canvasRef}
           className="host-board"
@@ -164,64 +200,64 @@ export default function PuzzleHost({ name }: { name: string }) {
         />
       </div>
 
-      <p className="host-status" aria-live="polite">{status}</p>
-
       <PuzzleKeypad keys={keys} onPress={pressKey} />
 
-      <div className="host-controls">
-        <button type="button" onClick={act((a) => a.newGame())}>New</button>
-        <button type="button" disabled={!undoRedo.undo} onClick={act((a) => a.undo())}>
+      <nav className="play-actions">
+        <button
+          type="button"
+          disabled={!undoRedo.undo}
+          onClick={() => act((a) => a.undo())}
+        >
           Undo
-        </button>
-        <button type="button" disabled={!undoRedo.redo} onClick={act((a) => a.redo())}>
-          Redo
         </button>
         <button
           type="button"
-          aria-expanded={showMore}
-          onClick={() => setShowMore((v) => !v)}
+          disabled={!undoRedo.redo}
+          onClick={() => act((a) => a.redo())}
         >
-          More…
+          Redo
         </button>
-      </div>
+        {fullscreen.supported && (
+          <button
+            type="button"
+            className="play-icon"
+            aria-label={fullscreen.active ? 'Leave fullscreen' : 'Fullscreen'}
+            aria-pressed={fullscreen.active}
+            onClick={fullscreen.toggle}
+          >
+            {fullscreen.active ? '⤡' : '⤢'}
+          </button>
+        )}
+        <button
+          type="button"
+          className="play-icon"
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(true)}
+        >
+          ☰
+        </button>
+      </nav>
 
-      {showMore && (
-        <div className="host-more">
-          <div className="host-controls">
-            <button type="button" onClick={act((a) => a.restart())}>Restart</button>
-            {canSolve && (
-              <button type="button" onClick={act((a) => a.solve())}>Solve</button>
-            )}
-            <button type="button" onClick={act((a) => a.enterGameId())}>Game ID…</button>
-            <button type="button" onClick={act((a) => a.enterSeed())}>Seed…</button>
-            <button type="button" onClick={act((a) => a.preferences())}>
-              Preferences…
-            </button>
-          </div>
-
-          {presets && (
-            <PresetList
-              presets={presets}
-              selected={selected}
-              onSelect={(value) => {
-                setSelected(value)
-                apiRef.current?.selectPreset(value)
-              }}
-            />
-          )}
-
-          {permalink && (
-            <p className="host-permalinks">
-              Link to this puzzle: <a href={`#${permalink.desc}`}>by game ID</a>
-              {permalink.seed && (
-                <>
-                  {' · '}
-                  <a href={`#${permalink.seed}`}>by random seed</a>
-                </>
-              )}
-            </p>
-          )}
-        </div>
+      {menuOpen && (
+        <PuzzleMenu
+          objective={objective}
+          presets={presets}
+          selected={selected}
+          canSolve={canSolve}
+          permalink={permalink}
+          compareHref={compareHref}
+          onSelectPreset={(value) => {
+            setSelected(value)
+            act((a) => a.selectPreset(value))
+            setMenuOpen(false)
+          }}
+          onAction={(action) => {
+            act((a) => a[action]())
+            setMenuOpen(false)
+          }}
+          onClose={() => setMenuOpen(false)}
+        />
       )}
 
       {dialog && apiRef.current && (
@@ -232,45 +268,5 @@ export default function PuzzleHost({ name }: { name: string }) {
         />
       )}
     </div>
-  )
-}
-
-/** Presets can nest; render the tree as grouped radios. */
-function PresetList({
-  presets,
-  selected,
-  onSelect,
-}: {
-  presets: Preset[]
-  selected: number
-  onSelect: (value: number) => void
-}) {
-  return (
-    <ul className="host-presets">
-      {presets.map((preset, i) => (
-        <li key={i}>
-          {preset.submenu ? (
-            <>
-              <span className="host-preset-group">{preset.name}</span>
-              <PresetList
-                presets={preset.submenu}
-                selected={selected}
-                onSelect={onSelect}
-              />
-            </>
-          ) : (
-            <label>
-              <input
-                type="radio"
-                name="preset"
-                checked={selected === preset.value}
-                onChange={() => preset.value !== null && onSelect(preset.value)}
-              />
-              {preset.name}
-            </label>
-          )}
-        </li>
-      ))}
-    </ul>
   )
 }
