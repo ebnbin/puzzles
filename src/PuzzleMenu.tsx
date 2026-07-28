@@ -1,6 +1,7 @@
 import Icon from './Icon'
 import type { IconName } from './Icon'
 import type { Preset } from './engine/types'
+import { useStrings } from './i18n'
 import { useShare } from './useShare'
 import { useSheetDrag } from './useSheetDrag'
 
@@ -12,13 +13,14 @@ type Action =
   | 'enterSeed'
   | 'preferences'
 
-const ACTIONS: { action: Action; label: string; icon: IconName }[] = [
-  { action: 'newGame', label: 'New game', icon: 'add' },
-  { action: 'restart', label: 'Restart', icon: 'restart' },
-  { action: 'solve', label: 'Solve', icon: 'solve' },
-  { action: 'enterGameId', label: 'Game ID…', icon: 'gameId' },
-  { action: 'enterSeed', label: 'Seed…', icon: 'seed' },
-  { action: 'preferences', label: 'Preferences…', icon: 'prefs' },
+/** The label is looked up by the same name the action goes by. */
+const ACTIONS: { action: Action; icon: IconName }[] = [
+  { action: 'newGame', icon: 'add' },
+  { action: 'restart', icon: 'restart' },
+  { action: 'solve', icon: 'solve' },
+  { action: 'enterGameId', icon: 'gameId' },
+  { action: 'enterSeed', icon: 'seed' },
+  { action: 'preferences', icon: 'prefs' },
 ]
 
 /**
@@ -50,6 +52,7 @@ export default function PuzzleMenu({
   onClose: () => void
 }) {
   const { ref, handlers } = useSheetDrag(onClose)
+  const t = useStrings()
 
   return (
     <div className="sheet-dimmer" onClick={onClose}>
@@ -57,7 +60,7 @@ export default function PuzzleMenu({
         className="sheet"
         role="dialog"
         aria-modal="true"
-        aria-label="Puzzle menu"
+        aria-label={t.menu.title}
         ref={ref}
         onClick={(e) => e.stopPropagation()}
         {...handlers}
@@ -75,14 +78,14 @@ export default function PuzzleMenu({
               onClick={() => onAction(a.action)}
             >
               <Icon name={a.icon} />
-              {a.label}
+              {t.menu[a.action]}
             </button>
           ))}
         </div>
 
         {presets && (
           <section>
-            <h2>Type</h2>
+            <h2>{t.menu.type}</h2>
             <PresetList
               presets={presets}
               selected={selected}
@@ -93,10 +96,10 @@ export default function PuzzleMenu({
 
         {permalink && (
           <section className="sheet-links">
-            <h2>Share</h2>
-            <ShareRow label="Game ID" value={permalink.desc} />
+            <h2>{t.menu.share}</h2>
+            <ShareRow label={t.menu.gameId} value={permalink.desc} />
             {permalink.seed && (
-              <ShareRow label="Random seed" value={permalink.seed} />
+              <ShareRow label={t.menu.seed} value={permalink.seed} />
             )}
           </section>
         )}

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useLang } from './i18n'
+import type { Lang } from './i18n'
 
 /**
  * How to play, in upstream's own words.
@@ -11,32 +13,43 @@ import { useEffect, useState } from 'react'
  *
  * The markup is narrow by construction: the extraction keeps a handful of tags
  * and no attribute but `href`.
+ *
+ * One file per language, fetched only if that language is asked for, and each
+ * remembered once fetched — switching back and forth costs nothing after the
+ * first time.
  */
 
-let pending: Promise<Record<string, string>> | null = null
+const FILE: Record<Lang, string> = {
+  en: '/help.json',
+  zh: '/help.zh.json',
+}
+
+const pending: Partial<Record<Lang, Promise<Record<string, string>>>> = {}
 
 export function useHelp(name: string) {
+  const [lang] = useLang()
   const [html, setHtml] = useState<string | null>(null)
 
   useEffect(() => {
     let live = true
-    pending ??= fetch('/help.json').then((response) => {
-      if (!response.ok) throw new Error(`help.json: ${response.status}`)
+    setHtml(null)
+    pending[lang] ??= fetch(FILE[lang]).then((response) => {
+      if (!response.ok) throw new Error(`${FILE[lang]}: ${response.status}`)
       return response.json()
     })
-    pending
+    pending[lang]
       .then((all) => {
         if (live) setHtml(all[name] ?? null)
       })
       .catch(() => {
         // Let the next reader try again; the caller has the one-line
         // description to fall back on meanwhile.
-        pending = null
+        pending[lang] = undefined
       })
     return () => {
       live = false
     }
-  }, [name])
+  }, [name, lang])
 
   return html
 }

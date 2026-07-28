@@ -124,3 +124,26 @@ const help = Object.fromEntries(games.map((g) => [g.name, helpFor(g.name)]))
 const helpPath = path.join(root, 'public/help.json')
 fs.writeFileSync(helpPath, JSON.stringify(help) + '\n')
 console.log(`wrote public/help.json (${Math.round(fs.statSync(helpPath).size / 1024)} KB)`)
+
+/*
+ * Both files have a translated companion that is written by hand and cannot
+ * be regenerated from upstream. Nothing downstream would notice a puzzle that
+ * gained an entry here and not there — the app would simply fall back to
+ * English for it — so say so here, where the drift starts.
+ */
+for (const [source, companion] of [
+  ['src/games.json', 'src/games.zh.json'],
+  ['public/help.json', 'public/help.zh.json'],
+]) {
+  const translated = JSON.parse(fs.readFileSync(path.join(root, companion), 'utf8'))
+  const missing = games.map((g) => g.name).filter((name) => !(name in translated))
+  const extra = Object.keys(translated).filter(
+    (name) => !games.some((g) => g.name === name),
+  )
+  if (missing.length || extra.length)
+    console.warn(
+      `${companion} is out of step with ${source}:` +
+        (missing.length ? ` missing ${missing.join(', ')};` : '') +
+        (extra.length ? ` stale ${extra.join(', ')};` : ''),
+    )
+}

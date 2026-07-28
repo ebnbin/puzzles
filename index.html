@@ -19,9 +19,10 @@
     <link rel="apple-touch-icon" href="/icon.svg" />
     <title>Puzzles</title>
     <!--
-      Resolve the theme before anything is painted. useTheme does exactly this
-      once React is up; without it here, a reader who has chosen dark — or whose
-      system has — gets a white page for a frame first.
+      Resolve the theme and the language before anything is painted. useTheme
+      and i18n do exactly this once React is up; without it here, a reader who
+      has chosen dark — or whose system has — gets a white page for a frame
+      first, and the document claims to be in English until the bundle runs.
     -->
     <script>
       ;(function () {
@@ -35,6 +36,12 @@
           document
             .querySelector('meta[name="theme-color"]')
             .setAttribute('content', dark ? '#101013' : '#fafaf9')
+        } catch (e) {}
+        try {
+          var lang = localStorage.getItem('puzzles.lang')
+          if (lang !== 'en' && lang !== 'zh')
+            lang = /^zh/i.test(navigator.language || '') ? 'zh' : 'en'
+          document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en'
         } catch (e) {}
       })()
     </script>

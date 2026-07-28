@@ -1,5 +1,6 @@
-import games from './games.json'
 import PuzzleHost from './PuzzleHost'
+import { useStrings } from './i18n'
+import { useGame } from './i18n/games'
 import { onNavClick } from './router'
 
 /**
@@ -8,16 +9,17 @@ import { onNavClick } from './router'
  * TypeScript is to replace piece by piece.
  */
 export default function GamePage({ name }: { name: string }) {
-  const game = games.find((g) => g.name === name)
+  const t = useStrings()
+  const game = useGame(name)
 
   if (!game) {
     return (
       <main className="game">
-        <h1>Not found</h1>
+        <h1>{t.notFound.title}</h1>
         <p>
-          There is no puzzle called “{name}”.{' '}
+          {t.notFound.body(name)}{' '}
           <a href="/" onClick={onNavClick}>
-            Back to the list
+            {t.notFound.back}
           </a>
         </p>
       </main>

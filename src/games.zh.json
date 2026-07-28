@@ -1,0 +1,162 @@
+{
+  "net": {
+    "description": "网络拼图游戏",
+    "objective": "旋转每个方块，重新拼合出完整的网络。"
+  },
+  "cube": {
+    "description": "滚动立方体游戏",
+    "objective": "让立方体滚过所有蓝色方格，将它们全部拾起。"
+  },
+  "fifteen": {
+    "description": "滑块游戏",
+    "objective": "滑动方块，把它们排成正确的顺序。"
+  },
+  "sixteen": {
+    "description": "环形滑块游戏",
+    "objective": "每次滑动一行，把方块排成正确的顺序。"
+  },
+  "twiddle": {
+    "description": "旋转滑块游戏",
+    "objective": "就地旋转方块，把它们排成正确的顺序。"
+  },
+  "rect": {
+    "description": "矩形游戏",
+    "objective": "把网格划分成若干矩形，使每个矩形的面积等于其中的数字。"
+  },
+  "netslide": {
+    "description": "环形滑动网络游戏",
+    "objective": "每次滑动一行，重新拼合出完整的网络。"
+  },
+  "pattern": {
+    "description": "图案游戏",
+    "objective": "仅根据黑色方格连续段的长度，在网格中填出图案。"
+  },
+  "solo": {
+    "description": "数字放置游戏",
+    "objective": "填满网格，使每一行、每一列和每个方形子块中每个数字都恰好出现一次。"
+  },
+  "mines": {
+    "description": "找地雷游戏",
+    "objective": "找出所有地雷，同时不踩到其中任何一颗。"
+  },
+  "samegame": {
+    "description": "方块消除游戏",
+    "objective": "消除相邻的同色方格组，把整个网格清空。"
+  },
+  "flip": {
+    "description": "方块翻转游戏",
+    "objective": "成组翻转方格，让它们同时全部亮起。"
+  },
+  "guess": {
+    "description": "猜组合游戏",
+    "objective": "猜出隐藏的颜色组合。"
+  },
+  "pegs": {
+    "description": "孔明棋游戏",
+    "objective": "让棋子彼此跳过并吃掉对方，直到只剩下一枚。"
+  },
+  "dominosa": {
+    "description": "多米诺骨牌铺放游戏",
+    "objective": "用一整副多米诺骨牌铺满整个矩形。"
+  },
+  "untangle": {
+    "description": "平面图布局游戏",
+    "objective": "移动各个点的位置，使所有连线都不再交叉。"
+  },
+  "blackbox": {
+    "description": "找小球游戏",
+    "objective": "发射激光束，根据光束的偏折找出盒中隐藏的小球。"
+  },
+  "slant": {
+    "description": "画迷宫游戏",
+    "objective": "用斜线画出一座迷宫，使其符合所有提示数。"
+  },
+  "lightup": {
+    "description": "放置灯泡游戏",
+    "objective": "放置灯泡，点亮所有方格。"
+  },
+  "map": {
+    "description": "地图着色游戏",
+    "objective": "为地图着色，使相邻的区域颜色都不相同。"
+  },
+  "loopy": {
+    "description": "画环路游戏",
+    "objective": "根据关于相邻边数量的提示数，画出一条闭合的单一环路。"
+  },
+  "inertia": {
+    "description": "收集宝石游戏",
+    "objective": "收集所有宝石，同时不撞上任何地雷。"
+  },
+  "tents": {
+    "description": "放置帐篷游戏",
+    "objective": "在每棵树旁放置一顶帐篷。"
+  },
+  "bridges": {
+    "description": "架桥游戏",
+    "objective": "用桥梁组成的网络把所有岛屿连接起来。"
+  },
+  "unequal": {
+    "description": "拉丁方游戏",
+    "objective": "按照 > 符号的指示，完成这个拉丁方。"
+  },
+  "galaxies": {
+    "description": "对称多格骨牌游戏",
+    "objective": "把网格划分成若干区域，每个区域都以一个点为中心并呈旋转对称。"
+  },
+  "filling": {
+    "description": "多格骨牌游戏",
+    "objective": "在每个方格中标出它所属区域的面积。"
+  },
+  "keen": {
+    "description": "算术拉丁方游戏",
+    "objective": "按照算术提示数，完成这个拉丁方。"
+  },
+  "towers": {
+    "description": "放置高塔的拉丁方游戏",
+    "objective": "按照提示数，完成这个由高塔组成的拉丁方。"
+  },
+  "singles": {
+    "description": "消除数字游戏",
+    "objective": "把重复数字中正确的那一组涂黑。"
+  },
+  "magnets": {
+    "description": "放置磁铁游戏",
+    "objective": "放置磁铁，既满足所有提示数，又不让同名磁极相邻。"
+  },
+  "signpost": {
+    "description": "连接方格游戏",
+    "objective": "顺着箭头把方格连成一条路径。"
+  },
+  "range": {
+    "description": "可见距离游戏",
+    "objective": "放置黑色方格，限制从每个带数字的格子所能看到的距离。"
+  },
+  "pearl": {
+    "description": "画环路游戏",
+    "objective": "根据关于拐角方格与直线方格的提示数，画出一条闭合的单一环路。"
+  },
+  "undead": {
+    "description": "放置怪物游戏",
+    "objective": "放置幽灵、吸血鬼和僵尸，使镜中能看到的数量正好符合要求。"
+  },
+  "unruly": {
+    "description": "黑白网格游戏",
+    "objective": "用黑白两色填满网格，且不出现连续三个同色的情况。"
+  },
+  "flood": {
+    "description": "洪水填充游戏",
+    "objective": "用尽可能少的填充次数，让整个网格变成同一种颜色。"
+  },
+  "tracks": {
+    "description": "铁轨寻路游戏",
+    "objective": "根据提示数铺出完整的铁轨。"
+  },
+  "palisade": {
+    "description": "网格划分游戏",
+    "objective": "按照提示数，把网格划分成大小相同的若干区域。"
+  },
+  "mosaic": {
+    "description": "网格填充游戏",
+    "objective": "根据关于周围黑色方格数量的提示数，填满整个网格。"
+  }
+}

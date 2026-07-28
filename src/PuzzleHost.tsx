@@ -7,6 +7,7 @@ import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
+import { docHref, useLang, useStrings } from './i18n'
 import { onNavClick } from './router'
 import { useFullscreen } from './useFullscreen'
 import { useHelp } from './useHelp'
@@ -14,6 +15,9 @@ import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
 import { contentBox, usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
+
+/** Stands for "we could not start it", which is the one error we word. */
+const START_FAILED = '\0start'
 
 /**
  * A puzzle, hosted entirely by React.
@@ -50,6 +54,9 @@ export default function PuzzleHost({
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   const [keys, setKeys] = useState<KeyLabel[]>([])
+  // A message from the back end, or the sentinel for the one failure that is
+  // ours to describe. Kept as a sentinel rather than as the sentence itself so
+  // that it is still in the reader's language if they change it afterwards.
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -58,6 +65,8 @@ export default function PuzzleHost({
   const fullscreen = useFullscreen()
   const help = useHelp(name)
   const theme = useResolvedTheme()
+  const t = useStrings()
+  const [lang] = useLang()
   // Read inside the start-up effect without making it a dependency: the puzzle
   // is created once, and the theme it is created with has to be the one in
   // force at that moment.
@@ -115,7 +124,7 @@ export default function PuzzleHost({
       .catch((err) => {
         if (!live) return
         console.error(`could not start ${name}`, err)
-        setError('Something went wrong starting this puzzle.')
+        setError(START_FAILED)
       })
 
     return () => {
@@ -209,7 +218,12 @@ export default function PuzzleHost({
   return (
     <div className="play" data-ready={ready}>
       <header className="play-bar">
-        <a className="play-back" href="/" onClick={onNavClick} aria-label="All puzzles">
+        <a
+          className="play-back"
+          href="/"
+          onClick={onNavClick}
+          aria-label={t.play.back}
+        >
           <Icon name="back" />
         </a>
         <h1>{title}</h1>
@@ -226,7 +240,7 @@ export default function PuzzleHost({
         <button
           type="button"
           className="play-icon"
-          aria-label="How to play"
+          aria-label={t.play.help}
           aria-haspopup="dialog"
           aria-expanded={helpOpen}
           onClick={() => setHelpOpen(true)}
@@ -235,7 +249,11 @@ export default function PuzzleHost({
         </button>
       </header>
 
-      {error && <p className="play-error">{error}</p>}
+      {error && (
+        <p className="play-error">
+          {error === START_FAILED ? t.play.error : error}
+        </p>
+      )}
 
       <div className="play-board" ref={areaRef}>
         <canvas
@@ -257,7 +275,7 @@ export default function PuzzleHost({
           onClick={() => act((a) => a.undo())}
         >
           <Icon name="undo" />
-          Undo
+          {t.play.undo}
         </button>
         <button
           type="button"
@@ -265,13 +283,15 @@ export default function PuzzleHost({
           onClick={() => act((a) => a.redo())}
         >
           <Icon name="redo" />
-          Redo
+          {t.play.redo}
         </button>
         {fullscreen.supported && (
           <button
             type="button"
             className="play-icon"
-            aria-label={fullscreen.active ? 'Leave fullscreen' : 'Fullscreen'}
+            aria-label={
+              fullscreen.active ? t.play.exitFullscreen : t.play.fullscreen
+            }
             aria-pressed={fullscreen.active}
             onClick={fullscreen.toggle}
           >
@@ -281,7 +301,7 @@ export default function PuzzleHost({
         <button
           type="button"
           className="play-icon"
-          aria-label="Menu"
+          aria-label={t.play.menu}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
@@ -296,10 +316,10 @@ export default function PuzzleHost({
             className="dialog dialog-help"
             role="dialog"
             aria-modal="true"
-            aria-label={`How to play ${title}`}
+            aria-label={`${t.play.help} — ${title}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2>How to play</h2>
+            <h2>{t.play.help}</h2>
             {/* Upstream's own words. Fetched when the puzzle loads, so this is
                 all but always the full blurb by the time it is asked for; the
                 one-liner covers the case where it is not. */}
@@ -313,9 +333,20 @@ export default function PuzzleHost({
                 <p>{objective}</p>
               </div>
             )}
+            {/* The blurb is a paragraph; the manual is the chapter. A new
+                tab, because leaving the page would abandon the position. */}
             <div className="dialog-buttons">
+              <a
+                className="dialog-more"
+                href={docHref(lang, `${name}.html#${name}`)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t.play.fullInstructions}
+                <Icon name="external" size={16} />
+              </a>
               <button type="button" onClick={() => setHelpOpen(false)}>
-                Close
+                {t.play.close}
               </button>
             </div>
           </div>

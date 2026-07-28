@@ -1,4 +1,5 @@
 import type { KeyLabel } from './engine/types'
+import { useStrings } from './i18n'
 
 /**
  * The keys the puzzle asked for, as buttons.
@@ -36,13 +37,15 @@ export default function PuzzleKeypad({
   keys: KeyLabel[]
   onPress: (key: KeyLabel) => void
 }) {
+  // Before the early return: a hook cannot be skipped on some renders.
+  const t = useStrings()
   if (keys.length === 0) return null
 
   return (
     <div
       className="keypad"
       role="group"
-      aria-label="Puzzle keys"
+      aria-label={t.play.keypad}
       style={{ '--keys': columns(keys.length) } as React.CSSProperties}
     >
       {keys.map((key) => (

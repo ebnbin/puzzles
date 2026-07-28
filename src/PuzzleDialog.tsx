@@ -1,5 +1,6 @@
 import { useReducer } from 'react'
 import type { DialogSpec } from './engine/types'
+import { useStrings } from './i18n'
 
 /**
  * The configuration and game-id dialogs the back end asks for.
@@ -18,6 +19,10 @@ export default function PuzzleDialog({
   onCancel: () => void
 }) {
   const [, redraw] = useReducer((n: number) => n + 1, 0)
+  // The title and every control label inside come from the compiled back end
+  // and are in English whatever the reader has chosen; only the two buttons
+  // are ours.
+  const t = useStrings()
 
   return (
     <div className="dialog-dimmer" onClick={onCancel}>
@@ -86,9 +91,9 @@ export default function PuzzleDialog({
             should sit where a thumb lands, and where the eye stops reading. */}
         <div className="dialog-buttons">
           <button type="button" onClick={onCancel}>
-            Cancel
+            {t.dialog.cancel}
           </button>
-          <button type="submit">OK</button>
+          <button type="submit">{t.dialog.ok}</button>
         </div>
       </form>
     </div>

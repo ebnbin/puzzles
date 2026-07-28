@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
-import games from './games.json'
 import { gameHref, useEngine } from './engine'
+import { useStrings } from './i18n'
+import { useGames } from './i18n/games'
 import { onNavClick } from './router'
 import type { Theme } from './useTheme'
 
@@ -21,6 +22,8 @@ export default function Launcher({
 }) {
   const [engine, setEngine] = useEngine()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const t = useStrings()
+  const games = useGames()
   const ts = engine === 'ts'
 
   useEffect(() => {
@@ -35,11 +38,11 @@ export default function Launcher({
   return (
     <div className="launcher">
       <header className="masthead">
-        <h1>Puzzles</h1>
+        <h1>{t.brand}</h1>
         <button
           type="button"
           className="masthead-icon"
-          aria-label="Settings"
+          aria-label={t.launcher.settings}
           aria-haspopup="dialog"
           aria-expanded={settingsOpen}
           onClick={() => setSettingsOpen(true)}
@@ -76,8 +79,7 @@ export default function Launcher({
 
       <footer>
         <p>
-          Puzzles are the work of Simon Tatham and contributors, distributed
-          under the MIT licence. Source:{' '}
+          {t.launcher.credit} {t.launcher.source}{' '}
           <a
             className="textlink"
             href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/"

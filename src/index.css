@@ -1011,6 +1011,37 @@ footer p {
   background: var(--accent-hover);
 }
 
+/* The way out of the blurb and into the chapter it was taken from. Shaped like
+   the button beside it, because it is the same size of decision — but it is a
+   link, since it goes somewhere, and it carries the mark that says so. */
+.dialog-more {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: var(--touch);
+  padding: 0 1rem;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: var(--t-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .dialog-more:hover {
+    background: var(--surface-3);
+  }
+}
+
+.dialog-more:active {
+  background: var(--surface-3);
+  transform: scale(0.96);
+}
+
 /* The manual's own prose, on request from the bar. */
 .dialog-prose {
   color: var(--text-2);
