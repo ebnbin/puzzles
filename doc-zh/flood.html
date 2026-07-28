@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Flood</title>
+<link rel="previous" href="unruly.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="tracks.html">
+</head>
+<body>
+<p><a href="unruly.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="tracks.html">下一页</a></p>
+<h1><a name="flood"></a>第 39 章：<a name="i0"></a>Flood</h1>
+<p>
+题目会给出一个方格网格，其中的方格被随机涂上多种颜色。每一步中，你可以用自己选定的一种颜色对左上角的方格进行填充（也就是说，凡是能从起始方格出发、经由一条颜色全部相同且正交相连的方格路径到达的方格，都会被填成新的颜色）。随着你不断这样做，网格中与起始方格连通的部分会越来越多。
+</p>
+<p>
+你的目标是用尽可能少的步数让整个网格变成同一种颜色。游戏会根据运行自己内部求解器的结果，为步数设定一个上限。如果你能在该步数以内让整个网格变成同一种颜色，你就获胜。
+</p>
+<p>
+我是在 http://floodit.appspot.com（已无法访问）看到这个游戏的（那里的网格尺寸、颜色数量和步数上限都是固定的）。
+</p>
+<h2><a name="flood-controls"></a>39.1 <a name="i1"></a>Flood 操作方式</h2>
+<p>
+玩 Flood 时，用鼠标点击某个方格。左上角以及与其连通的所有部分都会被填充成你所点击方格的颜色。点击与左上角颜色相同的方格不会产生任何效果，因此也不计作一步。
+</p>
+<p>
+你也可以使用方向键在网格中移动光标（黑色轮廓的方框）。按回车键会用光标所在方格的颜色填充左上角。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="flood-parameters"></a>39.2 <a name="i2"></a>Flood 参数</h2>
+<p>
+这些参数可以从「Type」菜单中的「Custom...」选项获得。
+</p>
+<dl><dt>
+<em>Width</em>、<em>Height</em>
+</dt>
+<dd>
+网格的尺寸，以方格数计。
+</dd>
+<dt>
+<em>Colours</em>
+</dt>
+<dd>
+用来填充网格的颜色数量。必须至少为 3（若只有两种颜色，那么在任何阶段都只有一种合法的走法，因此根本无从选择），至多为 10。
+</dd>
+<dt>
+<em>Extra moves permitted</em>
+</dt>
+<dd>
+通过提高步数上限来控制谜题的难度。对于每个新的网格，Flood 都会运行内部求解器生成自己的解法，然后把这个字段中的值加到 Flood 解法的长度上，得出本局游戏的步数上限。因此，取值为 0 要求你达到与 Flood 的自动求解器同样的效率，取值越大则越容易。
+<p>
+（请注意，Flood 的内部求解器未必能找到可能的最短解法，尽管我相信它已经相当接近了。若想要真正的挑战，可以把这个值设为 0，然后试着用<em>严格少于</em>所给上限的步数解开一个网格！）
+</p>
+
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

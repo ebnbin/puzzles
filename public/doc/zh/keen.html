@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Keen</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="filling.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="towers.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/keen.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/keen.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="filling.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="towers.html">下一页</a></p>
+<h1><a name="keen"></a>第 30 章：<a name="i0"></a>Keen</h1>
+<p>
+给你一个正方形网格；每个方格中可以填入一个从 1 到网格大小的数字。网格被划分成形状和大小各异的区块，区块中写有算术提示。你的目标是用数字填满整个网格，并满足：
+</p>
+<ul><li>
+每一行中每个数字只出现一次
+</li>
+<li>
+每一列中每个数字只出现一次
+</li>
+<li>
+每个区块中的数字，按照提示中给出的算术运算组合起来，能够得到提示中标明的数值。也就是说：
+<ul><li>
+加法提示表示该区块中各数字之和必须等于给定的数值。例如，&#8216;15+&#8217; 表示该区块的内容加起来等于十五。
+</li>
+<li>
+乘法提示（例如 &#8216;60&#215;&#8217;）与此类似，表示该区块中各数字之积必须等于给定的数值。
+</li>
+<li>
+减法提示总是写在大小为二的区块中，它表示该区块中的一个数字比另一个大给定的数值。例如，&#8216;2&#8722;&#8217; 表示该区块中的一个数字比另一个大 2，或者等价地说，一个数字减去另一个等于 2。不过这两个数字的大小顺序可以是任意一种。
+</li>
+<li>
+除法提示（例如 &#8216;3&#247;&#8217;）与此类似，也总是位于大小为二的区块中，表示其中一个数字除以另一个等于给定的数值。
+</li>
+</ul>
+<p>
+注意，一个区块中可以多次出现同一个数字（前提是这些相同的数字不在同一行和同一列中）。这条规则与 Solo 的 &#8216;Killer&#8217; 模式中的规则恰好相反（见<a href="solo.html#solo">第 11 章</a>）。
+</p>
+
+</li>
+</ul>
+<p>
+本谜题在《泰晤士报》上以 &#8216;<a name="i1"></a>KenKen&#8217; 之名出现。
+</p>
+<h2><a name="keen-controls"></a>30.1 <a name="i2"></a>Keen 操作方式</h2>
+<p>
+Keen 的操作系统与 Solo（以及 Unequal）大部分相同。
+</p>
+<p>
+要玩 Keen，只需用鼠标点击任意一个空白方格，然后在键盘上键入一个数字来填入该方格。如果你填错了，用鼠标点击那个填错的方格并按空格键将其重新清空（或者使用撤销功能）。
+</p>
+<p>
+如果你在某个方格中<em>右</em>键点击，然后键入一个数字，该数字将作为&#8216;铅笔标记&#8217;填入该方格。同一个方格中可以有多个数字的铅笔标记。已经填入数字的方格不能同时含有铅笔标记。
+</p>
+<p>
+游戏本身不理会铅笔标记，因此你究竟用它们做什么完全由你决定：你可以用它们提醒自己，一旦对某个数字了解得更多，就需要重新检查某个特定的方格；也可以用它们列出某个方格中可能填入的数字；或者用于任何你想到的其他用途。
+</p>
+<p>
+要擦除单个铅笔标记，在该方格中右键点击并再次键入相同的数字。
+</p>
+<p>
+当你左键点击并键入一个数字，或者左键点击并按空格键时，该方格中的所有铅笔标记都会被擦除。右键点击并按空格键同样会擦除铅笔标记。
+</p>
+<p>
+与 Solo 一样，方向键可以与数字键配合使用来设置数字或铅笔标记。用方向键在网格中移动高亮标记，键入一个数字即可将其填入高亮的方格。按回车键可将高亮标记切换到另一种模式，在该模式下你可以添加或删除铅笔标记。
+</p>
+<p>
+按 M 键将在每个尚未填入主数字的方格中填入一整套铅笔标记。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="keen-parameters"></a>30.2 <a name="i3"></a>Keen 参数</h2>
+<p>
+这些参数可通过 &#8216;类型&#8217;菜单中的 &#8216;Custom...&#8217; 选项设置。
+</p>
+<dl><dt>
+<em>网格大小</em>
+</dt>
+<dd>
+指定网格的大小。下限为 3；上限为 9（因为如果&#8216;数字&#8217;大于 9，用户界面会变得更加难以处理！）。
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+控制所生成谜题的难度。在 Unreasonable 级别下，需要进行一定的回溯，但解应当仍然是唯一的。其余各级别则需要越来越复杂的推理，才能避免不得不回溯。
+</dd>
+<dt>
+<em>仅乘法</em>
+</dt>
+<dd>
+如果启用此选项，所有方框都将是乘法方框。采用这条规则时，这种谜题被称为&#8216;Inshi No Heya&#8217;。
+</dd>
+</dl>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

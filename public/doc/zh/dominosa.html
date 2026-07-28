@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Dominosa</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="pegs.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="untangle.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/dominosa.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/dominosa.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="pegs.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="untangle.html">下一页</a></p>
+<h1><a name="dominosa"></a>第 17 章：<a name="i0"></a>Dominosa</h1>
+<p>
+一副普通的多米诺骨牌 &#8211; 也就是从 0 到 6 的每一对（无序的）数字各出现一次 &#8211; 被不规则地排列成了一个矩形；随后，每个方格中的数字被记录下来，骨牌本身则被移走。你的任务是重建这一排布：把这副骨牌摆放成与所给出的数字阵列相符的样子。
+</p>
+<p>
+本谜题一般认为出自 O. S. Adler，其名称的一部分即取自这两个首字母。
+</p>
+<h2><a name="dominosa-controls"></a>17.1 <a name="i1"></a>Dominosa 操作方式</h2>
+<p>
+在任意两个相邻数字之间左键点击，会放置一张覆盖它们的骨牌；如果那里已经有骨牌，则会将其移除。试图放置一张与已有骨牌重叠的骨牌时，会移除被它重叠的那些骨牌。
+</p>
+<p>
+在两个相邻数字之间右键点击，会在它们之间画一条线，你可以用它来提醒自己：你已经知道这两个数字<em>不</em>会被同一张骨牌覆盖。再次右键点击会移除这条线。
+</p>
+<p>
+你也可以用方向键在网格中移动光标。当光标位于两个相邻数字正中间时，按回车键会放置一张覆盖这两个数字的骨牌，按空格键则会在这两个方格之间画一条线。重复其中任一操作，会移除相应的骨牌或线。
+</p>
+<p>
+按下某个数字键，或在某个数字上右键点击，会高亮显示该数字出现的所有位置。再次按下或右键点击该数字，会清除高亮。在任何时刻，最多可以同时高亮两个不同的数字。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作也都可以使用。）
+</p>
+<h2><a name="dominosa-parameters"></a>17.2 <a name="i2"></a>Dominosa 参数</h2>
+<p>
+以下参数可通过 &#8216;类型&#8217;菜单中的 &#8216;Custom...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>骨牌上的最大数字</em>
+</dt>
+<dd>
+通过控制用来构成谜题的骨牌集合的大小，来控制谜题的规模。数字最大到 N 的骨牌会形成一个 (N+2) &#215; (N+1) 的矩形；因此，特别地，默认值 6 会给出一个 8&#215;7 的网格。
+</dd>
+<dt>
+<em>确保唯一解</em>
+</dt>
+<dd>
+通常情况下，Dominosa 会确保它给出的谜题只有一个解。含有歧义部分的谜题可能更难，有时也更精妙，因此如果你愿意，可以关闭这一特性。此外，找出<em>所有</em>可能的解，对高水平玩家来说也是一项额外的挑战。关闭这个选项还可以加快谜题的生成速度。
+</dd>
+</dl>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

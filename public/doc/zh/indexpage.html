@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title></title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="licence.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/indexpage.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/indexpage.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="licence.html">上一页</a> | <a href="index.html">目录</a> | 索引 | 下一页</p>
+<h1><a name="Index"></a>索引</h1><p>
+Black Box：<a href="blackbox.html#i0">第 19 章</a><br>
+Bridges：<a href="bridges.html#i0">第 26 章</a><br>
+bug：<a href="intro.html#i7">第 1 章</a><br>
+命令行：<a href="common.html#i24">第 2.2 节</a>，<a href="common.html#i33">第 2.4 节</a>，<a href="common.html#i37">第 2.5 节</a><br>
+通用功能：<a href="common.html#i0">第 2 章</a><br>
+操作方式：<a href="common.html#i1">第 2.1 节</a><br>
+操作方式，用于 Black Box：<a href="blackbox.html#i1">第 19.1 节</a><br>
+操作方式，用于 Bridges：<a href="bridges.html#i2">第 26.1 节</a><br>
+操作方式，用于 Cube：<a href="cube.html#i1">第 4.1 节</a><br>
+操作方式，用于 Dominosa：<a href="dominosa.html#i1">第 17.1 节</a><br>
+操作方式，用于 Fifteen：<a href="fifteen.html#i2">第 5.1 节</a><br>
+操作方式，用于 Filling：<a href="filling.html#i2">第 29.1 节</a><br>
+操作方式，用于 Flip：<a href="flip.html#i1">第 14.1 节</a><br>
+操作方式，用于 Flood：<a href="flood.html#i1">第 39.1 节</a><br>
+操作方式，用于 Galaxies：<a href="galaxies.html#i2">第 28.1 节</a><br>
+操作方式，用于 Guess：<a href="guess.html#i2">第 15.1 节</a><br>
+操作方式，用于 Inertia：<a href="inertia.html#i1">第 24.1 节</a><br>
+操作方式，用于 Keen：<a href="keen.html#i2">第 30.1 节</a><br>
+操作方式，用于 Light Up：<a href="lightup.html#i2">第 21.1 节</a><br>
+操作方式，用于 Loopy：<a href="loopy.html#i2">第 23.1 节</a><br>
+操作方式，用于 Magnets：<a href="magnets.html#i2">第 33.1 节</a><br>
+操作方式，用于 Map：<a href="map.html#i2">第 22.1 节</a><br>
+操作方式，用于 Mines：<a href="mines.html#i1">第 12.1 节</a><br>
+操作方式，用于 Mosaic：<a href="mosaic.html#i1">第 42.1 节</a><br>
+操作方式，用于 Net：<a href="net.html#i5">第 3.1 节</a><br>
+操作方式，用于 Netslide：<a href="netslide.html#i1">第 9 章</a><br>
+操作方式，用于 Palisade：<a href="palisade.html#i2">第 41.1 节</a><br>
+操作方式，用于 Pattern：<a href="pattern.html#i2">第 10.1 节</a><br>
+操作方式，用于 Pearl：<a href="pearl.html#i2">第 36.1 节</a><br>
+操作方式，用于 Pegs：<a href="pegs.html#i2">第 16.1 节</a><br>
+操作方式，用于 Range：<a href="range.html#i2">第 35.1 节</a><br>
+操作方式，用于 Rectangles：<a href="rect.html#i3">第 8.1 节</a><br>
+操作方式，用于 Same Game：<a href="samegame.html#i1">第 13.1 节</a><br>
+操作方式，用于 Signpost：<a href="signpost.html#i2">第 34.1 节</a><br>
+操作方式，用于 Singles：<a href="singles.html#i3">第 32.1 节</a><br>
+操作方式，用于 Sixteen：<a href="sixteen.html#i1">第 6.1 节</a><br>
+操作方式，用于 Slant：<a href="slant.html#i2">第 20.1 节</a><br>
+操作方式，用于 Solo：<a href="solo.html#i2">第 11.1 节</a><br>
+操作方式，用于 Tents：<a href="tents.html#i1">第 25.1 节</a><br>
+操作方式，用于 Towers：<a href="towers.html#i2">第 31.1 节</a><br>
+操作方式，用于 Tracks：<a href="tracks.html#i1">第 40.1 节</a><br>
+操作方式，用于 Twiddle：<a href="twiddle.html#i1">第 7.1 节</a><br>
+操作方式，用于 Undead：<a href="undead.html#i1">第 37.1 节</a><br>
+操作方式，用于 Unequal：<a href="unequal.html#i3">第 27.1 节</a><br>
+操作方式，用于 Unruly：<a href="unruly.html#i1">第 38.1 节</a><br>
+操作方式，用于 Untangle：<a href="untangle.html#i2">第 18.1 节</a><br>
+复制：<a href="common.html#i14">第 2.1 节</a><br>
+版权：<a href="licence.html#i2">附录 A</a><br>
+Cube：<a href="cube.html#i0">第 4 章</a><br>
+&#8216;Custom&#8217; 菜单选项：<a href="common.html#i31">第 2.3 节</a><br>
+默认参数，指定：<a href="common.html#i35">第 2.4 节</a><br>
+Dominosa：<a href="dominosa.html#i0">第 17 章</a><br>
+Edit 菜单：<a href="common.html#i6">第 2.1 节</a><br>
+退出：<a href="common.html#i16">第 2.1 节</a><br>
+反馈：<a href="intro.html#i6">第 1 章</a><br>
+Fifteen：<a href="fifteen.html#i0">第 5 章</a><br>
+File 菜单：<a href="common.html#i5">第 2.1 节</a><br>
+Filling：<a href="filling.html#i0">第 29 章</a><br>
+Flip：<a href="flip.html#i0">第 14 章</a><br>
+Flood：<a href="flood.html#i0">第 39 章</a><br>
+格式，ID 的：<a href="common.html#i27">第 2.2 节</a><br>
+四色着色：<a href="map.html#i1">第 22 章</a><br>
+FreeNet：<a href="net.html#i3">第 3 章</a><br>
+Futoshiki：<a href="unequal.html#i2">第 27 章</a><br>
+Galaxies：<a href="galaxies.html#i0">第 28 章</a><br>
+游戏 ID：<a href="common.html#i19">第 2.2 节</a><br>
+游戏 ID，格式：<a href="common.html#i27">第 2.2 节</a><br>
+游戏 ID，生成：<a href="common.html#i40">第 2.5 节</a><br>
+Game 菜单：<a href="common.html#i2">第 2.1 节</a>，<a href="common.html#i22">第 2.2 节</a><br>
+生成游戏 ID：<a href="common.html#i40">第 2.5 节</a><br>
+Guess：<a href="guess.html#i0">第 15 章</a><br>
+Hitori：<a href="singles.html#i2">第 32 章</a><br>
+ID 格式：<a href="common.html#i27">第 2.2 节</a><br>
+ID，游戏的：<a href="common.html#i19">第 2.2 节</a><br>
+Inertia：<a href="inertia.html#i0">第 24 章</a><br>
+初始状态：<a href="common.html#i25">第 2.2 节</a><br>
+Janko：<a href="magnets.html#i1">第 33 章</a>，<a href="signpost.html#i1">第 34 章</a><br>
+Keen：<a href="keen.html#i0">第 30 章</a><br>
+KenKen：<a href="keen.html#i1">第 30 章</a><br>
+按键：<a href="common.html#i3">第 2.1 节</a><br>
+按键，用于 Black Box：<a href="blackbox.html#i1">第 19.1 节</a><br>
+按键，用于 Cube：<a href="cube.html#i1">第 4.1 节</a><br>
+按键，用于 Fifteen：<a href="fifteen.html#i2">第 5.1 节</a><br>
+按键，用于 Flip：<a href="flip.html#i1">第 14.1 节</a><br>
+按键，用于 Guess：<a href="guess.html#i2">第 15.1 节</a><br>
+按键，用于 Inertia：<a href="inertia.html#i1">第 24.1 节</a><br>
+按键，用于 Net：<a href="net.html#i5">第 3.1 节</a><br>
+按键，用于 Same Game：<a href="samegame.html#i1">第 13.1 节</a><br>
+拉丁方：<a href="unequal.html#i1">第 27 章</a><br>
+许可证：<a href="licence.html#i1">附录 A</a><br>
+许可证，MIT：<a href="intro.html#i3">第 1 章</a>，<a href="licence.html#i0">附录 A</a><br>
+Light Up：<a href="lightup.html#i0">第 21 章</a><br>
+Linux：<a href="intro.html#i0">第 1 章</a>，<a href="common.html#i36">第 2.5 节</a><br>
+载入：<a href="common.html#i9">第 2.1 节</a>，<a href="common.html#i39">第 2.5 节</a><br>
+Loopy：<a href="loopy.html#i0">第 23 章</a><br>
+Mac OS X：<a href="intro.html#i2">第 1 章</a>，<a href="common.html#i4">第 2.1 节</a>，<a href="common.html#i23">第 2.2 节</a>，<a href="common.html#i34">第 2.4 节</a><br>
+Magnets：<a href="magnets.html#i0">第 33 章</a><br>
+Map：<a href="map.html#i0">第 22 章</a><br>
+Mastermind：<a href="guess.html#i1">第 15 章</a><br>
+Mines：<a href="mines.html#i0">第 12 章</a><br>
+MIT 许可证：<a href="intro.html#i3">第 1 章</a>，<a href="licence.html#i0">附录 A</a><br>
+Mosaic：<a href="mosaic.html#i0">第 42 章</a><br>
+Net：<a href="net.html#i0">第 3 章</a><br>
+<code>NETGAME.EXE</code>：<a href="net.html#i2">第 3 章</a><br>
+Netslide：<a href="netslide.html#i0">第 9 章</a><br>
+NetWalk：<a href="net.html#i4">第 3 章</a><br>
+新游戏：<a href="common.html#i7">第 2.1 节</a><br>
+Nikoli：<a href="rect.html#i1">第 8 章</a>，<a href="solo.html#i1">第 11 章</a>，<a href="slant.html#i1">第 20 章</a>，<a href="lightup.html#i1">第 21 章</a>，<a href="loopy.html#i1">第 23 章</a>，<a href="bridges.html#i1">第 26 章</a>，<a href="galaxies.html#i1">第 28 章</a>，<a href="filling.html#i1">第 29 章</a>，<a href="singles.html#i1">第 32 章</a>，<a href="range.html#i1">第 35 章</a>，<a href="pearl.html#i1">第 36 章</a>，<a href="palisade.html#i1">第 41 章</a><br>
+数织：<a href="pattern.html#i1">第 10 章</a><br>
+Palisade：<a href="palisade.html#i0">第 41 章</a><br>
+参数：<a href="common.html#i28">第 2.2 节</a>，<a href="common.html#i32">第 2.3 节</a><br>
+参数，用于 Black Box：<a href="blackbox.html#i2">第 19.2 节</a><br>
+参数，用于 Bridges：<a href="bridges.html#i3">第 26.2 节</a><br>
+参数，用于 Cube：<a href="cube.html#i2">第 4.2 节</a><br>
+参数，用于 Dominosa：<a href="dominosa.html#i2">第 17.2 节</a><br>
+参数，用于 Fifteen：<a href="fifteen.html#i3">第 5.2 节</a><br>
+参数，用于 Filling：<a href="filling.html#i3">第 29.2 节</a><br>
+参数，用于 flip：<a href="flip.html#i2">第 14.2 节</a><br>
+参数，用于 Flood：<a href="flood.html#i2">第 39.2 节</a><br>
+参数，用于 Galaxies：<a href="galaxies.html#i3">第 28.2 节</a><br>
+参数，用于 Guess：<a href="guess.html#i3">第 15.2 节</a><br>
+参数，用于 Inertia：<a href="inertia.html#i2">第 24.2 节</a><br>
+参数，用于 Keen：<a href="keen.html#i3">第 30.2 节</a><br>
+参数，用于 Light Up：<a href="lightup.html#i3">第 21.2 节</a><br>
+参数，用于 Loopy：<a href="loopy.html#i3">第 23.2 节</a><br>
+参数，用于 Magnets：<a href="magnets.html#i3">第 33.2 节</a><br>
+参数，用于 Map：<a href="map.html#i3">第 22.2 节</a><br>
+参数，用于 Mines：<a href="mines.html#i2">第 12.2 节</a><br>
+参数，用于 Mosaic：<a href="mosaic.html#i2">第 42.2 节</a><br>
+参数，用于 Net：<a href="net.html#i6">第 3.2 节</a><br>
+参数，用于 Netslide：<a href="netslide.html#i2">第 9 章</a><br>
+参数，用于 Palisade：<a href="palisade.html#i3">第 41.2 节</a><br>
+参数，用于 Pattern：<a href="pattern.html#i3">第 10.2 节</a><br>
+参数，用于 Pearl：<a href="pearl.html#i3">第 36.2 节</a><br>
+参数，用于 Pegs：<a href="pegs.html#i3">第 16.2 节</a><br>
+参数，用于 Range：<a href="range.html#i3">第 35.2 节</a><br>
+参数，用于 Rectangles：<a href="rect.html#i4">第 8.2 节</a><br>
+参数，用于 Same Game：<a href="samegame.html#i2">第 13.2 节</a><br>
+参数，用于 Signpost：<a href="signpost.html#i3">第 34.2 节</a><br>
+参数，用于 Singles：<a href="singles.html#i4">第 32.2 节</a><br>
+参数，用于 Sixteen：<a href="sixteen.html#i2">第 6.2 节</a><br>
+参数，用于 Slant：<a href="slant.html#i3">第 20.2 节</a><br>
+参数，用于 Solo：<a href="solo.html#i3">第 11.2 节</a><br>
+参数，用于 Tents：<a href="tents.html#i2">第 25.2 节</a><br>
+参数，用于 Towers：<a href="towers.html#i3">第 31.2 节</a><br>
+参数，用于 Tracks：<a href="tracks.html#i2">第 40.2 节</a><br>
+参数，用于 Twiddle：<a href="twiddle.html#i2">第 7.2 节</a><br>
+参数，用于 Undead：<a href="undead.html#i2">第 37.2 节</a><br>
+参数，用于 Unequal：<a href="unequal.html#i4">第 27.2 节</a><br>
+参数，用于 Unruly：<a href="unruly.html#i2">第 38.2 节</a><br>
+参数，用于 Untangle：<a href="untangle.html#i3">第 18.2 节</a><br>
+补丁：<a href="intro.html#i8">第 1 章</a><br>
+Pattern：<a href="pattern.html#i0">第 10 章</a><br>
+Pearl：<a href="pearl.html#i0">第 36 章</a><br>
+Pegs：<a href="pegs.html#i0">第 16 章</a><br>
+Planarity：<a href="untangle.html#i1">第 18 章</a><br>
+PostScript：<a href="common.html#i42">第 2.5 节</a><br>
+Preferences：<a href="common.html#i18">第 2.1 节</a><br>
+偏好设置，用于 Bridges：<a href="bridges.html#i4">第 26.3 节</a><br>
+偏好设置，用于 Fifteen：<a href="fifteen.html#i4">第 5.3 节</a><br>
+偏好设置，用于 Guess：<a href="guess.html#i4">第 15.3 节</a><br>
+偏好设置，用于 Light Up：<a href="lightup.html#i4">第 21.3 节</a><br>
+偏好设置，用于 Loopy：<a href="loopy.html#i4">第 23.3 节</a><br>
+偏好设置，用于 Map：<a href="map.html#i4">第 22.3 节</a><br>
+偏好设置，用于 Net：<a href="net.html#i7">第 3.3 节</a><br>
+偏好设置，用于 Palisade：<a href="palisade.html#i4">第 41.3 节</a><br>
+偏好设置，用于 Pearl：<a href="pearl.html#i4">第 36.3 节</a><br>
+偏好设置，用于 Range：<a href="range.html#i4">第 35.3 节</a><br>
+偏好设置，用于 Signpost：<a href="signpost.html#i4">第 34.3 节</a><br>
+偏好设置，用于 Singles：<a href="singles.html#i5">第 32.3 节</a><br>
+偏好设置，用于 Slant：<a href="slant.html#i4">第 20.3 节</a><br>
+偏好设置，用于 Towers：<a href="towers.html#i4">第 31.3 节</a><br>
+偏好设置，用于 Undead：<a href="undead.html#i3">第 37.3 节</a><br>
+偏好设置，指定默认值：<a href="common.html#i35">第 2.4 节</a><br>
+预设：<a href="common.html#i30">第 2.3 节</a><br>
+打印，在 Unix 上：<a href="common.html#i41">第 2.5 节</a><br>
+打印，在 Windows 上：<a href="common.html#i11">第 2.1 节</a><br>
+15 拼图：<a href="fifteen.html#i1">第 5 章</a><br>
+Puzzle Palace：<a href="rect.html#i2">第 8 章</a><br>
+退出：<a href="common.html#i17">第 2.1 节</a><br>
+Random Seed：<a href="common.html#i21">第 2.2 节</a><br>
+Range：<a href="range.html#i0">第 35 章</a><br>
+Rectangles：<a href="rect.html#i0">第 8 章</a><br>
+重做：<a href="common.html#i13">第 2.1 节</a><br>
+重新开始游戏：<a href="common.html#i8">第 2.1 节</a><br>
+Same Game：<a href="samegame.html#i0">第 13 章</a><br>
+保存：<a href="common.html#i10">第 2.1 节</a>，<a href="common.html#i38">第 2.5 节</a><br>
+快捷键（键盘）：<a href="common.html#i3">第 2.1 节</a><br>
+快捷键（键盘），用于 Black Box：<a href="blackbox.html#i1">第 19.1 节</a><br>
+快捷键（键盘），用于 Cube：<a href="cube.html#i1">第 4.1 节</a><br>
+快捷键（键盘），用于 Fifteen：<a href="fifteen.html#i2">第 5.1 节</a><br>
+快捷键（键盘），用于 Flip：<a href="flip.html#i1">第 14.1 节</a><br>
+快捷键（键盘），用于 Guess：<a href="guess.html#i2">第 15.1 节</a><br>
+快捷键（键盘），用于 Inertia：<a href="inertia.html#i1">第 24.1 节</a><br>
+快捷键（键盘），用于 Net：<a href="net.html#i5">第 3.1 节</a><br>
+快捷键（键盘），用于 Same Game：<a href="samegame.html#i1">第 13.1 节</a><br>
+Signpost：<a href="signpost.html#i0">第 34 章</a><br>
+Singles：<a href="singles.html#i0">第 32 章</a><br>
+Sixteen：<a href="sixteen.html#i0">第 6 章</a><br>
+Skyscrapers：<a href="towers.html#i1">第 31 章</a><br>
+Slant：<a href="slant.html#i0">第 20 章</a><br>
+Solitaire，Peg：<a href="pegs.html#i1">第 16 章</a><br>
+Solo：<a href="solo.html#i0">第 11 章</a><br>
+求解：<a href="common.html#i15">第 2.1 节</a><br>
+源代码：<a href="intro.html#i4">第 1 章</a><br>
+&#8216;Specific&#8217; 菜单选项：<a href="common.html#i20">第 2.2 节</a><br>
+状态，初始：<a href="common.html#i25">第 2.2 节</a><br>
+Tents：<a href="tents.html#i0">第 25 章</a><br>
+Towers：<a href="towers.html#i0">第 31 章</a><br>
+Tracks：<a href="tracks.html#i0">第 40 章</a><br>
+Twiddle：<a href="twiddle.html#i0">第 7 章</a><br>
+类型菜单：<a href="common.html#i29">第 2.3 节</a><br>
+Undead：<a href="undead.html#i0">第 37 章</a><br>
+撤销：<a href="common.html#i12">第 2.1 节</a><br>
+Unequal：<a href="unequal.html#i0">第 27 章</a><br>
+Unix：<a href="intro.html#i0">第 1 章</a>，<a href="common.html#i36">第 2.5 节</a><br>
+Unruly：<a href="unruly.html#i0">第 38 章</a><br>
+Untangle：<a href="untangle.html#i0">第 18 章</a><br>
+版本：<a href="common.html#i26">第 2.2 节</a><br>
+网站：<a href="intro.html#i5">第 1 章</a><br>
+Windows：<a href="intro.html#i1">第 1 章</a>，<a href="net.html#i1">第 3 章</a></p>
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

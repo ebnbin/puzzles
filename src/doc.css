@@ -1,0 +1,338 @@
+/*
+ * The manual, wearing the app's clothes.
+ *
+ * The pages themselves are halibut's output and are not edited: the same
+ * HTML 4.01, the same words, the same anchors the game pages have always
+ * linked to. All this file does is give that markup a stylesheet, which it
+ * has never had — upstream ships the manual unstyled, so a browser's own
+ * defaults are what a reader has been getting.
+ *
+ * It is concatenated onto tokens.css by scripts/style-doc.mjs to produce
+ * public/doc.css, so the manual and the app are working from one set of
+ * values: change a token and both move together.
+ *
+ * The vocabulary is small and fixed — a p em li dt dd h1 h2 h3 code ul dl br
+ * pre — because that is all halibut emits. There are no wrapper classes to
+ * hang a layout off, so the layout has to come from the elements themselves.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--t-md);
+  line-height: 1.7;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: center -1px;
+  -webkit-font-smoothing: antialiased;
+  /* The prose is authored in English and reads left to right in both
+     languages; `text-wrap: pretty` keeps a heading from leaving one word
+     alone on the last line. */
+  text-wrap: pretty;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- the bar ------------------------------------------------------------
+ * Sticky, because the way out of a chapter should not be at the top of a
+ * three-thousand-word page. Everything else about the manual is upstream's;
+ * this row is the app saying where you are.
+ */
+
+.doc-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+  background-color: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--edge);
+}
+
+.doc-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0 0.625rem 0 0.5rem;
+  border-radius: var(--r-full);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.doc-home svg {
+  flex: none;
+}
+
+@media (hover: hover) {
+  .doc-home:hover {
+    background-color: var(--surface-2);
+  }
+}
+
+.doc-top-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The same segmented control the settings dialog uses, rebuilt out of
+   anchors — there is no React here, so the two languages are two links and
+   the current one is simply the one that is not a link to anywhere else. */
+.doc-lang {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  background-color: var(--surface-2);
+  border-radius: var(--r-full);
+}
+
+.doc-lang a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.875rem;
+  padding: 0 0.6875rem;
+  border-radius: var(--r-full);
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-weight: 550;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.doc-lang a[aria-current='true'] {
+  color: var(--text);
+  background-color: var(--raised);
+  box-shadow: var(--shadow-1);
+}
+
+@media (hover: hover) {
+  .doc-lang a:not([aria-current='true']):hover {
+    color: var(--text);
+  }
+}
+
+/* --- the page -----------------------------------------------------------
+ * One column, held to a measure. 44rem is about 75 characters of this size
+ * in English; Chinese runs shorter per character, and the same width reads
+ * as a comfortable 40-odd characters a line.
+ */
+
+.doc-main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem max(1rem, env(safe-area-inset-left)) 4rem;
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-bottom: max(4rem, env(safe-area-inset-bottom));
+}
+
+/* Halibut's own Previous | Contents | Index | Next row. Every page opens with
+   it, so it can be reached as the first paragraph rather than by marking it —
+   which is what keeps the body markup untouched. Small and quiet: it is a way
+   back, not the point of the page. */
+.doc-main > p:first-of-type {
+  margin: 0 0 2rem;
+  color: var(--text-3);
+  font-size: var(--t-sm);
+  line-height: 2;
+}
+
+.doc-main > p:first-of-type a {
+  padding: 0.125rem 0;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .doc-main > p:first-of-type a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.doc-main h1,
+.doc-main h2,
+.doc-main h3 {
+  margin: 2.5rem 0 0.75rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  scroll-margin-top: 4.5rem;
+}
+
+.doc-main h1 {
+  margin-top: 0;
+  font-size: var(--t-2xl);
+  letter-spacing: -0.025em;
+}
+
+.doc-main h2 {
+  font-size: var(--t-xl);
+}
+
+.doc-main h3 {
+  font-size: var(--t-lg);
+}
+
+/* The invisible anchors halibut scatters through the text to hang index
+   entries off. They have no content, so they should take no room. */
+.doc-main a[name]:empty {
+  display: inline;
+}
+
+.doc-main p {
+  margin: 0 0 1.125rem;
+}
+
+.doc-main ul,
+.doc-main dl {
+  margin: 0 0 1.125rem;
+}
+
+.doc-main ul {
+  padding-left: 1.25rem;
+}
+
+.doc-main li {
+  margin-bottom: 0.375rem;
+}
+
+.doc-main li::marker {
+  color: var(--text-3);
+}
+
+/* Every `dl` in the manual is a term and its explanation — the controls a
+   puzzle answers to, the parameters it takes. Read as a definition list, not
+   as two columns: the terms are long enough that a column would wrap badly on
+   a phone, and this is the shape that survives being narrow. */
+/* A term here is usually `<em>the thing</em>: how you do it` — so the weight
+   belongs on the emphasis the source already marked, not on the whole line.
+   Bolding all of it makes "left mouse button" shout as loudly as the action
+   it is bound to. */
+.doc-main dt {
+  margin-top: 1rem;
+  color: var(--text);
+}
+
+.doc-main dt em {
+  font-weight: 650;
+}
+
+.doc-main dd {
+  margin: 0.25rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--edge);
+  color: var(--text-2);
+}
+
+.doc-main code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--r-sm);
+  background-color: var(--surface-2);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  /* `break-word` and not `anywhere`: a key name is short enough to fit on a
+     line and so is never broken, while the URLs some chapters cite are longer
+     than a phone is wide and have to go somewhere. Without this they are
+     simply clipped, which is the one thing worse than an ugly wrap. */
+  overflow-wrap: break-word;
+}
+
+.doc-main pre {
+  margin: 0 0 1.125rem;
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  background-color: var(--surface-2);
+  border-radius: var(--r);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+.doc-main em {
+  font-style: italic;
+  color: var(--text);
+}
+
+.doc-main a {
+  color: var(--accent);
+  text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  text-underline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .doc-main a:hover {
+    text-decoration-color: currentcolor;
+  }
+}
+
+/* --- the footer --------------------------------------------------------- */
+
+.doc-foot {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem max(1rem, env(safe-area-inset-left)) 3rem;
+  border-top: 1px solid var(--edge);
+  color: var(--text-3);
+  font-size: var(--t-xs);
+}
+
+.doc-foot p {
+  margin: 0;
+}
+
+.doc-foot a {
+  color: var(--text-3);
+  text-underline-offset: 2px;
+}
+
+/* --- room to work ------------------------------------------------------- */
+
+@media (min-width: 48em) {
+  .doc-top {
+    padding: 0.625rem 1.5rem;
+  }
+
+  .doc-main {
+    padding-top: 2.5rem;
+    font-size: var(--t-lg);
+  }
+
+  .doc-main h1 {
+    font-size: var(--t-3xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

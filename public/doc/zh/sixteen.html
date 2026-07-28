@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Sixteen</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="fifteen.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="twiddle.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/sixteen.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/sixteen.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="fifteen.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="twiddle.html">下一页</a></p>
+<h1><a name="sixteen"></a>第 6 章：<a name="i0"></a>Sixteen</h1>
+<p>
+又一个滑块益智游戏，外观上与 Fifteen（见<a href="fifteen.html#fifteen">第 5 章</a>）相似，但移动方式不同。这一次没有空格：网格上全部 16 个格子里都放着带编号的方块。你的一步是把一整行向左或向右移动，或者把一整列向上或向下移动；每当你这样做时，被移出网格的那个方块会从同一行的另一端重新出现，落在你刚刚空出来的位置上。要获胜，就把方块排成数字顺序（顶行是 1,2,3,4，底行是 13,14,15,16）。做到这一点之后，可以试试在不同大小的网格上玩。
+</p>
+<p>
+这个游戏<em>可能</em>是我自己发明的，不过即便如此也纯属偶然（而且我确信也有其他人独立发明过它）。我原以为自己是在模仿曾经见过的一个屏幕保护程序，但我感觉那个屏幕保护程序实际上也许是 Fifteen 那一类的益智游戏，而不是这种略有不同的类型。所以这或许是我的益智游戏合集中唯一一件体现了我的创造力、而不只是工程实现的东西。
+</p>
+<h2><a name="sixteen-controls"></a>6.1 <a name="i1"></a>Sixteen 操作方式</h2>
+<p>
+在箭头上左键单击，会让相应的行或列沿所指示的方向移动。右键单击则会让它沿相反方向移动。
+</p>
+<p>
+或者，也可以用方向键把位置指示器沿网格边缘移动，再用回车键让该行/列沿所指示的方向移动。
+</p>
+<p>
+你也可以直接移动方块。把光标移到某个方块上，按住 Control 再按方向键，即可移动光标下的方块，并让光标随该方块一起移动。或者，按住 Shift 则只移动方块。按 Enter 相当于按住 Control（再按一次 Enter 即可松开），而按 Space 相当于按住 shift。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作在这里同样可用。）
+</p>
+<h2><a name="sixteen-params"></a>6.2 <a name="i2"></a>Sixteen 的参数</h2>
+<p>
+在 &#8216;类型&#8217;菜单的 &#8216;Custom...&#8217; 选项中可用的参数有：
+</p>
+<ul><li>
+<em>Width</em> 和 <em>Height</em>，其含义不言自明。
+</li>
+<li>
+你可以要求对网格执行有限的打乱操作。默认情况下，Sixteen 打乱网格的方式会使任何一种排列出现的概率都大致相同。你可以通过要求执行确切数目的打乱步数来改变这一点。这时你的目标通常是确定这组打乱步骤的确切内容并将它们精确地逆转，从而以四步的解法来应对（比如说）四步的打乱。请注意，你要求的步数越多，就越有可能存在比目标步数更短的解法。
+</li>
+</ul>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

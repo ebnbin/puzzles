@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Magnets</title>
+<link rel="previous" href="singles.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="signpost.html">
+</head>
+<body>
+<p><a href="singles.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="signpost.html">下一页</a></p>
+<h1><a name="magnets"></a>第 33 章：<a name="i0"></a>Magnets</h1>
+<p>
+一个矩形网格中填满了磁铁（也就是一端为正极、一端为负极的多米诺骨牌）与空白多米诺骨牌（也就是两极都为中性的多米诺骨牌）的混合。这些多米诺骨牌起初只能看到轮廓。网格周围放置了若干线索，指出某些列和行中所含正极与负极的数量。
+</p>
+<p>
+你的目标是正确地放置磁铁与空白多米诺骨牌，使所有线索都得到满足，此外还有一个附加约束：任何两个相同的磁极不得正交相邻（因为它们互相排斥）。中性极不会排斥，可以与任何其他磁极相邻。
+</p>
+<p>
+这个谜题的创意归功于 <a name="i1"></a>Janko <a href="#p0">[16]</a>。
+</p>
+<p>
+Magnets 由 James Harvey 贡献给本合集。
+</p>
+<p><a name="p0"></a>
+[16] <a href="http://www.janko.at/Raetsel/Magnete/index.htm"><code>http://www.janko.at/Raetsel/Magnete/index.htm</code></a>
+</p>
+<h2><a name="magnets-controls"></a>33.1 <a name="i2"></a>Magnets 操作方式</h2>
+<p>
+在空方格上左键点击，会在该位置放置一块磁铁，正极位于这个方格上，负极位于磁铁的另一半上；再次左键点击会反转极性，第三次点击则会移除这块磁铁。
+</p>
+<p>
+在空方格上右键点击，会在该处放置一块空白多米诺骨牌。再次右键点击会在这块多米诺骨牌上放置两个问号，表示 &#8216;此处不可能是空白的&#8217;（这在解题时记录推断结果会很有用），再次右键点击则会清空这块多米诺骨牌。
+</p>
+<p>
+左键点击某个线索会将它标记为已完成（变灰），如果它已被标记，则取消标记。
+</p>
+<p>
+你也可以用方向键在网格中移动光标。按回车键会在该位置放下一块多米诺骨牌，其正极位于此处；再按一次会反转极性，然后移除这块多米诺骨牌，与左键点击的效果相同。使用空格键则可以像右键点击那样，放置空白多米诺骨牌以及表示不可能是空白的提示。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="magnets-parameters"></a>33.2 <a name="i3"></a>Magnets 参数</h2>
+<p>
+这些参数可以通过 &#8216;类型&#8217; 菜单中的 &#8216;自定义...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格为单位。网格中的多米诺骨牌数量为 <em>宽度</em> &#215; <em>高度</em> 的一半：如果这个数是奇数，那么会有一个方格是空的。
+<p>
+（至少有一个维度为奇数的网格往往更容易求解。）
+</p>
+
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+控制所生成谜题的难度。在「棘手」级别下，你需要对空白多米诺骨牌以及行/列的计数做出更多推断。
+</dd>
+<dt>
+<em>去除线索</em>
+</dt>
+<dd>
+如果为真，网格周围的部分线索会在生成时被移除，从而使谜题更加困难。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Guess</title>
+<link rel="previous" href="flip.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="pegs.html">
+</head>
+<body>
+<p><a href="flip.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="pegs.html">下一页</a></p>
+
+<ul>
+<li><a href="#guess">第 15 章：Guess</a>
+<ul>
+<li><a href="#guess-controls">15.1 Guess 操作方式</a></li>
+<li><a href="#guess-parameters">15.2 Guess 参数</a></li>
+<li><a href="#guess-prefs">15.3 Guess 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="guess"></a>第 15 章：<a name="i0"></a>Guess</h1>
+<p>
+你有一组彩色棋子，必须在一定的猜测次数之内复现出一个预先确定的棋子序列（由计算机选定）。
+</p>
+<p>
+每次猜测都会得到评分，标出颜色正确且位置也正确的棋子数量（以黑色表示），以及颜色正确但位置错误的棋子数量（以白色表示）。
+</p>
+<p>
+本游戏也以桌面游戏 &#8216;<a name="i1"></a>Mastermind&#8217; 之名为人所知（主要由 Hasbro 发行销售），其设定为 6 种颜色、每行 4 枚棋子、10 次猜测。不过，本版本允许自定义颜色数量（最多 10 种）、每行棋子数量以及猜测次数。
+</p>
+<p>
+Guess 由 James Harvey 贡献给本合集。
+</p>
+<h2><a name="guess-controls"></a>15.1 <a name="i2"></a>Guess 操作方式</h2>
+<p>
+本游戏可以用键盘或鼠标来游玩。
+</p>
+<p>
+使用鼠标时，把彩色棋子从左侧的托盘拖到当前猜测中所需的位置上；也可以从当前和过去的猜测中拖动棋子，以便将它们复制到别处。要移除某枚棋子，把它从当前位置拖到无效的地方即可。
+</p>
+<p>
+在当前猜测中右键点击会添加一个&#8216;保留&#8217;标记；带有保留标记的棋子会在评分之后自动加入下一次猜测。
+</p>
+<p>
+或者，使用键盘时，上下方向键可用来选择棋子的颜色，左右方向键可用来选择棋子的位置，回车键则把所选颜色的棋子放置到选定的位置上。&#8216;D&#8217; 键或 Backspace 键可移除棋子，空格键则添加保留标记。
+</p>
+<p>
+数字键同样可以用来放入棋子：&#8216;1&#8217; 放入最上方的颜色，&#8216;2&#8217; 放入第二种颜色，依此类推。这些按键还会把棋子光标向右移动。按 &#8216;L&#8217; 键会为棋子标上各自的编号。
+</p>
+<p>
+按 &#8216;h&#8217; 键或 &#8216;?&#8217; 键会用一个建议的猜测填入当前猜测。棋子数为 10 枚或更多时不建议使用此功能，因为它很慢。
+</p>
+<p>
+当一次猜测填写完整后，较小的反馈棋子会被高亮显示；点击它们（或者用方向键把棋子光标移到它们上面并按空格键或回车键）将对当前猜测评分、把所有保留的棋子复制到下一次猜测，并移动&#8216;当前猜测&#8217;标记。
+</p>
+<p>
+如果你把所有棋子都放对了位置，答案将显示在下方；如果你用完了猜测次数（或者选择 &#8216;Solve...&#8217;），答案同样会被揭晓。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作也都可用。）
+</p>
+<h2><a name="guess-parameters"></a>15.2 <a name="i3"></a>Guess 参数</h2>
+<p>
+这些参数可通过 &#8216;类型&#8217;菜单中的 &#8216;Custom...&#8217; 选项进行设置。默认的游戏参数与桌面游戏 &#8216;Mastermind&#8217; 相同。
+</p>
+<dl><dt>
+<em>Colours</em>
+</dt>
+<dd>
+用来组成答案的颜色数量；从 2 到 10（越多越难）。
+</dd>
+<dt>
+<em>Pegs per guess</em>
+</dt>
+<dd>
+每次猜测的棋子数量（越多越难）。
+</dd>
+<dt>
+<em>Guesses</em>
+</dt>
+<dd>
+你可以用来找出答案的猜测次数（越少越难）。
+</dd>
+<dt>
+<em>Allow blanks</em>
+</dt>
+<dd>
+允许在猜测中放入空白棋子（这会降低难度，因为你知道它们绝不会被算作答案的一部分）。此选项默认关闭。
+<p>
+请注意，这并不允许答案中出现空白棋子；如果你确实想要那样，可以多用一种颜色。
+</p>
+
+</dd>
+<dt>
+<em>Allow duplicates</em>
+</dt>
+<dd>
+允许答案（以及猜测）中同一种颜色出现多次；这会增大搜索空间（使难度提高），此选项默认开启。
+</dd>
+</dl>
+<h2><a name="guess-prefs"></a>15.3 <a name="i4"></a>Guess 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;Game&#8217; 菜单中的 &#8216;Preferences&#8217; 选项可以让你设置是否为棋子标上编号。与 &#8216;L&#8217; 键不同，此设置会在多局游戏之间保持。
+</p>
+
+<hr><address></address></body>
+</html>

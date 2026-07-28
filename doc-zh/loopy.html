@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Loopy</title>
+<link rel="previous" href="map.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="inertia.html">
+</head>
+<body>
+<p><a href="map.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="inertia.html">下一页</a></p>
+
+<ul>
+<li><a href="#loopy">第 23 章：Loopy</a>
+<ul>
+<li><a href="#loopy-controls">23.1 Loopy 操作方式</a></li>
+<li><a href="#loopy-parameters">23.2 Loopy 参数</a></li>
+<li><a href="#loopy-prefs">23.3 Loopy 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="loopy"></a>第 23 章：<a name="i0"></a>Loopy</h1>
+<p>
+给你一个由点组成的网格，其中用黄色线段标出了哪些点是允许你直接连接起来的。你的目标是使用这些黄色线段中的某个子集，在网格内画出一条从点到点、不间断的单一回路。
+</p>
+<p>
+线段之间的一些空格中含有数字。这些数字表示该空格周围有多少条线段构成回路的一部分。你所画的回路必须正确满足所有这些线索，才能被视为正确的解答。
+</p>
+<p>
+在默认模式下，这些点排列成方格网格；不过，你也可以在三角形或六边形网格上游玩，甚至可以使用更奇特的网格。
+</p>
+<p>
+这个谜题的基本创意归功于 <a name="i1"></a>Nikoli <a href="#p0">[10]</a>。
+</p>
+<p>
+Loopy 最初由 Mike Pinna 贡献给本合集，随后由 Lambros Lambrou 加以增强，使其能够处理各种类型的非方形网格。
+</p>
+<p><a name="p0"></a>
+[10] <a href="https://www.nikoli.co.jp/en/puzzles/slitherlink/"><code>https://www.nikoli.co.jp/en/puzzles/slitherlink/</code></a>
+</p>
+<h2><a name="loopy-controls"></a>23.1 <a name="i2"></a>Loopy 操作方式</h2>
+<p>
+在黄色线段上点击鼠标左键，可以把它变成黑色，表示你认为它是回路的一部分。再次点击可以把线段重新变回黄色（意思是你还不确定）。
+</p>
+<p>
+如果你确定某条线段<em>不</em>属于回路的一部分，可以点击鼠标右键把它完全移除。同样，再点击一次会让线段变回黄色。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="loopy-parameters"></a>23.2 <a name="i3"></a>Loopy 参数</h2>
+<p>
+这些参数可以通过&#8216;类型&#8217;菜单中的&#8216;自定义...&#8217;选项来设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的尺寸，以横向和纵向的区域数量来衡量。对于方形网格，这是如何计数的一目了然；对于其他类型的网格，你可能需要稍加思考，才能看出这些尺寸是怎样度量的。
+</dd>
+<dt>
+<em>网格类型</em>
+</dt>
+<dd>
+让你在若干种镶嵌类型之间进行选择。有些镶嵌的所有面都相同，但可能含有多种不同类型的顶点（例如 <em>Cairo</em> 或 <em>Kites</em> 模式）；另一些的所有顶点都相同，但可能含有不同类型的面（例如 <em>Great Hexagonal</em>）。方形、三角形和蜂窝网格是完全规则的，它们的所有顶点<em>和</em>面都相同；这使得它们玩起来最不容易令人困惑。
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+控制所生成谜题的难度。
+</dd>
+</dl>
+<h2><a name="loopy-prefs"></a>23.3 <a name="i4"></a>Loopy 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;游戏&#8217;菜单中的&#8216;偏好设置&#8217;选项可以让你配置以下内容：
+</p>
+<p>
+&#8216;以淡色绘制被排除的网格线&#8217;。此项默认开启：当网格中的某条线段通过右键点击被明确排除在解答之外时，该线段仍会被绘制出来，只是使用淡淡的灰色。如果你关闭此选项，被排除的线段将完全不再绘制。
+</p>
+<p>
+&#8216;自动沿唯一的边路径延伸&#8217;。此项默认关闭。开启后，如果你所点击的线段其一端或两端只与另外一条线段相连，那么点击改变单条网格线的状态时，这一改变有可能会沿着多条线段传播开来。（其思路是：如果有两条线段在某个顶点相交，并且再没有其他线段经过该顶点，那么这两条线段要么都属于回路，要么都不属于，因此没有理由要求你分别点击去切换每一条。）
+</p>
+<p>
+在&#8216;仅基于网格&#8217;模式下，点击的效果只会跨越那些在底层网格中度数为 2 的顶点传播。例如，在方形网格中，这一效果<em>只</em>会发生在网格的四个角上。
+</p>
+<p>
+在&#8216;基于网格和游戏状态&#8217;模式下，传播还会把你已经排除在解答之外的边考虑在内，从而为你做更多的工作。
+</p>
+
+<hr><address></address></body>
+</html>

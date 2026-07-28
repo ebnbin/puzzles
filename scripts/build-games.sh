@@ -83,17 +83,11 @@ for js in "$BUILD/web"/*.js; do
 done
 
 # --- Build the manual -----------------------------------------------------
-# Flags copied verbatim from upstream's Buildscr so the anchors the game pages
-# link to (../doc/<game>.html#<game>) resolve.
+# Runs halibut with the flags copied verbatim from upstream's Buildscr, lays
+# the Simplified Chinese translation from doc-zh/ alongside it, and gives both
+# a head and a stylesheet. See scripts/build-doc.mjs.
 echo "==> building manual"
-rm -rf "$OUT_DOC"
-mkdir -p "$OUT_DOC"
-(cd "$OUT_DOC" && halibut --html \
-  -Chtml-contents-filename:index.html \
-  -Chtml-index-filename:indexpage.html \
-  -Chtml-template-filename:%k.html \
-  -Chtml-template-fragment:%k \
-  "$SRC/puzzles.but")
+node "$ROOT/scripts/build-doc.mjs"
 
 # --- Second build: ES modules for the TypeScript rewrite ------------------
 # Same sources, same flags, same resulting .wasm — only the JavaScript wrapper

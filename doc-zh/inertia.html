@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Inertia</title>
+<link rel="previous" href="loopy.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="tents.html">
+</head>
+<body>
+<p><a href="loopy.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="tents.html">下一页</a></p>
+<h1><a name="inertia"></a>第 24 章：<a name="i0"></a>Inertia</h1>
+<p>
+你是一个小小的绿色球，处在一个布满障碍物的网格之中。你的目标是收集所有宝石，同时不撞上任何地雷。
+</p>
+<p>
+你可以沿任意正交<em>或对角</em>方向移动这个球。球一旦开始移动，就会持续前进，直到有东西让它停下来。正挡在它路径上的墙会让它停下（但如果它正沿对角方向移动，它会穿过另外两堵墙之间的对角缝隙而不停下来）。此外，有些方格是&#8216;停止点&#8217;；当球移动到停止点上时，无论它原先朝哪个方向前进，都会停止移动。宝石<em>不会</em>让球停下；球会把它们捡起来并继续前进。
+</p>
+<p>
+撞上地雷是致命的。即使你在同一步移动中捡到了最后一颗宝石，而这一步随后撞上了地雷，游戏也会判定你已死亡，而不是获胜。
+</p>
+<p>
+本游戏最初由 Ben Olmstead <a href="#p0">[11]</a> 为 Windows 实现，他慷慨地应请求公开了自己的源代码，使其得以为本合集重新实现。
+</p>
+<p><a name="p0"></a>
+[11] <a href="http://xn13.com/"><code>http://xn13.com/</code></a>
+</p>
+<h2><a name="inertia-controls"></a>24.1 <a name="i1"></a>Inertia 操作方式</h2>
+<p>
+你可以使用数字小键盘沿八个方向中的任意一个移动球。或者，如果你在网格上点击鼠标左键，球会朝你点击位置的大致方向开始移动。
+</p>
+<p>
+如果你在本游戏中使用 &#8216;Solve&#8217; 功能，程序将计算出一条穿过网格的路径，这条路径会收集所有剩余的宝石并返回当前位置。球上会出现一个提示箭头，指示你应当朝哪个方向移动，以开始沿这条路径前进。如果你随后朝那个方向移动，箭头会更新，指示这条路径上的下一个方向。你也可以按空格键，自动沿提示箭头的方向移动。如果你朝箭头所示方向之外的方向移动，那么只有在谜题仍然可解时才会显示箭头。
+</p>
+<p>
+<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。特别是，如果你确实撞上了地雷而死亡，你可以使用撤销功能，从那致命的一步之前继续游戏。游戏会记录你这样做的次数。
+</p>
+<h2><a name="inertia-parameters"></a>24.2 <a name="i2"></a>Inertia 参数</h2>
+<p>
+这些参数可通过 &#8216;类型&#8217;菜单中的 &#8216;Custom...&#8217; 选项设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

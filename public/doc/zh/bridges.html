@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Bridges</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="tents.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="unequal.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/bridges.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/bridges.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="tents.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="unequal.html">下一页</a></p>
+
+<ul>
+<li><a href="#bridges">第 26 章：Bridges</a>
+<ul>
+<li><a href="#bridges-controls">26.1 Bridges 操作方式</a></li>
+<li><a href="#bridges-parameters">26.2 Bridges 参数</a></li>
+<li><a href="#bridges-prefs">26.3 Bridges 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="bridges"></a>第 26 章：<a name="i0"></a>Bridges</h1>
+<p>
+游戏区域中分布着一组岛屿。每座岛屿上都有一个数字。你的目标是用桥把这些岛屿连接起来，并满足以下条件：
+</p>
+<ul><li>
+桥沿水平或垂直方向延伸。
+</li>
+<li>
+终止于任一岛屿的桥的数量等于该岛屿上所写的数字。
+</li>
+<li>
+同样的两座岛屿之间可以有两座平行的桥，但平行的桥不得超过两座。
+</li>
+<li>
+任何桥都不与另一座桥交叉。
+</li>
+<li>
+所有岛屿连成一体。
+</li>
+</ul>
+<p>
+还有一些可配置的替代模式，包括把平行桥的上限改成 2 以外的数值，以及引入一条附加约束：任何一串桥都不得从某座岛屿出发又回到同一座岛屿而形成环路。上面所述的规则是默认规则。
+</p>
+<p>
+这个谜题的创意归功于 <a name="i1"></a>Nikoli <a href="#p0">[12]</a>。
+</p>
+<p>
+Bridges 由 James Harvey 贡献给本合集。
+</p>
+<p><a name="p0"></a>
+[12] <a href="https://www.nikoli.co.jp/en/puzzles/Hashiwokakero/"><code>https://www.nikoli.co.jp/en/puzzles/Hashiwokakero/</code></a>
+</p>
+<h2><a name="bridges-controls"></a>26.1 <a name="i2"></a>Bridges 操作方式</h2>
+<p>
+要在两座岛屿之间架桥，请在一座岛屿上按下鼠标，然后朝另一座岛屿拖动。你不需要一路拖到另一座岛屿；只需把鼠标移动到足以让所要架设的桥的方向不产生歧义为止。（因此你可以让鼠标停留在起始岛屿附近，方便地从它向多个方向架出桥来。）
+</p>
+<p>
+在已经有桥时再次这样做，会添加另一座平行的桥。如果两座岛屿之间的桥已经达到当前游戏规则所允许的数量（即默认为两座），同样的拖动操作会把它们全部移除。
+</p>
+<p>
+如果你想提醒自己两座岛屿之间肯定<em>没有</em>桥，可以用同样的方式在它们之间右键拖动，画出一个&#8216;非桥&#8217;标记。
+</p>
+<p>
+如果你认为某座岛屿已经处理完毕（即你已架好它的所有桥，并确信它们的位置正确），可以左键单击该岛屿，把它标记为已完成。这会高亮显示该岛屿以及与之相连的所有桥，此后你将无法意外修改这些桥中的任何一座。再次左键单击已高亮的岛屿会取消该标记，恢复你修改它的能力。
+</p>
+<p>
+你也可以用方向键在网格中移动：如果可能，光标总是沿正交方向移动，否则它会朝所指方向移向最近的岛屿。按住 Control 再按方向键会在该方向上架桥（如果可以架的话）；Shift 加方向键则会放置一个&#8216;非桥&#8217;标记。先按回车键再按方向键同样会在该方向上架桥。
+</p>
+<p>
+你可以按空格键，或者按两次回车键，把一座岛屿标记为已完成。
+</p>
+<p>
+按下数字键可以跳到带有该数字的最近岛屿。字母&#8216;a&#8217;、……、&#8216;f&#8217;分别代表 10、……、15，&#8216;0&#8217;代表 16。
+</p>
+<p>
+&#8216;G&#8217;键会在每一对可以用桥或非桥相连、但当前尚未相连的岛屿之间画出一条灰线。
+</p>
+<p>
+违反谜题规则之处会用红色标出：
+</p>
+<ul><li>
+桥过多的岛屿会以红色高亮显示。
+</li>
+<li>
+桥过少的岛屿，如果确定是一处错误（而不只是尚未完成），也会以红色高亮显示：即再架设足够多的桥就必须穿过另一座桥或移除一个非桥标记，或者该岛屿已被高亮标记为完成。
+</li>
+<li>
+如果一组岛屿和桥构成了谜题中的一个封闭子集，无法与其余岛屿相连，那么这组岛屿和桥可能会以红色高亮显示。例如，如果你用一座桥把两个 1 直接连在一起，而它们并不是网格上仅有的两座岛屿，它们就会亮起红色，表示这样的一组内容不可能出现在任何有效解中。
+</li>
+<li>
+如果你选择了（非默认的）不允许解中出现环路的选项，构成环路的一组桥会被高亮显示。
+</li>
+</ul>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="bridges-parameters"></a>26.2 <a name="i3"></a>Bridges 参数</h2>
+<p>
+这些参数可通过&#8216;类型&#8217;菜单上的&#8216;自定义...&#8217;选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+谜题的难度等级。
+</dd>
+<dt>
+<em>允许环路</em>
+</dt>
+<dd>
+此项默认为选中。如果取消选中，生成的谜题将总是可以在不产生环路的情况下求解，而包含环路的解将不被允许。
+</dd>
+<dt>
+<em>每个方向的最大桥数</em>
+</dt>
+<dd>
+任一特定方向上桥的最大数量。默认值是 2，但你可以把它改成 1、3 或 4。一般来说，数量越少越容易。
+</dd>
+<dt>
+<em>岛屿方格的百分比</em>
+</dt>
+<dd>
+大致给出生成器在结束谜题生成之前会尝试放置的岛屿百分比。某些布局无法放下足够多的岛屿；这是一个上界。
+</dd>
+<dt>
+<em>扩展因子（百分比）</em>
+</dt>
+<dd>
+网格生成器的工作方式是（先在某处创建一座初始岛屿之后）随机选取一座已有的岛屿。然后它（随机）决定一个方向，再算出在创建另一座岛屿之前它最远能延伸多少。这个参数决定了它有多大可能尽可能远地延伸，而不是选择较近的位置。
+<p>
+较高的扩展因子通常意味着更容易的谜题，可能的岛屿也更少；较低的扩展因子则可能造出大量紧密排列的岛屿。
+</p>
+
+</dd>
+</dl>
+<h2><a name="bridges-prefs"></a>26.3 <a name="i4"></a>Bridges 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;游戏&#8217;菜单上的&#8216;偏好设置&#8217;选项可以让你配置是否显示可能的架桥位置。与&#8216;G&#8217;键不同，此设置会在多局游戏之间保持。
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

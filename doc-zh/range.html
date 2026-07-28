@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Range</title>
+<link rel="previous" href="signpost.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="pearl.html">
+</head>
+<body>
+<p><a href="signpost.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="pearl.html">下一页</a></p>
+
+<ul>
+<li><a href="#range">第 35 章：Range</a>
+<ul>
+<li><a href="#range-controls">35.1 Range 操作方式</a></li>
+<li><a href="#range-parameters">35.2 Range 参数</a></li>
+<li><a href="#range-prefs">35.3 Range 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="range"></a>第 35 章：<a name="i0"></a>Range</h1>
+<p>
+你有一个由方格组成的网格；其中一些方格里含有数字。你的任务是把某些方格涂成黑色，使若干条件同时得到满足：
+</p>
+<ul><li>
+含有数字的方格不能被涂成黑色。
+</li>
+<li>
+任意两个黑色方格都不相邻（水平或垂直方向）。
+</li>
+<li>
+对于任意两个白色方格，都存在一条只经过白色方格的路径把它们连通。
+</li>
+<li>
+对于每个含有数字的方格，该数字表示从该方格出发，沿水平或垂直的任一方向直线前进，直到碰到墙壁或黑色方格为止，所能到达的白色方格总数；含有数字的方格本身也计入总数（只计一次）。
+</li>
+</ul>
+<p>
+例如，根据最后一条条件，含有数字 1 的方格四周必定都是黑色方格；但这样一来，它就不可能与外部任何白色方格相连，从而违反了倒数第二条条件。因此不会有方格含有数字 1。
+</p>
+<p>
+本谜题应归功于 <a name="i1"></a>Nikoli，他们曾先后称之为 &#8216;Kurodoko&#8217;、&#8216;Kuromasu&#8217; 或 &#8216;Where is Black Cells&#8217;。<a href="#p0">[18]</a>。
+</p>
+<p>
+Range 由 Jonas K&#246;lker 贡献给本合集。
+</p>
+<p><a name="p0"></a>
+[18] <a href="https://www.nikoli.co.jp/en/puzzles/kurodoko/"><code>https://www.nikoli.co.jp/en/puzzles/kurodoko/</code></a>
+</p>
+<h2><a name="range-controls"></a>35.1 <a name="i2"></a>Range 操作方式</h2>
+<p>
+用鼠标左键点击可把方格涂成黑色，用右键点击则可在方格上标一个点，表示你确定它<em>不</em>应该被涂成黑色。用任一按键反复点击，都会让该方格在三种可能的状态（涂黑、标点或空白）之间循环，两个按键的循环方向相反。
+</p>
+<p>
+你也可以使用方向键在网格的各个方格之间移动。按回车键的效果与用左键点击相同，按空格键的效果则与用右键点击相同。按住 Shift 用方向键移动时，会在所经过的所有方格中标上点。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作也都可用。）
+</p>
+<h2><a name="range-parameters"></a>35.2 <a name="i3"></a>Range 参数</h2>
+<p>
+这些参数可通过 &#8216;类型&#8217;菜单中的 &#8216;Custom...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>Width</em>、<em>Height</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+</dl>
+<h2><a name="range-prefs"></a>35.3 <a name="i4"></a>Range 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;Game&#8217; 菜单中的 &#8216;Preferences&#8217; 选项可以让你设置两个鼠标按键分别对应哪种操作。
+</p>
+
+<hr><address></address></body>
+</html>

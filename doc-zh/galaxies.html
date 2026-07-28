@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Galaxies</title>
+<link rel="previous" href="unequal.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="filling.html">
+</head>
+<body>
+<p><a href="unequal.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="filling.html">下一页</a></p>
+<h1><a name="galaxies"></a>第 28 章：<a name="i0"></a>Galaxies</h1>
+<p>
+你有一个包含若干个点的矩形网格。你的目标是把这个矩形划分成若干个由方格构成的连通区域，使得每个区域都呈 180&#176; 旋转对称，并且恰好包含一个位于其对称中心的点。
+</p>
+<p>
+要输入你的解答，你需要沿着网格的边画线，以标出各个区域的边界。当网格上标出的线恰好就是那些分隔属于不同区域的两个方格的线时，谜题就完成了。
+</p>
+<p>
+这个谜题由 <a name="i1"></a>Nikoli <a href="#p0">[13]</a> 发明，名为&#8216;Tentai Show&#8217;；它的名字通常被译成英文的&#8216;Spiral Galaxies&#8217;。
+</p>
+<p>
+Galaxies 由 James Harvey 贡献给本合集。
+</p>
+<p><a name="p0"></a>
+[13] <a href="https://www.nikoli.co.jp/en/puzzles/tentai_show/"><code>https://www.nikoli.co.jp/en/puzzles/tentai_show/</code></a>
+</p>
+<h2><a name="galaxies-controls"></a>28.1 <a name="i2"></a>Galaxies 操作方式</h2>
+<p>
+在任意网格线上左键点击，如果那里还没有边就画出一条边，如果已经有边就把它移除。当你构造出一个有效的区域（该区域是封闭的、恰好包含一个点、关于该点呈 180&#176; 对称，并且在它自己的两个方格之间不含多余的边）时，它会自动高亮显示；因此你的目标就是让整个网格都以这种方式被高亮。
+</p>
+<p>
+在求解过程中，你可能知道某个特定的网格方格属于某个特定的点，但还不确定边画在哪里、以及还有哪些方格与该点相连。为了把这一点标出来以免忘记，你可以在该点上右键点击并拖动，这会创建一个指向该点的箭头标记。把它放到你选定的方格中，它就会提醒你该方格与哪个点相关联。你也可以在已有的箭头上右键点击，把它们拿起来并移动，或者把它们放到网格边缘之外来销毁它们。（另外，如果你不确定某个箭头指向哪个点，可以把它拿起来四处移动，让指向更清楚。拖动时它会不断转动，以保持指向它所属的点。）
+</p>
+<p>
+你也可以使用方向键在网格的方格和线之间移动。当位于某条网格线上时按回车键，会像上面所说的那样画出或清除它的边。当位于某个点上时按回车键，会拿起一个箭头，并在下一次按回车键时把它放下；这也可以用来移动已有的箭头，把它们放到某个点或另一个箭头上即可移除它们。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="galaxies-parameters"></a>28.2 <a name="i3"></a>Galaxies 参数</h2>
+<p>
+以下参数可以从&#8216;类型&#8217;菜单上的&#8216;自定义...&#8217;选项中获得。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+以方格数计的网格尺寸。
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+控制所生成谜题的难度。更难的谜题需要更复杂的推理，而&#8216;不合理&#8217;难度级别可能需要回溯。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

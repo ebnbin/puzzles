@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Twiddle</title>
+<link rel="previous" href="sixteen.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="rect.html">
+</head>
+<body>
+<p><a href="sixteen.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="rect.html">下一页</a></p>
+<h1><a name="twiddle"></a>第 7 章：<a name="i0"></a>Twiddle</h1>
+<p>
+Twiddle 是一个方块重排谜题，在外观上与 Sixteen 相似（见<a href="sixteen.html#sixteen">第 6 章</a>）：给你一个由方形方块组成的网格，每个方块中含有一个数字，你的目标是把这些数字排成升序。
+</p>
+<p>
+在基础的 Twiddle 中，你的一步棋是把四个方块组成的正方形一组绕它们的公共中心旋转。（在基础谜题中方块的朝向并不重要，不过你可以选择该选项。）在更高级的设置下，你可以旋转由更多方块组成的更大的正方形一组。
+</p>
+<p>
+我第一次见到这类谜题，是在 GameCube 游戏 &#8216;Metroid Prime 2&#8217; 中。在那款游戏的 Main Gyro Chamber 里，有一个为了解锁一扇门而要解开的谜题，它是 Twiddle 的一个特例。我把这个游戏开发为那个谜题的推广形式。
+</p>
+<h2><a name="twiddle-controls"></a>7.1 <a name="i1"></a>Twiddle 操作方式</h2>
+<p>
+要玩 Twiddle，用鼠标点击你想要旋转的那一组正方形的中心。在基础模式下，你旋转的是一个 2&#215;2 的正方形，这意味着你必须点击四个方块交汇处的角点。
+</p>
+<p>
+在更高级的模式下，你每次旋转的可能是 3&#215;3 甚至更大的范围；如果正方形的边长是奇数，那么你只需点击想要旋转的那个正方形的中心方块。
+</p>
+<p>
+用鼠标左键点击会使该组逆时针旋转。用右键点击则会使它顺时针旋转。
+</p>
+<p>
+你也可以用方向键在网格中移动一个轮廓正方形；该正方形的大小即为上文所述的大小（默认为 2&#215;2，或者更大）。按回车键或空格键将分别使当前正方形逆时针或顺时针旋转。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="twiddle-parameters"></a>7.2 <a name="i2"></a>Twiddle 参数</h2>
+<p>
+Twiddle 通过 &#8216;类型&#8217;菜单中的 &#8216;Custom&#8217; 选项提供了若干配置选项：
+</p>
+<ul><li>
+你可以配置谜题网格的宽度和高度。
+</li>
+<li>
+你可以配置每次旋转的正方形区块的大小。
+</li>
+<li>
+你可以要求网格中的每个方格都彼此可区分（这是默认设置），也可以要求一个简化的谜题，其中存在若干组相同的数字。在简化的谜题中，你的目标只是把所有的 1 排到第一行，把所有的 2 排到第二行，依此类推。
+</li>
+<li>
+你可以配置方块的朝向是否重要。如果你要求一个考虑朝向的谜题，每个方块中都会画有一个三角形。所有三角形都必须朝上，才算完成谜题。
+</li>
+<li>
+你可以要求对网格执行有限的打乱操作。默认情况下，Twiddle 会把网格打乱得非常充分，使得任何一种排列出现的概率都与其他排列大致相同。你可以通过要求执行确定步数的打乱来覆盖这一行为。这时你的目标通常是确定这组打乱步骤的确切内容，并将它们精确地逆转，从而用（比如说）四步的解法来应对四步的打乱。注意，你要求的步数越多，就越有可能出现比目标长度更短的解法。
+</li>
+</ul>
+
+<hr><address></address></body>
+</html>

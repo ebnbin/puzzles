@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Pearl</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="range.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="undead.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/pearl.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/pearl.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="range.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="undead.html">下一页</a></p>
+
+<ul>
+<li><a href="#pearl">第 36 章：Pearl</a>
+<ul>
+<li><a href="#pearl-controls">36.1 Pearl 操作方式</a></li>
+<li><a href="#pearl-parameters">36.2 Pearl 参数</a></li>
+<li><a href="#pearl-prefs">36.3 Pearl 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="pearl"></a>第 36 章：<a name="i0"></a>Pearl</h1>
+<p>
+你有一个方格网格。你的任务是在水平或垂直相邻的方格中心之间画线，使这些线构成一条单一的封闭环路。在最终的网格中，环路经过的方格有些会含有拐角，有些则是水平或垂直的直线段。（还有一些方格可以完全是空的 &#8211; 环路不必经过每一个方格。）
+</p>
+<p>
+有些方格中含有黑色和白色的圆圈，它们是环路必须满足的线索。
+</p>
+<p>
+方格中的黑色圆圈表示该方格是一个拐角，但在环路上与它相邻的两个方格都不是拐角。
+</p>
+<p>
+白色圆圈表示该方格是一段直线，但在环路上与它相邻的方格中<em>至少有一个</em>是拐角。
+</p>
+<p>
+（在这两种情况下，线索都只约束<em>在环路上</em>相邻的那两个方格，也就是环路离开线索方格之后所进入的方格。仅仅<em>在网格中</em>相邻的方格不受约束。）
+</p>
+<p>
+这个谜题归功于 <a name="i1"></a>Nikoli，他们称之为 &#8216;Masyu&#8217;。<a href="#p0">[19]</a>
+</p>
+<p>
+感谢 James Harvey 在实现方面提供的协助。
+</p>
+<p><a name="p0"></a>
+[19] <a href="https://www.nikoli.co.jp/en/puzzles/masyu/"><code>https://www.nikoli.co.jp/en/puzzles/masyu/</code></a>
+</p>
+<h2><a name="pearl-controls"></a>36.1 <a name="i2"></a>Pearl 操作方式</h2>
+<p>
+在网格的某条边上点击鼠标左键，可以画出穿过该边的一段环路；若该段线已经画好，则可将其移除。
+</p>
+<p>
+按住鼠标左键拖过一连串方格，可以一次画出多段环路。或者，在环路已有的部分上拖动，可以将它擦除，或者先擦除其中一部分，再转向另一个方向。
+</p>
+<p>
+在网格的某条边上点击鼠标右键，可以给它标上一个叉，表示你确信环路不会经过这条边。（例如，如果你已经确定白色线索旁边的哪个方格必须是拐角，但还不知道这个拐角朝哪个方向拐，你可以用叉标出它<em>不可能</em>走的那个方向。）
+</p>
+<p>
+或者，用方向键移动光标。用回车键开始和结束键盘 &#8216;拖动&#8217; 操作。用空格键、Escape 键或退格键取消拖动。此外，在用方向键拖动时按住 Control 键，可以在方格之间移动时切换线段。
+</p>
+<p>
+按 Control-Shift-方向键或 Shift-方向键，分别相当于在该方向键所指方向的边上点击鼠标左键或右键。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="pearl-parameters"></a>36.2 <a name="i3"></a>Pearl 参数</h2>
+<p>
+这些参数可以通过 &#8216;类型&#8217; 菜单中的 &#8216;自定义...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+控制所生成谜题的难度。
+</dd>
+<dt>
+<em>允许不可解</em>
+</dt>
+<dd>
+如果设置了此项，游戏将以最简单的方式生成：所有可能给出的线索方格都会显示出来，而且生成器不会检查该谜题是否有唯一解。
+<p>
+这会加快游戏的生成速度，并使得可以游玩大得多的网格。至少仍然总会存在一个可能的解，但不保证它是唯一的，也不保证能够一步一步地把它推导出来。
+</p>
+
+</dd>
+</dl>
+<h2><a name="pearl-prefs"></a>36.3 <a name="i4"></a>Pearl 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;游戏&#8217; 菜单中的 &#8216;偏好设置&#8217; 选项可以让你配置游戏显示的样式。&#8216;传统&#8217; 是默认模式，其中环路在网格方格的中心之间穿行，每个线索占据一个方格。&#8216;Loopy 风格&#8217; 是另一种模式，它看起来更像 Loopy（<a href="loopy.html#loopy">第 23 章</a>），其中环路在网格的<em>顶点</em>之间穿行，线索也占据顶点。
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

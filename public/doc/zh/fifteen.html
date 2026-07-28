@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Fifteen</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="cube.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="sixteen.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/fifteen.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/fifteen.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="cube.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="sixteen.html">下一页</a></p>
+
+<ul>
+<li><a href="#fifteen">第 5 章：Fifteen</a>
+<ul>
+<li><a href="#fifteen-controls">5.1 Fifteen 操作方式</a></li>
+<li><a href="#fifteen-params">5.2 Fifteen 参数</a></li>
+<li><a href="#fifteen-prefs">5.3 Fifteen 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="fifteen"></a>第 5 章：<a name="i0"></a>Fifteen</h1>
+<p>
+老的才是最好的：这就是那个经典的滑块&#8216;<a name="i1"></a>15-puzzle&#8217;，可以追溯到 1870 年代。你面前有一个 4&#215;4 的方格网格；其中 15 个方格里有带编号的方块，第十六个方格是空的。你每一步要选择空格旁边的一个方块，把它滑入空格。目标是最终让这些方块按数字顺序排列，空格位于右下角（这样最上面一行读作 1,2,3,4，最下面一行读作 13,14,15,<em>空格</em>）。
+</p>
+<h2><a name="fifteen-controls"></a>5.1 <a name="i2"></a>Fifteen 操作方式</h2>
+<p>
+这个游戏可以用鼠标或键盘操作。
+</p>
+<p>
+在包含空格的那一行或那一列中用鼠标左键单击，会移动必要数量的方块，把空格移到鼠标指针处。
+</p>
+<p>
+默认情况下，方向键会把与空格相邻的一个方块朝所指的方向移动（空格则朝<em>相反</em>的方向移动）。
+</p>
+<p>
+按&#8216;h&#8217;会走出一步建议的移动。按足够多次&#8216;h&#8217;就能解开这个游戏，但在此过程中它可能会打乱你已有的进度。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="fifteen-params"></a>5.2 <a name="i3"></a>Fifteen 参数</h2>
+<p>
+在&#8216;类型&#8217;菜单上的&#8216;自定义...&#8217;选项中，仅有的可用选项是<em>宽度</em>和<em>高度</em>，它们的含义不言自明。（当然，一旦你改动了它们，这就不再是&#8216;15-puzzle&#8217;了！）
+</p>
+<h2><a name="fifteen-prefs"></a>5.3 <a name="i4"></a>Fifteen 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;游戏&#8217;菜单上的&#8216;偏好设置&#8217;选项可以让你配置方向键的含义。在默认设置&#8216;移动方块&#8217;下，你按下的方向键表示你希望方块移动的方向，因此（举例来说）如果你想把空格左边的方块向右移入空格，你应该按向右键。在相反的设置&#8216;移动空格&#8217;下，方向键的行为反转，你需要按向左键才能把空格左边的方块移入空格，从而使<em>空格</em>最终位于原来位置左边一格处。
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

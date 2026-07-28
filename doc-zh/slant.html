@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Slant</title>
+<link rel="previous" href="blackbox.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="lightup.html">
+</head>
+<body>
+<p><a href="blackbox.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="lightup.html">下一页</a></p>
+
+<ul>
+<li><a href="#slant">第 20 章：Slant</a>
+<ul>
+<li><a href="#slant-controls">20.1 Slant 操作方式</a></li>
+<li><a href="#slant-parameters">20.2 Slant 参数</a></li>
+<li><a href="#slant-prefs">20.3 Slant 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="slant"></a>第 20 章：<a name="i0"></a>Slant</h1>
+<p>
+你面前有一个由方格组成的网格。你的目标是在每个方格中画一条对角线，并选择每条线的倾斜方向，使得下列条件得到满足：
+</p>
+<ul><li>
+这些对角线绝不构成环路。
+</li>
+<li>
+任何带圈数字所在的点，恰好有与该数字相同数量的线在此交汇。（因此，4 是一个十字形的中心，而 0 是一个菱形的中心 &#8211; 或者更确切地说，是部分菱形的中心，因为 0 绝不可能出现在网格中间，那样会立刻造成环路。）
+</li>
+</ul>
+<p>
+这个谜题的创意归功于 <a name="i1"></a>Nikoli <a href="#p0">[8]</a>。
+</p>
+<p><a name="p0"></a>
+[8] <a href="https://www.nikoli.co.jp/ja/puzzles/gokigen_naname/"><code>https://www.nikoli.co.jp/ja/puzzles/gokigen_naname/</code></a>（日文）
+</p>
+<h2><a name="slant-controls"></a>20.1 <a name="i2"></a>Slant 操作方式</h2>
+<p>
+在空白方格中左键单击，会在其中放置一个 <code>\</code>（一条向左倾斜的线，即从方格的左上角延伸到右下角）。在空白方格中右键单击，会在其中放置一个 <code>/</code>（向右倾斜，从右上角延伸到左下角）。
+</p>
+<p>
+继续单击任一按键，会在方格的三种可能内容之间循环。因此，如果你在空白方格中反复左键单击，它会从空白变成 <code>\</code>，再变成 <code>/</code>，然后回到空白；如果你反复右键单击，该方格会从空白变成 <code>/</code>，再变成 <code>\</code>，然后回到空白。（因此，如果需要，你完全可以只用一个按键来玩这个游戏。）
+</p>
+<p>
+你也可以用方向键在网格中移动。按回车键或空格键会分别放置 <code>\</code> 或 <code>/</code>，随后按上述方式循环。你还可以按 <code>/</code> 或 <code>\</code> 来分别放置 <code>/</code> 或 <code>\</code>，而与光标所在方格中已有的内容无关。退格键会移除光标所在方格中的任何线条。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="slant-parameters"></a>20.2 <a name="i3"></a>Slant 参数</h2>
+<p>
+这些参数可通过&#8216;类型&#8217;菜单上的&#8216;自定义...&#8217;选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>难度</em>
+</dt>
+<dd>
+控制所生成谜题的难度。在困难级别下，你需要根据方格之间<em>关系</em>的知识来进行推理，而不是总能一次推出某一个方格的确切内容。（例如，你可能知道两个方格的倾斜方向相同，即使你还不知道那是哪个方向，而这可能让你推出关于另外一些方格的结论。）即使在困难级别下，也绝不需要猜测和回溯。
+</dd>
+</dl>
+<h2><a name="slant-prefs"></a>20.3 <a name="i4"></a>Slant 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;游戏&#8217;菜单上的&#8216;偏好设置&#8217;选项可以让你配置两个鼠标按键的作用方向。
+</p>
+
+<hr><address></address></body>
+</html>

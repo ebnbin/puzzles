@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Flip</title>
+<link rel="previous" href="samegame.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="guess.html">
+</head>
+<body>
+<p><a href="samegame.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="guess.html">下一页</a></p>
+<h1><a name="flip"></a>第 14 章：<a name="i0"></a>Flip</h1>
+<p>
+你有一个方格网格，其中有些方格是亮的，有些是暗的。你的目标是让所有方格同时点亮。你可以选择任意一个方格，把它的状态由亮翻转为暗，或者由暗翻转为亮，但当你这样做时，它周围的其他方格也会随之改变状态。
+</p>
+<p>
+每个方格中都有一幅小图，显示当你翻转该方格时还有哪些方格会随之改变。
+</p>
+<h2><a name="flip-controls"></a>14.1 <a name="i1"></a>Flip 操作方式</h2>
+<p>
+本游戏既可以用键盘也可以用鼠标进行。
+</p>
+<p>
+在方格中点击鼠标左键可翻转该方格及其关联的方格，或者用方向键选择一个方格，再用空格键或回车键进行翻转。
+</p>
+<p>
+如果你在本游戏中使用 &#8216;求解&#8217; 功能，它会把其中一些方格标成红色。如果你在每一个带红色标记的方格中各点击一次，游戏就应该被解开。（如果你点击了一个<em>没有</em>红色标记的方格，该方格中会出现一个红色标记，表示你需要撤销这一操作才能达到解。）
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="flip-parameters"></a>14.2 <a name="i2"></a>Flip 参数</h2>
+<p>
+这些参数可以通过 &#8216;类型&#8217; 菜单中的 &#8216;自定义...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>形状类型</em>
+</dt>
+<dd>
+此控制项决定点击任意给定方格时所翻转区域的形状。默认设置 &#8216;十字&#8217; 会使每个方格翻转它自身及其四个紧邻的方格（若它位于边上或角上，则为三个或两个）。另一个设置 &#8216;随机&#8217; 会为每个方格选取一个随机的形状，因此每一局游戏都各不相同。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

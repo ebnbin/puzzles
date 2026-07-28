@@ -1,16 +1,45 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-"http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
 <title>Pearl</title>
+<link rel="stylesheet" href="/doc.css">
 <link rel="previous" href="range.html">
 <link rel="ToC" href="index.html">
 <link rel="up" href="index.html">
 <link rel="index" href="indexpage.html">
 <link rel="next" href="undead.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
 </head>
 <body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">Manual</span>
+<span class="doc-lang"><a href="/doc/pearl.html" data-lang="en" hreflang="en" aria-current="true">EN</a><a href="/doc/zh/pearl.html" data-lang="zh" hreflang="zh-Hans">中文</a></span>
+</header>
+<main class="doc-main">
 <p><a href="range.html">Previous</a> | <a href="index.html">Contents</a> | <a href="indexpage.html">Index</a> | <a href="undead.html">Next</a></p>
 
 <ul>
@@ -97,5 +126,7 @@ This speeds up game generation, and allows much larger grids to be played. At le
 On platforms that support user preferences, the &#8216;Preferences&#8217; option on the &#8216;Game&#8217; menu will let you configure the style of the game display. &#8216;Traditional&#8217; is the default mode, in which the loop runs between centres of grid squares, and each clue occupies a square. &#8216;Loopy-style&#8217; is an alternative mode that looks more like Loopy (<a href="loopy.html#loopy">chapter 23</a>), in which the loop runs between grid <em>vertices</em>, and the clues also occupy vertices.
 </p>
 
-<hr><address></address></body>
+</main>
+<footer class="doc-foot"><p>Simon Tatham's Portable Puzzle Collection, distributed under the <a href="licence.html#licence">MIT licence</a>.</p></footer>
+</body>
 </html>

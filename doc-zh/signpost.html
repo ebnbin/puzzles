@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Signpost</title>
+<link rel="previous" href="magnets.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="range.html">
+</head>
+<body>
+<p><a href="magnets.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="range.html">下一页</a></p>
+
+<ul>
+<li><a href="#signpost">第 34 章：Signpost</a>
+<ul>
+<li><a href="#signpost-controls">34.1 Signpost 操作方式</a></li>
+<li><a href="#signpost-parameters">34.2 Signpost 参数</a></li>
+<li><a href="#signpost-prefs">34.3 Signpost 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="signpost"></a>第 34 章：<a name="i0"></a>Signpost</h1>
+<p>
+你面前有一个由方格组成的网格；每个方格（最后一个除外）中都有一个箭头，某些方格中还有数字。你的任务是把这些方格连接起来，形成一个从 1 开始、并沿着箭头方向依次相连的连续数字序列 &#8211; 也就是说，写有数字 1 的方格中的箭头会指向含有数字 2 的方格，后者又会指向含有数字 3 的方格，依此类推。每个方格与前一个方格之间的距离可以任意，只要它位于箭头所指的方向上即可。
+</p>
+<p>
+按照惯例，第一个和最后一个数字会显示出来；开头处也可能出现一个或多个中间数字。
+</p>
+<p>
+本谜题的原创归功于 <a name="i1"></a>Janko <a href="#p0">[17]</a>，他们称之为 &#8216;Pfeilpfad&#8217;（&#8216;箭头路径&#8217;）。
+</p>
+<p>
+Signpost 由 James Harvey 贡献给本合集。
+</p>
+<p><a name="p0"></a>
+[17] <a href="http://janko.at/Raetsel/Pfeilpfad/index.htm"><code>http://janko.at/Raetsel/Pfeilpfad/index.htm</code></a>
+</p>
+<h2><a name="signpost-controls"></a>34.1 <a name="i2"></a>Signpost 操作方式</h2>
+<p>
+游玩 Signpost 时，你通过从一个方格拖动到另一个方格来把方格连接起来，表示它们在序列中前后相邻。用鼠标左键从一个方格拖到它的后继方格，或用鼠标右键从一个方格拖到它的前驱方格。
+</p>
+<p>
+如果你以这种方式连接两个方格，而其中一个方格中有数字，那么另一个方格中就会出现相应的数字。如果你连接的是两个没有数字的方格，它们会被赋予临时的代数标记：第一次出现时，它们会被标记为 &#8216;<code>a</code>&#8217; 和 &#8216;<code>a+1</code>&#8217;，接下来则是 &#8216;<code>b</code>&#8217; 和 &#8216;<code>b+1</code>&#8217;，依此类推。把更多方格连接到这样一条链的两端，会使它们全都被标记为同一个字母。
+</p>
+<p>
+当你在某个方格上左键点击或右键点击时，可以与它相连的合法方格会被显示出来。
+</p>
+<p>
+每个方格中的箭头起初是黑色的，一旦你把该方格连接到它的后继方格，箭头就会变成灰色。此外，每个还需要前驱方格的方格在其左下角有一个小圆点，一旦有方格连接到它，这个圆点就会消失。因此，你的目标始终是把带黑色箭头的方格连接到带圆点的方格。
+</p>
+<p>
+要移除某个方格的所有连接（包括进入的和发出的），用左键把它拖出网格。要移除整条链，用右键把该链中的任意一个方格拖出网格。
+</p>
+<p>
+你也可以用方向键在网格的方格和连线之间移动。当停留在某个方格上时按回车键会开始一次连接操作，再次在某个方格上按回车键则会完成这条连接（如果允许的话）。在某个方格上按空格键会显示指向它的其他方格，并允许你建立一条反向连接，再次按空格键则会取消。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作也都可以使用。）
+</p>
+<h2><a name="signpost-parameters"></a>34.2 <a name="i3"></a>Signpost 参数</h2>
+<p>
+以下参数可通过 &#8216;类型&#8217;菜单中的 &#8216;Custom...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>强制起点/终点位于角落</em>
+</dt>
+<dd>
+如果为真，起点方格和终点方格总是被放置在相对的两个角落（起点在左上角，终点在右下角）。如果为假，起点方格和终点方格会被随机放置（不过两者始终都会显示出来）。
+</dd>
+</dl>
+<h2><a name="signpost-prefs"></a>34.3 <a name="i4"></a>Signpost 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;Game&#8217; 菜单中的 &#8216;Preferences&#8217; 选项可以让你配置胜利特效的样式。
+</p>
+
+<hr><address></address></body>
+</html>

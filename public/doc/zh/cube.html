@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Cube</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="net.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="fifteen.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/cube.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/cube.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="net.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="fifteen.html">下一页</a></p>
+<h1><a name="cube"></a>第 4 章：<a name="i0"></a>Cube</h1>
+<p>
+这也是我最初作为网页游戏见到的另一个游戏。这一个是由 Paul Scott 编写的 Java 游戏 <a href="#p0">[2]</a>。你有一个由 16 个方格组成的网格，其中六个是蓝色的；有一个立方体停在其中一个方格上。你的行动是使用方向键把立方体滚动 90 度，使它移动到相邻的方格。如果你把立方体滚到一个蓝色方格上，这个蓝色方格就会被立方体的某一面拾起；如果你把立方体的一个蓝色面滚到非蓝色的方格上，蓝色就会被重新放下。（一般来说，每当你滚动立方体时，相互接触的那两个面就会交换颜色。）你的任务是让全部六个蓝色方格同时位于立方体的六个面上。数一数你所走的步数，并尽量用最少的步数完成。
+</p>
+<p>
+与原版的 Java 游戏不同，我的版本有一项额外的功能：一旦你掌握了立方体在方形网格上滚动的玩法，就可以换成三角形网格，滚动四面体、八面体或二十面体中的任意一种。
+</p>
+<p><a name="p0"></a>
+[2] <a href="http://www3.sympatico.ca/paulscott/cube/cube.htm"><code>http://www3.sympatico.ca/paulscott/cube/cube.htm</code></a>
+</p>
+<h2><a name="cube-controls"></a>4.1 <a name="i1"></a>Cube 操作方式</h2>
+<p>
+本游戏可以使用键盘或鼠标进行游玩。
+</p>
+<p>
+在窗口中的任意位置点击鼠标左键，都会让立方体（或其他多面体）朝鼠标指针的方向移动。
+</p>
+<p>
+方向键同样可以用来让立方体在其方形网格上沿四个基本方向滚动。在三角形网格上，方向键与移动方向之间的对应关系则较为近似。在竖直移动没有意义的地方，该移动是不被允许的。数字小键盘上环绕着方向键的那四个键（&#8216;7&#8217;、&#8216;9&#8217;、&#8216;1&#8217;、&#8216;3&#8217;）可以用于对角线方向的移动。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="cube-params"></a>4.2 <a name="i2"></a>Cube 参数</h2>
+<p>
+这些参数可以通过&#8216;类型&#8217;菜单中的&#8216;自定义...&#8217;选项来设置。
+</p>
+<dl><dt>
+<em>多面体类型</em>
+</dt>
+<dd>
+选择要滚动的多面体（因而也决定了网格的形状）：四面体、立方体、八面体或二十面体。
+</dd>
+<dt>
+<em>宽度 / 顶行</em>、<em>高度 / 底行</em>
+</dt>
+<dd>
+在方形网格上，指水平和竖直方向的尺寸。在三角形网格上，则分别指顶行和底行上的三角形数量。
+</dd>
+</dl>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

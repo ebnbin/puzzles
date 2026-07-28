@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Light Up</title>
+<link rel="previous" href="slant.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="map.html">
+</head>
+<body>
+<p><a href="slant.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="map.html">下一页</a></p>
+
+<ul>
+<li><a href="#lightup">第 21 章：Light Up</a>
+<ul>
+<li><a href="#lightup-controls">21.1 Light Up 操作方式</a></li>
+<li><a href="#lightup-parameters">21.2 Light Up 参数</a></li>
+<li><a href="#lightup-prefs">21.3 Light Up 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="lightup"></a>第 21 章：<a name="i0"></a>Light Up</h1>
+<p>
+你面前有一个由方格组成的网格。其中一些被涂成黑色；部分黑色方格上标有数字。你的目标是在部分空方格中放置灯泡，从而&#8216;点亮&#8217;所有的空方格。
+</p>
+<p>
+每个灯泡都会照亮它所在的方格，以及在水平方向或垂直方向上与它成一线的所有方格，除非有黑色方格挡住了去路。
+</p>
+<p>
+要赢得这个游戏，你必须满足以下条件：
+</p>
+<ul><li>
+所有非黑色的方格都被点亮。
+</li>
+<li>
+没有任何灯泡被另一个灯泡照亮。
+</li>
+<li>
+所有标有数字的黑色方格，与之相邻的方格（上方、下方以及两侧共四个方格）中的灯泡数量恰好等于该数字。
+</li>
+</ul>
+<p>
+未标数字的黑色方格，与之相邻的灯泡数量可以是任意的。
+</p>
+<p>
+本谜题的创意归功于<a name="i1"></a>Nikoli <a href="#p0">[9]</a>。
+</p>
+<p>
+Light Up 由 James Harvey 贡献给本合集。
+</p>
+<p><a name="p0"></a>
+[9] <a href="https://www.nikoli.co.jp/en/puzzles/akari/"><code>https://www.nikoli.co.jp/en/puzzles/akari/</code></a>
+</p>
+<h2><a name="lightup-controls"></a>21.1 <a name="i2"></a>Light Up 操作方式</h2>
+<p>
+在非黑色方格上左键单击，会切换该方格中是否有灯泡。在非黑色方格上右键单击，会在那里切换一个有助于解题的标记；例如，它可以用来标出那些无法被点亮的方格。
+</p>
+<p>
+你不能在已作标记的方格中放置灯泡，也不能在已被点亮的方格中放置标记。
+</p>
+<p>
+游戏会用红色突出显示明显的错误。被其他灯泡照亮的灯泡会以这种方式标出，相邻灯泡数量不正确（或不可能正确）的数字方格也是如此。
+</p>
+<p>
+因此，当所有非黑色方格都呈黄色高亮，并且没有红色的灯泡时，网格就解出了。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="lightup-parameters"></a>21.2 <a name="i3"></a>Light Up 参数</h2>
+<p>
+这些参数可以通过&#8216;类型&#8217;菜单上的&#8216;Custom...&#8217;选项进行设置。
+</p>
+<dl><dt>
+<em>Width</em>、<em>Height</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>%age of black squares</em>
+</dt>
+<dd>
+网格中黑色方格的大致百分比。
+<p>
+这只是一个提示，而不是一条指令。如果网格生成器无法生成完全符合这一规格的谜题，它就会提高黑色方格的比例，直到能够生成为止。
+</p>
+
+</dd>
+<dt>
+<em>Symmetry</em>
+</dt>
+<dd>
+让你可以指定网格中黑色方格所需的对称性。（这对谜题的难度没有明显影响。）
+</dd>
+<dt>
+<em>Difficulty</em>
+</dt>
+<dd>
+&#8216;Easy&#8217;表示谜题应当无需回溯或猜测即可解出，&#8216;Hard&#8217;表示很可能需要进行一些猜测。
+</dd>
+</dl>
+<h2><a name="lightup-prefs"></a>21.3 <a name="i4"></a>Light Up 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;Game&#8217;菜单上的&#8216;Preferences&#8217;选项可以让你配置：当方格同时也被点亮时，是否显示&#8216;这里不是灯泡&#8217;的标记。
+</p>
+
+<hr><address></address></body>
+</html>

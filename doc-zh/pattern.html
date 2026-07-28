@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Pattern</title>
+<link rel="previous" href="netslide.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="solo.html">
+</head>
+<body>
+<p><a href="netslide.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="solo.html">下一页</a></p>
+<h1><a name="pattern"></a>第 10 章：<a name="i0"></a>Pattern</h1>
+<p>
+你有一个方格网格，其中所有方格都必须填成黑色或白色。网格每一行的旁边按顺序列出了该行中黑色方格连续段的长度；每一列的上方按顺序列出了该列中黑色方格连续段的长度。你的目标是把整个网格填满黑色或白色。
+</p>
+<p>
+我第一次见到这种谜题形式大约是在 1995 年，它当时的名字是 &#8216;<a name="i1"></a>nonograms&#8217;。此后我在各种地方见过它，名称各不相同。
+</p>
+<p>
+通常，这类谜题在你解开之后会显现为某种有意义的图画。然而，由于本版本是自动生成谜题的，它们看上去只会像是方格的随机组合。（有一位用户提出，这其实是一件<em>好</em>事，因为它使你无法根据图画来猜测方格的颜色，从而迫使你转而运用逻辑。）不过，其优点在于这类谜题永远都不会用完。
+</p>
+<h2><a name="pattern-controls"></a>10.1 <a name="i2"></a>Pattern 操作方式</h2>
+<p>
+本游戏用鼠标进行。
+</p>
+<p>
+在方格中点击鼠标左键可将其涂成黑色。点击右键可将其涂成白色。如果你弄错了，可以点击中键，或者在按住 Shift 键的同时用任意键点击，把该方格重新涂成默认的灰色（表示 &#8216;未确定&#8217;）。
+</p>
+<p>
+你可以用鼠标左键或右键点击并拖动，一次把竖直或水平的一串方格分别涂成黑色或白色。如果用中键点击并拖动，或者按住 Shift 键点击并拖动，则可以把一整块矩形范围内的方格涂成灰色。
+</p>
+<p>
+你也可以用方向键在网格中移动。按回车键会让当前格依次循环变为空、黑、白、空，而空格键则以相反的顺序进行同样的循环。
+</p>
+<p>
+按住 Control 键移动光标，会把经过的方格涂成黑色。按住 Shift 键会把经过的方格涂成白色，同时按住两者则会把它们涂成灰色。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="pattern-parameters"></a>10.2 <a name="i3"></a>Pattern 参数</h2>
+<p>
+&#8216;类型&#8217; 菜单中的 &#8216;自定义...&#8217; 选项里只有 <em>宽度</em> 和 <em>高度</em> 两个选项可用，它们的含义不言自明。
+</p>
+
+<hr><address></address></body>
+</html>

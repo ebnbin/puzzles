@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Net</title>
+<link rel="previous" href="common.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="cube.html">
+</head>
+<body>
+<p><a href="common.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="cube.html">下一页</a></p>
+
+<ul>
+<li><a href="#net">第 3 章：Net</a>
+<ul>
+<li><a href="#net-controls">3.1 Net 操作方式</a></li>
+<li><a href="#net-params">3.2 Net 参数</a></li>
+<li><a href="#net-prefs">3.3 Net 用户偏好设置</a></li>
+</ul></li>
+</ul>
+<h1><a name="net"></a>第 3 章：<a name="i0"></a>Net</h1>
+<p>
+（<em>注意：</em>本游戏的 <a name="i1"></a>Windows 版本名为 <a name="i2"></a><code>NETGAME.EXE</code>，以避免与 Windows 自带的 <code>NET.EXE</code> 相冲突。）
+</p>
+<p>
+我最初见到这个游戏，是一个名为 <a name="i3"></a>FreeNet <a href="#p0">[1]</a> 的 Flash 游戏，由 Pavils Jurjans 编写；此外还有若干以 <a name="i4"></a>NetWalk 为名的实现。计算机把网格中各方格的中心连接起来，从而构造出一个网络，然后随机旋转每一块拼块来打乱这个网络。你的任务是把它们全部旋转回原位。成功的解答将是一个完全连通、且不含闭合回路的网络。作为视觉辅助，所有与中央那一块相连通的拼块都会被高亮显示。
+</p>
+<p><a name="p0"></a>
+[1] <a href="http://www.jurjans.lv/stuff/net/FreeNet.htm"><code>http://www.jurjans.lv/stuff/net/FreeNet.htm</code></a>
+</p>
+<h2><a name="net-controls"></a>3.1 <a name="i5"></a>Net 操作方式</h2>
+<p>
+本游戏可以使用键盘或鼠标进行游玩。操作方式如下：
+</p>
+<dl><dt>
+<em>选择拼块</em>：鼠标指针、方向键
+</dt>
+<dt>
+<em>逆时针旋转拼块</em>：鼠标左键、&#8216;A&#8217; 键
+</dt>
+<dt>
+<em>顺时针旋转拼块</em>：鼠标右键、&#8216;D&#8217; 键
+</dt>
+<dt>
+<em>将拼块旋转 180 度</em>：&#8216;F&#8217; 键
+</dt>
+<dt>
+<em>锁定（或解锁）拼块</em>：鼠标中键、Shift + 单击、&#8216;S&#8217; 键
+</dt>
+<dd>
+一旦你确定了某块拼块的朝向，就可以把它锁定。你也可以再次将其解锁，但在锁定期间，你不会不小心把它转动。
+</dd>
+</dl>
+<p>
+以下操作方式并非完成游戏所必需，但可能会有用：
+</p>
+<dl><dt>
+<em>平移网格</em>：Shift + 方向键
+</dt>
+<dd>
+在会回绕的网格上，你可以移动网格的原点，从而让原本位于网格两个对边上的拼块能够一同显示出来。
+</dd>
+<dt>
+<em>移动中心</em>：Ctrl + 方向键
+</dt>
+<dd>
+你可以改变以哪一块拼块作为高亮显示的起点。（归根结底，这一块是哪一块并不重要，因为在正确的解答中每一块拼块都会与其他所有拼块相连通，但在解谜的中间阶段这可能会有所帮助。）
+</dd>
+<dt>
+<em>打乱拼块</em>：&#8216;J&#8217; 键
+</dt>
+<dd>
+此键会把所有未被锁定的拼块转到随机的朝向。
+</dd>
+</dl>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="net-params"></a>3.2 <a name="i6"></a>Net 参数</h2>
+<p>
+这些参数可以通过&#8216;类型&#8217;菜单中的&#8216;自定义...&#8217;选项来设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+以拼块为单位的网格尺寸。
+</dd>
+<dt>
+<em>墙壁回绕</em>
+</dt>
+<dd>
+如果勾选此项，流动就可以从左边缘通到右边缘、从上边缘通到下边缘，反之亦然。
+</dd>
+<dt>
+<em>屏障概率</em>
+</dt>
+<dd>
+一个介于 0.0 和 1.0 之间的数值，控制是否在两块拼块之间放置不可移动的屏障以阻断它们之间的流动（数值越大，屏障越多）。由于屏障不可移动，它们相当于对解答的约束（也就是提示）。
+<p>
+Net 中的网格生成经过了精心安排，使得屏障与网格的其余部分相互独立。这意味着，如果你记下用于生成当前谜题的随机种子（参见<a href="common.html#common-id">第 2.2 节</a>），改变<em>屏障概率</em>参数，然后重新输入相同的随机种子，你应当会看到完全相同的初始网格，唯一的变化就是屏障的数量。因此，如果你在某个特定的网格上卡住了并且需要提示，你可以另外启动一个 Net 实例，设置相同的参数但使用更高的屏障概率，然后输入原先那个 Net 窗口中的游戏种子。
+</p>
+
+</dd>
+<dt>
+<em>确保唯一解</em>
+</dt>
+<dd>
+通常情况下，Net 会确保它给出的谜题只有一个解。含有歧义部分的谜题可能更难、也更微妙，因此如果你愿意，可以关闭这项功能，冒着出现歧义谜题的风险。（此外，找出<em>所有</em>可能的解，对高阶玩家来说也可以是一项额外的挑战。）
+</dd>
+</dl>
+<h2><a name="net-prefs"></a>3.3 <a name="i7"></a>Net 用户偏好设置</h2>
+<p>
+在支持用户偏好设置的平台上，&#8216;游戏&#8217;菜单中的&#8216;偏好设置&#8217;选项可以让你配置何时把回路高亮显示为错误。默认情况下，回路总是会被高亮显示；通过更改此选项，你可以要求只有当构成回路的每一块拼块都被锁定时才高亮显示该回路。这样可以避免回路的高亮显示提前泄露关于你尚未查看的那些方格的可用推理。
+</p>
+
+<hr><address></address></body>
+</html>

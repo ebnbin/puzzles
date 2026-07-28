@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>通用功能</title>
+<link rel="stylesheet" href="/doc.css">
+<link rel="previous" href="intro.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="net.html">
+<script>
+;(function () {
+  try {
+    var choice = localStorage.getItem('puzzles.theme')
+    var dark =
+      choice === 'dark' ||
+      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document
+      .querySelector('meta[name="theme-color"]')
+      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+  } catch (e) {}
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
+<span class="doc-top-title">手册</span>
+<span class="doc-lang"><a href="/doc/common.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/common.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
+</header>
+<main class="doc-main">
+<p><a href="intro.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="net.html">下一页</a></p>
+
+<ul>
+<li><a href="#common">第 2 章：通用功能</a>
+<ul>
+<li><a href="#common-actions">2.1 通用操作</a></li>
+<li><a href="#common-id">2.2 用游戏 ID 指定游戏</a></li>
+<li><a href="#common-type">2.3 &#8216;类型&#8217;菜单</a></li>
+<li><a href="#common-cmdline">2.4 在命令行上指定游戏参数</a></li>
+<li><a href="#common-unix-cmdline">2.5 Unix 命令行选项</a></li>
+</ul></li>
+</ul>
+<h1><a name="common"></a>第 2 章：<a name="i0"></a>通用功能</h1>
+<p>
+本章描述所有游戏共有的功能。
+</p>
+<h2><a name="common-actions"></a>2.1 <a name="i1"></a>通用操作</h2>
+<p>
+除各游戏特有的操作之外，以下这些操作都可以从<a name="i2"></a>&#8216;游戏&#8217;菜单以及<a name="i3"></a>键盘快捷键使用。
+</p>
+<p>
+（在 <a name="i4"></a>Mac OS X 上，为符合本地用户界面标准，这些操作改为位于<a name="i5"></a>&#8216;文件&#8217;和<a name="i6"></a>&#8216;编辑&#8217;菜单中。）
+</p>
+<dl><dt>
+<a name="i7"></a><em>新游戏</em>（&#8216;N&#8217;、Ctrl+&#8216;N&#8217;）
+</dt>
+<dd>
+以随机的初始状态开始一局新游戏。
+</dd>
+<dt>
+<a name="i8"></a><em>重新开始游戏</em>
+</dt>
+<dd>
+把当前游戏重置为它的初始状态。（此操作可以撤销。）
+</dd>
+<dt>
+<a name="i9"></a><em>载入</em>
+</dt>
+<dd>
+从磁盘上的文件载入一局已保存的游戏。
+</dd>
+<dt>
+<a name="i10"></a><em>保存</em>
+</dt>
+<dd>
+把你这局游戏的当前状态保存到磁盘上的文件中。
+<p>
+载入和保存操作会保留你完整的游戏历史（因此你可以保存、重新载入，并且仍然能够撤销和重做你在保存之前所做的操作）。
+</p>
+
+</dd>
+<dt>
+<a name="i11"></a><em>打印</em>
+</dt>
+<dd>
+在支持的平台上（目前仅限 Windows），会弹出一个对话框，允许你打印任意数量的、依据当前参数随机生成的谜题，并可选择把当前的谜题也包含进去。（当然，这只适用于那些适合打印的谜题 &#8211; 很难想出 Fifteen 有什么合理的可打印表现形式！）
+</dd>
+<dt>
+<a name="i12"></a><em>撤销</em>（&#8216;U&#8217;、Ctrl+&#8216;Z&#8217;、Ctrl+&#8216;_&#8217;、&#8216;*&#8217;）
+</dt>
+<dd>
+撤销一步操作。（你可以一直撤销到本次会话的开始。）
+</dd>
+<dt>
+<a name="i13"></a><em>重做</em>（&#8216;R&#8217;、Ctrl+&#8216;R&#8217;、&#8216;#&#8217;）
+</dt>
+<dd>
+重做先前被撤销的一步操作。
+</dd>
+<dt>
+<a name="i14"></a><em>复制</em>
+</dt>
+<dd>
+以文本格式把你这局游戏的当前状态复制到剪贴板，这样在你与别人讨论这局游戏时，就可以把它粘贴到（比如）电子邮件客户端或网络留言板中。（并非所有游戏都支持此功能。）
+</dd>
+<dt>
+<a name="i15"></a><em>求解</em>
+</dt>
+<dd>
+立即把谜题变换为它的已解状态。对某些游戏（Cube）而言，完全不支持此功能，因为它没有什么特别的用处。对另一些游戏（例如 Pattern）而言，如果你根本看不出解怎么可能存在，或者想知道自己在哪里犯了错，已解状态可以给你提供信息。而对于再另一些游戏（例如 Sixteen），自动求解并不会告诉你如何<em>到达</em>解，但它确实提供了一种快速抵达那里的实用方式，让你可以试验成套的移动与变换。
+<p>
+某些游戏（例如 Solo）能够求解你从别处输入进来的游戏 ID。另一些游戏（例如 Rectangles）无法求解并非自己生成的游戏 ID，但当游戏 ID 是它们自己生成的时候，它们本来就已经知道解是什么了。还有一些游戏（Pattern）可以求解<em>部分</em>外部游戏 ID，但前提是这些游戏 ID 不太难。
+</p>
+<p>
+&#8216;求解&#8217;命令会把已解状态添加到该谜题撤销链的末尾。换句话说，如果你在看过答案之后想回去继续自己解，只需按撤销即可。
+</p>
+
+</dd>
+<dt>
+<a name="i16"></a><a name="i17"></a><em>退出</em>（&#8216;Q&#8217;、Ctrl+&#8216;Q&#8217;）
+</dt>
+<dd>
+完全关闭应用程序。
+</dd>
+<dt>
+<a name="i18"></a><em>首选项</em>
+</dt>
+<dd>
+在支持的平台上，会弹出一个对话框，允许你配置关于某个特定游戏的个人首选项。其中一些首选项是某个特定游戏专有的；另一些则是所有游戏共有的。
+<p>
+所有游戏共有的一个选项允许你关闭单键快捷键，比如用于开始新游戏的 &#8216;N&#8217; 或用于退出的 &#8216;Q&#8217;，这样误触它们的可能性就会小一些。你仍然可以配合 Ctrl 键使用同样的快捷键。
+</p>
+
+</dd>
+</dl>
+<h2><a name="common-id"></a>2.2 用<a name="i19"></a>游戏 ID 指定游戏</h2>
+<p>
+有两种方式可以把一局游戏的规格说明从谜题程序中保存出来并在日后重建它，或者在别人的同一谜题程序副本中重建它。
+</p>
+<p>
+&#8216;<a name="i20"></a>指定&#8217;和&#8216;<a name="i21"></a>随机种子&#8217;这两个选项来自<a name="i22"></a>&#8216;游戏&#8217;菜单（在 <a name="i23"></a>Mac OS X 上则来自&#8216;文件&#8217;菜单），它们各自会显示一段文本（一个&#8216;游戏 ID&#8217;），这段文本足以在日后精确地重建出完全相同的一局游戏。
+</p>
+<p>
+你可以在日后把这两段文本中的任意一段重新输入到程序里（通过同样的&#8216;指定&#8217;或&#8216;随机种子&#8217;菜单选项），程序就会重建出同一局游戏。你也可以把其中任意一段用作<a name="i24"></a>命令行参数（在 Windows 或 Unix 上）；更多细节见<a href="#common-cmdline">第 2.4 节</a>。
+</p>
+<p>
+两种形式的区别在于：描述性游戏 ID 是对游戏的一段字面<em>描述</em>，说明它的<a name="i25"></a>初始状态；而随机种子只是一段任意文本，它被用作创建该谜题所使用的随机数生成器的输入。这意味着：
+</p>
+<ul><li>
+在许多谜题中，描述性游戏 ID 往往比较长（不过有些谜题，例如 Cube（<a href="cube.html#cube">第 4 章</a>），只需要非常简短的描述）。因此，若要记下你当前正在玩的谜题，或者把它告诉别人以便对方玩到和你一样的那一局，随机种子往往是<em>更快捷</em>的方式。
+</li>
+<li>
+任何文本都是有效的随机种子。自动生成的种子是十五位数字，但任何内容都可以；你可以输入自己的全名，或者一个你刚编出来的词，程序就会据此生成一个有效的谜题。这为两人或多人比赛完成同一个谜题提供了一种方式：你想出一个随机种子，然后所有人同时把它输进去，谁也不会因为比别人先看到生成出来的谜题而占到便宜。
+</li>
+<li>
+通常可以把来自其他来源的谜题（例如报纸上的&#8216;数织&#8217;或&#8216;数独&#8217;）转换成适合这些程序使用的描述性游戏 ID。
+</li>
+<li>
+如果你把随机种子用在谜题程序的不同<a name="i26"></a><em>版本</em>上，并不保证会产生相同的结果。这是因为生成算法在后续版本的代码中可能已被改进或修改，因此在给定相同的随机数序列时会产生不同的结果。如果你不确定随机种子会被用在与你相同版本的程序上，请使用描述性游戏 ID。
+<p>
+（使用&#8216;关于&#8217;菜单选项可以查出程序的版本号。版本号相同的程序即使运行在不同平台上，也应当仍然保持随机种子兼容。）
+</p>
+
+</li>
+</ul>
+<p>
+<a name="i27"></a>描述性游戏 ID 以一段文本开头，这段文本编码了当前游戏的<a name="i28"></a><em>参数</em>（例如网格大小）。接着是一个冒号，冒号之后是对游戏初始状态的描述。随机种子同样以一串类似的参数开头，但之后是一个井号，井号后面跟着任意数据。
+</p>
+<p>
+如果你输入的是描述性游戏 ID，程序将无法向你显示生成它的随机种子，因为它并不是<em>从</em>随机种子生成出来的。然而，如果你<em>输入</em>的是随机种子，程序就能够向你显示由该随机种子导出的描述性游戏 ID。
+</p>
+<p>
+请注意，两种形式中的游戏参数字符串并不总是完全相同。对某些游戏而言，随机种子会附带一些描述性游戏 ID 中未包含的参数数据。这是因为那部分参数信息只在<em>生成</em>谜题网格时才有意义，而在游玩它们时并不重要。因此，举例来说，Solo（<a href="solo.html#solo">第 11 章</a>）中的难度等级就没有在描述性游戏 ID 中提及。
+</p>
+<p>
+如果你输入一个游戏 ID，这些附加参数也不会被永久设定。例如，假设你把 Solo 设为&#8216;高级&#8217;难度等级，然后一位朋友希望你帮他解决一个&#8216;极易&#8217;谜题；于是这位朋友念出一个指定了&#8216;极易&#8217;难度的随机种子，你把它输了进去。程序会为你生成你朋友遇到麻烦的那个&#8216;极易&#8217;网格，但一旦你玩完了它，当你要求开始新游戏时，程序会自动回到它先前设定的&#8216;高级&#8217;难度。
+</p>
+<h2><a name="common-type"></a>2.3 &#8216;类型&#8217;菜单</h2>
+<p>
+<a name="i29"></a>&#8216;类型&#8217;菜单（如果存在的话）可能包含一份<a name="i30"></a>预设游戏设置的列表。选择其中之一，将以所指定的参数开始一局新的随机游戏。
+</p>
+<p>
+&#8216;类型&#8217;菜单还可能包含一个&#8216;<a name="i31"></a>自定义&#8217;选项，它允许你精细调整游戏<a name="i32"></a>参数。可用的参数是各游戏特有的，将在后续各节中描述。
+</p>
+<h2><a name="common-cmdline"></a>2.4 在<a name="i33"></a>命令行上指定游戏参数</h2>
+<p>
+（本节不适用于 <a name="i34"></a>Mac OS X 版本。）
+</p>
+<p>
+本合集中的游戏刻意从不把信息保存到它们所运行的计算机上：它们没有高分榜，也没有保存下来的首选项。（这是因为我预计至少会有一些人在工作时玩它们，而这些人大概会希望尽可能少留下痕迹！）
+</p>
+<p>
+不过，如果你确实希望让其中某个游戏<a name="i35"></a>默认使用某一组特定的参数，你可以在命令行上指定它们。
+</p>
+<p>
+最简单的做法是：先用&#8216;类型&#8217;菜单（见<a href="#common-type">第 2.3 节</a>）设置好你想要的参数，然后从&#8216;游戏&#8217;或&#8216;文件&#8217;菜单中选择&#8216;随机种子&#8217;（见<a href="#common-id">第 2.2 节</a>）。&#8216;游戏 ID&#8217;框中的文本将由两部分组成，中间以一个井号分隔。其中第一部分代表游戏参数（例如游戏区域的大小，以及你用&#8216;类型&#8217;菜单设置的其他任何内容）。
+</p>
+<p>
+如果你在命令行上只带着那段参数文本运行游戏，它就会以你所指定的设置启动。
+</p>
+<p>
+例如：如果你运行 Cube（见<a href="cube.html#cube">第 4 章</a>），从&#8216;类型&#8217;菜单中选择&#8216;八面体&#8217;，然后转到游戏 ID 选择处，你会看到一个形如&#8216;<code>o2x2#338686542711620</code>&#8217;的字符串。只取井号之前的部分（&#8216;<code>o2x2</code>&#8217;），并在命令行上带着这段文本启动 Cube：&#8216;<code>PREFIX-cube o2x2</code>&#8217;。
+</p>
+<p>
+如果你把<em>整个</em>游戏 ID 复制到命令行上，游戏就会以所描述的那局具体游戏启动。相比把游戏 ID 粘贴到游戏 ID 选择框中，这偶尔是启动某个特定游戏 ID 的更方便的方式。
+</p>
+<p>
+（你也可以用&#8216;指定&#8217;菜单选项而不是&#8216;随机种子&#8217;来取得编码后的游戏参数，但如果那样做，某些选项就会缺失，例如 Solo 中的难度等级。关于这一点的更多细节见<a href="#common-id">第 2.2 节</a>。）
+</p>
+<h2><a name="common-unix-cmdline"></a>2.5 <a name="i36"></a>Unix <a name="i37"></a>命令行选项</h2>
+<p>
+（本节仅适用于 Unix 移植版本。）
+</p>
+<p>
+除了可以在命令行上指定游戏参数（见<a href="#common-cmdline">第 2.4 节</a>）之外，还有其他各种选项：
+</p>
+<dl><dt>
+<code>--game</code>
+</dt>
+<dt>
+<code>--load</code>
+</dt>
+<dd>
+这两个选项分别决定命令行参数是被当作指定游戏参数，还是被当作一个<a name="i38"></a>存档文件来<a name="i39"></a>载入。只应指定其中之一。如果这两个选项都没有指定，程序会根据参数的格式作出猜测。
+</dd>
+<dt>
+<code>--generate </code><em>n</em>
+</dt>
+<dd>
+如果指定了此选项，程序将不显示谜题，而是<a name="i40"></a>构造出若干个描述性游戏 ID 并打印到标准输出。这有助于在不必使用前端界面的情况下使用游戏生成算法。
+<p>
+如果在命令行上指定了游戏参数，就会用它们来生成这些游戏 ID；否则将使用一组默认参数。
+</p>
+<p>
+此选项最常见的用法是与 <code>--print</code> 配合使用，此时它的行为略有不同；见下文。
+</p>
+
+</dd>
+<dt>
+<code>--delete-prefs</code>
+</dt>
+<dd>
+此选项会让谜题程序删除保存其用户偏好设置的配置文件（如果存在这样的文件的话）。
+</dd>
+<dt>
+<a name="i41"></a><code>--print </code><em>w</em><code>x</code><em>h</em>
+</dt>
+<dd>
+如果指定了此选项，程序将不显示谜题，而是把一个或多个未解谜题的打印表现形式以 <a name="i42"></a>PostScript 格式送到标准输出。
+<p>
+在每一页谜题上，横向会排 <em>w</em> 个，纵向会排 <em>h</em> 个。如果谜题数量多于 <em>w</em>&#215;<em>h</em>，就会打印不止一页。
+</p>
+<p>
+如果同时还指定了 <code>--generate</code>，就会用构造出来的游戏 ID 来产生打印输出。否则，程序会期望从标准输入读入一份游戏 ID 列表（可以是描述性 ID 或随机种子；见<a href="#common-id">第 2.2 节</a>），其格式与 <code>--generate</code> 所产生的相同。
+</p>
+<p>
+例如：
+</p>
+<pre><code>PREFIX-net --generate 12 --print 2x3 7x7w | lpr
+</code></pre>
+<p>
+将生成两页打印出的 Net 谜题（其中每一个都有一个 7&#215;7 的环绕网格），并把输出通过管道传给 <code>lpr</code> 命令，在许多系统上该命令会把它们送到真正的打印机上。
+</p>
+<p>
+还有其他各种影响打印的选项；见下文。
+</p>
+
+</dd>
+<dt>
+<code>--save </code><em>file-prefix</em> [ <code>--save-suffix </code><em>file-suffix</em> ]
+</dt>
+<dd>
+如果指定了此选项，程序将不显示谜题，而是把一个或多个未解谜题的存档文件写入根据所提供的前缀和/或后缀构造出的文件中。
+<p>
+如果同时还指定了 <code>--generate</code>，就会用构造出来的游戏 ID 来产生打印输出。否则，程序会期望从标准输入读入一份游戏 ID 列表（可以是描述性 ID 或随机种子；见<a href="#common-id">第 2.2 节</a>），其格式与 <code>--generate</code> 所产生的相同。
+</p>
+<p>
+例如：
+</p>
+<pre><code>PREFIX-net --generate 12 --save game --save-suffix .sav
+</code></pre>
+<p>
+将生成十二个 Net 存档文件，文件名从 <code>game0.sav</code> 到 <code>game11.sav</code>。
+</p>
+
+</dd>
+<dt>
+<code>--version</code>
+</dt>
+<dd>
+打印关于该游戏的版本信息，然后退出。
+</dd>
+</dl>
+<p>
+以下选项只有在同时指定了 <code>--print</code> 时才有意义：
+</p>
+<dl><dt>
+<code>--with-solutions</code>
+</dt>
+<dd>
+在排满未解谜题的那些页面之后，将附上这些谜题的解答。
+</dd>
+<dt>
+<code>--scale </code><em>n</em>
+</dt>
+<dd>
+调整每个谜题打印出来时的大小。数值越大，谜题越大；默认值为 1.0。
+</dd>
+<dt>
+<code>--colour</code>
+</dt>
+<dd>
+谜题将以彩色而非黑白方式打印（如果该谜题支持的话）。
+</dd>
+</dl>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham’s Portable Puzzle Collection，以 <a href="licence.html#licence">MIT 许可证</a>分发。本手册为英文原版的简体中文译本。</p></footer>
+</body>
+</html>

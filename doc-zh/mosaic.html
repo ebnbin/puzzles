@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Mosaic</title>
+<link rel="previous" href="palisade.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="licence.html">
+</head>
+<body>
+<p><a href="palisade.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="licence.html">下一页</a></p>
+<h1><a name="mosaic"></a>第 42 章：<a name="i0"></a>Mosaic</h1>
+<p>
+你会得到一个方格网格，你必须把每个方格涂成黑色或白色。
+</p>
+<p>
+某些方格中含有线索数字。每个线索告诉你，围绕该线索的 3&#215;3 区域中黑色方格的数量 &#8211; <em>包括</em>线索方格本身在内。
+</p>
+<p>
+这个游戏在其他地方有各种不同的名称：ArtMosaico、Count and Darken、Cuenta Y Sombrea、Fill-a-Pix、Fill-In、Komsu Karala、Magipic、Majipiku、Mosaico、Mosaik、Mozaiek、Nampre Puzzle、Nurie-Puzzle、Oekaki-Pix、Voisimage。
+</p>
+<p>
+Mosaic 由 Didi Kohen 贡献给本合集。配色设计由 Michal Shomer 完成。其实现大致基于 <a href="https://github.com/mordechaim/Mosaic"><code>github.com/mordechaim/Mosaic</code></a>。
+</p>
+<h2><a name="mosaic-controls"></a>42.1 <a name="i1"></a>Mosaic 操作方式</h2>
+<p>
+要玩 Mosaic，用鼠标点击某个方格即可改变它的颜色。左键点击一个空方格会把它变成黑色，右键点击则会把它变成白色。持续点击同一个按键，即可在该方格的三种可能状态之间循环。
+</p>
+<p>
+如果你按住鼠标按键并拖动，就可以在一次操作中为多个单元格着色。
+</p>
+<p>
+你也可以用方向键在网格中移动。按回车键或空格键会分别把一个空方格变成黑色或白色（随后会以与鼠标按键相同的方式循环切换颜色），按退格键则会把方格重置为空。
+</p>
+<h2><a name="Mosaic-parameters"></a>42.2 <a name="i2"></a>Mosaic 参数</h2>
+<p>
+这些参数可以通过 &#8216;类型&#8217; 菜单中的 &#8216;自定义...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格为单位。
+</dd>
+<dt>
+<em>激进生成</em>
+</dt>
+<dd>
+设置这个选项后，游戏生成器会更努力地消除棋盘上不必要的线索。这会减慢生成速度，因此不建议用于大于（比如说）30&#215;30 的棋盘。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Rectangles</title>
+<link rel="previous" href="twiddle.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="netslide.html">
+</head>
+<body>
+<p><a href="twiddle.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="netslide.html">下一页</a></p>
+<h1><a name="rect"></a>第 8 章：<a name="i0"></a>Rectangles</h1>
+<p>
+你有一个方格网格，其中一些（但不是全部）方格中写有数字。你的任务是把这个网格划分成大小各异的矩形，使得 (a) 每个矩形恰好包含一个带数字的方格，并且 (b) 每个矩形的面积等于写在它那个带数字方格中的数字。
+</p>
+<p>
+这个游戏的创意归功于日本谜题杂志 <a name="i1"></a>Nikoli <a href="#p0">[3]</a>；我还见过 <a name="i2"></a>Puzzle Palace <a href="#p1">[4]</a> 上的一个 Palm 实现。与 Puzzle Palace 的实现不同，我的版本会自动随机生成任意你喜欢的尺寸的网格。因此，谜题设计的质量不如手工精心制作的谜题那么好，但好处是你可以得到取之不尽、按你自己的规格量身定制的谜题。
+</p>
+<p><a name="p0"></a>
+[3] <a href="https://www.nikoli.co.jp/en/puzzles/shikaku/"><code>https://www.nikoli.co.jp/en/puzzles/shikaku/</code></a>
+</p>
+<p><a name="p1"></a>
+[4] <a href="https://web.archive.org/web/20041024001459/http://www.puzzle.gr.jp/puzzle/sikaku/palm/index.html.en"><code>https://web.archive.org/web/20041024001459/http://www.puzzle.gr.jp/puzzle/sikaku/palm/index.html.en</code></a>
+</p>
+<h2><a name="rectangles-controls"></a>8.1 <a name="i3"></a>Rectangles 操作方式</h2>
+<p>
+这个游戏使用鼠标或方向键来玩。
+</p>
+<p>
+左键点击任意一条边，可以将它打开或关闭；也可以按住左键拖动，一次性在网格上画出整个矩形（或直线）（这会移除该矩形内已有的所有边）。按住右键拖动，则可以让你擦除某个矩形的内容而不影响它的边。
+</p>
+<p>
+或者，你也可以用方向键在棋盘上移动位置指示器。按回车键之后，你就可以用方向键从该位置拖出一个矩形，再按一次回车键即可完成这个矩形。用空格键代替回车键，则可以像上面所说的那样，擦除某个矩形的内容而不影响它的边。按 Escape 键可取消一次拖动。
+</p>
+<p>
+当一个大小正确的矩形完成时，它会被着色。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="rectangles-params"></a>8.2 <a name="i4"></a>Rectangles 参数</h2>
+<p>
+这些参数可以通过 &#8216;类型&#8217; 菜单中的 &#8216;自定义...&#8217; 选项进行设置。
+</p>
+<dl><dt>
+<em>宽度</em>、<em>高度</em>
+</dt>
+<dd>
+网格的大小，以方格为单位。
+</dd>
+<dt>
+<em>扩展因子</em>
+</dt>
+<dd>
+这是一种用来改变程序所生成网格类型的机制。有些人更喜欢包含少数几个大矩形的网格，而不是包含许多小矩形的网格。因此，你可以要求 Rectangles 实际上生成一个比你所指定尺寸<em>更小</em>的网格，然后通过添加行和列来把它扩展开。
+<p>
+默认的扩展因子为零，意味着 Rectangles 只会生成一个你所要求尺寸的网格，不再做任何其他处理。如果你把扩展因子设为（比如）0.5，就意味着网格的每一个维度在生成之后都会被扩展为原来的一倍半。换句话说，初始网格在每个维度上都只有最终尺寸的 2/3，随后会在不增加任何矩形的情况下被扩展到完整尺寸。
+</p>
+<p>
+把扩展因子设置在 0.5 左右往往会让游戏变得更困难，而且（据我的经验）会更青睐推理较少、直觉较多的游玩风格。不过，如果你把它设得<em>太</em>高，游戏就根本无法生成多于寥寥几个矩形来覆盖整个网格，于是游戏也就变得毫无难度了。
+</p>
+
+</dd>
+<dt>
+<em>确保唯一解</em>
+</dt>
+<dd>
+通常情况下，Rectangles 会确保它给出的谜题只有一个解。含有歧义部分的谜题可能更困难、更微妙，因此如果你愿意，可以关闭这个特性，冒着遇到有歧义谜题的风险。此外，找出<em>所有</em>可能的解，对高级玩家来说也可以是一项额外的挑战。关闭这个选项还可以加快谜题的生成速度。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>

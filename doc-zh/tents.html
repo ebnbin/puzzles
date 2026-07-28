@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=US-ASCII">
+<title>Tents</title>
+<link rel="previous" href="inertia.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="bridges.html">
+</head>
+<body>
+<p><a href="inertia.html">上一页</a> | <a href="index.html">目录</a> | <a href="indexpage.html">索引</a> | <a href="bridges.html">下一页</a></p>
+<h1><a name="tents"></a>第 25 章：<a name="i0"></a>Tents</h1>
+<p>
+你面前有一个由方格组成的网格，其中一些方格里长着树。你的目标是在其余的部分方格中放置帐篷，并满足以下条件：
+</p>
+<ul><li>
+帐篷的数量与树的数量完全相同。
+</li>
+<li>
+帐篷与树可以这样配对起来：每一顶帐篷都与属于它自己的那棵树直接相邻（水平或垂直相邻，但不能是对角相邻）。不过，一顶帐篷除了与自己的树相邻之外，也可以与别的树相邻。
+</li>
+<li>
+任何两顶帐篷都不能在水平方向、垂直方向<em>或对角方向</em>上相邻。
+</li>
+<li>
+每一行以及每一列中帐篷的数量，都与网格四周给出的数字相符。
+</li>
+</ul>
+<p>
+这个谜题可以在互联网上的多处找到，是通过电子邮件让我注意到的。我不知道该把发明它的功劳归于谁。
+</p>
+<h2><a name="tents-controls"></a>25.1 <a name="i1"></a>Tents 操作方式</h2>
+<p>
+在空白方格上左键单击，会在其中放置一顶帐篷。在空白方格上右键单击，会把它涂成绿色，表示你确定它<em>不是</em>帐篷。在已被占用的方格上单击任一按键，都会将其清空。
+</p>
+<p>
+如果你按住右键沿着某一行或某一列<em>拖动</em>，你所经过的区域内每一个空白方格都会变成绿色，其他方格则不受影响。（当你已经在某一行放好了它的全部帐篷之后，这可以方便地清理该行的其余部分。）
+</p>
+<p>
+你也可以使用方向键在网格中移动。在空方格上按回车键会放置一顶帐篷，在空方格上按空格键会把它涂成绿色；这两个键都能清空已被占用的方格。按住 Shift 并按方向键，会把空方格涂成绿色。按住 Control 并按方向键，会把空方格和有帐篷的方格都涂成绿色。
+</p>
+<p>
+（<a href="common.html#common-actions">第 2.1 节</a>中描述的所有操作同样可用。）
+</p>
+<h2><a name="tents-parameters"></a>25.2 <a name="i2"></a>Tents 参数</h2>
+<p>
+这些参数可以通过&#8216;类型&#8217;菜单上的&#8216;Custom...&#8217;选项进行设置。
+</p>
+<dl><dt>
+<em>Width</em>、<em>Height</em>
+</dt>
+<dd>
+网格的大小，以方格数计。
+</dd>
+<dt>
+<em>Difficulty</em>
+</dt>
+<dd>
+控制所生成谜题的难度。更难的谜题需要更复杂的推理，但目前所有可用的难度等级都不需要猜测或回溯。
+</dd>
+</dl>
+
+<hr><address></address></body>
+</html>
