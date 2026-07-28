@@ -26,6 +26,8 @@ export type IconName =
   | 'prefs'
   | 'external'
   | 'check'
+  | 'help'
+  | 'copy'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -124,6 +126,19 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   check: <path d="M5 12.5l4.5 4.5L19 8" />,
+  help: (
+    <>
+      <circle cx="12" cy="12" r="8.75" />
+      <path d="M9.5 9.4a2.6 2.6 0 1 1 4 2.2c-.9.6-1.5 1.1-1.5 2v.6" />
+      <circle cx="12" cy="17.1" r="1.05" fill="currentColor" stroke="none" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2.5" />
+      <path d="M15 6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15" />
+    </>
+  ),
 }
 
 export default function Icon({

@@ -23,6 +23,9 @@ export default function PuzzleDialog({
     <div className="dialog-dimmer" onClick={onCancel}>
       <form
         className="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={spec.title}
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()

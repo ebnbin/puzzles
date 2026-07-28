@@ -1,21 +1,22 @@
 import { useCallback, useState } from 'react'
 
 /**
- * Which implementation of the puzzles to play.
+ * Which build of the puzzles to play.
  *
- * `wasm` is upstream's C compiled to WebAssembly, served as upstream's own
- * unmodified HTML pages. `ts` is our TypeScript rewrite, which is where the
- * puzzles are heading but is not implemented yet.
+ * `ts` is this app: our own screens around upstream's compiled game code.
+ * `wasm` is upstream's own HTML pages, served unmodified, which is what the
+ * switch on the launcher turns back on.
  */
 export type Engine = 'wasm' | 'ts'
 
 const KEY = 'puzzles.engine'
 
+/** Ours by default; only an explicit opt-out sends you to upstream's pages. */
 function read(): Engine {
   try {
-    return window.localStorage.getItem(KEY) === 'ts' ? 'ts' : 'wasm'
+    return window.localStorage.getItem(KEY) === 'wasm' ? 'wasm' : 'ts'
   } catch {
-    return 'wasm'
+    return 'ts'
   }
 }
 

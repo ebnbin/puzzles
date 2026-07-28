@@ -1,7 +1,7 @@
 {
-  "name": "Simon Tatham's Portable Puzzle Collection",
-  "short_name": "Puzzles",
-  "description": "40 puzzles compiled to WebAssembly, playable offline.",
+  "name": "Puzzle",
+  "short_name": "Puzzle",
+  "description": "Forty logic puzzles, playable offline.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

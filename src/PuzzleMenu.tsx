@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import Icon from './Icon'
 import type { IconName } from './Icon'
 import type { Preset } from './engine/types'
+import { useSheetDrag } from './useSheetDrag'
 
 type Action =
   | 'newGame'
@@ -31,35 +33,38 @@ const ACTIONS: { action: Action; label: string; icon: IconName }[] = [
  * it is worth being unmistakable.
  */
 export default function PuzzleMenu({
-  objective,
   presets,
   selected,
   canSolve,
   permalink,
-  compareHref,
   onSelectPreset,
   onAction,
   onClose,
 }: {
-  objective: string
   presets: Preset[] | null
   selected: number
   canSolve: boolean
   permalink?: { desc: string; seed: string | null }
-  compareHref: string
   onSelectPreset: (value: number) => void
   onAction: (action: Action) => void
   onClose: () => void
 }) {
+  const { ref, handlers } = useSheetDrag(onClose)
+
   return (
     <div className="sheet-dimmer" onClick={onClose}>
       <div
         className="sheet"
         role="dialog"
+        aria-modal="true"
         aria-label="Puzzle menu"
+        ref={ref}
         onClick={(e) => e.stopPropagation()}
+        {...handlers}
       >
-        <div className="sheet-grip" aria-hidden="true" />
+        <div className="sheet-handle" aria-hidden="true">
+          <div className="sheet-grip" />
+        </div>
 
         <div className="sheet-actions">
           {ACTIONS.filter((a) => a.action !== 'solve' || canSolve).map((a) => (
@@ -86,37 +91,61 @@ export default function PuzzleMenu({
           </section>
         )}
 
-        <section>
-          <h2>How to play</h2>
-          <p>{objective}</p>
-        </section>
-
-        <section className="sheet-links">
-          {permalink && (
-            <p>
-              Link to this puzzle:{' '}
-              <a className="textlink" href={`#${permalink.desc}`}>
-                by game ID
-              </a>
-              {permalink.seed && (
-                <>
-                  {' · '}
-                  <a className="textlink" href={`#${permalink.seed}`}>
-                    by random seed
-                  </a>
-                </>
-              )}
-            </p>
-          )}
-          <p>
-            <a className="textlink" href={compareHref}>
-              Compare with the original page
-              <Icon name="external" size={13} />
-            </a>
-          </p>
-        </section>
+        {permalink && (
+          <section className="sheet-links">
+            <h2>Share</h2>
+            <ShareRow label="Game ID" value={permalink.desc} />
+            {permalink.seed && (
+              <ShareRow label="Random seed" value={permalink.seed} />
+            )}
+          </section>
+        )}
       </div>
     </div>
+  )
+}
+
+/**
+ * A link to this exact puzzle, which copies itself.
+ *
+ * Still an anchor, so its address is real: it can be opened, and the browser's
+ * own copy-link is there for anyone who reaches for it. If the clipboard is out
+ * of reach — an insecure origin, where it simply does not exist — the click is
+ * left alone and the browser puts the link in the address bar instead, which is
+ * the next most useful thing that can happen.
+ */
+function ShareRow({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false)
+  const href = `#${value}`
+
+  useEffect(() => {
+    if (!copied) return
+    const timer = window.setTimeout(() => setCopied(false), 1600)
+    return () => window.clearTimeout(timer)
+  }, [copied])
+
+  return (
+    <a
+      className="sheet-link"
+      href={href}
+      onClick={(e) => {
+        if (!navigator.clipboard) return
+        e.preventDefault()
+        navigator.clipboard
+          .writeText(new URL(href, window.location.href).href)
+          .then(() => setCopied(true))
+          .catch(() => {})
+      }}
+    >
+      <span className="sheet-link-text">
+        <strong>{label}</strong>
+        <span>{decodeURIComponent(value)}</span>
+      </span>
+      <span className="sheet-link-copy" data-copied={copied}>
+        <Icon name={copied ? 'check' : 'copy'} size={17} />
+        {copied ? 'Copied' : 'Copy'}
+      </span>
+    </a>
   )
 }
 

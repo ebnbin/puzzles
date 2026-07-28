@@ -1,6 +1,5 @@
 import games from './games.json'
 import PuzzleHost from './PuzzleHost'
-import { gameHref } from './engine'
 import { onNavClick } from './router'
 
 /**
@@ -30,7 +29,6 @@ export default function GamePage({ name }: { name: string }) {
       name={game.name}
       title={game.displayName}
       objective={game.objective}
-      compareHref={gameHref(game.name, 'wasm')}
     />
   )
 }

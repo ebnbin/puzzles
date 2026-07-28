@@ -19,10 +19,9 @@ export default function Launcher() {
   return (
     <div className="launcher">
       <header className="masthead">
-        <p className="masthead-eyebrow">Simon Tatham’s</p>
-        <h1>Portable Puzzle Collection</h1>
+        <h1>Puzzle</h1>
         <p className="masthead-meta">
-          {games.length} puzzles, in the order they joined the collection
+          {games.length} puzzles
           <a className="textlink" href="/doc/">
             Manual
             <Icon name="external" size={14} />
@@ -36,13 +35,11 @@ export default function Launcher() {
           checked={ts}
           onChange={(e) => setEngine(e.target.checked ? 'ts' : 'wasm')}
         />
+        {/* Both states say what you get, rather than one of them repeating
+            what the switch already shows. */}
         <span className="engine-text">
-          TypeScript rewrite
-          <em>
-            {ts
-              ? 'On — React hosts the menus, input and drawing'
-              : 'Off — upstream’s own WebAssembly pages, untouched'}
-          </em>
+          New design
+          <em>{ts ? 'Redesigned for phone and desktop' : 'The original layout'}</em>
         </span>
         <span className="engine-track" aria-hidden="true">
           <span className="engine-knob" />

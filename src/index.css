@@ -81,17 +81,8 @@ a {
   margin-bottom: 1.5rem;
 }
 
-.masthead-eyebrow {
-  margin: 0;
-  color: var(--text-3);
-  font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .masthead h1 {
-  margin: 0.15rem 0 0.45rem;
+  margin: 0 0 0.4rem;
   font-size: var(--t-2xl);
   font-weight: 650;
   letter-spacing: -0.025em;
@@ -302,38 +293,62 @@ footer p {
   user-select: none;
 }
 
-/* One line: back, which puzzle, how it is going. No rule under it — the board
-   below is a lit plate with its own edge, which separates the two better than
-   a hairline would. */
+/* One line: back, which puzzle, how it is going, how it is played. No rule
+   under it — the board below is a lit plate with its own edge, which separates
+   the two better than a hairline would.
+
+   The chrome is lifted a layer so the board's shadow, which now has no padding
+   to spend itself in, passes under it rather than over its text. */
+.play-bar,
+.keypad,
+.play-actions {
+  position: relative;
+  z-index: 1;
+}
+
 .play-bar {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 0.4rem;
-  min-height: 3.25rem;
-  padding: 0 0.4rem;
+  gap: 0.25rem;
+  min-height: 3rem;
+  padding: 0 0.3rem;
 }
 
-.play-back {
+/* The bar's own buttons are bare: no fill until touched. A filled control up
+   here would compete with the board for the eye, and there is nothing else in
+   the bar for it to group with. */
+.play-back,
+.play-bar .play-icon {
   display: grid;
   flex: none;
   place-items: center;
   width: 2.5rem;
   height: 2.5rem;
+  padding: 0;
+  border: 0;
   border-radius: var(--r-full);
+  background: none;
   color: var(--text);
+  cursor: pointer;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
+.play-bar .play-icon {
+  color: var(--text-2);
+}
+
 @media (hover: hover) {
-  .play-back:hover {
+  .play-back:hover,
+  .play-bar .play-icon:hover {
     background: var(--surface-2);
   }
 }
 
-.play-back:active {
+.play-back:active,
+.play-bar .play-icon:active {
   background: var(--surface-3);
   transform: scale(0.92);
 }
@@ -383,18 +398,17 @@ footer p {
 }
 
 /*
- * Everything left over. The board is measured against this and then resized,
- * so it must not be able to grow it — hence the fixed basis and the hidden
- * overflow, or the two would chase each other. The padding also has to be
- * deep enough for the board's shadow, which that same overflow would clip.
+ * Everything left over, and all of it. No padding: every pixel here is board,
+ * and the flex basis of zero is what stops the board from growing the area it
+ * is measured against — the two would otherwise chase each other. Nothing is
+ * clipped either, so the board's shadow can fall outside its own box now that
+ * there is no room set aside for it.
  */
 .play-board {
   display: grid;
   flex: 1 1 0;
   place-items: center;
   min-height: 0;
-  overflow: hidden;
-  padding: 0.75rem;
 }
 
 /*
@@ -492,7 +506,7 @@ footer p {
   width: 100%;
   max-width: 26rem;
   margin: 0 auto;
-  padding: 0 0.5rem 0.35rem;
+  padding: 0.3rem 0.4rem 0;
 }
 
 .keypad button {
@@ -508,7 +522,7 @@ footer p {
   display: flex;
   flex: none;
   gap: 0.4rem;
-  padding: 0.35rem 0.5rem 0.5rem;
+  padding: 0.3rem 0.4rem 0.4rem;
 }
 
 .play-actions button {
@@ -545,7 +559,7 @@ footer p {
   background: var(--scrim);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
-  animation: scrim-in var(--dur) var(--ease) both;
+  animation: scrim-in var(--dur) var(--ease) backwards;
 }
 
 .sheet {
@@ -559,13 +573,28 @@ footer p {
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   background: var(--surface);
   box-shadow: var(--shadow-3);
-  animation: sheet-in var(--dur-slow) var(--ease) both;
+  animation: sheet-in var(--dur-slow) var(--ease) backwards;
+  will-change: transform;
+}
+
+.sheet-handle {
+  display: grid;
+  place-items: center;
+  height: 1.75rem;
+  /* Out to the sheet's own edges: the whole strip is the grab area, not just
+     the bar drawn in the middle of it. */
+  margin: -0.5rem -1rem 0.4rem;
+  touch-action: none;
+  cursor: grab;
+}
+
+.sheet-handle:active {
+  cursor: grabbing;
 }
 
 .sheet-grip {
   width: 2.25rem;
   height: 0.25rem;
-  margin: 0.15rem auto 0.9rem;
   border-radius: var(--r-full);
   background: var(--edge-strong);
 }
@@ -699,12 +728,70 @@ footer p {
   text-transform: uppercase;
 }
 
-.sheet-links {
-  font-size: var(--t-sm);
+/* One row each for the two addresses this position has. A tap copies the
+   link; the row is still an anchor, so it also has one to copy by hand. */
+.sheet-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--touch);
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: background var(--dur) var(--ease);
 }
 
-.sheet-links p + p {
+.sheet-link + .sheet-link {
   margin-top: 0.4rem;
+}
+
+@media (hover: hover) {
+  .sheet-link:hover {
+    background: var(--surface-3);
+  }
+}
+
+.sheet-link:active {
+  background: var(--surface-3);
+}
+
+.sheet-link-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sheet-link-text strong {
+  display: block;
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+/* The id itself, which is long, cryptic and worth a glance to confirm you are
+   copying the right one. */
+.sheet-link-text span {
+  display: block;
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sheet-link-copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-weight: 500;
+}
+
+.sheet-link-copy[data-copied='true'] {
+  color: var(--accent);
 }
 
 /* --- dialogs --- */
@@ -720,7 +807,7 @@ footer p {
   background: var(--scrim);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
-  animation: scrim-in var(--dur) var(--ease) both;
+  animation: scrim-in var(--dur) var(--ease) backwards;
 }
 
 .dialog {
@@ -733,7 +820,7 @@ footer p {
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-3);
-  animation: sheet-in var(--dur-slow) var(--ease) both;
+  animation: sheet-in var(--dur-slow) var(--ease) backwards;
 }
 
 .dialog h2 {
@@ -822,6 +909,14 @@ footer p {
   background: var(--accent-hover);
 }
 
+/* The rules, on request from the bar rather than parked in the menu. */
+.dialog-help p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--t-md);
+  line-height: 1.55;
+}
+
 /* --- pointer devices: more room, smaller targets --- */
 
 @media (min-width: 48em) {
@@ -834,12 +929,8 @@ footer p {
   }
 
   .play-bar {
-    gap: 0.6rem;
-    padding: 0 0.75rem;
-  }
-
-  .play-board {
-    padding: 1.5rem;
+    gap: 0.4rem;
+    padding: 0 0.5rem;
   }
 
   .play-actions {
@@ -874,7 +965,7 @@ footer p {
     border-radius: var(--r-lg);
   }
 
-  .sheet-grip {
+  .sheet-handle {
     display: none;
   }
 
@@ -909,7 +1000,6 @@ footer p {
 
   .play-board {
     grid-area: 2 / 1 / 4 / 2;
-    padding: 0.5rem;
   }
 
   .keypad {

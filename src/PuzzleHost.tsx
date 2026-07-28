@@ -29,12 +29,10 @@ export default function PuzzleHost({
   name,
   title,
   objective,
-  compareHref,
 }: {
   name: string
   title: string
   objective: string
-  compareHref: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const areaRef = useRef<HTMLDivElement>(null)
@@ -53,6 +51,7 @@ export default function PuzzleHost({
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
 
   const fullscreen = useFullscreen()
   useNoPullToRefresh()
@@ -106,7 +105,7 @@ export default function PuzzleHost({
       .catch((err) => {
         if (!live) return
         console.error(`could not start ${name}`, err)
-        setError('Could not start the puzzle. See the console.')
+        setError('Something went wrong starting this puzzle.')
       })
 
     return () => {
@@ -141,14 +140,17 @@ export default function PuzzleHost({
   useEffect(() => {
     if (!ready) return
     const onKey = (e: KeyboardEvent) => {
-      if (dialog || e.metaKey || e.ctrlKey || e.altKey) return
-      // Escape dismisses wherever focus is — including on a control inside
-      // the sheet, which is exactly where it will be after picking a preset.
-      if (e.key === 'Escape' && menuOpen) {
-        setMenuOpen(false)
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      // Escape dismisses whatever is on top, wherever focus is — including a
+      // control inside the sheet, which is where it will be after a preset.
+      if (e.key === 'Escape') {
+        if (helpOpen) setHelpOpen(false)
+        else if (menuOpen) setMenuOpen(false)
+        else return
         e.preventDefault()
         return
       }
+      if (dialog || helpOpen) return
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
       const api = apiRef.current
@@ -166,7 +168,7 @@ export default function PuzzleHost({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, dialog, menuOpen, fullscreen])
+  }, [ready, dialog, menuOpen, helpOpen, fullscreen])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
@@ -195,6 +197,16 @@ export default function PuzzleHost({
         >
           {status}
         </span>
+        <button
+          type="button"
+          className="play-icon"
+          aria-label="How to play"
+          aria-haspopup="dialog"
+          aria-expanded={helpOpen}
+          onClick={() => setHelpOpen(true)}
+        >
+          <Icon name="help" />
+        </button>
       </header>
 
       {error && <p className="play-error">{error}</p>}
@@ -244,6 +256,7 @@ export default function PuzzleHost({
           type="button"
           className="play-icon"
           aria-label="Menu"
+          aria-haspopup="dialog"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
         >
@@ -251,14 +264,32 @@ export default function PuzzleHost({
         </button>
       </nav>
 
+      {helpOpen && (
+        <div className="dialog-dimmer" onClick={() => setHelpOpen(false)}>
+          <div
+            className="dialog dialog-help"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`How to play ${title}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>How to play</h2>
+            <p>{objective}</p>
+            <div className="dialog-buttons">
+              <button type="button" onClick={() => setHelpOpen(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {menuOpen && (
         <PuzzleMenu
-          objective={objective}
           presets={presets}
           selected={selected}
           canSolve={canSolve}
           permalink={permalink}
-          compareHref={compareHref}
           onSelectPreset={(value) => {
             setSelected(value)
             act((a) => a.selectPreset(value))
