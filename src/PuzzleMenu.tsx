@@ -109,9 +109,8 @@ export default function PuzzleMenu({
  * A link to this exact puzzle, which hands itself out.
  *
  * The address is not shown. It is thirty characters of base-36 that nobody
- * reads and nobody types — the row is a verb, not a display — and either of
- * these two is the whole game, so they get a row each rather than one button
- * and a choice.
+ * reads and nobody types — the row is a verb, not a display — and neither is
+ * the word "share", which the icon says and the pairing makes obvious.
  *
  * Still an anchor, so the address is real: it can be opened, and the browser's
  * own copy-link is there for anyone who reaches for it. If there is no share
@@ -134,8 +133,7 @@ function ShareRow({ label, value }: { label: string; value: string }) {
     >
       <span className="sheet-link-text">{label}</span>
       <span className="sheet-link-copy" data-copied={copied}>
-        <Icon name={copied ? 'check' : 'share'} size={17} />
-        {copied ? 'Copied' : 'Share'}
+        <Icon name={copied ? 'check' : 'share'} size={18} />
       </span>
     </a>
   )

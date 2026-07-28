@@ -1,3 +1,4 @@
+import Icon from './Icon'
 import type { Engine } from './engine'
 import type { Theme } from './useTheme'
 
@@ -8,8 +9,8 @@ const THEMES: { value: Theme; label: string }[] = [
 ]
 
 /**
- * The two things there are to decide, behind the one button that means
- * "settings".
+ * The two things there are to decide and the one place to read more, behind the
+ * button that means "settings".
  *
  * They were a card at the top of the launcher, which put a quarter of the first
  * screen between the reader and the puzzles for two switches most people touch
@@ -77,6 +78,21 @@ export default function LauncherSettings({
             ))}
           </div>
         </div>
+
+        {/* A new tab: the manual is a separate site, and coming back should
+            not mean loading the app again. */}
+        <a
+          className="setting setting-link"
+          href="/doc/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span className="setting-text">
+            Manual
+            <em>Rules and controls for every puzzle</em>
+          </span>
+          <Icon name="external" size={18} />
+        </a>
 
         <div className="dialog-buttons">
           <button type="button" onClick={onClose}>

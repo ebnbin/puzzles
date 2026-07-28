@@ -1,7 +1,11 @@
-// Derive the launcher's game list from upstream's CMakeLists.txt, and each
-// game's description from the manual halibut has just built, so both always
-// match the vendored source rather than being maintained by hand. Run via
-// scripts/build-games.sh, after the docs are generated.
+// Derive the launcher's game list and every word of English in the app from
+// the vendored source, so none of it is maintained by hand:
+//
+//   displayName, description, objective  CMakeLists.txt, in each puzzle()
+//   how to play                          html/<game>.html, the blurb upstream
+//                                        puts under the puzzle on its own page
+//
+// Run via scripts/build-games.sh.
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,50 +13,40 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 /**
- * A chapter's opening prose: everything between the chapter heading and the
- * first section of it, which is where the manual explains what the puzzle is
- * before it gets on to controls and parameters.
+ * How to play, in upstream's own words: the blurb it puts under the puzzle on
+ * each game's page, which says what the puzzle is and how the controls work.
+ * jspage.pl builds those pages out of exactly these files.
  *
- * Only the handful of tags that actually occur there survive, and only `href`
- * survives on them, so what lands in the JSON is already narrow enough to
- * render as markup. Links are rewritten to absolute paths — they are written
- * relative to /doc/, and the help dialog is not — and opened in a new tab,
- * since following one from a puzzle would otherwise throw the position away.
+ * The first line is the game's name, which the dialog already has. Only the
+ * tags that occur survive, and only `href` on them, so what lands in the JSON
+ * is narrow enough to render as markup. The two links there are both absolute
+ * and off-site; anything that is not http(s) loses its anchor rather than being
+ * trusted. They open in a new tab, since following one from a puzzle would
+ * otherwise throw the position away.
  */
-const KEEP = new Set(['p', 'em', 'code', 'ul', 'li', 'pre', 'a'])
+const KEEP = new Set(['p', 'ul', 'li', 'em', 'i', 'strong', 'b', 'code', 'a'])
 
-function manualFor(name) {
-  const page = fs.readFileSync(path.join(root, `public/doc/${name}.html`), 'latin1')
-  const intro = page.match(/<h1>.*?<\/h1>(.*?)(?=<h2>|<hr>)/s)
-  if (!intro) throw new Error(`no chapter intro in doc/${name}.html`)
+function helpFor(name) {
+  const blurb = fs.readFileSync(
+    path.join(root, `vendor/sgtpuzzles/html/${name}.html`),
+    'utf8',
+  )
+  const body = blurb.replace(/^.*\n/, '')
+  if (!body.trim()) throw new Error(`empty blurb for ${name}`)
 
-  const html = intro[1]
-    // Halibut drops an empty anchor at every index entry. They have nothing to
-    // point at once the text is out of the manual, and they have to go as
-    // pairs — dropping the opening tag alone would strand its closer.
-    .replace(/<a name="[^"]*"><\/a>/g, '')
+  return body
     .replace(/<(\/?)(\w+)([^>]*)>/g, (whole, close, tag, attrs) => {
       const lower = tag.toLowerCase()
       if (!KEEP.has(lower)) return ''
       if (close) return `</${lower}>`
       if (lower !== 'a') return `<${lower}>`
       const href = attrs.match(/href="([^"]*)"/)?.[1]
-      if (!href) throw new Error(`anchor with no href in ${name}: ${whole}`)
-      const to = /^https?:/.test(href)
-        ? href
-        : `/doc/${href.startsWith('#') ? `${name}.html${href}` : href}`
-      return `<a href="${to}" target="_blank" rel="noreferrer">`
+      if (!href || !/^https?:/.test(href)) return ''
+      return `<a href="${href}" target="_blank" rel="noreferrer">`
     })
-    .replace(/[ \t]*\n[ \t]*/g, ' ')
+    .replace(/\s*\n\s*/g, ' ')
     .replace(/ {2,}/g, ' ')
     .trim()
-
-  const opens = (html.match(/<a /g) ?? []).length
-  const closes = (html.match(/<\/a>/g) ?? []).length
-  if (opens !== closes) {
-    throw new Error(`unbalanced anchors in ${name}: ${opens} open, ${closes} closed`)
-  }
-  return html
 }
 
 // Join CMake's backslash line continuations before matching.
@@ -66,7 +60,9 @@ for (const [, name, body] of cmake.matchAll(/^puzzle\((\w+)([\s\S]*?)\)\s*$/gm))
   declared.push({
     name,
     displayName: field('DISPLAYNAME') ?? name[0].toUpperCase() + name.slice(1),
-    // The one-liner, kept as what the help dialog falls back to if the manual
+    // The caption under each tile.
+    description: field('DESCRIPTION') ?? '',
+    // The one-liner, kept as what the help dialog falls back to if the blurb
     // cannot be fetched.
     objective: (field('OBJECTIVE') ?? '').replace(/\s+/g, ' ').trim(),
   })
@@ -122,11 +118,9 @@ fs.writeFileSync(
 )
 console.log(`wrote src/games.json (${games.length} games)`)
 
-// The descriptions are prose, read by whoever opens the help dialog and nobody
-// else, so they are fetched on demand rather than carried in the bundle.
-const manual = Object.fromEntries(games.map((g) => [g.name, manualFor(g.name)]))
-const manualPath = path.join(root, 'public/manual.json')
-fs.writeFileSync(manualPath, JSON.stringify(manual) + '\n')
-console.log(
-  `wrote public/manual.json (${Math.round(fs.statSync(manualPath).size / 1024)} KB)`,
-)
+// Prose, read by whoever opens the help dialog and nobody else, so it is
+// fetched on demand rather than carried in the bundle.
+const help = Object.fromEntries(games.map((g) => [g.name, helpFor(g.name)]))
+const helpPath = path.join(root, 'public/help.json')
+fs.writeFileSync(helpPath, JSON.stringify(help) + '\n')
+console.log(`wrote public/help.json (${Math.round(fs.statSync(helpPath).size / 1024)} KB)`)

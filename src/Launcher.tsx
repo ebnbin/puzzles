@@ -10,10 +10,9 @@ import type { Theme } from './useTheme'
  * The gallery.
  *
  * Forty thumbnails rendered from the positions upstream chose are the best
- * thing this app has to show, so they are all it shows: art and a name, three
- * across on a phone, on the collection's own grey so each one bleeds to the
- * edges of its tile. What each puzzle actually is belongs in the puzzle, where
- * the manual's own description is a tap away.
+ * thing this app has to show, so they lead: art, then the name, then the line
+ * upstream files each puzzle under, three across on a phone, on the
+ * collection's own grey so each one bleeds to the edges of its tile.
  */
 export default function Launcher({
   theme: [theme, setTheme],
@@ -37,10 +36,6 @@ export default function Launcher({
     <div className="launcher">
       <header className="masthead">
         <h1>Puzzles</h1>
-        <a className="textlink" href="/doc/">
-          Manual
-          <Icon name="external" size={14} />
-        </a>
         <button
           type="button"
           className="masthead-icon"
@@ -73,6 +68,7 @@ export default function Launcher({
                 />
               </span>
               <strong>{game.displayName}</strong>
+              <span className="games-desc">{game.description}</span>
             </a>
           </li>
         ))}

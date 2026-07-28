@@ -9,7 +9,7 @@ import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { onNavClick } from './router'
 import { useFullscreen } from './useFullscreen'
-import { useManual } from './useManual'
+import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { contentBox, usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
@@ -55,7 +55,7 @@ export default function PuzzleHost({
   const [helpOpen, setHelpOpen] = useState(false)
 
   const fullscreen = useFullscreen()
-  const manual = useManual(name)
+  const help = useHelp(name)
   useNoPullToRefresh()
 
   useEffect(() => {
@@ -276,13 +276,13 @@ export default function PuzzleHost({
             onClick={(e) => e.stopPropagation()}
           >
             <h2>How to play</h2>
-            {/* The manual's own words. It is fetched when the puzzle loads, so
-                this is all but always the long version by the time it is
-                asked for; the one-liner covers the case where it is not. */}
-            {manual ? (
+            {/* Upstream's own words. Fetched when the puzzle loads, so this is
+                all but always the full blurb by the time it is asked for; the
+                one-liner covers the case where it is not. */}
+            {help ? (
               <div
                 className="dialog-prose"
-                dangerouslySetInnerHTML={{ __html: manual }}
+                dangerouslySetInnerHTML={{ __html: help }}
               />
             ) : (
               <div className="dialog-prose">
