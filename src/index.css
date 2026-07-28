@@ -1,22 +1,4 @@
-:root {
-  --fg: #1a1a1a;
-  --fg-dim: #666;
-  --bg: #fff;
-  --line: #ddd;
-  --track: #c4c4c4;
-  --link: #0645ad;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fg: #e8e8e8;
-    --fg-dim: #999;
-    --bg: #1a1a1a;
-    --line: #333;
-    --track: #4a4a4a;
-    --link: #7aa7ff;
-  }
-}
+@import './tokens.css';
 
 *,
 *::before,
@@ -38,103 +20,103 @@ html.playing {
 body {
   margin: 0;
   /* Keep clear of a notch in landscape and the home indicator at the bottom. */
-  padding: 1.5rem max(1rem, env(safe-area-inset-left)) 3rem;
+  padding: 2rem max(1rem, env(safe-area-inset-left)) 3rem;
   padding-bottom: max(3rem, env(safe-area-inset-bottom));
   overscroll-behavior-y: contain;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font);
+  font-size: var(--t-md);
   line-height: 1.5;
-  color: var(--fg);
-  background: var(--bg);
+  color: var(--text);
+  background-color: var(--bg);
+  /* Every puzzle here is played on a lattice. The app stands on the same one,
+     at a contrast you find only by looking for it. */
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: center -1px;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
-  max-width: 60rem;
+  max-width: 64rem;
   margin: 0 auto;
 }
 
-h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.5rem;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-header p {
-  margin: 0 0 2rem;
-  color: var(--fg-dim);
-  font-size: 0.9rem;
-}
-
+/* The base, so nothing falls through to the browser's own blue. An underlined
+   link is right inside a sentence; `.textlink` is for the ones standing alone,
+   where position and colour already say what it is. */
 a {
-  color: var(--link);
+  color: var(--accent);
+  text-underline-offset: 2px;
 }
 
-.games {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.games a {
-  display: flex;
-  gap: 0.7rem;
-  align-items: center;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: inherit;
+.textlink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  color: var(--accent);
+  font-weight: 500;
   text-decoration: none;
 }
 
-.games a:hover {
-  border-color: var(--link);
+.textlink svg {
+  align-self: center;
 }
 
-/* Rendered from the position upstream picked for each puzzle's icon. */
-.games img {
-  flex: none;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 4px;
-  background: #e8e8e8;
+@media (hover: hover) {
+  .textlink:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }
 
-.games-text {
-  min-width: 0;
+/* --- the gallery -------------------------------------------------------- */
+
+.masthead {
+  margin-bottom: 1.5rem;
 }
 
-.games strong {
-  display: block;
-  font-size: 0.95rem;
-}
-
-.games span {
-  display: block;
-  margin-top: 0.15rem;
-  color: var(--fg-dim);
-  font-size: 0.8rem;
-}
-
-footer {
-  margin-top: 2.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-  color: var(--fg-dim);
-  font-size: 0.8rem;
-}
-
-footer p {
+.masthead-eyebrow {
   margin: 0;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-/* --- engine toggle --- */
+.masthead h1 {
+  margin: 0.15rem 0 0.45rem;
+  font-size: var(--t-2xl);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.masthead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--t-sm);
+}
 
 .engine {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
   cursor: pointer;
   user-select: none;
 }
@@ -146,53 +128,138 @@ footer p {
   opacity: 0;
 }
 
+.engine-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-md);
+  font-weight: 500;
+}
+
+.engine-text em {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-style: normal;
+  font-weight: 400;
+}
+
 .engine-track {
   position: relative;
   flex: none;
-  width: 2.1rem;
-  height: 1.2rem;
-  margin-top: 0.1rem;
-  border-radius: 999px;
-  background: var(--track);
-  transition: background 0.15s;
+  width: 3.25rem;
+  height: 1.875rem;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  transition: background var(--dur) var(--ease);
 }
 
-.engine-track::after {
-  content: '';
+.engine-knob {
   position: absolute;
-  top: 0.15rem;
-  left: 0.15rem;
-  width: 0.9rem;
-  height: 0.9rem;
+  top: 0.3125rem;
+  left: 0.3125rem;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-  transition: transform 0.15s;
+  background: var(--text-3);
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
-.engine input:checked + .engine-track {
-  background: var(--link);
+.engine input:checked ~ .engine-track {
+  background: var(--accent);
 }
 
-.engine input:checked + .engine-track::after {
-  transform: translateX(0.9rem);
+.engine input:checked ~ .engine-track .engine-knob {
+  background: var(--accent-on);
+  transform: translateX(1.375rem);
 }
 
-.engine input:focus-visible + .engine-track {
-  outline: 2px solid var(--link);
+.engine input:focus-visible ~ .engine-track {
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.engine-label {
-  font-size: 0.9rem;
-  line-height: 1.3;
+/*
+ * Two columns on a phone rather than three: the thumbnail is the reason the
+ * grid exists, and at a third of a narrow screen it is back to being a
+ * favicon. Six columns by the time there is a desktop's worth of room.
+ */
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.engine-label em {
+.games a {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  /* A tile is a link, not a picture to save. */
+  -webkit-touch-callout: none;
+  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+/* The thumbnails are rendered on the C's own background colour, so a plate of
+   the same grey makes each one bleed to the edges of its tile. */
+.games-art {
   display: block;
-  color: var(--fg-dim);
-  font-size: 0.8rem;
-  font-style: normal;
+  background: var(--board);
+  line-height: 0;
+}
+
+.games img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.games strong {
+  padding: 0.6rem 0.7rem 0;
+  font-size: var(--t-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.games-desc {
+  padding: 0.1rem 0.7rem 0.7rem;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  line-height: 1.35;
+}
+
+@media (hover: hover) {
+  .games a:hover {
+    box-shadow: var(--shadow-2);
+    transform: translateY(-2px);
+  }
+}
+
+.games a:active {
+  box-shadow: var(--shadow-1);
+  transform: scale(0.985);
+}
+
+footer {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--edge);
+  color: var(--text-3);
+  font-size: var(--t-xs);
+}
+
+footer p {
+  margin: 0;
 }
 
 /* --- playing a puzzle ---------------------------------------------------
@@ -206,6 +273,7 @@ footer p {
 .play {
   position: fixed;
   inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   height: 100dvh;
@@ -234,61 +302,91 @@ footer p {
   user-select: none;
 }
 
-/* One line: back, which puzzle, how it is going. */
+/* One line: back, which puzzle, how it is going. No rule under it — the board
+   below is a lit plate with its own edge, which separates the two better than
+   a hairline would. */
 .play-bar {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 0.6rem;
-  min-height: 2.75rem;
-  padding: 0 0.5rem;
-  border-bottom: 1px solid var(--line);
+  gap: 0.4rem;
+  min-height: 3.25rem;
+  padding: 0 0.4rem;
 }
 
 .play-back {
   display: grid;
+  flex: none;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 6px;
-  color: inherit;
-  font-size: 1.1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--r-full);
+  color: var(--text);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .play-back:hover {
+    background: var(--surface-2);
+  }
 }
 
 .play-back:active {
-  background: var(--line);
+  background: var(--surface-3);
+  transform: scale(0.92);
 }
 
 .play-bar h1 {
-  flex: none;
-  margin: 0;
-  font-size: 1rem;
-}
-
-.play-status {
   flex: 1;
+  min-width: 0;
+  margin: 0;
   overflow: hidden;
-  color: var(--fg-dim);
-  font-size: 0.8rem;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-align: right;
+}
+
+/*
+ * The status line the puzzle writes: a pill, but only once there is something
+ * in it, so an idle puzzle leaves no empty box in the bar. Tabular figures so
+ * a running clock does not shove the words beside it about.
+ */
+.play-status {
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.play-status[data-filled='true'] {
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
 }
 
 .play-error {
   flex: none;
-  margin: 0;
+  margin: 0 0.75rem;
   padding: 0.5rem 0.75rem;
-  color: #c0392b;
-  font-size: 0.85rem;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--danger);
+  font-size: var(--t-sm);
 }
 
 /*
  * Everything left over. The board is measured against this and then resized,
  * so it must not be able to grow it — hence the fixed basis and the hidden
- * overflow, or the two would chase each other.
+ * overflow, or the two would chase each other. The padding also has to be
+ * deep enough for the board's shadow, which that same overflow would clip.
  */
 .play-board {
   display: grid;
@@ -296,12 +394,22 @@ footer p {
   place-items: center;
   min-height: 0;
   overflow: hidden;
-  padding: 0.5rem;
+  padding: 0.75rem;
 }
 
+/*
+ * The board is a lit plate on the page. No background of its own, ever: the C
+ * reads this element's computed background colour to seed every one of the
+ * game's colours, gets nothing here exactly as it gets nothing from upstream's
+ * page, and falls back to its own grey. An opaque colour here would repalette
+ * all forty puzzles. The ring and shadow live outside the pixels, so nothing
+ * the puzzle draws is covered or clipped.
+ */
 .host-board {
   display: block;
+  /* The font the puzzle draws its own text in; upstream's page sets this too. */
   font-family: sans-serif;
+  box-shadow: var(--shadow-board);
   /* The board handles its own gestures; the page must not also scroll or
      zoom under a finger that is drawing a line. */
   touch-action: none;
@@ -314,37 +422,84 @@ footer p {
 }
 
 .host-board:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* --- buttons -----------------------------------------------------------
+ *
+ * One tonal shape, shared by the bottom row, the keypad, the sheet and the
+ * dialogs. Filled rather than outlined: a 1px box around a word is the most
+ * web-form thing a screen can contain, and this is meant to read as an app.
+ */
+
+.play-actions button,
+.keypad button,
+.sheet-actions button,
+.dialog-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-md);
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .play-actions button:hover:not(:disabled),
+  .keypad button:hover,
+  .sheet-actions button:hover,
+  .dialog-buttons button:hover {
+    background: var(--surface-3);
+  }
+}
+
+.play-actions button:active:not(:disabled),
+.keypad button:active,
+.sheet-actions button:active,
+.dialog-buttons button:active {
+  background: var(--surface-3);
+  transform: scale(0.96);
+}
+
+/* Dimmed by colour alone. Fading it as well would put Undo below the contrast
+   a label needs to be read, and "unavailable" is not the same as "illegible". */
+.play-actions button:disabled {
+  color: var(--text-3);
+  cursor: default;
 }
 
 /* --- keys the puzzle asked for --- */
 
+/* An even grid rather than a wrapped row, so no row is left with the leftovers.
+   The column count comes from the component, which sizes for the thumb rather
+   than for the fewest rows. Bounded so ten keys do not become ten wide keys on
+   a desktop. */
 .keypad {
-  display: flex;
+  display: grid;
   flex: none;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.3rem;
-  padding: 0 0.5rem 0.4rem;
+  grid-template-columns: repeat(var(--keys, 5), minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: 0 0.5rem 0.35rem;
 }
 
 .keypad button {
-  min-width: 2.5rem;
   height: 2.5rem;
-  padding: 0 0.4rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: none;
-  color: inherit;
-  font: inherit;
+  padding: 0 0.35rem;
+  border-radius: var(--r-sm);
   font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.keypad button:active {
-  background: var(--line);
 }
 
 /* --- the two controls worth reaching for --- */
@@ -353,38 +508,33 @@ footer p {
   display: flex;
   flex: none;
   gap: 0.4rem;
-  padding: 0.4rem 0.5rem;
-  border-top: 1px solid var(--line);
+  padding: 0.35rem 0.5rem 0.5rem;
 }
 
 .play-actions button {
   flex: 1;
-  min-height: 2.75rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.play-actions button:active:not(:disabled) {
-  background: var(--line);
-}
-
-.play-actions button:disabled {
-  color: var(--fg-dim);
-  cursor: default;
+  min-height: var(--touch);
 }
 
 .play-actions .play-icon {
-  flex: 0 0 3rem;
-  font-size: 1.1rem;
+  flex: 0 0 var(--touch);
+  border-radius: var(--r-full);
 }
 
 /* --- the menu, over the board rather than under it --- */
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(12%);
+    opacity: 0;
+  }
+}
 
 .sheet-dimmer {
   position: fixed;
@@ -392,7 +542,10 @@ footer p {
   z-index: 20;
   display: flex;
   align-items: flex-end;
-  background: rgb(0 0 0 / 0.45);
+  background: var(--scrim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: scrim-in var(--dur) var(--ease) both;
 }
 
 .sheet {
@@ -403,112 +556,290 @@ footer p {
      it, or hand the gesture on to the browser. */
   overscroll-behavior: contain;
   padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
-  border-radius: 14px 14px 0 0;
-  background: var(--bg);
-  box-shadow: 0 -8px 32px rgb(0 0 0 / 0.3);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+  animation: sheet-in var(--dur-slow) var(--ease) both;
 }
 
 .sheet-grip {
-  width: 2.5rem;
+  width: 2.25rem;
   height: 0.25rem;
-  margin: 0 auto 0.75rem;
-  border-radius: 999px;
-  background: var(--line);
+  margin: 0.15rem auto 0.9rem;
+  border-radius: var(--r-full);
+  background: var(--edge-strong);
 }
 
 .sheet-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.4rem;
 }
 
 .sheet-actions button {
-  min-height: 2.75rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
+  justify-content: flex-start;
+  min-height: var(--touch);
+  padding: 0 0.9rem;
+  font-size: var(--t-sm);
 }
 
-.sheet-actions button:active {
-  background: var(--line);
+.sheet-actions button svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+/* New game leads. It is what the sheet is opened for, and it is also the one
+   that throws the position away, so it should not look like its neighbours. */
+.sheet-actions button.is-primary {
+  background: var(--accent);
+  color: var(--accent-on);
+  font-weight: 600;
+}
+
+.sheet-actions button.is-primary svg {
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .sheet-actions button.is-primary:hover {
+    background: var(--accent-hover);
+  }
+}
+
+.sheet-actions button.is-primary:active {
+  background: var(--accent-hover);
 }
 
 .sheet section {
-  margin-top: 1.25rem;
+  margin-top: 1.4rem;
 }
 
 .sheet h2 {
-  margin: 0 0 0.4rem;
-  color: var(--fg-dim);
-  font-size: 0.75rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-3);
+  font-size: var(--t-2xs);
   font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .sheet p {
   margin: 0;
-  font-size: 0.85rem;
+  color: var(--text-2);
+  font-size: var(--t-sm);
 }
 
+/* Presets as chips. A puzzle can offer twenty of these; as full-width rows
+   that is a screen of scrolling to reach the last one. */
 .sheet-presets,
 .sheet-presets ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.1rem 0.9rem;
+  gap: 0.4rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 0.9rem;
 }
 
 .sheet-presets ul {
   width: 100%;
-  padding-left: 1rem;
+  margin-top: 0.4rem;
+  padding-left: 0.75rem;
 }
 
 .sheet-presets label {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.45rem;
   min-height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.sheet-presets label[data-selected='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+  font-weight: 600;
+}
+
+/* Still a real radio — one choice, arrow keys through the group, announced as
+   such — just drawn to belong to the chip it sits in. */
+.sheet-presets input[type='radio'] {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin: 0;
+  border: 1.5px solid var(--edge-strong);
+  border-radius: 50%;
+  appearance: none;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.sheet-presets input[type='radio']:checked {
+  border-color: currentColor;
+  background-image: radial-gradient(
+    circle at center,
+    currentColor 0 42%,
+    transparent 46%
+  );
 }
 
 .sheet-preset-group {
   width: 100%;
-  color: var(--fg-dim);
-  font-size: 0.8rem;
+  color: var(--text-3);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .sheet-links {
-  color: var(--fg-dim);
-  font-size: 0.8rem;
+  font-size: var(--t-sm);
 }
 
 .sheet-links p + p {
+  margin-top: 0.4rem;
+}
+
+/* --- dialogs --- */
+
+.dialog-dimmer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  background: var(--scrim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: scrim-in var(--dur) var(--ease) both;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 26rem;
+  max-height: 85dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+  animation: sheet-in var(--dur-slow) var(--ease) both;
+}
+
+.dialog h2 {
+  margin: 0 0 1rem;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.dialog label {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--text-2);
+  font-size: var(--t-sm);
+}
+
+.dialog-string input,
+.dialog-choices select {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
   margin-top: 0.3rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  /* Anything under 16px makes iOS zoom the page when the field is focused. */
+  font-size: 1rem;
+}
+
+.dialog-string input:focus-visible,
+.dialog-choices select:focus-visible {
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Scoped past `.dialog label`, which is a class and a type and would
+   otherwise keep this one at `display: block` however far down the file it
+   sits — the reason the box and its label used to sit 3px apart. */
+.dialog .dialog-boolean {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+
+.dialog-boolean input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  /* The gap is the spacing; a checkbox's own default margin is not. */
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.dialog-buttons button {
+  flex: 1;
+  min-height: var(--touch);
+  padding: 0 1rem;
+}
+
+.dialog-buttons button[type='submit'] {
+  background: var(--accent);
+  color: var(--accent-on);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .dialog-buttons button[type='submit']:hover {
+    background: var(--accent-hover);
+  }
+}
+
+.dialog-buttons button[type='submit']:active {
+  background: var(--accent-hover);
 }
 
 /* --- pointer devices: more room, smaller targets --- */
 
 @media (min-width: 48em) {
-  .play-bar {
-    gap: 0.9rem;
-    padding: 0 0.9rem;
+  body {
+    padding-top: 3rem;
   }
 
-  .play-bar h1 {
-    font-size: 1.15rem;
+  .masthead h1 {
+    font-size: var(--t-3xl);
+  }
+
+  .play-bar {
+    gap: 0.6rem;
+    padding: 0 0.75rem;
   }
 
   .play-board {
-    padding: 1.25rem;
+    padding: 1.5rem;
   }
 
   .play-actions {
@@ -518,17 +849,16 @@ footer p {
 
   .play-actions button {
     flex: 0 0 auto;
-    min-width: 6rem;
-    min-height: 2.25rem;
+    min-width: 7rem;
+    min-height: 2.375rem;
   }
 
   .play-actions .play-icon {
-    flex: 0 0 auto;
-    min-width: 2.75rem;
+    flex: 0 0 2.375rem;
+    min-width: 0;
   }
 
   .keypad button {
-    min-width: 2.25rem;
     height: 2.25rem;
   }
 
@@ -540,11 +870,22 @@ footer p {
   .sheet {
     width: min(100%, 34rem);
     max-height: 80dvh;
-    border-radius: 14px;
+    padding: 1.25rem;
+    border-radius: var(--r-lg);
   }
 
   .sheet-grip {
     display: none;
+  }
+
+  .dialog-buttons {
+    justify-content: flex-end;
+  }
+
+  .dialog-buttons button {
+    flex: 0 0 auto;
+    min-width: 5.5rem;
+    min-height: 2.375rem;
   }
 }
 
@@ -563,17 +904,21 @@ footer p {
 
   .play-bar {
     grid-area: 1 / 1 / 2 / 3;
+    min-height: 2.75rem;
   }
 
   .play-board {
     grid-area: 2 / 1 / 4 / 2;
-    padding: 0.4rem;
+    padding: 0.5rem;
   }
 
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
+    /* A narrow rail takes three across whatever the portrait count was. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: center;
     width: 9.5rem;
+    margin: 0;
     overflow-y: auto;
     /* The only place the keypad scrolls, so the only place it may be panned. */
     touch-action: pan-y;
@@ -582,7 +927,6 @@ footer p {
   }
 
   .keypad button {
-    min-width: 2.6rem;
     height: 2.2rem;
   }
 
@@ -591,117 +935,68 @@ footer p {
     flex-direction: column;
     width: 9.5rem;
     padding: 0.3rem;
-    border-top: 0;
-    border-left: 1px solid var(--line);
   }
 
   .play-actions button {
     flex: 0 0 auto;
     min-height: 2.2rem;
+    font-size: var(--t-sm);
   }
 
   .play-actions .play-icon {
     flex: 0 0 auto;
+    border-radius: var(--r-sm);
   }
 }
 
-/* --- dialogs --- */
+/* --- moving between the gallery and a board ---------------------------- */
 
-.dialog-dimmer {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  background: rgb(0 0 0 / 0.5);
-}
-
-.dialog {
-  width: 100%;
-  max-width: 26rem;
-  max-height: 85dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 1.25rem;
-  border-radius: 10px;
-  background: var(--bg);
-  box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
-}
-
-.dialog h2 {
-  margin: 0 0 1rem;
-  font-size: 1.05rem;
-}
-
-.dialog label {
-  display: block;
-  margin-bottom: 0.6rem;
-  font-size: 0.9rem;
-}
-
-.dialog-string input,
-.dialog-choices select {
-  display: block;
-  width: 100%;
-  min-height: 2.5rem;
-  margin-top: 0.2rem;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--bg);
-  color: inherit;
-  font: inherit;
-  /* Anything under 16px makes iOS zoom the page when the field is focused. */
-  font-size: 1rem;
-}
-
-.dialog-boolean {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.5rem;
-}
-
-.dialog-boolean input {
-  width: 1.1rem;
-  height: 1.1rem;
-}
-
-.dialog-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-}
-
-.dialog-buttons button {
-  flex: 1;
-  min-height: 2.75rem;
-  padding: 0 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.dialog-buttons button[type='submit'] {
-  border-color: var(--link);
-  color: var(--link);
-}
-
-@media (min-width: 48em) {
-  .dialog-buttons button {
-    flex: 0 0 auto;
-    min-height: 2.1rem;
+@keyframes vt-out {
+  to {
+    opacity: 0;
   }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-out 120ms var(--ease) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in 260ms var(--ease) both;
 }
 
 /* --- not found --- */
 
 .game {
   padding: 2rem 0;
+}
+
+.game h1 {
+  margin: 0 0 0.5rem;
+  font-size: var(--t-xl);
+}
+
+/* --- less movement, where that is asked for --- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

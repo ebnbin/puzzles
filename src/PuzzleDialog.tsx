@@ -79,11 +79,13 @@ export default function PuzzleDialog({
           </label>
         ))}
 
+        {/* Cancel first, accept last: the accepting button is the one that
+            should sit where a thumb lands, and where the eye stops reading. */}
         <div className="dialog-buttons">
-          <button type="submit">OK</button>
           <button type="button" onClick={onCancel}>
             Cancel
           </button>
+          <button type="submit">OK</button>
         </div>
       </form>
     </div>

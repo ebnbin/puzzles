@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 // Minimal history router. Two routes today (the launcher and a game), so a
 // library would be more machinery than the app needs — swap it out when the
@@ -16,10 +17,36 @@ export function usePath(): string {
   return path
 }
 
+type WithViewTransition = Document & {
+  startViewTransition?: (callback: () => void) => unknown
+}
+
+/**
+ * Swap routes, through a view transition where the browser has one.
+ *
+ * The history entry is pushed first and outside the transition: the callback
+ * runs a frame or two after the click, and the address should not lag the
+ * click that changed it.
+ *
+ * `flushSync` is what makes the rest work: the transition captures the page,
+ * runs the callback, and captures it again, so the render has to have happened
+ * by the time the callback returns rather than in React's own good time.
+ *
+ * Skipped when the browser cannot do it, and when the reader has asked for
+ * less movement.
+ */
 export function navigate(to: string) {
   if (to === window.location.pathname) return
+
   window.history.pushState(null, '', to)
-  window.dispatchEvent(new PopStateEvent(POP))
+  const render = () => window.dispatchEvent(new PopStateEvent(POP))
+
+  const start = (document as WithViewTransition).startViewTransition
+  if (!start || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    render()
+    return
+  }
+  start.call(document, () => flushSync(render))
 }
 
 /**

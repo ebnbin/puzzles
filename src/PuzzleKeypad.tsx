@@ -8,6 +8,27 @@ import type { KeyLabel } from './engine/types'
  * comes from the puzzle itself rather than from a table we maintain, so it is
  * right for every puzzle and stays right as upstream changes.
  */
+
+const PREFERRED_PER_ROW = 5
+const MAX_ROWS = 3
+
+/**
+ * How many columns to lay the keys out in.
+ *
+ * Wrapping leaves the last row as whatever is left over: ten keys become eight
+ * across and then a stranded two. Dividing evenly instead needs a row count,
+ * and rows are the cheap dimension here — a portrait phone has spare height
+ * above the board, while a key narrower than a thumb is a key you miss. So
+ * five to a row, more only once that would need a fourth row.
+ *
+ * Five and five for Solo's nine digits and a clear; six, six and five for the
+ * seventeen a 4x4 grid asks for.
+ */
+function columns(count: number) {
+  const rows = Math.min(MAX_ROWS, Math.ceil(count / PREFERRED_PER_ROW))
+  return Math.ceil(count / rows)
+}
+
 export default function PuzzleKeypad({
   keys,
   onPress,
@@ -18,7 +39,12 @@ export default function PuzzleKeypad({
   if (keys.length === 0) return null
 
   return (
-    <div className="keypad" role="group" aria-label="Puzzle keys">
+    <div
+      className="keypad"
+      role="group"
+      aria-label="Puzzle keys"
+      style={{ '--keys': columns(keys.length) } as React.CSSProperties}
+    >
       {keys.map((key) => (
         <button
           key={key.button}

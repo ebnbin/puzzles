@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Icon from './Icon'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
@@ -181,10 +182,17 @@ export default function PuzzleHost({
     <div className="play" data-ready={ready}>
       <header className="play-bar">
         <a className="play-back" href="/" onClick={onNavClick} aria-label="All puzzles">
-          ←
+          <Icon name="back" />
         </a>
         <h1>{title}</h1>
-        <span className="play-status" aria-live="polite">
+        {/* A pill only once there is something in it, so an empty status bar
+            leaves no empty box behind. Tabular figures keep a running clock
+            from shuffling the text beside it. */}
+        <span
+          className="play-status"
+          data-filled={!!status}
+          aria-live="polite"
+        >
           {status}
         </span>
       </header>
@@ -210,6 +218,7 @@ export default function PuzzleHost({
           disabled={!undoRedo.undo}
           onClick={() => act((a) => a.undo())}
         >
+          <Icon name="undo" />
           Undo
         </button>
         <button
@@ -217,6 +226,7 @@ export default function PuzzleHost({
           disabled={!undoRedo.redo}
           onClick={() => act((a) => a.redo())}
         >
+          <Icon name="redo" />
           Redo
         </button>
         {fullscreen.supported && (
@@ -227,7 +237,7 @@ export default function PuzzleHost({
             aria-pressed={fullscreen.active}
             onClick={fullscreen.toggle}
           >
-            {fullscreen.active ? '⤡' : '⤢'}
+            <Icon name={fullscreen.active ? 'fullscreenExit' : 'fullscreen'} />
           </button>
         )}
         <button
@@ -237,7 +247,7 @@ export default function PuzzleHost({
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
         >
-          ☰
+          <Icon name="menu" />
         </button>
       </nav>
 

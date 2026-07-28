@@ -1,0 +1,124 @@
+/*
+ * The design system: everything the components are allowed to reach for.
+ *
+ * One fact drives the whole palette. A puzzle's background is not ours to
+ * choose — the C asks the canvas for its CSS background colour, gets nothing
+ * (upstream's page supplies none either), and falls back to its own
+ * 0.9/0.9/0.9. So every one of the forty boards is #e6e6e6, and it is by far
+ * the most common colour in the collection: 20% of every pixel of every icon.
+ *
+ * The chrome is therefore achromatic, so that grey reads as deliberate rather
+ * than as a colour that missed. Colour comes from the icons and from the
+ * boards. The accent is the collection's own blue — #0000ff, as the puzzles
+ * actually draw it — pulled just far enough to be legible as text and spent
+ * only on state: what is selected, what has focus, what is on.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* --- surface ladder ---------------------------------------------------
+   * Depth by tone rather than by hairlines. `2` is what a tonal button or a
+   * key sits on, `3` is its pressed state.
+   */
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-2: #f0f0ef;
+  --surface-3: #e4e4e2;
+  --edge: #e4e4e2;
+  /* `edge` is a hairline between blocks and may be as faint as it likes.
+     `edge-strong` draws the boundary of a control — a text field, an
+     unselected radio — which has to clear 3:1 against whatever it sits on to
+     be findable at all. */
+  --edge-strong: #8a8a90;
+
+  --text: #17171a;
+  --text-2: #5b5b64;
+  /* Dim, but it carries 11px section labels and the footer, so it still has
+     to clear 4.5:1 on every surface it appears over. */
+  --text-3: #6b6b75;
+
+  --accent: #2b2bd6;
+  --accent-hover: #2020b4;
+  --accent-on: #ffffff;
+  --accent-soft: #e7e7fb;
+  --accent-soft-text: #1e1e9e;
+
+  --danger: #b3261e;
+
+  /* The board's own grey, named so nothing has to remember the number.
+     Never applied to the canvas itself — see the note above. */
+  --board: #e6e6e6;
+
+  /* The lattice every one of these puzzles is played on, at a contrast you
+     notice only once you look for it. */
+  --grid-line: rgb(23 23 26 / 0.045);
+
+  --shadow-1: 0 1px 2px rgb(20 20 30 / 0.06), 0 1px 1px rgb(20 20 30 / 0.04);
+  --shadow-2: 0 2px 4px rgb(20 20 30 / 0.06), 0 8px 20px -6px rgb(20 20 30 / 0.12);
+  --shadow-3: 0 4px 8px rgb(20 20 30 / 0.08), 0 24px 48px -12px rgb(20 20 30 / 0.22);
+  /* The board is a lit plate on the page, not a panel in it. */
+  --shadow-board: 0 0 0 1px rgb(20 20 30 / 0.1), 0 2px 4px rgb(20 20 30 / 0.08),
+    0 14px 32px -10px rgb(20 20 30 / 0.22);
+  --scrim: rgb(20 20 26 / 0.4);
+
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 18px;
+  --r-full: 999px;
+
+  /* Type scale. Nothing between 13px and 15px, so sizes read as levels
+     rather than as drift. */
+  --t-2xs: 0.6875rem;
+  --t-xs: 0.75rem;
+  --t-sm: 0.8125rem;
+  --t-md: 0.9375rem;
+  --t-lg: 1.0625rem;
+  --t-xl: 1.375rem;
+  --t-2xl: 1.75rem;
+  --t-3xl: 2.25rem;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 170ms;
+  --dur-slow: 300ms;
+
+  /* Comfortable thumb target; tightened on pointer devices further down. */
+  --touch: 2.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101013;
+    --surface: #17171b;
+    --surface-2: #212128;
+    --surface-3: #2c2c34;
+    --edge: #26262d;
+    --edge-strong: #6b6b7d;
+
+    --text: #ececef;
+    --text-2: #a2a2ad;
+    --text-3: #93939d;
+
+    --accent: #a6a6ff;
+    --accent-hover: #bcbcff;
+    --accent-on: #14143a;
+    --accent-soft: #23234a;
+    --accent-soft-text: #c3c3ff;
+
+    --danger: #f2b8b5;
+
+    --grid-line: rgb(236 236 239 / 0.05);
+
+    /* Black shadows are invisible against near-black. Depth comes from the
+       ring and from the surface ladder; the board gets a halo instead,
+       because at #e6e6e6 it really is the brightest thing on screen. */
+    --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.05);
+    --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.7);
+    --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -12px rgb(0 0 0 / 0.8);
+    --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.12),
+      0 8px 24px -6px rgb(0 0 0 / 0.75), 0 0 64px -16px rgb(230 230 230 / 0.22);
+    --scrim: rgb(0 0 0 / 0.6);
+  }
+}
