@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 /**
  * Light, dark, or whatever the system says.
@@ -11,6 +11,12 @@ import { useCallback, useEffect, useState } from 'react'
  *
  * The browser's own chrome is told too. A page that forces dark while the
  * system is light would otherwise keep a white address bar.
+ *
+ * Held in a module rather than in a component, the way the language is: the
+ * setting outlives every screen, and two screens asking for it must get the
+ * same answer. The system is followed for as long as the app is running, so a
+ * change made while a puzzle is open is noticed wherever the switch happens to
+ * live.
  */
 
 export type Theme = 'system' | 'light' | 'dark'
@@ -37,27 +43,37 @@ function apply(theme: Theme) {
     ?.setAttribute('content', dark ? BAR.dark : BAR.light)
 }
 
+let current = read()
+apply(current)
+
+const listeners = new Set<() => void>()
+
+window.matchMedia(DARK).addEventListener('change', () => {
+  // Only worth acting on while it is being followed.
+  if (current === 'system') apply(current)
+})
+
+export function setTheme(next: Theme) {
+  if (next === current) return
+  current = next
+  apply(next)
+  try {
+    window.localStorage.setItem(KEY, next)
+  } catch {
+    // Private browsing or a blocked store — the choice just won't persist.
+  }
+  for (const listener of listeners) listener()
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+const snapshot = () => current
+
 export function useTheme(): [Theme, (next: Theme) => void] {
-  const [theme, setTheme] = useState<Theme>(read)
-
-  useEffect(() => {
-    apply(theme)
-    if (theme !== 'system') return
-    // Only worth following while it is being followed.
-    const query = window.matchMedia(DARK)
-    const sync = () => apply('system')
-    query.addEventListener('change', sync)
-    return () => query.removeEventListener('change', sync)
-  }, [theme])
-
-  const update = useCallback((next: Theme) => {
-    setTheme(next)
-    try {
-      window.localStorage.setItem(KEY, next)
-    } catch {
-      // Private browsing or a blocked store — the choice just won't persist.
-    }
-  }, [])
-
-  return [theme, update]
+  return [useSyncExternalStore(subscribe, snapshot, snapshot), setTheme]
 }

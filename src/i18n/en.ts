@@ -51,6 +51,9 @@ export const en = {
     fullscreen: 'Fullscreen',
     exitFullscreen: 'Leave fullscreen',
     menu: 'Menu',
+    /* Named for what the press does, not for where you are. */
+    toDark: 'Switch to dark',
+    toLight: 'Switch to light',
     keypad: 'Puzzle keys',
     error: 'Something went wrong starting this puzzle.',
   },

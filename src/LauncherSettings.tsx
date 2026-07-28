@@ -2,6 +2,7 @@ import Icon from './Icon'
 import type { Engine } from './engine'
 import { docHref, useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
+import { useTheme } from './useTheme'
 import type { Theme } from './useTheme'
 
 /**
@@ -15,18 +16,15 @@ import type { Theme } from './useTheme'
 export default function LauncherSettings({
   engine,
   setEngine,
-  theme,
-  setTheme,
   onClose,
 }: {
   engine: Engine
   setEngine: (next: Engine) => void
-  theme: Theme
-  setTheme: (next: Theme) => void
   onClose: () => void
 }) {
   const t = useStrings()
   const [lang, setLang] = useLang()
+  const [theme, setTheme] = useTheme()
 
   const themes: { value: Theme; label: string }[] = [
     { value: 'system', label: t.settings.themeSystem },

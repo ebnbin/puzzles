@@ -37,6 +37,8 @@ export const zh: Strings = {
     fullscreen: '全屏',
     exitFullscreen: '退出全屏',
     menu: '菜单',
+    toDark: '切换到深色',
+    toLight: '切换到浅色',
     keypad: '谜题按键',
     error: '启动这个谜题时出错。',
   },

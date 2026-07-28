@@ -5,7 +5,6 @@ import { gameHref, useEngine } from './engine'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import { onNavClick } from './router'
-import type { Theme } from './useTheme'
 
 /**
  * The gallery.
@@ -15,11 +14,7 @@ import type { Theme } from './useTheme'
  * upstream files each puzzle under, three across on a phone, on the
  * collection's own grey so each one bleeds to the edges of its tile.
  */
-export default function Launcher({
-  theme: [theme, setTheme],
-}: {
-  theme: [Theme, (next: Theme) => void]
-}) {
+export default function Launcher() {
   const [engine, setEngine] = useEngine()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const t = useStrings()
@@ -94,8 +89,6 @@ export default function Launcher({
         <LauncherSettings
           engine={engine}
           setEngine={setEngine}
-          theme={theme}
-          setTheme={setTheme}
           onClose={() => setSettingsOpen(false)}
         />
       )}

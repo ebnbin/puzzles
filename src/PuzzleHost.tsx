@@ -13,6 +13,7 @@ import { useFullscreen } from './useFullscreen'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
+import { setTheme } from './useTheme'
 import { contentBox, usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
@@ -65,6 +66,7 @@ export default function PuzzleHost({
   const fullscreen = useFullscreen()
   const help = useHelp(name)
   const theme = useResolvedTheme()
+  const dark = theme === 'dark'
   const t = useStrings()
   const [lang] = useLang()
   // Read inside the start-up effect without making it a dependency: the puzzle
@@ -237,6 +239,18 @@ export default function PuzzleHost({
         >
           {status}
         </span>
+        {/* The board turns over with the page, and this is the shortest way
+            to see it do so — one press, no dialog. It commits to a side
+            rather than toggling within "system": having asked for a specific
+            appearance, a reader should get it until they say otherwise. */}
+        <button
+          type="button"
+          className="play-icon"
+          aria-label={dark ? t.play.toLight : t.play.toDark}
+          onClick={() => setTheme(dark ? 'light' : 'dark')}
+        >
+          <Icon name={dark ? 'sun' : 'moon'} />
+        </button>
         <button
           type="button"
           className="play-icon"
