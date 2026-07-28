@@ -18,11 +18,13 @@ OUT_GAMES="$ROOT/public/games"
 OUT_DOC="$ROOT/public/doc"
 OUT_ENGINE="$ROOT/public/engine"
 
-# Puzzles to additionally build as ES modules for the TypeScript rewrite to
-# mount inside React. Add a name here when its rewrite starts; the WebAssembly
-# build under public/games is produced for every puzzle either way and is not
-# affected by this list.
-TS_ENGINE_GAMES=(net solo keen towers unequal filling undead)
+# Every puzzle is built twice: once as upstream ships it, into public/games,
+# and once as an ES module the React host can mount, into public/engine. The
+# two differ only in their JavaScript wrapper — the .wasm must come out
+# identical, which is checked below.
+#
+# Both sets are committed, and the duplicated .wasm costs nothing: identical
+# content means git stores one blob for each pair.
 
 EMSDK_VERSION=6.0.4
 
@@ -110,7 +112,7 @@ mkdir -p "$OUT_DOC"
 # passed in. Build from a throwaway copy of the tree with the two files
 # swapped instead, which leaves vendor/ untouched and keeps the substitution
 # visible here rather than hidden in a patch.
-echo "==> building ES modules for ${TS_ENGINE_GAMES[*]}"
+echo "==> building ES modules"
 rm -rf "$BUILD/src-esm"
 cp -r "$SRC" "$BUILD/src-esm"
 cp "$ROOT/engine/puzzle-pre.js" "$BUILD/src-esm/emccpre.js"
@@ -123,10 +125,14 @@ emcmake cmake -S "$BUILD/src-esm" -B "$BUILD/esm" -G Ninja \
   -DMIN_SAFARI_VERSION="$MIN_SAFARI_VERSION" \
   -DCMAKE_EXE_LINKER_FLAGS="-sSTRICT_JS=0 -sMODULARIZE=1 -sEXPORT_ES6=1"
 
+cmake --build "$BUILD/esm" --parallel "$(nproc)"
+
 rm -rf "$OUT_ENGINE"
 mkdir -p "$OUT_ENGINE"
-for name in "${TS_ENGINE_GAMES[@]}"; do
-  cmake --build "$BUILD/esm" --target "$name"
+# Whatever was published as a playable puzzle, publish an ES module for.
+for html in "$OUT_GAMES"/*.html; do
+  name="$(basename "$html" .html)"
+  [ -f "$BUILD/esm/$name.js" ] || { echo "no ES module built for $name" >&2; exit 1; }
   cp "$BUILD/esm/$name.js" "$BUILD/esm/$name.wasm" "$OUT_ENGINE/"
 
   # Only the JavaScript wrapper differs between the two builds, so the

@@ -188,17 +188,6 @@ footer p {
   font-size: 0.9rem;
 }
 
-.game .board {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1;
-  max-width: 26rem;
-  margin-bottom: 1rem;
-  border: 1px dashed var(--line);
-  border-radius: 6px;
-  color: var(--fg-dim);
-  font-size: 0.85rem;
-}
 
 /* --- host for the compiled puzzle --- */
 
