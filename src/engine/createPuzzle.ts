@@ -16,10 +16,13 @@ export async function createPuzzle(options: {
   gameId?: string
   /** Room the board has, in CSS pixels, so its first size already fits. */
   available?: { width: number; height: number }
+  /** Which way up the board is, known before the first frame is drawn. */
+  dark?: boolean
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
-  const { name, canvas, gameId = '', available, callbacks } = options
+  const { name, canvas, gameId = '', available, dark = false, callbacks } = options
   const renderer = new CanvasRenderer(canvas)
+  renderer.setDark(dark)
   if (available && available.width > 0 && available.height > 0)
     renderer.setAvailable(available.width, available.height)
 

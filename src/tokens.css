@@ -1,11 +1,13 @@
 /*
  * The design system: everything the components are allowed to reach for.
  *
- * One fact drives the whole palette. A puzzle's background is not ours to
- * choose — the C asks the canvas for its CSS background colour, gets nothing
+ * One fact drives the whole palette. A puzzle's light background is not ours
+ * to choose — the C asks the canvas for its CSS background colour, gets nothing
  * (upstream's page supplies none either), and falls back to its own
- * 0.9/0.9/0.9. So every one of the forty boards is #e6e6e6, and it is by far
- * the most common colour in the collection: 20% of every pixel of every icon.
+ * 0.9/0.9/0.9. So every light board is #e6e6e6, and it is by far the most
+ * common colour in the collection: 20% of every pixel of every icon. The dark
+ * board is that palette flipped on our side — see engine/palette.ts — so the
+ * grey is still what the whole scheme is built around.
  *
  * The chrome is therefore achromatic, so that grey reads as deliberate rather
  * than as a colour that missed. Colour comes from the icons and from the
@@ -55,7 +57,8 @@
 
   --danger: #b3261e;
 
-  /* The board's own grey, named so nothing has to remember the number.
+  /* The grey the thumbnails are rendered on. Constant across themes: the
+     icons are built once, in light, and sit on a plate that matches them.
      Never applied to the canvas itself — see the note above. */
   --board: #e6e6e6;
 
@@ -122,12 +125,13 @@
   --grid-line: rgb(236 236 239 / 0.05);
 
   /* Black shadows are invisible against near-black. Depth comes from the
-     ring and from the surface ladder; the board gets a halo instead,
-     because at #e6e6e6 it really is the brightest thing on screen. */
+     ring and from the surface ladder. */
   --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.05);
   --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.7);
   --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -12px rgb(0 0 0 / 0.8);
-  --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.12),
-    0 8px 24px -6px rgb(0 0 0 / 0.75), 0 0 64px -16px rgb(230 230 230 / 0.22);
+  /* No halo here: on a dark board the plate is no longer the brightest thing
+     on screen, and a glow around it would read as fog rather than as light. */
+  --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.14),
+    0 10px 28px -8px rgb(0 0 0 / 0.8);
   --scrim: rgb(0 0 0 / 0.6);
 }

@@ -11,6 +11,7 @@ import { onNavClick } from './router'
 import { useFullscreen } from './useFullscreen'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
+import { useResolvedTheme } from './useResolvedTheme'
 import { contentBox, usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
@@ -56,6 +57,12 @@ export default function PuzzleHost({
 
   const fullscreen = useFullscreen()
   const help = useHelp(name)
+  const theme = useResolvedTheme()
+  // Read inside the start-up effect without making it a dependency: the puzzle
+  // is created once, and the theme it is created with has to be the one in
+  // force at that moment.
+  const themeRef = useRef(theme)
+  themeRef.current = theme
   useNoPullToRefresh()
 
   useEffect(() => {
@@ -73,6 +80,7 @@ export default function PuzzleHost({
       canvas,
       gameId: decodeURIComponent(window.location.hash.replace(/^#/, '')),
       available: contentBox(area),
+      dark: themeRef.current === 'dark',
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
@@ -119,6 +127,22 @@ export default function PuzzleHost({
 
   usePuzzleFit(areaRef, apiRef, ready)
   const pointer = usePuzzlePointer(apiRef, rendererRef)
+
+  /*
+   * Turn the board over with the rest of the page. The back end is not
+   * involved and does not need to be: the palette is rewritten on our side,
+   * and a resize to the size it already is makes the midend redraw everything
+   * through it. The position, the timer and the undo history are untouched.
+   */
+  useEffect(() => {
+    const renderer = rendererRef.current
+    if (!renderer || !ready) return
+    // The board was created the right way up; this is only for changing it.
+    if (!renderer.setDark(theme === 'dark')) return
+    // `rescale` and not `resize`: resize_puzzle only redraws when the size it
+    // works out differs from the one already set, and here it will not.
+    apiRef.current?.rescale()
+  }, [theme, ready])
 
   /** A dialog is modal to the game; the C side is waiting for its answer. */
   const act = useCallback(

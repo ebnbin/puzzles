@@ -18,13 +18,21 @@ export interface Size {
   h: number
 }
 
+import { forDarkBoard } from './palette'
+
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
   private readonly offscreen: HTMLCanvasElement
   private readonly ctx: CanvasRenderingContext2D
 
-  /** Colour strings, indexed as the back end numbers them. */
+  /** Colour strings exactly as the back end numbered them. */
+  private readonly named: string[] = []
+
+  /** What is actually drawn with: `named`, or its dark-board rewrite. */
   private colours: string[] = []
+
+  private dark = false
+  private repalette = true
 
   /**
    * Logical pixels per physical pixel. Always an integer of at least 1, so
@@ -52,13 +60,32 @@ export class CanvasRenderer {
   // --- colours ------------------------------------------------------------
 
   setColour(index: number, css: string) {
-    this.colours[index] = css
+    this.named[index] = css
+    this.repalette = true
+  }
+
+  /**
+   * Which way up the board is. The back end is never told: it names its
+   * colours once and then only ever refers to them by number, so the dark
+   * board is this table rewritten between two frames.
+   */
+  setDark(dark: boolean): boolean {
+    if (dark === this.dark) return false
+    this.dark = dark
+    this.repalette = true
+    return true
   }
 
   /**
    * The back end offers to take its background colour from the page. Only an
    * opaque sRGB colour will do; anything else — including the transparent
    * default — leaves it to pick its own, which is what upstream's pages get.
+   *
+   * Left transparent deliberately, in both themes. Handing back #e6e6e6 — the
+   * very grey the back end falls back to — is not the same as handing back
+   * nothing: 230/255 is not 0.9, and that rounding moves the derived colours
+   * in twelve of the forty games. The dark board comes from the palette
+   * rewrite instead, which leaves this path exactly as upstream has it.
    */
   defaultColour(): [number, number, number] | null {
     const css = window.getComputedStyle(this.onscreen).backgroundColor
@@ -71,6 +98,10 @@ export class CanvasRenderer {
   // --- frame ---------------------------------------------------------------
 
   startDraw() {
+    if (this.repalette) {
+      this.colours = this.dark ? forDarkBoard(this.named) : this.named.slice()
+      this.repalette = false
+    }
     this.dirty = null
   }
 

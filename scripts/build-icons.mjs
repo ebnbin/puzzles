@@ -78,6 +78,10 @@ for (const game of games) {
   const context = await browser.newContext({
     viewport: { width: 900, height: 900 },
     deviceScaleFactor: 2,
+    // The thumbnails are the collection's own grey, and the launcher shows
+    // them on a plate of it in either theme. Pin the light board so a machine
+    // that happens to prefer dark does not rebuild them upside down.
+    colorScheme: 'light',
   })
   const page = await context.newPage()
   const errors = []
