@@ -30,6 +30,7 @@ export type IconName =
   | 'share'
   | 'sun'
   | 'moon'
+  | 'caret'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -151,6 +152,9 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   moon: <path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z" />,
+  /* Small, and drawn shallow: it sits beside a word rather than in a button
+     of its own, and a steep chevron there reads as a second glyph. */
+  caret: <path d="m7.5 10 4.5 4.5 4.5-4.5" />,
   /* Three nodes and the lines between them — a network, like half the
      collection. */
   share: (

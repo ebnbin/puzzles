@@ -469,6 +469,57 @@ footer p {
   text-overflow: ellipsis;
 }
 
+/* The title, which is also the way to the other thirty-nine. Set as the
+   heading it replaces — no border, no fill — with only the caret to say it
+   opens. Padded to a thumb's worth of target without looking like a button. */
+.play-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+  /* A full thumb target, which the bar's own 3rem has room for. */
+  min-height: var(--touch);
+  margin-left: -0.4rem;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease);
+}
+
+/* The name needs its own box to clip in: a bare text node cannot carry an
+   ellipsis, and the caret must stay whole however long the name is. */
+.play-title > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.play-title svg {
+  flex: none;
+  color: var(--text-3);
+  transition: transform var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .play-title:hover {
+    background: var(--surface-2);
+  }
+}
+
+.play-title:active {
+  background: var(--surface-3);
+}
+
+.play-title[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
 /*
  * The status line the puzzle writes: a pill, but only once there is something
  * in it, so an idle puzzle leaves no empty box in the bar. Tabular figures so
@@ -754,6 +805,107 @@ footer p {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* --- switching puzzle ---------------------------------------------------
+ *
+ * The gallery, packed down. Four across on a phone against the gallery's
+ * three: nothing here has a description to read, and the point of a switcher
+ * is how much of the collection is in front of you at once.
+ */
+
+/* The sheet is the scroll container, so the header sticks to its padding edge
+   — which means the sheet cannot also hold the top padding, or content would
+   show through the gap above the header on the way past. */
+.sheet-switch {
+  padding-top: 0;
+}
+
+.sheet-switch .switch-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 -1rem;
+  padding: 0.5rem 1rem 0.35rem;
+  background: var(--surface);
+}
+
+.sheet-switch .sheet-handle {
+  margin: 0 -1rem 0.4rem;
+}
+
+.sheet-switch h2 {
+  margin: 0;
+}
+
+.switch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
+  gap: 0.5rem 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.switch-grid a {
+  display: block;
+  padding: 0.25rem 0.15rem 0.3rem;
+  border-radius: var(--r-sm);
+  color: var(--text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease);
+}
+
+/* The board's own grey under every thumbnail, so the art bleeds to the tile's
+   edges the way it does in the gallery. Fixed square: these are 256x256 and
+   must not be allowed to set their own height. */
+.switch-art {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--board);
+  box-shadow: inset 0 0 0 1px rgb(20 20 30 / 0.08);
+}
+
+.switch-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.switch-name {
+  display: block;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Where you already are. A ring rather than a fill: the thumbnail is the
+   thing being marked, and a fill behind it would tint the art. */
+.switch-grid a[aria-current='page'] .switch-art {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.switch-grid a[aria-current='page'] .switch-name {
+  color: var(--accent);
+  font-weight: 650;
+}
+
+@media (hover: hover) {
+  .switch-grid a:hover {
+    background: var(--surface-2);
+  }
+}
+
+.switch-grid a:active {
+  background: var(--surface-3);
 }
 
 .sheet p {
@@ -1170,6 +1322,18 @@ footer p {
 
   .sheet-handle {
     display: none;
+  }
+
+  /* Repeated because `.sheet` above resets all four sides, and content
+     scrolling through a padding gap over the pinned header is exactly what
+     the zero is for. */
+  .sheet-switch {
+    padding-top: 0;
+  }
+
+  .sheet-switch .switch-head {
+    margin: 0 -1.25rem;
+    padding: 1.25rem 1.25rem 0.5rem;
   }
 
   .dialog-buttons {

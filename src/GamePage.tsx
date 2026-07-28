@@ -27,7 +27,11 @@ export default function GamePage({ name }: { name: string }) {
   }
 
   return (
+    // Keyed on the puzzle: switching from one to another has to build a new
+    // one, and the host starts exactly one back end per mount. Without this
+    // React would reuse the mounted host and the old puzzle would stay.
     <PuzzleHost
+      key={game.name}
       name={game.name}
       title={game.displayName}
       objective={game.objective}

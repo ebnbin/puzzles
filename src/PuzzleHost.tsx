@@ -3,6 +3,7 @@ import Icon from './Icon'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
+import PuzzleSwitcher from './PuzzleSwitcher'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
 import type { CanvasRenderer } from './engine/renderer'
@@ -62,6 +63,7 @@ export default function PuzzleHost({
   const [ready, setReady] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [switcherOpen, setSwitcherOpen] = useState(false)
 
   const fullscreen = useFullscreen()
   const help = useHelp(name)
@@ -182,12 +184,13 @@ export default function PuzzleHost({
       // control inside the sheet, which is where it will be after a preset.
       if (e.key === 'Escape') {
         if (helpOpen) setHelpOpen(false)
+        else if (switcherOpen) setSwitcherOpen(false)
         else if (menuOpen) setMenuOpen(false)
         else return
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen) return
+      if (dialog || helpOpen || switcherOpen) return
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
       const api = apiRef.current
@@ -205,7 +208,7 @@ export default function PuzzleHost({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, dialog, menuOpen, helpOpen, fullscreen])
+  }, [ready, dialog, menuOpen, helpOpen, switcherOpen, fullscreen])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
@@ -228,7 +231,21 @@ export default function PuzzleHost({
         >
           <Icon name="back" />
         </a>
-        <h1>{title}</h1>
+        {/* The name is also the way to the other thirty-nine: it is what you
+            would point at to say "not this one", and it costs the bar
+            nothing it was not already spending. */}
+        <h1>
+          <button
+            type="button"
+            className="play-title"
+            aria-haspopup="dialog"
+            aria-expanded={switcherOpen}
+            onClick={() => setSwitcherOpen(true)}
+          >
+            <span>{title}</span>
+            <Icon name="caret" size={18} />
+          </button>
+        </h1>
         {/* A pill only once there is something in it, so an empty status bar
             leaves no empty box behind. Tabular figures keep a running clock
             from shuffling the text beside it. */}
@@ -365,6 +382,10 @@ export default function PuzzleHost({
             </div>
           </div>
         </div>
+      )}
+
+      {switcherOpen && (
+        <PuzzleSwitcher current={name} onClose={() => setSwitcherOpen(false)} />
       )}
 
       {menuOpen && (
