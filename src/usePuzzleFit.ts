@@ -117,8 +117,18 @@ export function usePuzzleFit(
       const key = `${Math.round(w)}x${Math.round(h)}`
       if (key === last) return
       last = key
-      const dpr = window.devicePixelRatio || 1
-      api.resize(Math.round(w * dpr), Math.round(h * dpr))
+
+      // Deliberately not `resize`, which is the entry point meant for this.
+      // It guards its work with `if (canvas_w != w)` where canvas_w is in
+      // device pixels and w has already been divided down to logical ones, so
+      // on a 2x screen the guard is wrong exactly when the new logical size
+      // equals the old device size — which asking for twice the natural size
+      // makes happen every time. midend_size has run by then, so the tile size
+      // and the drawstate are the new ones while the canvas is still the old
+      // one: the board looks right until the first click redraws part of it at
+      // the new scale. `rescale` reaches the same midend_size through the path
+      // the back end uses for its own resizes, which has no such guard.
+      api.rescale()
     }
 
     // Coalesce the burst of callbacks an orientation change produces.
