@@ -331,14 +331,38 @@ export class CanvasRenderer {
   // --- size ----------------------------------------------------------------
 
   /**
-   * Room the board has been given, in CSS pixels. Set before the puzzle
-   * starts so its first size already fits; null leaves the back end to pick,
-   * which is what upstream's pages get.
+   * Room the board has been given, in CSS pixels — and the answer to every
+   * "how much room is there?" the back end asks, including the ones it asks
+   * on its own after a new game or a preference change. usePuzzleFit keeps it
+   * to the room the board is actually allowed, which is not the whole area.
+   *
+   * Null until the first fit, so the board the back end lays out at startup is
+   * the one it would have chosen unaided, which is what upstream's pages get.
    */
   private available: Size | null = null
 
   setAvailable(w: number, h: number) {
     this.available = { w, h }
+  }
+
+  /**
+   * Stop answering the "how much room is there?" question, so the next size
+   * the back end works out is the one it would have chosen on its own.
+   *
+   * That answer is the whole difference between a board that fills the screen
+   * and a board at its natural size: `midend_size` bounds the tile size above
+   * by the game's own preferred value when the front end declines to state a
+   * size, and searches for the largest that fits when it does. See
+   * `naturalSize` in usePuzzleFit for the one caller.
+   */
+  forgetAvailable() {
+    this.available = null
+  }
+
+  /** What the board currently measures on the page, in CSS pixels. */
+  cssSize(): Size {
+    const rect = this.onscreen.getBoundingClientRect()
+    return { w: rect.width, h: rect.height }
   }
 
   /** Physical pixels, which is what the back end measures in. */

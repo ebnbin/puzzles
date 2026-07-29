@@ -15,7 +15,7 @@ import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
 import { setTheme } from './useTheme'
-import { contentBox, usePuzzleFit } from './usePuzzleFit'
+import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 /** Stands for "we could not start it", which is the one error we word. */
@@ -93,7 +93,11 @@ export default function PuzzleHost({
       name,
       canvas,
       gameId: decodeURIComponent(window.location.hash.replace(/^#/, '')),
-      available: contentBox(area),
+      // No room stated, so the first board the back end lays out is the one it
+      // would have chosen on its own. usePuzzleFit takes it from there, and
+      // whichever frame lands first is a board at a size the game asked for —
+      // handing over the whole area instead would flash a full-window board
+      // for the frame before the cap is worked out.
       dark: themeRef.current === 'dark',
       callbacks: {
         onReady(list, api) {
@@ -139,7 +143,15 @@ export default function PuzzleHost({
     }
   }, [name])
 
-  usePuzzleFit(areaRef, apiRef, ready)
+  // The parameters, which is the part of the game id before the colon: a new
+  // grid is a new natural size, and nothing else about the id changes it.
+  usePuzzleFit(
+    areaRef,
+    apiRef,
+    rendererRef,
+    ready,
+    permalink?.desc.split(':')[0] ?? '',
+  )
   const pointer = usePuzzlePointer(apiRef, rendererRef)
 
   /*
