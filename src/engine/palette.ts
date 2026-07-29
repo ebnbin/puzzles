@@ -6,27 +6,68 @@
  * lookup table we own, and re-theming a matter of rewriting the table — the
  * wasm never learns anything happened.
  *
- * The rule is one line of intent: **flip the greys, dim the colours.** A
- * puzzle's structure lives in its neutrals — the board, the shading, the ink,
- * the rules drawn in black — and those want to be the other way up on a dark
- * surface. Its meaning lives in its hues: Mines' numbers, Map's regions,
- * Guess's pegs. Those mean something, and inverting them would be a lie.
+ * ---------------------------------------------------------------------------
+ * THREE RULES, IN THE ORDER `forDarkBoard` APPLIES THEM
+ * ---------------------------------------------------------------------------
  *
- * Because the flip is monotonic in lightness, every "is lighter than" relation
- * in the original survives as "is darker than" here, which is what keeps a
- * game's shading readable without knowing anything about what it draws. Two
- * distinct colours also cannot become one — but the flipped greys land among
- * the dimmed hues, so a collision pass afterwards is cheap insurance rather
- * than an assumption.
+ * 1. `compress` — a grey whose being black or white is something the rules
+ *    say. Kept the way up it started, only pulled into the dark board's
+ *    range. Black stays black. See `SEMANTIC`; 26 of the 426.
  *
- * The hues are kept but not left alone. Upstream picked them for a light board
- * and they are full-strength: on a dark one, Guess's yellow and Net's cyan are
- * the brightest thing on the screen by a distance. So each gets a black veil
- * — see `VEIL` — which changes no hue and no ordering, only how much light
- * comes off it.
+ * 2. `veil` — anything with a hue. Kept, but with black laid over it in
+ *    proportion to how much light it throws, because upstream chose these
+ *    against a white board and at full strength they are the brightest thing
+ *    on a dark one. See `VEIL`; 200 of the 426.
  *
- * Measured over all forty palettes: 426 colours, no collisions, and every
- * lightness ordering preserved.
+ * 3. `flip` — every other grey: the board, the shading, the ink, the lines.
+ *    Turned over. See `FLOOR` and `CEILING`; the remaining 200.
+ *
+ * Behind them is one distinction. A puzzle's *structure* lives in its
+ * neutrals and wants to be the other way up on a dark surface; its *meaning*
+ * lives in its hues — Mines' digits, Map's regions, Tents' grass — and
+ * inverting those would be a lie. Rule 1 exists because that line is not
+ * quite where saturation puts it: Pearl's two circles carry meaning and have
+ * no hue at all, and flipping them states the puzzle backwards.
+ *
+ * ---------------------------------------------------------------------------
+ * WHAT IS COMPUTED AND WHAT IS NOT
+ * ---------------------------------------------------------------------------
+ *
+ * No colour in this file is chosen. All 426 dark values are the output of the
+ * three functions above, and nothing hand-picks a hex.
+ *
+ * Which rule a slot takes is computed too — from its saturation — for 400 of
+ * them. The other 26 come from `SEMANTIC`, a table, because the fact that
+ * *this* black is a rule and *that* black is a line is not in the colour: it
+ * is in the game. That table is the one piece of knowledge here that no
+ * amount of arithmetic could have recovered, and it was assembled from
+ * evidence rather than taste — see its comment.
+ *
+ * Five constants are tuned: `ACHROMATIC`, `FLOOR`, `CEILING`, `VEIL`,
+ * `SEMANTIC_BOARD`. Each carries the measurement that fixed it.
+ *
+ * ---------------------------------------------------------------------------
+ * WHAT HOLDS AFTERWARDS
+ * ---------------------------------------------------------------------------
+ *
+ * The flip is monotonic in lightness, so every "is lighter than" in the
+ * original survives as "is darker than" here — which keeps a game's shading
+ * readable without knowing anything about what it draws. Two slots the game
+ * drew differently must still be drawn differently; the flipped greys land
+ * among the dimmed hues, so the collision pass at the end is cheap insurance
+ * rather than an assumption. Measured over all forty palettes: 426 colours,
+ * no collisions, every ordering preserved.
+ *
+ * ---------------------------------------------------------------------------
+ * THE TWO PIECES OF THIS STORY THAT ARE NOT IN THIS FILE
+ * ---------------------------------------------------------------------------
+ *
+ * - `CanvasRenderer.defaultColour` in renderer.ts, which deliberately hands
+ *   the back end *nothing* in either theme. That is why every light board is
+ *   still exactly upstream's, and why the dark one has to come from here.
+ * - `--board` in tokens.css, the grey the launcher's thumbnails sit on. It is
+ *   the light board's value and stays constant across themes, because the
+ *   thumbnails are rendered once, in light.
  */
 
 /** Below this saturation a colour is carrying structure, not meaning. */

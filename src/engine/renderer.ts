@@ -90,6 +90,9 @@ export class CanvasRenderer {
    * nothing: 230/255 is not 0.9, and that rounding moves the derived colours
    * in twelve of the forty games. The dark board comes from the palette
    * rewrite instead, which leaves this path exactly as upstream has it.
+   *
+   * That rewrite — every rule about what a colour becomes on dark, and why —
+   * is in ./palette.ts. This function is the reason it has to exist.
    */
   defaultColour(): [number, number, number] | null {
     const css = window.getComputedStyle(this.onscreen).backgroundColor

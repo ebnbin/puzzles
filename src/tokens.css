@@ -59,7 +59,8 @@
 
   /* The grey the thumbnails are rendered on. Constant across themes: the
      icons are built once, in light, and sit on a plate that matches them.
-     Never applied to the canvas itself — see the note above. */
+     Never applied to the canvas itself — see the note above. What a board
+     becomes on dark is decided in engine/palette.ts, not here. */
   --board: #e6e6e6;
 
   /* The lattice every one of these puzzles is played on, at a contrast you
