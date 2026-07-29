@@ -5,7 +5,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/ts/:path*",
+      "source": "/:name([a-z]+)",
       "destination": "/"
     }
   ],
