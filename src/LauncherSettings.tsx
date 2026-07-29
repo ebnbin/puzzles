@@ -1,27 +1,18 @@
 import Icon from './Icon'
-import type { Engine } from './engine'
 import { docHref, useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useTheme } from './useTheme'
 import type { Theme } from './useTheme'
 
 /**
- * The three things there are to decide and the one place to read more, behind
+ * The two things there are to decide and the one place to read more, behind
  * the button that means "settings".
  *
  * They were a card at the top of the launcher, which put a quarter of the first
  * screen between the reader and the puzzles for two switches most people touch
  * once.
  */
-export default function LauncherSettings({
-  engine,
-  setEngine,
-  onClose,
-}: {
-  engine: Engine
-  setEngine: (next: Engine) => void
-  onClose: () => void
-}) {
+export default function LauncherSettings({ onClose }: { onClose: () => void }) {
   const t = useStrings()
   const [lang, setLang] = useLang()
   const [theme, setTheme] = useTheme()
@@ -49,25 +40,6 @@ export default function LauncherSettings({
         onClick={(e) => e.stopPropagation()}
       >
         <h2>{t.settings.title}</h2>
-
-        <label className="setting engine">
-          <input
-            type="checkbox"
-            checked={engine === 'ts'}
-            onChange={(e) => setEngine(e.target.checked ? 'ts' : 'wasm')}
-          />
-          {/* Both states say what you get, rather than one of them repeating
-              what the switch already shows. */}
-          <span className="setting-text">
-            {t.settings.design}
-            <em>
-              {engine === 'ts' ? t.settings.designOn : t.settings.designOff}
-            </em>
-          </span>
-          <span className="engine-track" aria-hidden="true">
-            <span className="engine-knob" />
-          </span>
-        </label>
 
         <div className="setting">
           <span className="setting-text">{t.settings.appearance}</span>

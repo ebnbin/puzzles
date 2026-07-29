@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
-import { gameHref, useEngine } from './engine'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import { onNavClick } from './router'
@@ -15,11 +14,9 @@ import { onNavClick } from './router'
  * collection's own grey so each one bleeds to the edges of its tile.
  */
 export default function Launcher() {
-  const [engine, setEngine] = useEngine()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const t = useStrings()
   const games = useGames()
-  const ts = engine === 'ts'
 
   useEffect(() => {
     if (!settingsOpen) return
@@ -49,12 +46,7 @@ export default function Launcher() {
       <ul className="games">
         {games.map((game) => (
           <li key={game.name}>
-            {/* Only the TypeScript route is ours to route; the WebAssembly
-                pages are static files, so those links leave the app. */}
-            <a
-              href={gameHref(game.name, engine)}
-              onClick={ts ? onNavClick : undefined}
-            >
+            <a href={`/${game.name}`} onClick={onNavClick}>
               <span className="games-art">
                 {/* Not lazy: the server answers these with no-cache, so a
                     lazy image pays a revalidation round trip at the moment
@@ -89,11 +81,7 @@ export default function Launcher() {
       </footer>
 
       {settingsOpen && (
-        <LauncherSettings
-          engine={engine}
-          setEngine={setEngine}
-          onClose={() => setSettingsOpen(false)}
-        />
+        <LauncherSettings onClose={() => setSettingsOpen(false)} />
       )}
     </div>
   )

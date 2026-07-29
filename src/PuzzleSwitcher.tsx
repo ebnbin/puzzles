@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { gameHref } from './engine'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import { onNavClick } from './router'
@@ -135,7 +134,7 @@ export default function PuzzleSwitcher({
               <li key={game.name}>
                 <a
                   ref={here ? currentRef : undefined}
-                  href={gameHref(game.name, 'ts')}
+                  href={`/${game.name}`}
                   aria-current={here ? 'page' : undefined}
                   onClick={(e) => {
                     // Already here: the panel is the only thing in the way.

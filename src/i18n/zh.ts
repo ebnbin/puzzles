@@ -13,9 +13,6 @@ export const zh: Strings = {
 
   settings: {
     title: '设置',
-    design: '新版界面',
-    designOn: '为手机和桌面重新设计',
-    designOff: '原版布局',
     appearance: '外观',
     themeSystem: '跟随系统',
     themeLight: '浅色',

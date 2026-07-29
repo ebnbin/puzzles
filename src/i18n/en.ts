@@ -27,9 +27,6 @@ export const en = {
 
   settings: {
     title: 'Settings',
-    design: 'New design',
-    designOn: 'Redesigned for phone and desktop',
-    designOff: 'The original layout',
     appearance: 'Appearance',
     themeSystem: 'System',
     themeLight: 'Light',
