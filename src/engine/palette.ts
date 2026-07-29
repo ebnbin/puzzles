@@ -99,8 +99,12 @@ const SEMANTIC: Record<string, readonly number[]> = {
  * need one — its board is near-white and sits beside the white half — but on
  * a dark board there is no room below the bottom of the scale, so leaving the
  * background where the flip puts it (0.13) would leave the black half of the
- * puzzle nowhere to be. #424242 has #0f0f0f visibly below it and #d1d1d1 well
- * above, and still reads as a dark board.
+ * puzzle nowhere to be — a black pearl on it comes to 1.18:1, which is not a
+ * faint circle but no circle. #424242 has #0f0f0f visibly below it and
+ * #d1d1d1 well above, and still reads as a dark board.
+ *
+ * Applied only where it is needed, and whether it is needed is computed: see
+ * `needsRoom`.
  *
  * Tried at the midpoint of the range too, which is the safe answer on paper
  * and the wrong one on screen: the board stops looking dark, and Guess loses
@@ -220,22 +224,45 @@ function format({ h, s, l }: { h: number; s: number; l: number }): string {
   return `#${channel(h + 1 / 3)}${channel(h)}${channel(h - 1 / 3)}`
 }
 
+/** Where the flip would put a lightness — the ordinary case. */
+const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
+
+/** Where a kept colour goes: same range, same direction as it started. */
+const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
+
 export function forDarkBoard(light: readonly string[], game = ''): string[] {
   const semantic = SEMANTIC[game]
+
+  /*
+   * Whether this game's board has to move, worked out rather than asserted:
+   * it does if anything the rules call black would end up below the board the
+   * flip would otherwise give it, because then there is nothing to see it
+   * against. As it happens that is true of all ten — which is the answer to
+   * "why can these boards not just stay as dark as the rest?". They cannot;
+   * a game whose darkest kept colour still cleared the board would keep it.
+   */
+  const board = parse(light[BACKGROUND])
+  const needsRoom =
+    !!semantic &&
+    !!board &&
+    semantic.some((i) => {
+      const kept = parse(light[i])
+      return !!kept && compress(kept.l) < flip(board.l)
+    })
 
   const flipped = light.map((css, index) => {
     const colour = parse(css)
     if (!colour) return css
     if (semantic) {
-      if (index === BACKGROUND)
+      if (index === BACKGROUND && needsRoom)
         return format({ ...colour, l: SEMANTIC_BOARD })
       // Compressed, not inverted: same range as the flip, same direction as
       // the original.
       if (semantic.includes(index))
-        return format({ ...colour, l: FLOOR + colour.l * (CEILING - FLOOR) })
+        return format({ ...colour, l: compress(colour.l) })
     }
     if (colour.s >= ACHROMATIC) return veil(colour)
-    return format({ ...colour, l: FLOOR + (1 - colour.l) * (CEILING - FLOOR) })
+    return format({ ...colour, l: flip(colour.l) })
   })
 
   // Two indices the game drew differently must still be drawn differently.
