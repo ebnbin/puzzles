@@ -552,9 +552,11 @@ export default function PuzzleHost({
           custom={custom}
           customError={customError}
           onSelectPreset={(value) => {
+            // Stays open. Everything in this sheet takes effect where it is
+            // pressed, and a sheet that shuts itself on one of those and not
+            // the others is telling you they are different things.
             setSelected(value)
             act((a) => a.selectPreset(value))
-            setTypesOpen(false)
           }}
           onOpenCustom={openCustom}
           onCloseCustom={closeCustom}

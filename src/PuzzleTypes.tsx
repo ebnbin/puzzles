@@ -26,6 +26,10 @@ const CUSTOM = -1
  * the back end will not have the numbers it says so underneath them, and the
  * game you were playing is still there.
  *
+ * And the sheet stays up through all of it. Nothing you do here dismisses it,
+ * so a size can be tried and tried again, and the one press that closes it is
+ * yours.
+ *
  * To the back end the parameters are still a modal dialog, which is why
  * showing and hiding them is `onOpenCustom` and `onCloseCustom` rather than
  * local state: something has to answer the config box the C is sitting in.
