@@ -1521,29 +1521,41 @@ footer p {
   }
 
   /*
-   * The rail runs down the screen, so the keys do too: as many as the rail is
-   * tall enough for, then another column beside them. Nothing scrolls and
-   * nothing is hidden — a key you have to find before you can press it is
-   * worse than a rail one column wider, and the rail only takes that column
-   * for the puzzles that need it.
+   * Two columns, the same two as the actions below, and no more — the rail is
+   * width taken from the board, and the board is what the screen is for. Past
+   * what the rail is tall enough to hold, the keys scroll.
    *
-   * `auto-fill` over fixed rows is what counts the rows: the rail's height is
-   * settled by the grid it sits in, so the browser can work out how many key
-   * heights fit in it and flow the keys down them.
+   * Filling down the rail and starting a fresh column instead would show every
+   * key without scrolling, which is nicer, but it cannot be done at a width
+   * the board can afford: seventeen keys is four columns, a quarter of the
+   * screen. It also cannot be asked of the grid — a column-flow track count
+   * comes from the rail's height, which is not settled when its width is
+   * being worked out, so the browser sizes it as though every key were on one
+   * row and the rail comes out wider than the window.
    */
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
-    grid-template-columns: none;
-    grid-template-rows: repeat(auto-fill, var(--tap-h));
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(var(--tap-w), max-content);
+    grid-template-columns: repeat(2, minmax(var(--tap-w), max-content));
     gap: 0.25rem;
     justify-self: center;
-    align-content: center;
+    /* Centred, but never past the top: `safe` gives up the centring rather
+       than push the first row out of reach above the scroll. */
+    align-content: safe center;
     width: max-content;
     max-width: none;
     margin: 0;
+    overflow-y: auto;
+    /* The only place the keypad scrolls, so the only place it may be panned.
+       Overlay or nothing: a classic scrollbar would eat into a rail measured
+       to the pixel. */
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
     padding: 0.3rem;
+  }
+
+  .keypad::-webkit-scrollbar {
+    display: none;
   }
 
   /* Smaller type and tighter sides than in portrait, so the one word among
