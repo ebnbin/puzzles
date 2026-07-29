@@ -88,6 +88,19 @@ export default function PuzzleTypes({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /*
+   * Bring them into view when they appear, which nothing else will now do:
+   * on a puzzle with a long list of presets they open below the fold, and
+   * `nearest` scrolls the least that makes them visible. The dependency is
+   * the boolean, so this is when they appear rather than every time a value
+   * is settled and the back end hands back a fresh set.
+   */
+  const paramsRef = useRef<HTMLDivElement>(null)
+  const shown = !!custom
+  useEffect(() => {
+    if (shown) paramsRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [shown])
+
   return (
     <div className="sheet-dimmer" onClick={onClose}>
       <div
@@ -114,12 +127,11 @@ export default function PuzzleTypes({
         </section>
 
         {custom && (
-          <div className="sheet-custom">
-            <ConfigFields
-              controls={custom.controls}
-              autoFocus
-              onCommit={onCommitCustom}
-            />
+          <div className="sheet-custom" ref={paramsRef}>
+            {/* No autofocus. On a phone, focusing a field is the on-screen
+                keyboard coming up over half the sheet, and the first thing to
+                do with these is read them. */}
+            <ConfigFields controls={custom.controls} onCommit={onCommitCustom} />
             {/* The back end refuses a set of parameters by handing back a
                 sentence. It belongs against the fields that were refused, not
                 under the title bar behind this sheet. */}
