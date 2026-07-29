@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
 import Icon from './Icon'
 import type { DialogSpec, Preset } from './engine/types'
@@ -43,6 +44,25 @@ export default function PuzzleTypes({
 }) {
   const { ref, handlers } = useSheetDrag(onClose)
   const t = useStrings()
+
+  /*
+   * Open the parameters when they are what is in force.
+   *
+   * `selected` is the back end's own answer to which preset the current game
+   * matches — `midend_which_preset`, negative for none of them. Negative is
+   * therefore exactly the case where the chips above say nothing about the
+   * game you are playing, and the fields are the only description of it, so
+   * they start shown rather than behind another press.
+   *
+   * On mount only: collapsing them is an answer to a question, and it would
+   * be a poor one if the sheet asked again straight away.
+   */
+  const open = useRef(onOpenCustom)
+  open.current = onOpenCustom
+  useEffect(() => {
+    if (selected < 0) open.current()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="sheet-dimmer" onClick={onClose}>
