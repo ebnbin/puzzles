@@ -3,21 +3,27 @@ import type { KeyLabel } from './types'
 /**
  * Which keys a puzzle needs offered on a device without a keyboard.
  *
- * Upstream answers this itself, through the back end's request_keys(), but
+ * Two sorts. The ones that put something in a square — digits, monsters,
+ * clear — are what upstream's request_keys() returns, and six of the forty
+ * puzzles have one. The rest are keys a puzzle reads but never advertises:
+ * they do something to the whole board, and every one of them was, until
+ * now, unreachable without a keyboard. Both are listed here, tagged, and
+ * shown apart.
+ *
+ * Upstream answers the first question itself, through request_keys(), but
  * that is not reachable from here: the web front end never had a keypad, so
  * emcc.c does not call it, and the midend pointer is static in that file. The
  * lists it would return are short and derived from one number, so they are
  * reconstructed here instead of reaching into the C.
- *
- * Only six of the forty puzzles want keys at all. Two of them are fixed; the
- * other four are the digits 1..N, and N is in the game id, which the puzzle
- * hands us for its permalink every time the game or the preset changes.
  *
  * This does duplicate upstream. If a puzzle changes the keys it asks for, or
  * the way it encodes its parameters, nothing here will notice — so the game
  * ids are asserted against in the tests, and an unrecognised one falls back
  * to no keypad rather than to a wrong one.
  */
+
+/** Anything past this and the game id was misread, not merely unusual. */
+const MAX_SYMBOLS = 36
 
 /**
  * `count` consecutive values, spelled the way the puzzles spell them: as
@@ -34,7 +40,19 @@ function digits(count: number, startAtZero = false): KeyLabel[] {
 }
 
 /** Backspace. The midend treats 8 and 127 alike; upstream labels it Clear. */
-const CLEAR: KeyLabel = { button: 8, label: 'Clear' }
+const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
+
+/*
+ * The keys no puzzle asks for.
+ *
+ * M fills every empty square with every pencil mark, which is how a whole
+ * school of solvers likes to start. H plays one deduction for you. J deals
+ * the same network again, shuffled — its own source asks "should we have
+ * some mouse control for this?" and the answer, here, is this key.
+ */
+const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: true }
+const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: true }
+const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: true }
 
 /**
  * The parameter prefix of a game id — everything before the first colon. For
@@ -42,6 +60,14 @@ const CLEAR: KeyLabel = { button: 8, label: 'Clear' }
  */
 function params(gameId: string): string {
   return gameId.split(':')[0]
+}
+
+/** The leading number of a parameter string, when it is a sane grid size. */
+function size(p: string): number | null {
+  const m = p.match(/^(\d+)/)
+  if (!m) return null
+  const n = +m[1]
+  return n >= 1 && n <= MAX_SYMBOLS ? n : null
 }
 
 const RULES: Record<string, (p: string) => KeyLabel[] | null> = {
@@ -61,33 +87,50 @@ const RULES: Record<string, (p: string) => KeyLabel[] | null> = {
       if (m[2] !== undefined) c *= r
       r = 1
     }
-    return [...digits(c * r), CLEAR]
+    const cr = c * r
+    if (cr < 1 || cr > MAX_SYMBOLS) return null
+    return [...digits(cr), CLEAR, MARKS]
   },
   // Digits 1..w.
   keen(p) {
-    const m = p.match(/^(\d+)/)
-    return m ? [...digits(+m[1]), CLEAR] : null
+    const w = size(p)
+    return w ? [...digits(w), CLEAR, MARKS] : null
   },
   towers(p) {
-    const m = p.match(/^(\d+)/)
-    return m ? [...digits(+m[1]), CLEAR] : null
+    const w = size(p)
+    return w ? [...digits(w), CLEAR, MARKS] : null
   },
   // Digits 1..order, except that past 9 the puzzle counts from 0 so the
   // labels stay one character wide.
   unequal(p) {
-    const m = p.match(/^(\d+)/)
-    if (!m) return null
-    const order = +m[1]
-    return [...digits(order, order > 9), CLEAR]
+    const order = size(p)
+    if (!order) return null
+    return [...digits(order, order > 9), CLEAR, MARKS, HINT]
   },
   // Always 1-9, whatever the grid.
   filling: () => [...digits(9), CLEAR],
   undead: () => [
-    { button: 'G'.charCodeAt(0), label: 'Ghost' },
-    { button: 'V'.charCodeAt(0), label: 'Vampire' },
-    { button: 'Z'.charCodeAt(0), label: 'Zombie' },
+    { button: 'G'.charCodeAt(0), icon: 'ghost' },
+    { button: 'V'.charCodeAt(0), icon: 'vampire' },
+    { button: 'Z'.charCodeAt(0), icon: 'zombie' },
     CLEAR,
+    MARKS,
   ],
+
+  // Nothing to put in a square — only the key that was out of reach.
+  net: () => [JUMBLE],
+  fifteen: () => [HINT],
+  bridges: () => [HINT],
+  range: () => [HINT],
+  pearl: () => [HINT],
+  guess: () => [HINT],
+  // 0..n lights up every domino carrying that number, two at a time. The
+  // parameter is the highest face, so a default board wants 0-6.
+  dominosa(p) {
+    const n = size(p)
+    if (n === null) return null
+    return digits(n + 1, true).map((key) => ({ ...key, aid: true }))
+  },
 }
 
 export function keysFor(name: string, gameId: string): KeyLabel[] {
@@ -97,6 +140,6 @@ export function keysFor(name: string, gameId: string): KeyLabel[] {
   // A misread game id would put a keypad of the wrong length on screen, which
   // is worse than none: better to show nothing than to offer a digit the
   // puzzle will not take, or to leave one out that it needs.
-  if (!keys || keys.length < 2 || keys.length > 37) return []
+  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + 3) return []
   return keys
 }

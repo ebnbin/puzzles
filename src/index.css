@@ -649,38 +649,107 @@ footer p {
 
 /* --- keys the puzzle asked for --- */
 
-/* An even grid rather than a wrapped row, so no row is left with the leftovers.
-   The column count comes from the component, which sizes for the thumb rather
-   than for the fewest rows.
-
-   The keys are their own size and the block of them sits in the middle of the
-   screen: a key twice as wide as it needs to be is not a better key, and the
-   space left over is better spent as margin than shared out. Each column takes
-   what is in it, so a digit is 40 and Clear is as wide as the word — one wide
-   key at the end of a row, rather than ten keys widened to match it. */
+/*
+ * Two groups of keys, a hairline apart: what goes in a square, and what is
+ * asked of the board. Each is an even grid rather than a wrapped row, so no
+ * row is left holding the leftovers, and the column count comes from the
+ * component, which divides for the thumb rather than for the fewest rows.
+ *
+ * Every key is a 40 square. Nothing here is stretched and nothing is wider
+ * than anything else — the labels that would not fit are pictures now — so
+ * the block sits in the middle of the screen and the width it does not use
+ * is margin. Three rows of it, and the rest scrolls.
+ */
 .keypad {
-  display: grid;
+  --key-gap: 0.25rem;
+  /* A rule and the air either side of it, which the height below has to
+     allow for once per gap between groups. */
+  --key-rule: 0.85rem;
+  display: flex;
   flex: none;
-  grid-template-columns: repeat(var(--keys, 5), minmax(var(--tap-w), max-content));
-  gap: 0.35rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
   width: max-content;
   max-width: 100%;
+  max-height: calc(
+    3 * var(--tap-w) + 2 * var(--key-gap) + 0.3rem + (var(--groups, 1) - 1) *
+      var(--key-rule)
+  );
   margin: 0 auto;
+  overflow-y: auto;
+  /* The keypad is the one thing here that scrolls, so it is the one thing
+     that may be panned. Overlay or nothing: a classic scrollbar would sit
+     between the keys and the edge of the phone. */
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   padding: 0.3rem 0.4rem 0;
 }
 
+.keypad::-webkit-scrollbar {
+  display: none;
+}
+
+/* As wide as a full row and no wider, so a group with one key in it — the
+   lone M under Solo's digits — sits under the middle of them rather than
+   against the left edge, and so does a row that does not fill. */
+.keypad-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--key-gap);
+  /* A full row is the most it may be, not what it is: a group holding one
+     key is one key wide, and the rail behind Net's single key does not take
+     the width of a row it has not got. */
+  width: max-content;
+  max-width: calc(
+    var(--keys, 5) * var(--tap-w) + (var(--keys, 5) - 1) * var(--key-gap)
+  );
+}
+
+/* Enough to say "these are a different sort of key", and no more: they are
+   next to each other, which does most of the saying. */
+.keypad-rule {
+  width: 4.5rem;
+  height: 1px;
+  margin: 0.42rem 0;
+  background: var(--edge);
+}
+
 .keypad button {
-  min-width: var(--tap-w);
-  min-height: var(--tap-h);
-  /* Just enough to keep a word off the edge. Any wider and Clear — the one
-     word among the digits — no longer fits the 40 a key is, and takes its
-     whole column up with it. A digit is nowhere near either figure. */
-  padding: 0 0.1rem;
+  width: var(--tap-w);
+  height: var(--tap-w);
+  padding: 0;
   border-radius: var(--r-sm);
-  /* One size in both orientations, and one step under the app's other
-     buttons: this is the only place a label has to fit a fixed square. */
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* The keys that do something to the whole board rather than to one square.
+   Drawn in the accent so they read as a different kind of press — the one
+   you make once, not the one you make forty times. */
+.keypad-group[data-aid] button {
+  color: var(--accent);
+}
+
+/* Held rather than pressed: what the key would have said, if a key were big
+   enough to say it. Fixed, so the keypad's own scrolling does not clip it. */
+.keypad-tip {
+  position: fixed;
+  z-index: 15;
+  max-width: 10rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--r-sm);
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--t-xs);
+  line-height: 1.3;
+  text-align: center;
+  white-space: normal;
+  pointer-events: none;
+  transform: translate(-50%, -100%) translateY(-0.35rem);
+  animation: scrim-in var(--dur) var(--ease);
 }
 
 /* --- the four ways out of the board --- */
@@ -703,7 +772,26 @@ footer p {
 .play-actions button {
   flex: none;
   width: var(--tap-w);
-  height: var(--tap-h);
+  height: var(--tap-w);
+}
+
+/* The third group, told from the second the same way the second is told from
+   the first. Only when there are keys above it: with nothing to be separated
+   from, a rule across the foot of the board is just a line. */
+.keypad + .play-actions {
+  position: relative;
+  padding-top: 0.42rem;
+}
+
+.keypad + .play-actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4.5rem;
+  height: 1px;
+  background: var(--edge);
+  transform: translateX(-50%);
 }
 
 /* --- the menu, over the board rather than under it --- */
@@ -1527,48 +1615,26 @@ footer p {
   }
 
   /*
-   * Two columns, the same two as the actions below, and no more — the rail is
-   * width taken from the board, and the board is what the screen is for. Past
-   * what the rail is tall enough to hold, the keys scroll.
-   *
-   * One column when the keys are words rather than digits: two of Undead's
-   * would be a rail half as wide again, and the component says which it is by
-   * measuring what it rendered. See PuzzleKeypad.
-   *
-   * Filling down the rail and starting a fresh column instead would show every
-   * key without scrolling, which is nicer, but it cannot be done at a width
-   * the board can afford: seventeen keys is four columns, a quarter of the
-   * screen. It also cannot be asked of the grid — a column-flow track count
-   * comes from the rail's height, which is not settled when its width is
-   * being worked out, so the browser sizes it as though every key were on one
-   * row and the rail comes out wider than the window.
+   * Three across, and no more — the rail is width taken from the board, and
+   * the board is what the screen is for. Past what the rail is tall enough to
+   * hold, the keys scroll. The height cap that portrait uses does not apply:
+   * here the rail's own height is the cap.
    */
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
-    grid-template-columns: repeat(
-      var(--rail-columns, 2),
-      minmax(var(--tap-w), max-content)
-    );
-    gap: 0.25rem;
     justify-self: center;
-    /* Centred, but never past the top: `safe` gives up the centring rather
-       than push the first row out of reach above the scroll. */
-    align-content: safe center;
-    width: max-content;
+    /* The rail's main axis is down it, so this is the vertical centring.
+       `safe` gives it up rather than push the first row out of reach above
+       the top of the scroll. */
+    justify-content: safe center;
     max-width: none;
+    max-height: none;
     margin: 0;
-    overflow-y: auto;
-    /* The only place the keypad scrolls, so the only place it may be panned.
-       Overlay or nothing: a classic scrollbar would eat into a rail measured
-       to the pixel. */
-    touch-action: pan-y;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
     padding: 0.3rem;
   }
 
-  .keypad::-webkit-scrollbar {
-    display: none;
+  .keypad-group {
+    max-width: calc(3 * var(--tap-w) + 2 * var(--key-gap));
   }
 
   /* Two by two at the foot of the rail. Four across would be a rail a third

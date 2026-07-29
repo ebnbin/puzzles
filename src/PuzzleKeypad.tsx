@@ -1,14 +1,20 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import Icon from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
 
 /**
  * The keys the puzzle asked for, as buttons.
  *
- * Solo, Keen, Towers, Unequal and Undead are entered by typing, which a touch
- * device cannot do — this is how they are played without a keyboard. The list
- * comes from the puzzle itself rather than from a table we maintain, so it is
- * right for every puzzle and stays right as upstream changes.
+ * Two groups, a hairline apart. The first puts something in a square — the
+ * digits of Solo and Keen, Undead's three monsters, clear — which is how
+ * those puzzles are played, and a touch device has no other way to do it.
+ * The second asks the puzzle to do something to the whole board: fill in
+ * every pencil mark, play one deduction, deal the network again. Those are
+ * keys the games read but never advertise, and this is the only way to
+ * reach them without a keyboard.
+ *
+ * See engine/keys.ts for which puzzle gets which.
  */
 
 const PREFERRED_PER_ROW = 5
@@ -16,6 +22,9 @@ const MAX_ROWS = 3
 /** Six 40px keys and their gaps is what a 320px phone holds. Past that the
     row takes another line, which is cheaper than a key nobody can hit. */
 const MAX_COLUMNS = 6
+
+/** A press has to be still for this long before it is asking what a key is. */
+const HOLD_MS = 400
 
 /**
  * How many columns to lay the keys out in.
@@ -41,59 +50,113 @@ export default function PuzzleKeypad({
   keys: KeyLabel[]
   onPress: (key: KeyLabel) => void
 }) {
-  // Before the early return: a hook cannot be skipped on some renders.
   const t = useStrings()
-  const ref = useRef<HTMLDivElement>(null)
 
   /*
-   * How many columns the landscape rail gets. Two, unless a key is wider than
-   * a key has to be — Undead's are, because they say Vampire rather than 7 —
-   * and then one, because that rail is width taken from the board and two
-   * columns of a word is half as much again as two columns of a digit.
-   *
-   * Measured rather than worked out: a key is as wide as its label renders,
-   * which is a question about the font, not about the string. Both numbers
-   * come from the same place the layout does, so nothing here has to know
-   * what --tap-w is set to.
+   * What a key does, said in words. Only the ones that are a picture need it:
+   * a digit says what it is. The glyph names the string, since a glyph is
+   * only ever used for one thing — bar Dominosa's, which are digits doing an
+   * aid's job and are named by the number they carry.
    */
-  const [railColumns, setRailColumns] = useState(2)
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const buttons = [...el.children] as HTMLElement[]
-    if (buttons.length === 0) return
-    const floor = parseFloat(getComputedStyle(buttons[0]).minWidth)
-    const widest = Math.max(...buttons.map((b) => b.getBoundingClientRect().width))
-    setRailColumns(widest > floor + 0.5 ? 1 : 2)
-  }, [keys])
+  const describe = (key: KeyLabel) =>
+    key.icon ? t.keys[key.icon] : key.aid ? t.keys.highlight(key.label ?? '') : undefined
+
+  /*
+   * Hold a key to be told what it is, rather than press it. The word is what
+   * used to be written on the key, before the key became small enough to fit
+   * a row of them on a phone.
+   */
+  const [tip, setTip] = useState<{ text: string; left: number; top: number } | null>(
+    null,
+  )
+  const timer = useRef(0)
+  const held = useRef(false)
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  const hold = (e: React.PointerEvent<HTMLButtonElement>, text?: string) => {
+    if (!text) return
+    const el = e.currentTarget
+    held.current = false
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => {
+      held.current = true
+      const box = el.getBoundingClientRect()
+      setTip({
+        text,
+        // Kept clear of both edges: a key in the corner of a phone would
+        // otherwise hang its label off the screen.
+        left: Math.min(Math.max(box.left + box.width / 2, 84), window.innerWidth - 84),
+        top: box.top,
+      })
+    }, HOLD_MS)
+  }
+  const release = () => {
+    window.clearTimeout(timer.current)
+    setTip(null)
+  }
 
   if (keys.length === 0) return null
+
+  const groups = [keys.filter((k) => !k.aid), keys.filter((k) => k.aid)].filter(
+    (g) => g.length > 0,
+  )
+  // One column count for every group, so the two line up under each other.
+  const perRow = columns(groups[0].length)
 
   return (
     <div
       className="keypad"
       role="group"
       aria-label={t.play.keypad}
-      ref={ref}
       style={
         {
-          '--keys': columns(keys.length),
-          '--rail-columns': railColumns,
+          '--keys': perRow,
+          '--groups': groups.length,
         } as React.CSSProperties
       }
     >
-      {keys.map((key) => (
-        <button
-          key={key.button}
-          type="button"
-          // Keep focus on the board: the puzzle reads the keyboard from it,
-          // and a focused button would swallow arrow keys.
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => onPress(key)}
-        >
-          {key.label}
-        </button>
+      {groups.map((group, i) => (
+        <Fragment key={group[0].aid ? 'aid' : 'input'}>
+          {i > 0 && <div className="keypad-rule" aria-hidden="true" />}
+          <div className="keypad-group" data-aid={group[0].aid ? 'true' : undefined}>
+            {group.map((key) => {
+              const said = describe(key)
+              return (
+                <button
+                  key={key.button}
+                  type="button"
+                  aria-label={key.icon ? said : undefined}
+                  title={said}
+                  // Keep focus on the board: the puzzle reads the keyboard
+                  // from it, and a focused button would swallow arrow keys.
+                  onMouseDown={(e) => e.preventDefault()}
+                  onPointerDown={(e) => hold(e, said)}
+                  onPointerUp={release}
+                  onPointerCancel={release}
+                  onPointerLeave={release}
+                  onClick={() => {
+                    // The press that ended a hold was a question, not an
+                    // instruction.
+                    if (held.current) {
+                      held.current = false
+                      return
+                    }
+                    onPress(key)
+                  }}
+                >
+                  {key.icon ? <Icon name={key.icon} /> : key.label}
+                </button>
+              )
+            })}
+          </div>
+        </Fragment>
       ))}
+
+      {tip && (
+        <div className="keypad-tip" role="status" style={{ left: tip.left, top: tip.top }}>
+          {tip.text}
+        </div>
+      )}
     </div>
   )
 }

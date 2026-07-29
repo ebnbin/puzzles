@@ -11,6 +11,20 @@
  * would just say everything twice.
  */
 
+/**
+ * The glyphs that go on a puzzle key, which is a closed set: each one stands
+ * for exactly one thing, so it also names the words said about it. See
+ * `keys` in the string catalogues.
+ */
+export type KeyIcon =
+  | 'clear'
+  | 'marks'
+  | 'hint'
+  | 'jumble'
+  | 'ghost'
+  | 'vampire'
+  | 'zombie'
+
 export type IconName =
   | 'back'
   | 'undo'
@@ -21,6 +35,7 @@ export type IconName =
   | 'solve'
   | 'type'
   | 'prefs'
+  | KeyIcon
   | 'external'
   | 'check'
   | 'help'
@@ -97,6 +112,87 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="16" cy="16" r="2.6" />
     </>
   ),
+  /* --- the keys a puzzle asks for ---------------------------------------
+   *
+   * The first four stand in for characters a touch device has no way to type.
+   * The last three are the monsters Undead draws on its board, at the size a
+   * key is: its own draw_monster() builds them out of circles and polygons,
+   * and these are the same shapes, not a copy of the code that draws them.
+   */
+
+  /* Backspace, as every keyboard draws it. */
+  clear: (
+    <>
+      <path d="M20 5.5H9.2L3.4 12l5.8 6.5H20a1.6 1.6 0 0 0 1.6-1.6V7.1A1.6 1.6 0 0 0 20 5.5Z" />
+      <path d="m12.4 9.6 5.2 4.8" />
+      <path d="m17.6 9.6-5.2 4.8" />
+    </>
+  ),
+  /* A square with every mark in it at once, which is what the key does to
+     every empty square on the board. */
+  marks: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="8.4" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="8.4" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
+    </>
+  ),
+  /* A wand: one move made for you. Not the bulb — that is Solve, which makes
+     all of them. */
+  hint: (
+    <>
+      <path d="M3.6 20.4 13.8 10.2" />
+      <path d="m16.4 7.6 2.4-2.4" />
+      <path d="M19.6 11.4v2.8" />
+      <path d="M18.2 12.8h2.8" />
+      <path d="M12.4 3.4v2.4" />
+      <path d="M11.2 4.6h2.4" />
+    </>
+  ),
+  /* Two paths crossing: the same pieces, somewhere else. */
+  jumble: (
+    <>
+      <path d="M3.4 7.4h3.8l9.6 9.2h3.8" />
+      <path d="M3.4 16.6h3.8l9.6-9.2h3.8" />
+      <path d="m17.8 4.2 3 3.2-3 3.2" />
+      <path d="m17.8 13.4 3 3.2-3 3.2" />
+    </>
+  ),
+  /* A head, a hem that zigzags in three, and two eyes. */
+  ghost: (
+    <>
+      <path d="M3.2 12.6a8.8 8.8 0 0 1 17.6 0v8.2l-2.94-2.9-2.93 2.9-2.93-2.9-2.94 2.9-2.93-2.9-2.93 2.9Z" />
+      <circle cx="8.9" cy="11.8" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="15.1" cy="11.8" r="1.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  /* A widow's peak, and the two teeth that give it away. */
+  vampire: (
+    <>
+      <circle cx="12" cy="12" r="8.8" />
+      <path d="M3.6 10.2 8.4 11.6 12 14.4l3.6-2.8 4.8-1.4" />
+      <circle cx="9.1" cy="13.6" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="14.9" cy="13.6" r="1.15" fill="currentColor" stroke="none" />
+      <path d="M8.4 16.9h7.2" />
+      <path d="m10.1 16.9.9 2.4.9-2.4" />
+      <path d="m12.1 16.9.9 2.4.9-2.4" />
+    </>
+  ),
+  /* Two crosses for eyes, and a mouth hanging open. */
+  zombie: (
+    <>
+      <circle cx="12" cy="12" r="8.8" />
+      <path d="m7 10.1 2.6 2.6" />
+      <path d="M9.6 10.1 7 12.7" />
+      <path d="m14.4 10.1 2.6 2.6" />
+      <path d="M17 10.1l-2.6 2.6" />
+      <path d="M7.4 16.8h9.2" />
+      <path d="M9.3 16.8a1.9 1.9 0 0 0 3.8 0" />
+    </>
+  ),
+
   external: (
     <>
       <path d="M14 4h6v6" />

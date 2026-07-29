@@ -42,6 +42,17 @@ export const zh: Strings = {
     error: '启动这个谜题时出错。',
   },
 
+  keys: {
+    clear: '清除',
+    marks: '填满所有铅笔标记',
+    hint: '提示',
+    jumble: '重新打乱',
+    ghost: '幽灵',
+    vampire: '吸血鬼',
+    zombie: '僵尸',
+    highlight: (n: string) => `高亮含 ${n} 的骨牌`,
+  },
+
   menu: {
     title: '谜题菜单',
     newGame: '新游戏',

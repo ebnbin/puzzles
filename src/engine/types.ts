@@ -6,6 +6,7 @@
  * wants shown, delivered as data rather than as DOM. Together they are the
  * whole of what upstream's emccpre.js and emcclib.js used to do to the page.
  */
+import type { KeyIcon } from '../Icon'
 
 export interface Preset {
   name: string
@@ -73,13 +74,27 @@ export interface PuzzleApi {
 }
 
 export interface KeyLabel {
-  /** What to show on the key. */
-  label: string
   /**
    * Midend button value. Every puzzle that asks for keys asks only for
    * ASCII ones, so this reaches the game as a one-character `key` string.
    */
   button: number
+  /** What to show on the key, for the ones that are a character. */
+  label?: string
+  /**
+   * The glyph to show instead, named as `Icon` knows it. A key whose
+   * character means nothing to anyone who has never seen the keyboard —
+   * backspace, or M for "fill in the pencil marks" — is a picture, and what
+   * it does is said in words on a long press.
+   */
+  icon?: KeyIcon
+  /**
+   * Two kinds of key. One puts something in a square, which is how the
+   * puzzle is played; the other asks the puzzle to do something to the
+   * board, and exists on this side only because a touch device has no way
+   * to type the letter that does it.
+   */
+  aid?: boolean
 }
 
 /** Everything the running game wants the interface to show. */

@@ -57,6 +57,23 @@ export const en = {
     error: 'Something went wrong starting this puzzle.',
   },
 
+  /**
+   * What a key does, for the keys that are a picture. Shown on a long press,
+   * and what a screen reader calls the button. Named by the glyph, since a
+   * glyph is only ever used for one thing.
+   */
+  keys: {
+    clear: 'Clear',
+    marks: 'Fill in all pencil marks',
+    hint: 'Hint',
+    jumble: 'Shuffle',
+    ghost: 'Ghost',
+    vampire: 'Vampire',
+    zombie: 'Zombie',
+    /** Dominosa: light up every domino carrying this number. */
+    highlight: (n: string) => `Highlight dominoes with ${n}`,
+  },
+
   menu: {
     title: 'Puzzle menu',
     newGame: 'New game',
