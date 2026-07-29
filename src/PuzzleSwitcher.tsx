@@ -148,12 +148,15 @@ export default function PuzzleSwitcher({
                   }}
                 >
                   <span className="switch-art">
+                    {/* Not lazy, for the same reason as the launcher's: the
+                        panel is open, the reader is looking at it, and a
+                        no-cache server makes every lazy image a visible
+                        round trip. */}
                     <img
                       src={`/icons/${game.name}.png`}
                       alt=""
                       width={256}
                       height={256}
-                      loading="lazy"
                       decoding="async"
                     />
                   </span>

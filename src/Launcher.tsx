@@ -56,12 +56,15 @@ export default function Launcher() {
               onClick={ts ? onNavClick : undefined}
             >
               <span className="games-art">
+                {/* Not lazy: the server answers these with no-cache, so a
+                    lazy image pays a revalidation round trip at the moment
+                    it scrolls into view — and again on every return from a
+                    game. Forty small PNGs are cheaper than the blank. */}
                 <img
                   src={`/icons/${game.name}.png`}
                   alt=""
                   width={256}
                   height={256}
-                  loading="lazy"
                   decoding="async"
                 />
               </span>
