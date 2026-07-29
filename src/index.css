@@ -672,8 +672,14 @@ footer p {
 .keypad button {
   min-width: var(--tap-w);
   min-height: var(--tap-h);
-  padding: 0 0.35rem;
+  /* Just enough to keep a word off the edge. Any wider and Clear — the one
+     word among the digits — no longer fits the 40 a key is, and takes its
+     whole column up with it. A digit is nowhere near either figure. */
+  padding: 0 0.1rem;
   border-radius: var(--r-sm);
+  /* One size in both orientations, and one step under the app's other
+     buttons: this is the only place a label has to fit a fixed square. */
+  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1556,14 +1562,6 @@ footer p {
 
   .keypad::-webkit-scrollbar {
     display: none;
-  }
-
-  /* Smaller type and tighter sides than in portrait, so the one word among
-     Solo's digits — Clear — does not on its own make all ten keys wider than
-     a key has to be. */
-  .keypad button {
-    padding: 0 0.15rem;
-    font-size: var(--t-sm);
   }
 
   /* Two by two at the foot of the rail. Four across would be a rail a third
