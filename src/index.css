@@ -652,13 +652,15 @@ footer p {
 /*
  * The keys, in one run: the ones that put something in a square first, then
  * the ones that ask something of the board, told apart by colour alone.
- * They wrap as one row of `--keys`, and a row that does not fill is centred
- * under the ones that did.
+ *
+ * A row is as many keys as the screen is wide — no count is chosen anywhere;
+ * they wrap where the width says to, and a row that does not fill is centred
+ * under the ones that did. Three rows are visible at most, and the rest
+ * scrolls.
  *
  * Every key is a 40 square. Nothing here is stretched and nothing is wider
  * than anything else — the labels that would not fit are pictures now — so
- * the block sits in the middle of the screen and the width it does not use
- * is margin. Three rows of it, and the rest scrolls.
+ * the width a row does not use is margin.
  */
 .keypad {
   --key-gap: 0.25rem;
@@ -667,10 +669,6 @@ footer p {
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--key-gap);
-  width: calc(
-    var(--keys, 5) * var(--tap-w) + (var(--keys, 5) - 1) * var(--key-gap)
-  );
-  max-width: 100%;
   max-height: calc(3 * var(--tap-w) + 2 * var(--key-gap) + 0.3rem);
   margin: 0 auto;
   overflow-y: auto;
@@ -680,7 +678,7 @@ footer p {
   touch-action: pan-y;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  padding: 0.3rem 0 0;
+  padding: 0.3rem 0.4rem 0;
 }
 
 .keypad::-webkit-scrollbar {
