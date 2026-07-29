@@ -4,6 +4,7 @@ import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleSwitcher from './PuzzleSwitcher'
+import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
 import type { CanvasRenderer } from './engine/renderer'
@@ -20,6 +21,13 @@ import { usePuzzlePointer } from './usePuzzlePointer'
 
 /** Stands for "we could not start it", which is the one error we word. */
 const START_FAILED = '\0start'
+
+/**
+ * What the back end calls the parameters when it lists them among the presets:
+ * anything negative, where a real preset carries its index. Asking for it is
+ * asking for the config box rather than for a game.
+ */
+const CUSTOM_PRESET = -1
 
 /**
  * A puzzle, hosted entirely by React.
@@ -63,8 +71,25 @@ export default function PuzzleHost({
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [typesOpen, setTypesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
+
+  /*
+   * The parameters, while they are open inside the type sheet.
+   *
+   * To the back end this is the same modal config box as Game ID or
+   * Preferences — it starts one, then waits for an answer — so it arrives
+   * through the same callback as those, and the only thing that tells them
+   * apart is that we asked for this one. Hence the flag, set immediately
+   * before asking. Both are mirrored in refs because the callbacks that read
+   * them were handed to the back end once, at startup, and close over nothing
+   * that re-renders.
+   */
+  const [custom, setCustom] = useState<DialogSpec | null>(null)
+  const [customError, setCustomError] = useState<string | null>(null)
+  const customPending = useRef(false)
+  const customRef = useRef<DialogSpec | null>(null)
 
   const fullscreen = useFullscreen()
   const help = useHelp(name)
@@ -109,7 +134,12 @@ export default function PuzzleHost({
           setPresets(list)
           setReady(true)
         },
-        onError: setError,
+        onError: (message) => {
+          // A refused set of parameters belongs against the fields that were
+          // refused, not under the title bar behind the sheet showing them.
+          if (customRef.current) setCustomError(message)
+          else setError(message)
+        },
         onStatus: setStatus,
         onUndoRedo: (undo, redo) => setUndoRedo({ undo, redo }),
         onKeyLabels: () => {},
@@ -121,7 +151,24 @@ export default function PuzzleHost({
         },
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
-        onDialog: setDialog,
+        onDialog: (spec) => {
+          if (spec && customPending.current) {
+            customPending.current = false
+            customRef.current = spec
+            setCustomError(null)
+            setCustom(spec)
+            return
+          }
+          // Closing, and it was ours: the back end has finished with it,
+          // whether it was accepted or cancelled.
+          if (!spec && customRef.current) {
+            customRef.current = null
+            setCustomError(null)
+            setCustom(null)
+            return
+          }
+          setDialog(spec)
+        },
         onTimer: (running) => {
           window.__animating = running
         },
@@ -180,6 +227,38 @@ export default function PuzzleHost({
     [dialog],
   )
 
+  /*
+   * The parameters, which the back end offers as a preset with a negative
+   * index where the real ones have their own. Asking for it starts a config
+   * box that will sit there until it is answered, so every way out of the
+   * fields — the Apply button, pressing Custom again, closing the sheet,
+   * picking a preset instead — has to answer it.
+   */
+  const openCustom = useCallback(() => {
+    const api = apiRef.current
+    if (!api || dialog) return
+    customPending.current = true
+    api.selectPreset(CUSTOM_PRESET)
+  }, [dialog])
+
+  const closeCustom = useCallback(() => {
+    apiRef.current?.dialogCancel()
+  }, [])
+
+  const applyCustom = useCallback(() => {
+    setCustomError(null)
+    apiRef.current?.dialogOk()
+    // Accepted: the back end closed the box on its way out, and the sheet has
+    // done what it was opened for. Refused: it is still open, now with a
+    // sentence to read.
+    if (!customRef.current) setTypesOpen(false)
+  }, [])
+
+  const closeTypes = useCallback(() => {
+    if (customRef.current) apiRef.current?.dialogCancel()
+    setTypesOpen(false)
+  }, [])
+
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
@@ -198,12 +277,16 @@ export default function PuzzleHost({
       if (e.key === 'Escape') {
         if (helpOpen) setHelpOpen(false)
         else if (switcherOpen) setSwitcherOpen(false)
+        // The fields collapse first and the sheet stays: they are a layer
+        // inside it, and the press that opened them is the one being undone.
+        else if (custom) closeCustom()
+        else if (typesOpen) setTypesOpen(false)
         else if (menuOpen) setMenuOpen(false)
         else return
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen || switcherOpen) return
+      if (dialog || helpOpen || switcherOpen || typesOpen) return
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
       const api = apiRef.current
@@ -221,7 +304,17 @@ export default function PuzzleHost({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, dialog, menuOpen, helpOpen, switcherOpen, fullscreen])
+  }, [
+    ready,
+    dialog,
+    menuOpen,
+    typesOpen,
+    custom,
+    closeCustom,
+    helpOpen,
+    switcherOpen,
+    fullscreen,
+  ])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
@@ -343,13 +436,35 @@ export default function PuzzleHost({
             <Icon name={fullscreen.active ? 'fullscreenExit' : 'fullscreen'} />
           </button>
         )}
+        {/* Its own way in, beside the menu rather than inside it: how big a
+            board you want is asked far more often than anything the menu
+            holds, and on some puzzles the list of answers is longer than the
+            menu itself. */}
+        {presets && (
+          <button
+            type="button"
+            className="play-icon"
+            aria-label={t.types.title}
+            aria-haspopup="dialog"
+            aria-expanded={typesOpen}
+            onClick={() => {
+              setMenuOpen(false)
+              setTypesOpen(true)
+            }}
+          >
+            <Icon name="type" />
+          </button>
+        )}
         <button
           type="button"
           className="play-icon"
           aria-label={t.play.menu}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(true)}
+          onClick={() => {
+            closeTypes()
+            setMenuOpen(true)
+          }}
         >
           <Icon name="menu" />
         </button>
@@ -406,17 +521,31 @@ export default function PuzzleHost({
         />
       )}
 
-      {menuOpen && (
-        <PuzzleMenu
+      {typesOpen && presets && (
+        <PuzzleTypes
           presets={presets}
           selected={selected}
-          canSolve={canSolve}
-          permalink={permalink}
+          custom={custom}
+          customError={customError}
           onSelectPreset={(value) => {
+            // The back end will not take a preset while its config box is
+            // open, so answer that first.
+            if (customRef.current) apiRef.current?.dialogCancel()
             setSelected(value)
             act((a) => a.selectPreset(value))
-            setMenuOpen(false)
+            setTypesOpen(false)
           }}
+          onOpenCustom={openCustom}
+          onCloseCustom={closeCustom}
+          onApplyCustom={applyCustom}
+          onClose={closeTypes}
+        />
+      )}
+
+      {menuOpen && (
+        <PuzzleMenu
+          canSolve={canSolve}
+          permalink={permalink}
           onAction={(action) => {
             act((a) => a[action]())
             setMenuOpen(false)

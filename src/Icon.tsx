@@ -22,6 +22,7 @@ export type IconName =
   | 'restart'
   | 'solve'
   | 'gameId'
+  | 'type'
   | 'seed'
   | 'prefs'
   | 'external'
@@ -100,6 +101,18 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M16.6 3.5l-2 17" />
       <path d="M4.6 9h15" />
       <path d="M3.6 15h15" />
+    </>
+  ),
+  /* A board and the lines that divide it. What the sheet behind this button
+     decides is how many squares there are, which is the one thing a grid can
+     show without being any particular puzzle. */
+  type: (
+    <>
+      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3" />
+      <path d="M3.6 9.2h16.8" />
+      <path d="M3.6 14.8h16.8" />
+      <path d="M9.2 3.6v16.8" />
+      <path d="M14.8 3.6v16.8" />
     </>
   ),
   /* Three pips on a die: a seed is a roll. */

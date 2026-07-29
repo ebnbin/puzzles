@@ -1023,6 +1023,83 @@ footer p {
   font-weight: 600;
 }
 
+/* Open is not the same as in force — the fields can be read without being
+   applied — so it is said with the caret and the edge rather than the fill. */
+.sheet-presets .sheet-preset-custom[data-open='true'] {
+  border-color: var(--accent);
+}
+
+.sheet-presets .sheet-preset-custom svg {
+  margin-left: 0.3rem;
+  margin-right: -0.2rem;
+  transition: transform var(--dur) var(--ease);
+}
+
+.sheet-presets .sheet-preset-custom[data-open='true'] svg {
+  transform: rotate(180deg);
+}
+
+/* The parameters, open where the presets are rather than in a dialog on top
+   of them: they are the same decision, spelled out. */
+.sheet-custom {
+  margin-top: 1rem;
+  padding: 1rem 1rem 0.25rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--r);
+  background: var(--surface-2);
+  animation: custom-in var(--dur) var(--ease);
+}
+
+@keyframes custom-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-custom {
+    animation: none;
+  }
+}
+
+/* The fields are the dialog's, and sit on a tonal plate rather than the
+   sheet, so the box they are drawn as has to come back up to the surface. */
+.sheet-custom .dialog-string input,
+.sheet-custom .dialog-choices select {
+  background: var(--surface);
+}
+
+.sheet-custom-error {
+  margin: 0.25rem 0 0;
+  color: var(--danger);
+  font-size: var(--t-sm);
+}
+
+.sheet-custom-buttons {
+  display: flex;
+  margin-top: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+.sheet-custom-buttons button {
+  flex: 1;
+  min-height: var(--touch);
+  padding: 0 1rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--accent-on);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sheet-custom-buttons button:active {
+  background: var(--accent-hover);
+}
+
 .sheet-preset-group {
   width: 100%;
   color: var(--text-3);

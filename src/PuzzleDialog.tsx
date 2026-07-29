@@ -1,13 +1,13 @@
-import { useReducer } from 'react'
+import ConfigFields from './ConfigFields'
 import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
 
 /**
- * The configuration and game-id dialogs the back end asks for.
+ * The game-id, seed and preferences dialogs the back end asks for.
  *
- * The control objects are shared with the C side, which reads `value` off
- * them when the dialog is accepted, so edits assign in place and we re-render
- * by hand rather than copying into state.
+ * Not the parameters: those are the same kind of thing to the C, but they are
+ * a choice about which puzzle you are being set, so they open inside the type
+ * sheet instead. See PuzzleTypes.
  */
 export default function PuzzleDialog({
   spec,
@@ -18,7 +18,6 @@ export default function PuzzleDialog({
   onOk: () => void
   onCancel: () => void
 }) {
-  const [, redraw] = useReducer((n: number) => n + 1, 0)
   // The title and every control label inside come from the compiled back end
   // and are in English whatever the reader has chosen; only the two buttons
   // are ours.
@@ -39,53 +38,7 @@ export default function PuzzleDialog({
       >
         <h2>{spec.title}</h2>
 
-        {spec.controls.map((control, i) => (
-          <label key={i} className={`dialog-${control.kind}`}>
-            {control.kind === 'boolean' ? (
-              <>
-                <input
-                  type="checkbox"
-                  checked={control.value}
-                  onChange={(e) => {
-                    control.value = e.target.checked
-                    redraw()
-                  }}
-                />
-                {control.label}
-              </>
-            ) : control.kind === 'choices' ? (
-              <>
-                {control.label}
-                <select
-                  value={control.value}
-                  onChange={(e) => {
-                    control.value = Number(e.target.value)
-                    redraw()
-                  }}
-                >
-                  {control.choices.map((choice, index) => (
-                    <option key={index} value={index}>
-                      {choice}
-                    </option>
-                  ))}
-                </select>
-              </>
-            ) : (
-              <>
-                {control.label}
-                <input
-                  type="text"
-                  autoFocus={i === 0}
-                  value={control.value}
-                  onChange={(e) => {
-                    control.value = e.target.value
-                    redraw()
-                  }}
-                />
-              </>
-            )}
-          </label>
-        ))}
+        <ConfigFields controls={spec.controls} autoFocus />
 
         {/* Cancel first, accept last: the accepting button is the one that
             should sit where a thumb lands, and where the eye stops reading. */}

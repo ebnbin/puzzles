@@ -67,10 +67,16 @@ export const en = {
     enterGameId: 'Game ID…',
     enterSeed: 'Seed…',
     preferences: 'Preferences…',
-    type: 'Type',
     share: 'Share',
     gameId: 'Game ID',
     seed: 'Random seed',
+  },
+
+  /** The sheet that is only about which puzzle you are being set. */
+  types: {
+    title: 'Type',
+    /** Ends the parameters that opened inside the sheet, rather than a dialog. */
+    apply: 'Apply',
   },
 
   dialog: {

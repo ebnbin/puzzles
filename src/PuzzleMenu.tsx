@@ -1,6 +1,5 @@
 import Icon from './Icon'
 import type { IconName } from './Icon'
-import type { Preset } from './engine/types'
 import { useStrings } from './i18n'
 import { useShare } from './useShare'
 import { useSheetDrag } from './useSheetDrag'
@@ -24,7 +23,7 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
 ]
 
 /**
- * Everything that is not Undo or Redo.
+ * Everything you do to the game in front of you.
  *
  * A sheet over the board rather than a panel below it, so opening it costs
  * the board no room — on a phone the board is the whole point, and anything
@@ -33,21 +32,18 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
  * New game leads, filled rather than tonal: it is what the sheet is opened for
  * most of the time, and it is also the one that throws the position away, so
  * it is worth being unmistakable.
+ *
+ * What game you are given next is not here — that is a list as long as the
+ * puzzle cares to make it, and it has a sheet of its own. See PuzzleTypes.
  */
 export default function PuzzleMenu({
-  presets,
-  selected,
   canSolve,
   permalink,
-  onSelectPreset,
   onAction,
   onClose,
 }: {
-  presets: Preset[] | null
-  selected: number
   canSolve: boolean
   permalink?: { desc: string; seed: string | null }
-  onSelectPreset: (value: number) => void
   onAction: (action: Action) => void
   onClose: () => void
 }) {
@@ -82,17 +78,6 @@ export default function PuzzleMenu({
             </button>
           ))}
         </div>
-
-        {presets && (
-          <section>
-            <h2>{t.menu.type}</h2>
-            <PresetList
-              presets={presets}
-              selected={selected}
-              onSelect={onSelectPreset}
-            />
-          </section>
-        )}
 
         {permalink && (
           <section className="sheet-links">
@@ -139,72 +124,5 @@ function ShareRow({ label, value }: { label: string; value: string }) {
         <Icon name={copied ? 'check' : 'share'} size={18} />
       </span>
     </a>
-  )
-}
-
-/**
- * Presets can nest; render the tree as grouped radios.
- *
- * Chips rather than a list of rows: a puzzle can offer twenty of these, and as
- * rows that is a screen of scrolling to reach the bottom one. They stay real
- * radios — the group is a single choice, arrow keys should move through it, and
- * a screen reader should say so.
- *
- * All but one of them. "Custom…" arrives in the same list from the back end,
- * with a negative value where the others have their index, and it is not one of
- * the choices: it is the door to the dialog that makes one. As a radio it could
- * be pressed only once, because a checked radio has nothing left to change and
- * fires no event — so once the parameters were custom, the only way back into
- * the dialog was to pick some other preset first and undo the very settings you
- * were coming back to edit. It is a button. That it is also the type currently
- * in force, whenever no preset matches, is said with `aria-current`.
- */
-function PresetList({
-  presets,
-  selected,
-  onSelect,
-}: {
-  presets: Preset[]
-  selected: number
-  onSelect: (value: number) => void
-}) {
-  return (
-    <ul className="sheet-presets">
-      {presets.map((preset, i) => (
-        <li key={i}>
-          {preset.submenu ? (
-            <>
-              <span className="sheet-preset-group">{preset.name}</span>
-              <PresetList
-                presets={preset.submenu}
-                selected={selected}
-                onSelect={onSelect}
-              />
-            </>
-          ) : preset.value !== null && preset.value < 0 ? (
-            <button
-              type="button"
-              className="sheet-preset-custom"
-              aria-haspopup="dialog"
-              aria-current={selected < 0 ? 'true' : undefined}
-              data-selected={selected < 0}
-              onClick={() => onSelect(preset.value as number)}
-            >
-              {preset.name}
-            </button>
-          ) : (
-            <label data-selected={selected === preset.value}>
-              <input
-                type="radio"
-                name="preset"
-                checked={selected === preset.value}
-                onChange={() => preset.value !== null && onSelect(preset.value)}
-              />
-              {preset.name}
-            </label>
-          )}
-        </li>
-      ))}
-    </ul>
   )
 }

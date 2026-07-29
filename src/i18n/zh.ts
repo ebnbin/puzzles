@@ -52,10 +52,14 @@ export const zh: Strings = {
     enterGameId: 'Game ID…',
     enterSeed: '随机种子…',
     preferences: '偏好设置…',
-    type: '类型',
     share: '分享',
     gameId: 'Game ID',
     seed: '随机种子',
+  },
+
+  types: {
+    title: '类型',
+    apply: '应用',
   },
 
   dialog: {
