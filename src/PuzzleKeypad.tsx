@@ -12,6 +12,9 @@ import { useStrings } from './i18n'
 
 const PREFERRED_PER_ROW = 5
 const MAX_ROWS = 3
+/** Six 40px keys and their gaps is what a 320px phone holds. Past that the
+    row takes another line, which is cheaper than a key nobody can hit. */
+const MAX_COLUMNS = 6
 
 /**
  * How many columns to lay the keys out in.
@@ -27,7 +30,7 @@ const MAX_ROWS = 3
  */
 function columns(count: number) {
   const rows = Math.min(MAX_ROWS, Math.ceil(count / PREFERRED_PER_ROW))
-  return Math.ceil(count / rows)
+  return Math.min(MAX_COLUMNS, Math.ceil(count / rows))
 }
 
 export default function PuzzleKeypad({

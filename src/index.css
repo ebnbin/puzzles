@@ -651,31 +651,20 @@ footer p {
 
 /* An even grid rather than a wrapped row, so no row is left with the leftovers.
    The column count comes from the component, which sizes for the thumb rather
-   than for the fewest rows. Bounded so ten keys do not become ten wide keys on
-   a desktop.
+   than for the fewest rows.
 
-   The track is that even share, or --tap-w, whichever is larger. Asking for
-   the share by name rather than with 1fr is what lets `auto-fit` know when it
-   has stopped fitting: a puzzle whose keys would each come out under the floor
-   — a 5x5 Solo wants twenty-six of them — gets fewer columns and another row
-   instead of a grid of slivers. */
+   The keys are their own size and the block of them sits in the middle of the
+   screen: a key twice as wide as it needs to be is not a better key, and the
+   space left over is better spent as margin than shared out. Each column takes
+   what is in it, so a digit is 40 and Clear is as wide as the word — one wide
+   key at the end of a row, rather than ten keys widened to match it. */
 .keypad {
-  --key-gap: 0.35rem;
   display: grid;
   flex: none;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(
-      max(
-        var(--tap-w),
-        calc((100% - (var(--keys, 5) - 1) * var(--key-gap)) / var(--keys, 5))
-      ),
-      1fr
-    )
-  );
-  gap: var(--key-gap);
-  width: 100%;
-  max-width: 26rem;
+  grid-template-columns: repeat(var(--keys, 5), minmax(var(--tap-w), max-content));
+  gap: 0.35rem;
+  width: max-content;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0.3rem 0.4rem 0;
 }
@@ -690,13 +679,14 @@ footer p {
 
 /* --- the four ways out of the board --- */
 
-/* Equal shares of the row. Each is a glyph, so none of them needs more room
-   than another, and where the reader's thumb has learned to find one does not
-   move when the language changes. Bounded like the keypad above it, so four
-   buttons do not become four enormous buttons on a desktop. */
+/* Four glyphs in the middle of the foot of the board. None of them needs more
+   room than another, and where the reader's thumb has learned to find one does
+   not move when the language changes — nor when the window does, now that the
+   leftover width is margin rather than four wider buttons. */
 .play-actions {
   display: flex;
   flex: none;
+  justify-content: center;
   gap: 0.4rem;
   width: 100%;
   max-width: 26rem;
@@ -705,12 +695,9 @@ footer p {
 }
 
 .play-actions button {
-  flex: 1;
-  /* A flex item will not shrink below its content without this, and the
-     landscape rail is narrower than four default-sized buttons. The floor is
-     what a finger needs at the very least; the rail is sized to clear it. */
-  min-width: var(--tap-w);
-  min-height: var(--tap-h);
+  flex: none;
+  width: var(--tap-w);
+  height: var(--tap-h);
 }
 
 /* --- the menu, over the board rather than under it --- */
@@ -1533,40 +1520,30 @@ footer p {
     grid-area: 2 / 1 / 4 / 2;
   }
 
+  /*
+   * The rail runs down the screen, so the keys do too: as many as the rail is
+   * tall enough for, then another column beside them. Nothing scrolls and
+   * nothing is hidden — a key you have to find before you can press it is
+   * worse than a rail one column wider, and the rail only takes that column
+   * for the puzzles that need it.
+   *
+   * `auto-fill` over fixed rows is what counts the rows: the rail's height is
+   * settled by the grid it sits in, so the browser can work out how many key
+   * heights fit in it and flow the keys down them.
+   */
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
-    /*
-     * Two across, and the same two as the actions below: the foot of the rail
-     * is the fixed thing, so the keys line up with it rather than the other
-     * way round. Whatever the portrait count was, and however many keys the
-     * puzzle asks for — past what the rail is tall enough to hold, they
-     * scroll.
-     *
-     * 1fr in a max-content container is the widest key, so the pair stays
-     * even: 40 for a digit, and only what a word actually needs for Undead's
-     * Vampire. Bigger because the label is bigger, never because the rail had
-     * room going spare.
-     */
-    grid-template-columns: repeat(2, minmax(var(--tap-w), 1fr));
+    grid-template-columns: none;
+    grid-template-rows: repeat(auto-fill, var(--tap-h));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(var(--tap-w), max-content);
     gap: 0.25rem;
     justify-self: center;
-    /* Centred, but never past the top: `safe` gives up the centring rather
-       than push the first row above the scroll container's edge. */
-    align-content: safe center;
+    align-content: center;
     width: max-content;
+    max-width: none;
     margin: 0;
-    overflow-y: auto;
-    /* The only place the keypad scrolls, so the only place it may be panned.
-       Overlay or nothing: a classic scrollbar would eat into a rail measured
-       to the pixel. */
-    touch-action: pan-y;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
     padding: 0.3rem;
-  }
-
-  .keypad::-webkit-scrollbar {
-    display: none;
   }
 
   /* Smaller type and tighter sides than in portrait, so the one word among
@@ -1577,8 +1554,7 @@ footer p {
     font-size: var(--t-sm);
   }
 
-  /* Two by two at the foot of the rail, centred under the keypad's three.
-     Four across would be four buttons at their smallest and a rail a third
+  /* Two by two at the foot of the rail. Four across would be a rail a third
      wider; two rows cost height, which down here is the dimension going
      spare. */
   .play-actions {
