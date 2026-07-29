@@ -366,6 +366,14 @@ footer p {
  */
 
 .play {
+  /* Shared by the keys and the four fixed buttons, whose rows are sized
+     against each other: see --act-w. */
+  --key-gap: 0.25rem;
+  /* Two of these and their gap span exactly what three keys and their gaps
+     do — the landscape rail is three keys across and the four fixed buttons
+     sit two by two at the foot of it, and rows of the same width read as one
+     block rather than two near misses. */
+  --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -663,7 +671,6 @@ footer p {
  * the width a row does not use is margin.
  */
 .keypad {
-  --key-gap: 0.25rem;
   display: flex;
   flex: none;
   flex-wrap: wrap;
@@ -730,7 +737,7 @@ footer p {
   display: flex;
   flex: none;
   justify-content: center;
-  gap: 0.4rem;
+  gap: var(--key-gap);
   width: 100%;
   max-width: 26rem;
   margin: 0 auto;
@@ -739,7 +746,7 @@ footer p {
 
 .play-actions button {
   flex: none;
-  width: var(--tap-w);
+  width: var(--act-w);
   height: var(--tap-w);
 }
 
@@ -1584,19 +1591,19 @@ footer p {
     padding: 0.3rem 0;
   }
 
-  /* Two by two at the foot of the rail. Four across would be a rail a third
-     wider; two rows cost height, which down here is the dimension going
-     spare. */
+  /* Two by two at the foot of the rail, each row exactly as wide as the
+     keypad's three keys above. Four across would be a rail a third wider;
+     two rows cost height, which down here is the dimension going spare. */
   .play-actions {
     grid-area: 3 / 2 / 4 / 3;
     display: grid;
-    grid-template-columns: repeat(2, var(--tap-w));
+    grid-template-columns: repeat(2, var(--act-w));
     justify-self: center;
     width: max-content;
     max-width: none;
     margin: 0;
-    gap: 0.25rem;
-    padding: 0.3rem;
+    gap: var(--key-gap);
+    padding: 0.3rem 0;
   }
 }
 
