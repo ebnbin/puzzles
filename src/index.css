@@ -1535,14 +1535,24 @@ footer p {
 
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
-    /* A narrow rail takes three across whatever the portrait count was. */
-    /* 1fr in a max-content container is the widest key, so the three stay
-       even: 40 for a digit, and only what a word actually needs for Undead's
-       Vampire. Bigger because the label is bigger, never because the rail
-       had room going spare. */
-    grid-template-columns: repeat(3, minmax(var(--tap-w), 1fr));
+    /*
+     * Two across, and the same two as the actions below: the foot of the rail
+     * is the fixed thing, so the keys line up with it rather than the other
+     * way round. Whatever the portrait count was, and however many keys the
+     * puzzle asks for — past what the rail is tall enough to hold, they
+     * scroll.
+     *
+     * 1fr in a max-content container is the widest key, so the pair stays
+     * even: 40 for a digit, and only what a word actually needs for Undead's
+     * Vampire. Bigger because the label is bigger, never because the rail had
+     * room going spare.
+     */
+    grid-template-columns: repeat(2, minmax(var(--tap-w), 1fr));
+    gap: 0.25rem;
     justify-self: center;
-    align-content: center;
+    /* Centred, but never past the top: `safe` gives up the centring rather
+       than push the first row above the scroll container's edge. */
+    align-content: safe center;
     width: max-content;
     margin: 0;
     overflow-y: auto;
