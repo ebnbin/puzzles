@@ -1519,10 +1519,15 @@ footer p {
  * hundred pixels of board.
  */
 @media (orientation: landscape) and (max-height: 30em) {
+  /*
+   * Nothing in the rail is stretched: every button in it is exactly the size a
+   * button has to be, and the rail is only as wide as the widest row of them.
+   * A puzzle with no keys gets a rail two buttons wide instead of three.
+   *
+   * Landscape is the one place where a button larger than it needs to be is
+   * taken straight out of the board, which is already the thing short of room.
+   */
   .play {
-    /* The keypad's three columns at the floor width, plus their gaps and the
-       rail's padding. The actions, two across, clear it with room to spare. */
-    --rail: 10.5rem;
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: auto 1fr auto;
@@ -1540,33 +1545,57 @@ footer p {
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
     /* A narrow rail takes three across whatever the portrait count was. */
+    /* 1fr in a max-content container is the widest key, so the three stay
+       even: 40 for a digit, and only what a word actually needs for Undead's
+       Vampire. Bigger because the label is bigger, never because the rail
+       had room going spare. */
     grid-template-columns: repeat(3, minmax(var(--tap-w), 1fr));
+    justify-self: center;
     align-content: center;
-    width: var(--rail);
+    width: max-content;
     margin: 0;
     overflow-y: auto;
-    /* The only place the keypad scrolls, so the only place it may be panned. */
+    /* The only place the keypad scrolls, so the only place it may be panned.
+       Overlay or nothing: a classic scrollbar would eat into a rail measured
+       to the pixel. */
     touch-action: pan-y;
     overscroll-behavior: contain;
+    scrollbar-width: none;
     padding: 0.3rem;
   }
 
-  .keypad button {
-    min-height: var(--tap-h);
+  .keypad::-webkit-scrollbar {
+    display: none;
   }
 
-  /* Two by two at the foot of the right-hand rail. Four across a rail this
-     narrow leaves each of them barely wider than the floor, and the rail has
-     height to spare where it has no width to. */
+  /* Smaller type and tighter sides than in portrait, so the one word among
+     Solo's digits — Clear — does not on its own make all ten keys wider than
+     a key has to be. */
+  .keypad button {
+    min-height: var(--tap-h);
+    height: var(--tap-h);
+    padding: 0 0.15rem;
+    font-size: var(--t-sm);
+  }
+
+  /* Two by two at the foot of the rail, centred under the keypad's three.
+     Four across would be four buttons at their smallest and a rail a third
+     wider; two rows cost height, which down here is the dimension going
+     spare. */
   .play-actions {
     grid-area: 3 / 2 / 4 / 3;
     display: grid;
-    grid-template-columns: repeat(2, minmax(var(--tap-w), 1fr));
-    width: var(--rail);
+    grid-template-columns: repeat(2, var(--tap-w));
+    justify-self: center;
+    width: max-content;
     max-width: none;
     margin: 0;
     gap: 0.25rem;
     padding: 0.3rem;
+  }
+
+  .play-actions button {
+    min-height: var(--tap-h);
   }
 }
 
