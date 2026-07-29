@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
-import Icon from './Icon'
 import type { DialogSpec, Preset } from './engine/types'
 import { useStrings } from './i18n'
 import { useSheetDrag } from './useSheetDrag'
@@ -13,10 +12,13 @@ import { useSheetDrag } from './useSheetDrag'
  * — and this is what game you are given next. They are opened for different
  * reasons and one of them is a long list.
  *
- * The parameters open inside this sheet rather than in a dialog on top of it,
- * because they are the same decision as the presets above them, spelled out.
- * To the back end they are still a modal dialog, though, which is why opening
- * and closing them is `onOpenCustom` and `onCloseCustom` rather than local
+ * The parameters open inside this sheet rather than in a dialog on top of it.
+ * A dialog over a sheet is two layers deep for one choice, and they are not a
+ * second question anyway: "Custom" is one of the types, and these are what it
+ * means. Choosing it shows them; choosing a preset instead takes them away.
+ *
+ * To the back end they are still a modal dialog, though, which is why showing
+ * and hiding them is `onOpenCustom` and `onCloseCustom` rather than local
  * state: something has to answer the config box the C is sitting in.
  */
 export default function PuzzleTypes({
@@ -26,7 +28,6 @@ export default function PuzzleTypes({
   customError,
   onSelectPreset,
   onOpenCustom,
-  onCloseCustom,
   onApplyCustom,
   onClose,
 }: {
@@ -38,7 +39,6 @@ export default function PuzzleTypes({
   customError: string | null
   onSelectPreset: (value: number) => void
   onOpenCustom: () => void
-  onCloseCustom: () => void
   onApplyCustom: () => void
   onClose: () => void
 }) {
@@ -84,9 +84,9 @@ export default function PuzzleTypes({
           <PresetList
             presets={presets}
             selected={selected}
-            customOpen={!!custom}
+            customChosen={!!custom || selected < 0}
             onSelect={onSelectPreset}
-            onToggleCustom={custom ? onCloseCustom : onOpenCustom}
+            onChooseCustom={onOpenCustom}
           />
         </section>
 
@@ -123,71 +123,67 @@ export default function PuzzleTypes({
  * Presets can nest; render the tree as grouped radios.
  *
  * Chips rather than a list of rows: a puzzle can offer twenty of these, and as
- * rows that is a screen of scrolling to reach the bottom one. They stay real
+ * rows that is a screen of scrolling to reach the bottom one. They are real
  * radios — the group is a single choice, arrow keys should move through it, and
  * a screen reader should say so.
  *
- * All but one of them. "Custom…" arrives in the same list from the back end,
- * with a negative value where the others have their index, and it is not one of
- * the choices: it is the way to spell one out. So it is a button, and what it
- * does is show and hide the fields below — `aria-expanded`, and a caret that
- * turns. That it is also the type currently in force, whenever no preset
- * matches, is a separate thing, and is said with `aria-current`.
+ * "Custom…" is one of them. It arrives in the same list from the back end, with
+ * a negative value where the others have their index, and it is a type like any
+ * other: the difference is only that its parameters are shown below rather than
+ * summed up in its name. Which is why choosing it needs its own callback, and
+ * why it is checked either when it has been chosen or when nothing else
+ * matches the game being played.
  */
 function PresetList({
   presets,
   selected,
-  customOpen,
+  customChosen,
   onSelect,
-  onToggleCustom,
+  onChooseCustom,
 }: {
   presets: Preset[]
   selected: number
-  customOpen: boolean
+  customChosen: boolean
   onSelect: (value: number) => void
-  onToggleCustom: () => void
+  onChooseCustom: () => void
 }) {
   return (
     <ul className="sheet-presets">
-      {presets.map((preset, i) => (
-        <li key={i}>
-          {preset.submenu ? (
-            <>
-              <span className="sheet-preset-group">{preset.name}</span>
-              <PresetList
-                presets={preset.submenu}
-                selected={selected}
-                customOpen={customOpen}
-                onSelect={onSelect}
-                onToggleCustom={onToggleCustom}
-              />
-            </>
-          ) : preset.value !== null && preset.value < 0 ? (
-            <button
-              type="button"
-              className="sheet-preset-custom"
-              aria-expanded={customOpen}
-              aria-current={selected < 0 ? 'true' : undefined}
-              data-selected={selected < 0}
-              data-open={customOpen}
-              onClick={onToggleCustom}
-            >
-              {preset.name}
-              <Icon name="caret" size={16} />
-            </button>
-          ) : (
-            <label data-selected={selected === preset.value}>
-              <input
-                type="radio"
-                name="preset"
-                checked={selected === preset.value}
-                onChange={() => preset.value !== null && onSelect(preset.value)}
-              />
-              {preset.name}
-            </label>
-          )}
-        </li>
-      ))}
+      {presets.map((preset, i) => {
+        const custom = preset.value !== null && preset.value < 0
+        const chosen = custom ? customChosen : !customChosen && selected === preset.value
+        return (
+          <li key={i}>
+            {preset.submenu ? (
+              <>
+                <span className="sheet-preset-group">{preset.name}</span>
+                <PresetList
+                  presets={preset.submenu}
+                  selected={selected}
+                  customChosen={customChosen}
+                  onSelect={onSelect}
+                  onChooseCustom={onChooseCustom}
+                />
+              </>
+            ) : (
+              <label
+                className={custom ? 'sheet-preset-custom' : undefined}
+                data-selected={chosen}
+              >
+                <input
+                  type="radio"
+                  name="preset"
+                  checked={chosen}
+                  onChange={() =>
+                    custom ? onChooseCustom() : onSelect(preset.value as number)
+                  }
+                />
+                {preset.name}
+              </label>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }

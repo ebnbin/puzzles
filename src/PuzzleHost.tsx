@@ -230,20 +230,17 @@ export default function PuzzleHost({
   /*
    * The parameters, which the back end offers as a preset with a negative
    * index where the real ones have their own. Asking for it starts a config
-   * box that will sit there until it is answered, so every way out of the
-   * fields — the Apply button, pressing Custom again, closing the sheet,
-   * picking a preset instead — has to answer it.
+   * box that will sit there until it is answered, so both ways out of the
+   * fields — Apply, or choosing something else and leaving — have to answer
+   * it. Choosing Custom when it is already chosen is not one of them: the
+   * radio is already checked, so nothing happens, and nothing should.
    */
   const openCustom = useCallback(() => {
     const api = apiRef.current
-    if (!api || dialog) return
+    if (!api || dialog || customRef.current) return
     customPending.current = true
     api.selectPreset(CUSTOM_PRESET)
   }, [dialog])
-
-  const closeCustom = useCallback(() => {
-    apiRef.current?.dialogCancel()
-  }, [])
 
   const applyCustom = useCallback(() => {
     setCustomError(null)
@@ -277,10 +274,9 @@ export default function PuzzleHost({
       if (e.key === 'Escape') {
         if (helpOpen) setHelpOpen(false)
         else if (switcherOpen) setSwitcherOpen(false)
-        // The fields collapse first and the sheet stays: they are a layer
-        // inside it, and the press that opened them is the one being undone.
-        else if (custom) closeCustom()
-        else if (typesOpen) setTypesOpen(false)
+        // Not a layer of its own: the parameters are part of the sheet, so
+        // the sheet is what closes, and closing it answers the config box.
+        else if (typesOpen) closeTypes()
         else if (menuOpen) setMenuOpen(false)
         else return
         e.preventDefault()
@@ -309,8 +305,7 @@ export default function PuzzleHost({
     dialog,
     menuOpen,
     typesOpen,
-    custom,
-    closeCustom,
+    closeTypes,
     helpOpen,
     switcherOpen,
     fullscreen,
@@ -536,7 +531,6 @@ export default function PuzzleHost({
             setTypesOpen(false)
           }}
           onOpenCustom={openCustom}
-          onCloseCustom={closeCustom}
           onApplyCustom={applyCustom}
           onClose={closeTypes}
         />

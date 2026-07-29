@@ -996,64 +996,24 @@ footer p {
   );
 }
 
-/* "Custom…" is a button, not one of the choices — see PuzzleMenu. Same pill so
-   the row still reads as one control, but outlined rather than carrying a
-   radio, because what it does is open a dialog and it can do that again. */
-.sheet-presets .sheet-preset-custom {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.25rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--r-full);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: var(--t-sm);
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-    border-color var(--dur) var(--ease);
-}
-
-/* No preset matches, so this is the type in force. */
-.sheet-presets .sheet-preset-custom[data-selected='true'] {
-  border-color: transparent;
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-  font-weight: 600;
-}
-
-/* Open is not the same as in force — the fields can be read without being
-   applied — so it is said with the caret and the edge rather than the fill. */
-.sheet-presets .sheet-preset-custom[data-open='true'] {
-  border-color: var(--accent);
-}
-
-.sheet-presets .sheet-preset-custom svg {
-  margin-left: 0.3rem;
-  margin-right: -0.2rem;
-  transition: transform var(--dur) var(--ease);
-}
-
-.sheet-presets .sheet-preset-custom[data-open='true'] svg {
-  transform: rotate(180deg);
-}
-
-/* The parameters, open where the presets are rather than in a dialog on top
-   of them: they are the same decision, spelled out. */
+/*
+ * The parameters, shown among the presets rather than in a dialog on top of
+ * them. "Custom" is one of the types; these are what it means. They appear
+ * when it is the type chosen and go when another one is.
+ *
+ * Rows rather than a form — a label and its control, one to a line, hairline
+ * between — because that is what the rest of the app's settings look like,
+ * and because a stack of full-width boxes is a wall on a phone.
+ */
 .sheet-custom {
   margin-top: 1rem;
-  padding: 1rem 1rem 0.25rem;
-  border: 1px solid var(--edge);
-  border-radius: var(--r);
-  background: var(--surface-2);
   animation: custom-in var(--dur) var(--ease);
 }
 
 @keyframes custom-in {
   from {
     opacity: 0;
-    transform: translateY(-0.35rem);
+    transform: translateY(-0.3rem);
   }
 }
 
@@ -1063,29 +1023,77 @@ footer p {
   }
 }
 
-/* The fields are the dialog's, and sit on a tonal plate rather than the
-   sheet, so the box they are drawn as has to come back up to the surface. */
+.sheet-custom .dialog-string,
+.sheet-custom .dialog-choices,
+.sheet-custom .dialog-boolean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--edge);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+/* The checkbox is written first and belongs last on the line, so that its
+   label starts where every other label starts. */
+.sheet-custom .dialog-boolean {
+  flex-direction: row-reverse;
+}
+
 .sheet-custom .dialog-string input,
 .sheet-custom .dialog-choices select {
+  flex: none;
+  width: 7rem;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0 0.5rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-sm);
   background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  /* Anything under 16px makes iOS zoom the page when the field is focused. */
+  font-size: 1rem;
+}
+
+.sheet-custom .dialog-string input {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A grid type or a difficulty is a word, not a number, and needs the room the
+   numbers do not. */
+.sheet-custom .dialog-choices select {
+  width: auto;
+  max-width: 62%;
+  padding-right: 0.25rem;
+}
+
+.sheet-custom .dialog-boolean input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .sheet-custom-error {
-  margin: 0.25rem 0 0;
+  margin: 0.75rem 0 0;
   color: var(--danger);
   font-size: var(--t-sm);
 }
 
 .sheet-custom-buttons {
-  display: flex;
-  margin-top: 1rem;
-  padding-bottom: 0.75rem;
+  margin-top: 1.1rem;
 }
 
 .sheet-custom-buttons button {
-  flex: 1;
+  width: 100%;
   min-height: var(--touch);
-  padding: 0 1rem;
   border: 0;
   border-radius: var(--r-sm);
   background: var(--accent);
@@ -1094,6 +1102,7 @@ footer p {
   font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
+  transition: background var(--dur) var(--ease);
 }
 
 .sheet-custom-buttons button:active {
