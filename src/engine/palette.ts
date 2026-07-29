@@ -33,15 +33,97 @@
 const ACHROMATIC = 0.15
 
 /**
- * The flipped range, held off pure black and pure white. Upstream's own
- * backgrounds sit near the top of the scale, and mapping them to the very
- * bottom would leave a game's shadows nowhere to go.
+ * The range a grey is mapped into, held off pure black and pure white.
+ * Upstream's own backgrounds sit near the top of the scale, and mapping them
+ * to the very bottom would leave a game's shadows nowhere to go.
+ *
+ * The ceiling is not 1, and not near it. Black ink flipped to #f0f0f0 threw
+ * more light than anything else on a dark board — twice the worst hue even
+ * after that hue had been veiled — because it is the ink, the lines and the
+ * text that were black to begin with, and all of them landed at the top of
+ * the scale together. At 0.82 the same ink comes out #d1d1d1: a quarter less
+ * light, still 9.8:1 against the board, and still unmistakably the light
+ * thing drawn on it.
  */
 const FLOOR = 0.06
-const CEILING = 0.94
+const CEILING = 0.82
 
-/** How far to nudge a colour that would otherwise duplicate another. */
-const NUDGES = [0.09, -0.09, 0.17, -0.17, 0.25, -0.25, 0.33, -0.33]
+/**
+ * Slots whose being black, or being white, is something the rules say.
+ *
+ * The flip is a photographic negative, and a negative is exactly wrong for a
+ * puzzle played in black and white: Pearl's white circles would come out
+ * black, and the chapter that tells you what a white circle means would be
+ * describing a board you cannot see. So these are not flipped. They keep
+ * their order — black stays the dark one — and are compressed into the same
+ * range instead, which leaves black at #0f0f0f and white at #d1d1d1.
+ *
+ * The list is not a guess. Every entry is a game whose manual chapter states
+ * the rule in terms of the colour ("black squares", "black and white
+ * circles", "black or white respectively"), cross-referenced against the
+ * `COL_*` enum in its C to find which slots those words are about.
+ *
+ * Deliberately not here: Mines' 7 and 8, which are black and grey only by
+ * Minesweeper convention and are drawn on a cell that has itself turned over
+ * — keeping them dark would put dark ink on a dark tile. Flip, and Guess's
+ * pegs beyond the two markers, where light and dark are decoration and the
+ * manual never appeals to them.
+ */
+const SEMANTIC: Record<string, readonly number[]> = {
+  /* COL_EMPTY, COL_FULL, COL_UNKNOWN — "black or white", "grey" for unknown */
+  pattern: [1, 2, 4],
+  /* COL_BLACK, COL_WHITE — "black and white circles", different rules each */
+  pearl: [3, 4],
+  /* COL_0 and COL_1 with their bevels — "black and white squares" */
+  unruly: [3, 4, 5, 6, 7, 8],
+  /* COL_MARKED, COL_BLANK — "black or white respectively" */
+  mosaic: [3, 4],
+  /* COL_BLACK, COL_WHITE, COL_BLACKNUM — "white squares must all..." */
+  singles: [3, 4, 5],
+  /* One aliased slot: grid, black squares, text and your entries together */
+  range: [1],
+  /* COL_BLACK, COL_LIGHT — the C's own comments say black and white */
+  lightup: [2, 3],
+  /* COL_CORRECTPLACE, COL_CORRECTCOLOUR — Mastermind's black and white pegs */
+  guess: [16, 17],
+  /* COL_BALL — the manual calls them black circles */
+  blackbox: [8],
+  /* COL_WHITEBG, COL_BLACKBG, COL_WHITEDOT, COL_BLACKDOT */
+  galaxies: [1, 2, 3, 4],
+}
+
+/**
+ * Where the board sits for those games.
+ *
+ * A two-tone puzzle needs a surface between its two tones. Upstream does not
+ * need one — its board is near-white and sits beside the white half — but on
+ * a dark board there is no room below the bottom of the scale, so leaving the
+ * background where the flip puts it (0.13) would leave the black half of the
+ * puzzle nowhere to be. #424242 has #0f0f0f visibly below it and #d1d1d1 well
+ * above, and still reads as a dark board.
+ *
+ * Tried at the midpoint of the range too, which is the safe answer on paper
+ * and the wrong one on screen: the board stops looking dark, and Guess loses
+ * its empty peg holes into it. Lower is better as long as the black half
+ * survives, and at this value it does.
+ *
+ * It is the price of the exception, and it is paid honestly: these ten boards
+ * are a lighter grey than the other thirty.
+ */
+const SEMANTIC_BOARD = 0.26
+
+/** Every game names its background first. */
+const BACKGROUND = 0
+
+/**
+ * How far to nudge a colour that would otherwise duplicate another.
+ *
+ * Downwards first, and never outside [FLOOR, CEILING]. A nudge upwards from
+ * the top of the range is how Pattern's text ended up at #e8e8e8 — brighter
+ * than the ceiling exists to allow — after the white cells had already
+ * claimed #d1d1d1.
+ */
+const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
 
 /**
  * How opaque the veil over a hue gets at its brightest.
@@ -138,17 +220,32 @@ function format({ h, s, l }: { h: number; s: number; l: number }): string {
   return `#${channel(h + 1 / 3)}${channel(h)}${channel(h - 1 / 3)}`
 }
 
-export function forDarkBoard(light: readonly string[]): string[] {
-  const flipped = light.map((css) => {
+export function forDarkBoard(light: readonly string[], game = ''): string[] {
+  const semantic = SEMANTIC[game]
+
+  const flipped = light.map((css, index) => {
     const colour = parse(css)
     if (!colour) return css
+    if (semantic) {
+      if (index === BACKGROUND)
+        return format({ ...colour, l: SEMANTIC_BOARD })
+      // Compressed, not inverted: same range as the flip, same direction as
+      // the original.
+      if (semantic.includes(index))
+        return format({ ...colour, l: FLOOR + colour.l * (CEILING - FLOOR) })
+    }
     if (colour.s >= ACHROMATIC) return veil(colour)
     return format({ ...colour, l: FLOOR + (1 - colour.l) * (CEILING - FLOOR) })
   })
 
   // Two indices the game drew differently must still be drawn differently.
+  // Semantic slots claim their value first: if a bevel and a black pearl land
+  // on the same grey, it is the bevel that should move.
   const taken = new Map<string, number>()
+  for (const index of semantic ?? []) taken.set(flipped[index], index)
+
   return flipped.map((css, index) => {
+    if (semantic?.includes(index)) return css
     const held = taken.get(css)
     if (held === undefined || light[held] === light[index]) {
       taken.set(css, index)
@@ -156,7 +253,9 @@ export function forDarkBoard(light: readonly string[]): string[] {
     }
     const hsl = parse(css)
     for (const nudge of hsl ? NUDGES : []) {
-      const moved = format({ ...hsl!, l: hsl!.l + nudge })
+      const l = hsl!.l + nudge
+      if (l < FLOOR || l > CEILING) continue
+      const moved = format({ ...hsl!, l })
       if (!taken.has(moved)) {
         taken.set(moved, index)
         return moved

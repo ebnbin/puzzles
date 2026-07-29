@@ -49,7 +49,11 @@ export class CanvasRenderer {
   /** Font metrics are expensive to measure, and there are few distinct fonts. */
   private readonly midpoints = new Map<string, number>()
 
-  constructor(canvas: HTMLCanvasElement) {
+  /** Which puzzle this is, so the dark palette can know its exceptions. */
+  private readonly game: string
+
+  constructor(canvas: HTMLCanvasElement, game = '') {
+    this.game = game
     this.onscreen = canvas
     this.offscreen = document.createElement('canvas')
     const ctx = this.offscreen.getContext('2d', { alpha: false })
@@ -99,7 +103,9 @@ export class CanvasRenderer {
 
   startDraw() {
     if (this.repalette) {
-      this.colours = this.dark ? forDarkBoard(this.named) : this.named.slice()
+      this.colours = this.dark
+        ? forDarkBoard(this.named, this.game)
+        : this.named.slice()
       this.repalette = false
     }
     this.dirty = null

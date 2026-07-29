@@ -21,7 +21,7 @@ export async function createPuzzle(options: {
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
   const { name, canvas, gameId = '', available, dark = false, callbacks } = options
-  const renderer = new CanvasRenderer(canvas)
+  const renderer = new CanvasRenderer(canvas, name)
   renderer.setDark(dark)
   if (available && available.width > 0 && available.height > 0)
     renderer.setAvailable(available.width, available.height)
