@@ -73,6 +73,10 @@ export default function PuzzleHost({
   const apiRef = useRef<PuzzleApi | null>(null)
   const rendererRef = useRef<CanvasRenderer | null>(null)
   const startedRef = useRef(false)
+  /** Whether the latest run of the start effect is still in force. */
+  const effectAlive = useRef(false)
+  /** Whether the running back end still has a host to report to. */
+  const liveRef = useRef(true)
   const titleRef = useRef<HTMLButtonElement>(null)
 
   const [status, setStatus] = useState<string | null>(null)
@@ -170,7 +174,18 @@ export default function PuzzleHost({
   }, [name])
 
   useEffect(() => {
-    // No teardown exists, and StrictMode runs effects twice in development.
+    /*
+     * No teardown exists for the wasm, and StrictMode runs this effect,
+     * its cleanup, and the effect again, synchronously, in development.
+     * The guard keeps the second run from starting a second back end —
+     * but the cleanup in between must not kill the first one, or the
+     * puzzle that finally finishes loading reports to a host that has
+     * written it off and the board stays hidden forever. So the effect
+     * marks itself alive, and the cleanup passes sentence from a
+     * microtask: a real unmount has no next run to overturn it.
+     */
+    effectAlive.current = true
+    liveRef.current = true
     if (startedRef.current) return
     startedRef.current = true
 
@@ -183,7 +198,6 @@ export default function PuzzleHost({
     const gameId = decodeURIComponent(window.location.hash.replace(/^#/, ''))
     const saved = gameId ? null : readSave(name)
 
-    let live = true
     createPuzzle({
       name,
       canvas,
@@ -197,7 +211,7 @@ export default function PuzzleHost({
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
-          if (!live) return api.stopTimer()
+          if (!liveRef.current) return api.stopTimer()
           // A handle on the running puzzle, for the icon build and the
           // browser tests: both need to drive a puzzle from outside React.
           window.__puzzle = api
@@ -280,15 +294,20 @@ export default function PuzzleHost({
         rendererRef.current = renderer
       })
       .catch((err) => {
-        if (!live) return
+        if (!liveRef.current) return
         console.error(`could not start ${name}`, err)
         setError(START_FAILED)
       })
 
     return () => {
-      live = false
-      apiRef.current?.stopTimer()
-      delete window.__puzzle
+      effectAlive.current = false
+      queueMicrotask(() => {
+        // Resurrected by StrictMode's immediate re-run; nothing was unmounted.
+        if (effectAlive.current) return
+        liveRef.current = false
+        apiRef.current?.stopTimer()
+        delete window.__puzzle
+      })
     }
   }, [name])
 
