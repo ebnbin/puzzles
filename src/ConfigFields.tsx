@@ -19,10 +19,19 @@ import type { DialogControl } from './engine/types'
 export default function ConfigFields({
   controls,
   autoFocus = false,
+  onCommit,
 }: {
   controls: DialogControl[]
   /** Whether the first field should take focus when it appears. */
   autoFocus?: boolean
+  /**
+   * Called when a control has been settled rather than merely touched: a box
+   * ticked, a menu picked, a field left or entered. Typing is not settling —
+   * a width on its way from 5 to 12 passes through 1, and nobody means 1.
+   *
+   * Only some callers want this. A dialog with its own OK button does not.
+   */
+  onCommit?: () => void
 }) {
   const [, redraw] = useReducer((n: number) => n + 1, 0)
 
@@ -38,6 +47,7 @@ export default function ConfigFields({
                 onChange={(e) => {
                   control.value = e.target.checked
                   redraw()
+                  onCommit?.()
                 }}
               />
               {control.label}
@@ -50,6 +60,7 @@ export default function ConfigFields({
                 onChange={(e) => {
                   control.value = Number(e.target.value)
                   redraw()
+                  onCommit?.()
                 }}
               >
                 {control.choices.map((choice, index) => (
@@ -69,6 +80,12 @@ export default function ConfigFields({
                 onChange={(e) => {
                   control.value = e.target.value
                   redraw()
+                }}
+                onBlur={onCommit}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Enter') return
+                  e.preventDefault()
+                  onCommit?.()
                 }}
               />
             </>

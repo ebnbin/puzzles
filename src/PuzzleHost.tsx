@@ -29,6 +29,10 @@ const START_FAILED = '\0start'
  */
 const CUSTOM_PRESET = -1
 
+/** Enough of a dialog to tell whether anything in it was changed. */
+const values = (spec: DialogSpec) =>
+  JSON.stringify(spec.controls.map((c) => c.value))
+
 /**
  * A puzzle, hosted entirely by React.
  *
@@ -90,6 +94,8 @@ export default function PuzzleHost({
   const [customError, setCustomError] = useState<string | null>(null)
   const customPending = useRef(false)
   const customRef = useRef<DialogSpec | null>(null)
+  /** What the fields said when they last came from the back end. */
+  const customBaseline = useRef('')
 
   const fullscreen = useFullscreen()
   const help = useHelp(name)
@@ -155,6 +161,7 @@ export default function PuzzleHost({
           if (spec && customPending.current) {
             customPending.current = false
             customRef.current = spec
+            customBaseline.current = values(spec)
             setCustomError(null)
             setCustom(spec)
             return
@@ -247,13 +254,30 @@ export default function PuzzleHost({
     apiRef.current?.dialogCancel()
   }, [])
 
-  const applyCustom = useCallback(() => {
+  /*
+   * A settled parameter is a new game, there and then.
+   *
+   * Nothing is sent unless something was actually changed: leaving a field
+   * you only looked at would otherwise deal a fresh puzzle for nothing, and
+   * so would tabbing through them.
+   *
+   * The back end closes its config box when it accepts, which would take the
+   * fields off the screen mid-edit, so a new one is asked for immediately.
+   * Both happen in this one call, so React sees only the second: the fields
+   * never blink, and the caret stays where it was.
+   */
+  const commitCustom = useCallback(() => {
+    const api = apiRef.current
+    const spec = customRef.current
+    if (!api || !spec) return
+    const now = values(spec)
+    if (now === customBaseline.current) return
     setCustomError(null)
-    apiRef.current?.dialogOk()
-    // Accepted: the back end closed the box on its way out, and the sheet has
-    // done what it was opened for. Refused: it is still open, now with a
-    // sentence to read.
-    if (!customRef.current) setTypesOpen(false)
+    api.dialogOk()
+    if (!customRef.current) {
+      customPending.current = true
+      api.selectPreset(CUSTOM_PRESET)
+    }
   }, [])
 
   const closeTypes = useCallback(() => {
@@ -527,14 +551,14 @@ export default function PuzzleHost({
           selected={selected}
           custom={custom}
           customError={customError}
-          onApplyPreset={(value) => {
+          onSelectPreset={(value) => {
             setSelected(value)
             act((a) => a.selectPreset(value))
             setTypesOpen(false)
           }}
           onOpenCustom={openCustom}
           onCloseCustom={closeCustom}
-          onApplyCustom={applyCustom}
+          onCommitCustom={commitCustom}
           onClose={closeTypes}
         />
       )}

@@ -1087,45 +1087,6 @@ footer p {
   font-size: var(--t-sm);
 }
 
-/* Nothing in the sheet takes effect until this, whichever type was marked, so
-   it stays put while the list above it scrolls.
-   Its plate runs down into the sheet's own bottom padding — `bottom` is
-   negative by exactly that much — because otherwise the list scrolls through
-   the strip beneath the button and the button looks like a hole. */
-.sheet-apply {
-  position: sticky;
-  bottom: calc(-1rem - env(safe-area-inset-bottom));
-  margin-top: 1.1rem;
-  padding: 0.75rem 0 calc(1rem + env(safe-area-inset-bottom));
-  background: var(--surface);
-}
-
-.sheet-apply button {
-  width: 100%;
-  min-height: var(--touch);
-  border: 0;
-  border-radius: var(--r-sm);
-  background: var(--accent);
-  color: var(--accent-on);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
-}
-
-.sheet-apply button:active {
-  background: var(--accent-hover);
-}
-
-/* Marked what is already being played: there is nothing to apply, and
-   pressing it would deal an identical puzzle over the top of this one. */
-.sheet-apply button:disabled {
-  background: var(--surface-2);
-  color: var(--text-3);
-  cursor: default;
-}
-
 .sheet-preset-group {
   width: 100%;
   color: var(--text-3);

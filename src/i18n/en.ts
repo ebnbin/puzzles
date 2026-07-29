@@ -75,8 +75,6 @@ export const en = {
   /** The sheet that is only about which puzzle you are being set. */
   types: {
     title: 'Type',
-    /** Ends the parameters that opened inside the sheet, rather than a dialog. */
-    apply: 'Apply',
   },
 
   dialog: {

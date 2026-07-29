@@ -59,7 +59,6 @@ export const zh: Strings = {
 
   types: {
     title: '类型',
-    apply: '应用',
   },
 
   dialog: {
