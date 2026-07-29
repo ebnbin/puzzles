@@ -99,6 +99,12 @@
 
   /* Comfortable thumb target; tightened on pointer devices further down. */
   --touch: 2.75rem;
+
+  /* The floor under any key or action: 40 across, 36 down. A row divides
+     itself evenly and every share is bigger than this — until it would not
+     be, and then the row takes another line rather than go below it. */
+  --tap-w: 2.5rem;
+  --tap-h: 2.25rem;
 }
 
 :root[data-theme='dark'] {
