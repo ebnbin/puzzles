@@ -97,12 +97,14 @@
   --dur: 170ms;
   --dur-slow: 300ms;
 
-  /* Comfortable thumb target; tightened on pointer devices further down. */
-  --touch: 2.75rem;
-
-  /* The floor under any key or action: 40 across, 36 down. A row divides
-     itself evenly and every share is bigger than this — until it would not
-     be, and then the row takes another line rather than go below it. */
+  /*
+   * The size of a button: 40 across, 36 down.
+   *
+   * Not a floor to grow from. A button is this size unless it is stretched
+   * across a row that has to be filled — the four along the foot of the board,
+   * the keys — or unless its own label needs more room than that. Never
+   * because there happened to be space going spare.
+   */
   --tap-w: 2.5rem;
   --tap-h: 2.25rem;
 }

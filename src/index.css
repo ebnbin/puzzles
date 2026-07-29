@@ -427,8 +427,8 @@ footer p {
   display: grid;
   flex: none;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--tap-w);
+  height: var(--tap-h);
   padding: 0;
   border: 0;
   border-radius: var(--r-full);
@@ -478,7 +478,7 @@ footer p {
   gap: 0.15rem;
   max-width: 100%;
   /* A full thumb target, which the bar's own 3rem has room for. */
-  min-height: var(--touch);
+  min-height: var(--tap-h);
   margin-left: -0.4rem;
   padding: 0 0.4rem;
   border: 0;
@@ -682,7 +682,7 @@ footer p {
 
 .keypad button {
   min-width: var(--tap-w);
-  min-height: 2.5rem;
+  min-height: var(--tap-h);
   padding: 0 0.35rem;
   border-radius: var(--r-sm);
   font-variant-numeric: tabular-nums;
@@ -710,7 +710,7 @@ footer p {
      landscape rail is narrower than four default-sized buttons. The floor is
      what a finger needs at the very least; the rail is sized to clear it. */
   min-width: var(--tap-w);
-  min-height: var(--touch);
+  min-height: var(--tap-h);
 }
 
 /* --- the menu, over the board rather than under it --- */
@@ -789,7 +789,7 @@ footer p {
   flex: 1;
   /* Or a button refuses to go narrower than its own label. */
   min-width: 0;
-  min-height: var(--touch);
+  min-height: var(--tap-h);
   padding: 0 0.4rem;
   font-size: var(--t-sm);
   /* "New game" broken over two lines in a row of one-liners reads as two
@@ -1183,7 +1183,7 @@ footer p {
   flex: 1;
   /* Or it refuses to go narrower than the id it is holding. */
   min-width: 0;
-  min-height: var(--touch);
+  min-height: var(--tap-h);
   padding: 0 0.6rem;
   border: 1px solid var(--edge-strong);
   border-radius: var(--r-sm);
@@ -1200,8 +1200,8 @@ footer p {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--touch);
-  height: var(--touch);
+  width: var(--tap-w);
+  height: var(--tap-h);
   border-radius: var(--r-sm);
   background: var(--surface-2);
   color: var(--text-2);
@@ -1327,7 +1327,7 @@ footer p {
 
 .dialog-buttons button {
   flex: 1;
-  min-height: var(--touch);
+  min-height: var(--tap-h);
   padding: 0 1rem;
 }
 
@@ -1356,7 +1356,7 @@ footer p {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: var(--touch);
+  min-height: var(--tap-h);
   padding: 0 1rem;
   border-radius: var(--r-sm);
   background: var(--surface-2);
@@ -1476,14 +1476,6 @@ footer p {
     padding: 0.5rem;
   }
 
-  .play-actions button {
-    min-height: var(--tap-h);
-  }
-
-  .keypad button {
-    min-height: var(--tap-h);
-  }
-
   .sheet-dimmer {
     align-items: center;
     justify-content: center;
@@ -1508,7 +1500,6 @@ footer p {
   .dialog-buttons button {
     flex: 0 0 auto;
     min-width: 5.5rem;
-    min-height: 2.375rem;
   }
 }
 
@@ -1572,8 +1563,6 @@ footer p {
      Solo's digits — Clear — does not on its own make all ten keys wider than
      a key has to be. */
   .keypad button {
-    min-height: var(--tap-h);
-    height: var(--tap-h);
     padding: 0 0.15rem;
     font-size: var(--t-sm);
   }
@@ -1592,10 +1581,6 @@ footer p {
     margin: 0;
     gap: 0.25rem;
     padding: 0.3rem;
-  }
-
-  .play-actions button {
-    min-height: var(--tap-h);
   }
 }
 
