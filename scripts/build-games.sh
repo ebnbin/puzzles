@@ -30,9 +30,18 @@ EMSDK_VERSION=6.0.4
 
 # Emscripten 6.x dropped support for browsers as old as sgtpuzzles targets by
 # default (Chrome 57, Firefox 68) and refuses to emit code for them. Raising
-# the floors to Emscripten's own minimums is required to compile at all; it
-# does not alter game behaviour, and the resulting binaries are byte-identical
-# to the ones published on the upstream website.
+# the floors to Emscripten's own minimums is required to compile at all.
+#
+# This used to claim the result was byte-identical to the binaries on
+# upstream's own website. It is not, and never was: theirs are built with
+# assertions on and ours are not, so ours are roughly half the size (net.wasm
+# 130 KB against 300 KB, and the glue 39 KB against 111 KB — same story for
+# every game sampled). The source is upstream's, unmodified; the build
+# configuration is not.
+#
+# The identity that is real, and is checked by the cmp below, is between our
+# own two builds: the same C compiled twice, differing only in its JavaScript
+# wrapper, must produce the same .wasm.
 MIN_CHROME_VERSION=85
 MIN_FIREFOX_VERSION=79
 MIN_SAFARI_VERSION=150000
