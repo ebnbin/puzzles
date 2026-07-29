@@ -11,7 +11,6 @@ import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
 import { onNavClick } from './router'
-import { useFullscreen } from './useFullscreen'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
@@ -123,7 +122,6 @@ export default function PuzzleHost({
   const borrowed = useRef<{ spec: DialogSpec | null; error: string | null } | null>(null)
   const [textError, setTextError] = useState<{ kind: TextKind; message: string } | null>(null)
 
-  const fullscreen = useFullscreen()
   const help = useHelp(name)
   const theme = useResolvedTheme()
   const dark = theme === 'dark'
@@ -393,7 +391,6 @@ export default function PuzzleHost({
         u: () => api.undo(),
         r: () => api.redo(),
         n: () => api.newGame(),
-        f: () => fullscreen.toggle(),
       }
       const run = shortcut[e.key.toLowerCase()]
       if (!run) return
@@ -411,7 +408,6 @@ export default function PuzzleHost({
     closeMenu,
     helpOpen,
     switcherOpen,
-    fullscreen,
   ])
 
   const pressKey = useCallback((key: KeyLabel) => {
@@ -636,7 +632,6 @@ export default function PuzzleHost({
         <PuzzleMenu
           canSolve={canSolve}
           permalink={permalink}
-          fullscreen={fullscreen}
           prefs={inline?.kind === 'prefs' ? inline.spec : null}
           prefsError={inlineError}
           onOpenPrefs={() => openInline('prefs')}

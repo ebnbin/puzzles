@@ -760,17 +760,38 @@ footer p {
   background: var(--edge-strong);
 }
 
+/* Three of them, across the top of the sheet in one row at any width. They
+   are short words and they are the whole of what the sheet does to the game,
+   so they read as a row of choices rather than a list to work down. */
 .sheet-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  display: flex;
   gap: 0.4rem;
 }
 
 .sheet-actions button {
-  justify-content: flex-start;
+  flex: 1;
+  /* Or a button refuses to go narrower than its own label. */
+  min-width: 0;
   min-height: var(--touch);
-  padding: 0 0.9rem;
+  padding: 0 0.4rem;
   font-size: var(--t-sm);
+  /* "New game" broken over two lines in a row of one-liners reads as two
+     buttons. A third of the sheet is enough for it on any phone still made. */
+  white-space: nowrap;
+}
+
+/* Below that it is not, by about six pixels, and the glyph is what gives way:
+   these three say what they do in words. */
+@media (max-width: 22.5em) {
+  .sheet-actions button svg {
+    display: none;
+  }
+}
+
+@media (min-width: 48em) {
+  .sheet-actions button {
+    padding: 0 0.9rem;
+  }
 }
 
 .sheet-actions button svg {

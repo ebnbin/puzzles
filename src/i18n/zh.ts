@@ -34,8 +34,6 @@ export const zh: Strings = {
     close: '关闭',
     undo: '撤销',
     redo: '重做',
-    fullscreen: '全屏',
-    exitFullscreen: '退出全屏',
     menu: '菜单',
     switcher: '切换谜题',
     toDark: '切换到深色',

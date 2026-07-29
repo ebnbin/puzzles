@@ -57,7 +57,6 @@ const plain = (value: string) => {
 export default function PuzzleMenu({
   canSolve,
   permalink,
-  fullscreen,
   prefs,
   prefsError,
   onOpenPrefs,
@@ -69,12 +68,6 @@ export default function PuzzleMenu({
 }: {
   canSolve: boolean
   permalink?: { desc: string; seed: string | null }
-  /**
-   * Not something asked of the puzzle — it is the window. It sits here rather
-   * than in the bar because the bar is four glyphs now, and of the five this
-   * is the one nobody presses twice a game.
-   */
-  fullscreen: { supported: boolean; active: boolean; toggle: () => void }
   /** The preferences, once the back end has handed them over. */
   prefs: DialogSpec | null
   /** What it said about a value, if it refused one. */
@@ -128,19 +121,6 @@ export default function PuzzleMenu({
               {t.menu[a.action]}
             </button>
           ))}
-          {fullscreen.supported && (
-            <button
-              type="button"
-              aria-pressed={fullscreen.active}
-              onClick={() => {
-                fullscreen.toggle()
-                onClose()
-              }}
-            >
-              <Icon name={fullscreen.active ? 'fullscreenExit' : 'fullscreen'} />
-              {fullscreen.active ? t.play.exitFullscreen : t.play.fullscreen}
-            </button>
-          )}
         </div>
 
         {/* Some puzzles offer none, and an empty heading is worse than no

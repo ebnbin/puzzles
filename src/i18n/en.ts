@@ -48,8 +48,6 @@ export const en = {
     close: 'Close',
     undo: 'Undo',
     redo: 'Redo',
-    fullscreen: 'Fullscreen',
-    exitFullscreen: 'Leave fullscreen',
     menu: 'Menu',
     switcher: 'Switch puzzle',
     /* Named for what the press does, not for where you are. */

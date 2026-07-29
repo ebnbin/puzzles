@@ -15,8 +15,6 @@ export type IconName =
   | 'back'
   | 'undo'
   | 'redo'
-  | 'fullscreen'
-  | 'fullscreenExit'
   | 'menu'
   | 'add'
   | 'restart'
@@ -48,22 +46,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M14.5 14l5-5-5-5" />
       <path d="M19.5 9H12a5.5 5.5 0 0 0 0 11h4" />
-    </>
-  ),
-  fullscreen: (
-    <>
-      <path d="M4 9.5V4h5.5" />
-      <path d="M20 9.5V4h-5.5" />
-      <path d="M4 14.5V20h5.5" />
-      <path d="M20 14.5V20h-5.5" />
-    </>
-  ),
-  fullscreenExit: (
-    <>
-      <path d="M9.5 4v5.5H4" />
-      <path d="M14.5 4v5.5H20" />
-      <path d="M9.5 20v-5.5H4" />
-      <path d="M14.5 20v-5.5H20" />
     </>
   ),
   menu: (
