@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
 
@@ -42,6 +43,30 @@ export default function PuzzleKeypad({
 }) {
   // Before the early return: a hook cannot be skipped on some renders.
   const t = useStrings()
+  const ref = useRef<HTMLDivElement>(null)
+
+  /*
+   * How many columns the landscape rail gets. Two, unless a key is wider than
+   * a key has to be — Undead's are, because they say Vampire rather than 7 —
+   * and then one, because that rail is width taken from the board and two
+   * columns of a word is half as much again as two columns of a digit.
+   *
+   * Measured rather than worked out: a key is as wide as its label renders,
+   * which is a question about the font, not about the string. Both numbers
+   * come from the same place the layout does, so nothing here has to know
+   * what --tap-w is set to.
+   */
+  const [railColumns, setRailColumns] = useState(2)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const buttons = [...el.children] as HTMLElement[]
+    if (buttons.length === 0) return
+    const floor = parseFloat(getComputedStyle(buttons[0]).minWidth)
+    const widest = Math.max(...buttons.map((b) => b.getBoundingClientRect().width))
+    setRailColumns(widest > floor + 0.5 ? 1 : 2)
+  }, [keys])
+
   if (keys.length === 0) return null
 
   return (
@@ -49,7 +74,13 @@ export default function PuzzleKeypad({
       className="keypad"
       role="group"
       aria-label={t.play.keypad}
-      style={{ '--keys': columns(keys.length) } as React.CSSProperties}
+      ref={ref}
+      style={
+        {
+          '--keys': columns(keys.length),
+          '--rail-columns': railColumns,
+        } as React.CSSProperties
+      }
     >
       {keys.map((key) => (
         <button

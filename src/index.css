@@ -1531,6 +1531,10 @@ footer p {
    * width taken from the board, and the board is what the screen is for. Past
    * what the rail is tall enough to hold, the keys scroll.
    *
+   * One column when the keys are words rather than digits: two of Undead's
+   * would be a rail half as wide again, and the component says which it is by
+   * measuring what it rendered. See PuzzleKeypad.
+   *
    * Filling down the rail and starting a fresh column instead would show every
    * key without scrolling, which is nicer, but it cannot be done at a width
    * the board can afford: seventeen keys is four columns, a quarter of the
@@ -1541,7 +1545,10 @@ footer p {
    */
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
-    grid-template-columns: repeat(2, minmax(var(--tap-w), max-content));
+    grid-template-columns: repeat(
+      var(--rail-columns, 2),
+      minmax(var(--tap-w), max-content)
+    );
     gap: 0.25rem;
     justify-self: center;
     /* Centred, but never past the top: `safe` gives up the centring rather
