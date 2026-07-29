@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
-import { onNavClick } from './router'
+import { onNavClick, takeLauncherScroll } from './router'
 
 /**
  * The gallery.
@@ -17,6 +17,15 @@ export default function Launcher() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const t = useStrings()
   const games = useGames()
+
+  /*
+   * Back where the reader left off. Layout-effect, not effect: inside the
+   * view transition the new page is snapshotted as soon as this render
+   * commits, and the scroll has to already be right in that picture.
+   */
+  useLayoutEffect(() => {
+    window.scrollTo(0, takeLauncherScroll())
+  }, [])
 
   useEffect(() => {
     if (!settingsOpen) return

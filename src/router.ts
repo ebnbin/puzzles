@@ -7,10 +7,43 @@ import { flushSync } from 'react-dom'
 
 const POP = 'popstate'
 
+/**
+ * Where the launcher was scrolled to when a game was opened from it.
+ *
+ * The launcher unmounts while a puzzle is up, and with it goes the page
+ * height, so the browser clamps the scroll to zero and has nothing left to
+ * restore — by the back button or any other way back. The one place the
+ * position still exists is the moment of leaving, so it is taken down here
+ * and the launcher asks for it when it returns.
+ */
+let launcherScroll = 0
+/** The path in force, kept so a popstate can know what is being left. */
+let current = window.location.pathname
+
+// Ours to do: the browser's own restoration has nothing to work with (see
+// above), and half-working is worse than declared-off.
+if ('scrollRestoration' in window.history)
+  window.history.scrollRestoration = 'manual'
+
+export function takeLauncherScroll(): number {
+  return launcherScroll
+}
+
+/** Note a path change, from either direction, before React hears of it. */
+function leave(to: string) {
+  // At this instant the old page is still on screen, so the position is
+  // still real; a moment later the launcher unmounts and it clamps to zero.
+  if (current === '/' && to !== '/') launcherScroll = window.scrollY
+  current = to
+}
+
 export function usePath(): string {
   const [path, setPath] = useState(() => window.location.pathname)
   useEffect(() => {
-    const sync = () => setPath(window.location.pathname)
+    const sync = () => {
+      leave(window.location.pathname)
+      setPath(window.location.pathname)
+    }
     window.addEventListener(POP, sync)
     return () => window.removeEventListener(POP, sync)
   }, [])
