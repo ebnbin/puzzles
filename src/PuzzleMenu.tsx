@@ -1,16 +1,13 @@
+import { useEffect, useRef } from 'react'
+import ConfigFields from './ConfigFields'
 import Icon from './Icon'
 import type { IconName } from './Icon'
+import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
 import { useShare } from './useShare'
 import { useSheetDrag } from './useSheetDrag'
 
-type Action =
-  | 'newGame'
-  | 'restart'
-  | 'solve'
-  | 'enterGameId'
-  | 'enterSeed'
-  | 'preferences'
+type Action = 'newGame' | 'restart' | 'solve' | 'enterGameId' | 'enterSeed'
 
 /** The label is looked up by the same name the action goes by. */
 const ACTIONS: { action: Action; icon: IconName }[] = [
@@ -19,7 +16,6 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
   { action: 'solve', icon: 'solve' },
   { action: 'enterGameId', icon: 'gameId' },
   { action: 'enterSeed', icon: 'seed' },
-  { action: 'preferences', icon: 'prefs' },
 ]
 
 /**
@@ -35,11 +31,20 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
  *
  * What game you are given next is not here — that is a list as long as the
  * puzzle cares to make it, and it has a sheet of its own. See PuzzleTypes.
+ *
+ * The preferences are here, and open: they were a button that led to a dialog
+ * on top of this sheet, which is a layer too many for a handful of switches
+ * that only ever change how the board looks. Each takes effect as it is set,
+ * and nothing here closes.
  */
 export default function PuzzleMenu({
   canSolve,
   permalink,
   fullscreen,
+  prefs,
+  prefsError,
+  onOpenPrefs,
+  onCommitPrefs,
   onAction,
   onClose,
 }: {
@@ -51,11 +56,28 @@ export default function PuzzleMenu({
    * is the one nobody presses twice a game.
    */
   fullscreen: { supported: boolean; active: boolean; toggle: () => void }
+  /** The preferences, once the back end has handed them over. */
+  prefs: DialogSpec | null
+  /** What it said about a value, if it refused one. */
+  prefsError: string | null
+  onOpenPrefs: () => void
+  onCommitPrefs: () => void
   onAction: (action: Action) => void
   onClose: () => void
 }) {
   const { ref, handlers } = useSheetDrag(onClose)
   const t = useStrings()
+
+  /*
+   * Ask for them as the sheet appears. They are a section of it, not a place
+   * to go, so there is nothing to press first — and asking once is enough,
+   * because the back end hands back a fresh set after every change it takes.
+   */
+  const open = useRef(onOpenPrefs)
+  open.current = onOpenPrefs
+  useEffect(() => {
+    open.current()
+  }, [])
 
   return (
     <div className="sheet-dimmer" onClick={onClose}>
@@ -98,6 +120,22 @@ export default function PuzzleMenu({
             </button>
           )}
         </div>
+
+        {/* Some puzzles offer none, and an empty heading is worse than no
+            heading. */}
+        {prefs && prefs.controls.length > 0 && (
+          <section>
+            <h2>{t.menu.preferences}</h2>
+            <div className="sheet-prefs">
+              <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
+              {prefsError && (
+                <p className="sheet-custom-error" role="alert">
+                  {prefsError}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         {permalink && (
           <section className="sheet-links">

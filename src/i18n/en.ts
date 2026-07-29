@@ -66,7 +66,7 @@ export const en = {
     solve: 'Solve',
     enterGameId: 'Game ID…',
     enterSeed: 'Seed…',
-    preferences: 'Preferences…',
+    preferences: 'Preferences',
     share: 'Share',
     gameId: 'Game ID',
     seed: 'Random seed',

@@ -51,7 +51,7 @@ export const zh: Strings = {
     solve: '求解',
     enterGameId: 'Game ID…',
     enterSeed: '随机种子…',
-    preferences: '偏好设置…',
+    preferences: '偏好设置',
     share: '分享',
     gameId: 'Game ID',
     seed: '随机种子',

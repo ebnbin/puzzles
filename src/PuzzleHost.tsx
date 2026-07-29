@@ -34,6 +34,17 @@ const values = (spec: DialogSpec) =>
   JSON.stringify(spec.controls.map((c) => c.value))
 
 /**
+ * Which of the two configurations a sheet is showing without a dialog: the
+ * parameters, in the type sheet, or the preferences, in the menu.
+ */
+type InlineKind = 'custom' | 'prefs'
+type Inline = { kind: InlineKind; spec: DialogSpec }
+
+/** Ask the back end to open one. It has one config box; this says which. */
+const ask = (api: PuzzleApi, kind: InlineKind) =>
+  kind === 'custom' ? api.selectPreset(CUSTOM_PRESET) : api.preferences()
+
+/**
  * A puzzle, hosted entirely by React.
  *
  * The screen is laid out for the board's benefit: one line of bar above, the
@@ -80,22 +91,24 @@ export default function PuzzleHost({
   const [switcherOpen, setSwitcherOpen] = useState(false)
 
   /*
-   * The parameters, while they are open inside the type sheet.
+   * A configuration laid out inside a sheet rather than put in a dialog of
+   * its own. The back end has exactly one config box and offers all of them
+   * the same way — Game ID, the parameters, the preferences — so what tells
+   * them apart is only that we asked for this one, and which sheet did the
+   * asking. Hence the pending tag, set immediately before asking.
    *
-   * To the back end this is the same modal config box as Game ID or
-   * Preferences — it starts one, then waits for an answer — so it arrives
-   * through the same callback as those, and the only thing that tells them
-   * apart is that we asked for this one. Hence the flag, set immediately
-   * before asking. Both are mirrored in refs because the callbacks that read
-   * them were handed to the back end once, at startup, and close over nothing
-   * that re-renders.
+   * One at a time, which is not a limitation: the two sheets that show one
+   * are mutually exclusive, and opening either closes the other.
+   *
+   * Mirrored in refs because the callbacks that read them were handed to the
+   * back end once, at startup, and close over nothing that re-renders.
    */
-  const [custom, setCustom] = useState<DialogSpec | null>(null)
-  const [customError, setCustomError] = useState<string | null>(null)
-  const customPending = useRef(false)
-  const customRef = useRef<DialogSpec | null>(null)
+  const [inline, setInline] = useState<Inline | null>(null)
+  const [inlineError, setInlineError] = useState<string | null>(null)
+  const inlinePending = useRef<InlineKind | null>(null)
+  const inlineRef = useRef<Inline | null>(null)
   /** What the fields said when they last came from the back end. */
-  const customBaseline = useRef('')
+  const inlineBaseline = useRef('')
 
   const fullscreen = useFullscreen()
   const help = useHelp(name)
@@ -141,9 +154,9 @@ export default function PuzzleHost({
           setReady(true)
         },
         onError: (message) => {
-          // A refused set of parameters belongs against the fields that were
-          // refused, not under the title bar behind the sheet showing them.
-          if (customRef.current) setCustomError(message)
+          // A refused value belongs against the fields that were refused, not
+          // under the title bar behind the sheet showing them.
+          if (inlineRef.current) setInlineError(message)
           else setError(message)
         },
         onStatus: setStatus,
@@ -158,20 +171,21 @@ export default function PuzzleHost({
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
         onDialog: (spec) => {
-          if (spec && customPending.current) {
-            customPending.current = false
-            customRef.current = spec
-            customBaseline.current = values(spec)
-            setCustomError(null)
-            setCustom(spec)
+          const kind = inlinePending.current
+          if (spec && kind) {
+            inlinePending.current = null
+            inlineRef.current = { kind, spec }
+            inlineBaseline.current = values(spec)
+            setInlineError(null)
+            setInline({ kind, spec })
             return
           }
           // Closing, and it was ours: the back end has finished with it,
           // whether it was accepted or cancelled.
-          if (!spec && customRef.current) {
-            customRef.current = null
-            setCustomError(null)
-            setCustom(null)
+          if (!spec && inlineRef.current) {
+            inlineRef.current = null
+            setInlineError(null)
+            setInline(null)
             return
           }
           setDialog(spec)
@@ -235,27 +249,28 @@ export default function PuzzleHost({
   )
 
   /*
-   * The parameters, which the back end offers as a preset with a negative
-   * index where the real ones have their own. Asking for it starts a config
-   * box that will sit there until it is answered, so both ways out of the
-   * fields — Apply, or choosing something else and leaving — have to answer
-   * it. Choosing Custom when it is already chosen is not one of them: the
-   * radio is already checked, so nothing happens, and nothing should.
+   * Asking for one starts a config box that will sit there until it is
+   * answered, so every way out of the fields has to answer it: closing the
+   * sheet, choosing something else, or reaching for anything else the back
+   * end does.
    */
-  const openCustom = useCallback(() => {
-    const api = apiRef.current
-    if (!api || dialog || customRef.current) return
-    customPending.current = true
-    api.selectPreset(CUSTOM_PRESET)
-  }, [dialog])
+  const openInline = useCallback(
+    (kind: InlineKind) => {
+      const api = apiRef.current
+      if (!api || dialog || inlineRef.current) return
+      inlinePending.current = kind
+      ask(api, kind)
+    },
+    [dialog],
+  )
 
   /** Answers the config box without taking its values. */
-  const closeCustom = useCallback(() => {
+  const closeInline = useCallback(() => {
     apiRef.current?.dialogCancel()
   }, [])
 
   /*
-   * A settled parameter is a new game, there and then.
+   * A settled value takes effect there and then.
    *
    * Nothing is sent unless something was actually changed: leaving a field
    * you only looked at would otherwise deal a fresh puzzle for nothing, and
@@ -266,23 +281,27 @@ export default function PuzzleHost({
    * Both happen in this one call, so React sees only the second: the fields
    * never blink, and the caret stays where it was.
    */
-  const commitCustom = useCallback(() => {
+  const commitInline = useCallback(() => {
     const api = apiRef.current
-    const spec = customRef.current
-    if (!api || !spec) return
-    const now = values(spec)
-    if (now === customBaseline.current) return
-    setCustomError(null)
+    const open = inlineRef.current
+    if (!api || !open) return
+    if (values(open.spec) === inlineBaseline.current) return
+    setInlineError(null)
     api.dialogOk()
-    if (!customRef.current) {
-      customPending.current = true
-      api.selectPreset(CUSTOM_PRESET)
+    if (!inlineRef.current) {
+      inlinePending.current = open.kind
+      ask(api, open.kind)
     }
   }, [])
 
   const closeTypes = useCallback(() => {
-    if (customRef.current) apiRef.current?.dialogCancel()
+    if (inlineRef.current) apiRef.current?.dialogCancel()
     setTypesOpen(false)
+  }, [])
+
+  const closeMenu = useCallback(() => {
+    if (inlineRef.current) apiRef.current?.dialogCancel()
+    setMenuOpen(false)
   }, [])
 
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
@@ -306,7 +325,7 @@ export default function PuzzleHost({
         // Not a layer of its own: the parameters are part of the sheet, so
         // the sheet is what closes, and closing it answers the config box.
         else if (typesOpen) closeTypes()
-        else if (menuOpen) setMenuOpen(false)
+        else if (menuOpen) closeMenu()
         else return
         e.preventDefault()
         return
@@ -335,6 +354,7 @@ export default function PuzzleHost({
     menuOpen,
     typesOpen,
     closeTypes,
+    closeMenu,
     helpOpen,
     switcherOpen,
     fullscreen,
@@ -463,7 +483,7 @@ export default function PuzzleHost({
             aria-haspopup="dialog"
             aria-expanded={typesOpen}
             onClick={() => {
-              setMenuOpen(false)
+              closeMenu()
               setTypesOpen(true)
             }}
           >
@@ -539,8 +559,8 @@ export default function PuzzleHost({
         <PuzzleTypes
           presets={presets}
           selected={selected}
-          custom={custom}
-          customError={customError}
+          custom={inline?.kind === 'custom' ? inline.spec : null}
+          customError={inlineError}
           onSelectPreset={(value) => {
             // Stays open. Everything in this sheet takes effect where it is
             // pressed, and a sheet that shuts itself on one of those and not
@@ -548,9 +568,9 @@ export default function PuzzleHost({
             setSelected(value)
             act((a) => a.selectPreset(value))
           }}
-          onOpenCustom={openCustom}
-          onCloseCustom={closeCustom}
-          onCommitCustom={commitCustom}
+          onOpenCustom={() => openInline('custom')}
+          onCloseCustom={closeInline}
+          onCommitCustom={commitInline}
           onClose={closeTypes}
         />
       )}
@@ -560,11 +580,18 @@ export default function PuzzleHost({
           canSolve={canSolve}
           permalink={permalink}
           fullscreen={fullscreen}
+          prefs={inline?.kind === 'prefs' ? inline.spec : null}
+          prefsError={inlineError}
+          onOpenPrefs={() => openInline('prefs')}
+          onCommitPrefs={commitInline}
           onAction={(action) => {
+            // The back end will do nothing else while it is sitting in the
+            // preferences; answer that first.
+            if (inlineRef.current) apiRef.current?.dialogCancel()
             act((a) => a[action]())
             setMenuOpen(false)
           }}
-          onClose={() => setMenuOpen(false)}
+          onClose={closeMenu}
         />
       )}
 
