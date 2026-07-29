@@ -1558,14 +1558,12 @@ footer p {
     display: none;
   }
 
-  /* Tighter sides than in portrait: it costs nothing — a digit is nowhere near
-     40 wide — and it keeps the one word among Solo's digits, Clear, from
-     widening its column by more than a few pixels. The type stays the size it
-     is everywhere else. Dropping it a step bought four pixels of rail, which
-     is not worth reading a keypad two sizes down on the smallest screen the
-     app runs on. */
+  /* Smaller type and tighter sides than in portrait, so the one word among
+     Solo's digits — Clear — does not on its own make all ten keys wider than
+     a key has to be. */
   .keypad button {
     padding: 0 0.15rem;
+    font-size: var(--t-sm);
   }
 
   /* Two by two at the foot of the rail. Four across would be a rail a third
