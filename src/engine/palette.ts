@@ -99,9 +99,13 @@ const SEMANTIC: Record<string, readonly number[]> = {
  * need one — its board is near-white and sits beside the white half — but on
  * a dark board there is no room below the bottom of the scale, so leaving the
  * background where the flip puts it (0.13) would leave the black half of the
- * puzzle nowhere to be — a black pearl on it comes to 1.18:1, which is not a
- * faint circle but no circle. #424242 has #0f0f0f visibly below it and
- * #d1d1d1 well above, and still reads as a dark board.
+ * puzzle nowhere to be. A black pearl on that board comes to 1.18:1 — put
+ * beside the same position on a raised one, it is a disc you can find if you
+ * look for it rather than a black circle you read. The white pearls beside it
+ * are at 12:1, so the two halves of the puzzle stop being each other's equal
+ * and opposite, which is the whole of what the rules are about. #424242 has
+ * #0f0f0f visibly below it and #d1d1d1 well above, and still reads as a dark
+ * board.
  *
  * Applied only where it is needed, and whether it is needed is computed: see
  * `needsRoom`.
