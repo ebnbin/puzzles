@@ -996,6 +996,33 @@ footer p {
   );
 }
 
+/* "Custom…" is a button, not one of the choices — see PuzzleMenu. Same pill so
+   the row still reads as one control, but outlined rather than carrying a
+   radio, because what it does is open a dialog and it can do that again. */
+.sheet-presets .sheet-preset-custom {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+/* No preset matches, so this is the type in force. */
+.sheet-presets .sheet-preset-custom[data-selected='true'] {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+  font-weight: 600;
+}
+
 .sheet-preset-group {
   width: 100%;
   color: var(--text-3);

@@ -149,6 +149,15 @@ function ShareRow({ label, value }: { label: string; value: string }) {
  * rows that is a screen of scrolling to reach the bottom one. They stay real
  * radios — the group is a single choice, arrow keys should move through it, and
  * a screen reader should say so.
+ *
+ * All but one of them. "Custom…" arrives in the same list from the back end,
+ * with a negative value where the others have their index, and it is not one of
+ * the choices: it is the door to the dialog that makes one. As a radio it could
+ * be pressed only once, because a checked radio has nothing left to change and
+ * fires no event — so once the parameters were custom, the only way back into
+ * the dialog was to pick some other preset first and undo the very settings you
+ * were coming back to edit. It is a button. That it is also the type currently
+ * in force, whenever no preset matches, is said with `aria-current`.
  */
 function PresetList({
   presets,
@@ -172,6 +181,17 @@ function PresetList({
                 onSelect={onSelect}
               />
             </>
+          ) : preset.value !== null && preset.value < 0 ? (
+            <button
+              type="button"
+              className="sheet-preset-custom"
+              aria-haspopup="dialog"
+              aria-current={selected < 0 ? 'true' : undefined}
+              data-selected={selected < 0}
+              onClick={() => onSelect(preset.value as number)}
+            >
+              {preset.name}
+            </button>
           ) : (
             <label data-selected={selected === preset.value}>
               <input
