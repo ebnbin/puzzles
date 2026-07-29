@@ -7,6 +7,7 @@ import PuzzleSwitcher from './PuzzleSwitcher'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
+import { clearSave, readSave, writeLast, writeSave } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
@@ -134,6 +135,40 @@ export default function PuzzleHost({
   themeRef.current = theme
   useNoPullToRefresh()
 
+  /*
+   * Progress, kept as it is made.
+   *
+   * The midend announces every change of state through post_move — each move,
+   * each undo, each redo, each new deal — so that one callback is where the
+   * game is serialised and put away. Writes from one gesture coalesce into a
+   * microtask.
+   *
+   * Armed only by an actual act of playing. Everything before that — the
+   * starting deal, a restored save, a shared link being looked at — saves
+   * nothing, so opening a link never costs a saved game until the reader
+   * plays into it.
+   */
+  const armed = useRef(false)
+  const restoring = useRef(false)
+  const savePending = useRef(false)
+  const arm = useCallback(() => {
+    armed.current = true
+  }, [])
+  const queueSave = useCallback(() => {
+    if (!armed.current || savePending.current) return
+    savePending.current = true
+    queueMicrotask(() => {
+      savePending.current = false
+      const api = apiRef.current
+      if (api) writeSave(name, api.saveGame())
+    })
+  }, [name])
+
+  /* This is now the game to come back to, from the moment it is opened. */
+  useEffect(() => {
+    writeLast(name)
+  }, [name])
+
   useEffect(() => {
     // No teardown exists, and StrictMode runs effects twice in development.
     if (startedRef.current) return
@@ -143,11 +178,16 @@ export default function PuzzleHost({
     const area = areaRef.current
     if (!canvas || !area) return
 
+    // An id in the address is an explicit ask and wins over the save: a
+    // shared link must open the game it names, not the reader's own past.
+    const gameId = decodeURIComponent(window.location.hash.replace(/^#/, ''))
+    const saved = gameId ? null : readSave(name)
+
     let live = true
     createPuzzle({
       name,
       canvas,
-      gameId: decodeURIComponent(window.location.hash.replace(/^#/, '')),
+      gameId,
       // No room stated, so the first board the back end lays out is the one it
       // would have chosen on its own. usePuzzleFit takes it from there, and
       // whichever frame lands first is a board at a size the game asked for —
@@ -161,10 +201,28 @@ export default function PuzzleHost({
           // A handle on the running puzzle, for the icon build and the
           // browser tests: both need to drive a puzzle from outside React.
           window.__puzzle = api
+          if (saved) {
+            // Picking up where the reader left off, over the deal the back
+            // end just made. Deserialising is atomic — a refused save
+            // changes nothing — and what it says on refusal is swallowed
+            // below, because "your old save was stale" is not worth a
+            // banner over a perfectly good new game.
+            restoring.current = true
+            try {
+              api.loadGame(saved)
+            } finally {
+              restoring.current = false
+            }
+          }
           setPresets(list)
           setReady(true)
         },
         onError: (message) => {
+          if (restoring.current) {
+            clearSave(name)
+            console.warn(`discarded a stale save for ${name}:`, message)
+            return
+          }
           // A refused value belongs against the field that was refused, not
           // under the title bar behind the sheet showing it.
           if (borrowed.current) borrowed.current.error = message
@@ -172,13 +230,18 @@ export default function PuzzleHost({
           else setError(message)
         },
         onStatus: setStatus,
-        onUndoRedo: (undo, redo) => setUndoRedo({ undo, redo }),
+        onUndoRedo: (undo, redo) => {
+          setUndoRedo({ undo, redo })
+          // post_move: the one notice the midend gives after every change.
+          queueSave()
+        },
         onKeyLabels: () => {},
         onPermalinks: (desc, seed) => {
           setPermalink({ desc, seed })
           // The keypad follows the game id: it is where the grid size lives,
           // and it is reissued whenever the preset changes.
           setKeys(keysFor(name, decodeURIComponent(desc)))
+          queueSave()
         },
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
@@ -260,10 +323,11 @@ export default function PuzzleHost({
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
       if (!apiRef.current || dialog) return
+      arm()
       fn(apiRef.current)
       canvasRef.current?.focus()
     },
-    [dialog],
+    [dialog, arm],
   )
 
   /*
@@ -304,6 +368,7 @@ export default function PuzzleHost({
     const open = inlineRef.current
     if (!api || !open) return
     if (values(open.spec) === inlineBaseline.current) return
+    arm()
     setInlineError(null)
     api.dialogOk()
     if (!inlineRef.current) {
@@ -323,6 +388,7 @@ export default function PuzzleHost({
   const submitText = useCallback((kind: TextKind, text: string) => {
     const api = apiRef.current
     if (!api) return
+    arm()
     const resume = inlineRef.current?.kind ?? null
     if (resume) api.dialogCancel()
 
@@ -359,9 +425,10 @@ export default function PuzzleHost({
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
+    arm()
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
-  }, [])
+  }, [arm])
 
   // Shortcuts on the page rather than the board, so they work wherever focus
   // is. Skipped while a dialog is up or a field has focus.
@@ -413,6 +480,7 @@ export default function PuzzleHost({
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
     if (!api) return
+    arm()
     // Every puzzle that requests keys requests ASCII ones, so the ordinary
     // key path carries them: a one-character string is taken as the button
     // itself, and the midend folds 8 and 127 together into backspace.
@@ -490,6 +558,7 @@ export default function PuzzleHost({
       <div className="play-board" ref={areaRef}>
         <canvas
           ref={canvasRef}
+          onPointerDownCapture={arm}
           className="host-board"
           tabIndex={0}
           onContextMenu={(e) => e.preventDefault()}

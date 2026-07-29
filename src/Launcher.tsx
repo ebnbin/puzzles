@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
+import { clearLast } from './engine/saves'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import { onNavClick, takeLauncherScroll } from './router'
@@ -25,6 +26,16 @@ export default function Launcher() {
    */
   useLayoutEffect(() => {
     window.scrollTo(0, takeLauncherScroll())
+  }, [])
+
+  /*
+   * Being here is the choice to be here: a cold start would have been taken
+   * straight back to the last game before React rendered anything (see
+   * main.tsx), so reaching the launcher always means the reader left a game
+   * for it — and the way back in is a tile, not the next cold start.
+   */
+  useEffect(() => {
+    clearLast()
   }, [])
 
   useEffect(() => {
