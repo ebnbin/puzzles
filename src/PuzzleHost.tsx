@@ -242,6 +242,11 @@ export default function PuzzleHost({
     api.selectPreset(CUSTOM_PRESET)
   }, [dialog])
 
+  /** Answers the config box without taking its values. */
+  const closeCustom = useCallback(() => {
+    apiRef.current?.dialogCancel()
+  }, [])
+
   const applyCustom = useCallback(() => {
     setCustomError(null)
     apiRef.current?.dialogOk()
@@ -522,15 +527,13 @@ export default function PuzzleHost({
           selected={selected}
           custom={custom}
           customError={customError}
-          onSelectPreset={(value) => {
-            // The back end will not take a preset while its config box is
-            // open, so answer that first.
-            if (customRef.current) apiRef.current?.dialogCancel()
+          onApplyPreset={(value) => {
             setSelected(value)
             act((a) => a.selectPreset(value))
             setTypesOpen(false)
           }}
           onOpenCustom={openCustom}
+          onCloseCustom={closeCustom}
           onApplyCustom={applyCustom}
           onClose={closeTypes}
         />
