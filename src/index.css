@@ -650,10 +650,10 @@ footer p {
 /* --- keys the puzzle asked for --- */
 
 /*
- * Two groups of keys, a hairline apart: what goes in a square, and what is
- * asked of the board. Each is an even grid rather than a wrapped row, so no
- * row is left holding the leftovers, and the column count comes from the
- * component, which divides for the thumb rather than for the fewest rows.
+ * The keys, in one run: the ones that put something in a square first, then
+ * the ones that ask something of the board, told apart by colour alone.
+ * They wrap as one row of `--keys`, and a row that does not fill is centred
+ * under the ones that did.
  *
  * Every key is a 40 square. Nothing here is stretched and nothing is wider
  * than anything else — the labels that would not fit are pictures now — so
@@ -662,20 +662,16 @@ footer p {
  */
 .keypad {
   --key-gap: 0.25rem;
-  /* A rule and the air either side of it, which the height below has to
-     allow for once per gap between groups. */
-  --key-rule: 0.85rem;
   display: flex;
   flex: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  width: max-content;
-  max-width: 100%;
-  max-height: calc(
-    3 * var(--tap-w) + 2 * var(--key-gap) + 0.3rem + (var(--groups, 1) - 1) *
-      var(--key-rule)
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--key-gap);
+  width: calc(
+    var(--keys, 5) * var(--tap-w) + (var(--keys, 5) - 1) * var(--key-gap)
   );
+  max-width: 100%;
+  max-height: calc(3 * var(--tap-w) + 2 * var(--key-gap) + 0.3rem);
   margin: 0 auto;
   overflow-y: auto;
   /* The keypad is the one thing here that scrolls, so it is the one thing
@@ -684,37 +680,11 @@ footer p {
   touch-action: pan-y;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  padding: 0.3rem 0.4rem 0;
+  padding: 0.3rem 0 0;
 }
 
 .keypad::-webkit-scrollbar {
   display: none;
-}
-
-/* As wide as a full row and no wider, so a group with one key in it — the
-   lone M under Solo's digits — sits under the middle of them rather than
-   against the left edge, and so does a row that does not fill. */
-.keypad-group {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--key-gap);
-  /* A full row is the most it may be, not what it is: a group holding one
-     key is one key wide, and the rail behind Net's single key does not take
-     the width of a row it has not got. */
-  width: max-content;
-  max-width: calc(
-    var(--keys, 5) * var(--tap-w) + (var(--keys, 5) - 1) * var(--key-gap)
-  );
-}
-
-/* Enough to say "these are a different sort of key", and no more: they are
-   next to each other, which does most of the saying. */
-.keypad-rule {
-  width: 4.5rem;
-  height: 1px;
-  margin: 0.42rem 0;
-  background: var(--edge);
 }
 
 .keypad button {
@@ -729,7 +699,7 @@ footer p {
 /* The keys that do something to the whole board rather than to one square.
    Drawn in the accent so they read as a different kind of press — the one
    you make once, not the one you make forty times. */
-.keypad-group[data-aid] button {
+.keypad button[data-aid] {
   color: var(--accent);
 }
 
@@ -773,25 +743,6 @@ footer p {
   flex: none;
   width: var(--tap-w);
   height: var(--tap-w);
-}
-
-/* The third group, told from the second the same way the second is told from
-   the first. Only when there are keys above it: with nothing to be separated
-   from, a rule across the foot of the board is just a line. */
-.keypad + .play-actions {
-  position: relative;
-  padding-top: 0.42rem;
-}
-
-.keypad + .play-actions::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 4.5rem;
-  height: 1px;
-  background: var(--edge);
-  transform: translateX(-50%);
 }
 
 /* --- the menu, over the board rather than under it --- */
@@ -1623,18 +1574,16 @@ footer p {
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
     justify-self: center;
-    /* The rail's main axis is down it, so this is the vertical centring.
-       `safe` gives it up rather than push the first row out of reach above
-       the top of the scroll. */
-    justify-content: safe center;
-    max-width: none;
+    /* Vertically centred in the rail — `safe`, so a list taller than the
+       rail starts at the top of the scroll rather than above it. */
+    align-content: safe center;
+    /* Three across at most, one key wide at least: Net's single key does not
+       hold a rail three keys wide. */
+    width: max-content;
+    max-width: calc(3 * var(--tap-w) + 2 * var(--key-gap));
     max-height: none;
     margin: 0;
-    padding: 0.3rem;
-  }
-
-  .keypad-group {
-    max-width: calc(3 * var(--tap-w) + 2 * var(--key-gap));
+    padding: 0.3rem 0;
   }
 
   /* Two by two at the foot of the rail. Four across would be a rail a third

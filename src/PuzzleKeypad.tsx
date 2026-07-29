@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
@@ -6,13 +6,14 @@ import { useStrings } from './i18n'
 /**
  * The keys the puzzle asked for, as buttons.
  *
- * Two groups, a hairline apart. The first puts something in a square — the
+ * Two sorts in one run. First the keys that put something in a square — the
  * digits of Solo and Keen, Undead's three monsters, clear — which is how
  * those puzzles are played, and a touch device has no other way to do it.
- * The second asks the puzzle to do something to the whole board: fill in
- * every pencil mark, play one deduction, deal the network again. Those are
- * keys the games read but never advertise, and this is the only way to
- * reach them without a keyboard.
+ * After them, in the same grid but drawn in the accent, the keys that ask
+ * the puzzle to do something to the whole board: fill in every pencil mark,
+ * play one deduction, deal the network again. Those are keys the games read
+ * but never advertise, and this is the only way to reach them without a
+ * keyboard.
  *
  * See engine/keys.ts for which puzzle gets which.
  */
@@ -97,60 +98,43 @@ export default function PuzzleKeypad({
 
   if (keys.length === 0) return null
 
-  const groups = [keys.filter((k) => !k.aid), keys.filter((k) => k.aid)].filter(
-    (g) => g.length > 0,
-  )
-  // One column count for every group, so the two line up under each other.
-  const perRow = columns(groups[0].length)
-
   return (
     <div
       className="keypad"
       role="group"
       aria-label={t.play.keypad}
-      style={
-        {
-          '--keys': perRow,
-          '--groups': groups.length,
-        } as React.CSSProperties
-      }
+      style={{ '--keys': columns(keys.length) } as React.CSSProperties}
     >
-      {groups.map((group, i) => (
-        <Fragment key={group[0].aid ? 'aid' : 'input'}>
-          {i > 0 && <div className="keypad-rule" aria-hidden="true" />}
-          <div className="keypad-group" data-aid={group[0].aid ? 'true' : undefined}>
-            {group.map((key) => {
-              const said = describe(key)
-              return (
-                <button
-                  key={key.button}
-                  type="button"
-                  aria-label={key.icon ? said : undefined}
-                  title={said}
-                  // Keep focus on the board: the puzzle reads the keyboard
-                  // from it, and a focused button would swallow arrow keys.
-                  onMouseDown={(e) => e.preventDefault()}
-                  onPointerDown={(e) => hold(e, said)}
-                  onPointerUp={release}
-                  onPointerCancel={release}
-                  onPointerLeave={release}
-                  onClick={() => {
-                    // The press that ended a hold was a question, not an
-                    // instruction.
-                    if (held.current) {
-                      held.current = false
-                      return
-                    }
-                    onPress(key)
-                  }}
-                >
-                  {key.icon ? <Icon name={key.icon} /> : key.label}
-                </button>
-              )
-            })}
-          </div>
-        </Fragment>
-      ))}
+      {keys.map((key) => {
+        const said = describe(key)
+        return (
+          <button
+            key={key.button}
+            type="button"
+            data-aid={key.aid ? 'true' : undefined}
+            aria-label={key.icon ? said : undefined}
+            title={said}
+            // Keep focus on the board: the puzzle reads the keyboard from
+            // it, and a focused button would swallow arrow keys.
+            onMouseDown={(e) => e.preventDefault()}
+            onPointerDown={(e) => hold(e, said)}
+            onPointerUp={release}
+            onPointerCancel={release}
+            onPointerLeave={release}
+            onClick={() => {
+              // The press that ended a hold was a question, not an
+              // instruction.
+              if (held.current) {
+                held.current = false
+                return
+              }
+              onPress(key)
+            }}
+          >
+            {key.icon ? <Icon name={key.icon} /> : key.label}
+          </button>
+        )
+      })}
 
       {tip && (
         <div className="keypad-tip" role="status" style={{ left: tip.left, top: tip.top }}>
