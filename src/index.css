@@ -671,23 +671,28 @@ footer p {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- the two controls worth reaching for --- */
+/* --- the four ways out of the board --- */
 
+/* Equal shares of the row. Each is a glyph, so none of them needs more room
+   than another, and where the reader's thumb has learned to find one does not
+   move when the language changes. Bounded like the keypad above it, so four
+   buttons do not become four enormous buttons on a desktop. */
 .play-actions {
   display: flex;
   flex: none;
   gap: 0.4rem;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
 .play-actions button {
   flex: 1;
+  /* A flex item will not shrink below its content without this, and the
+     landscape rail is narrower than four default-sized buttons. */
+  min-width: 0;
   min-height: var(--touch);
-}
-
-.play-actions .play-icon {
-  flex: 0 0 var(--touch);
-  border-radius: var(--r-full);
 }
 
 /* --- the menu, over the board rather than under it --- */
@@ -1401,19 +1406,11 @@ footer p {
   }
 
   .play-actions {
-    justify-content: center;
     padding: 0.5rem;
   }
 
   .play-actions button {
-    flex: 0 0 auto;
-    min-width: 7rem;
     min-height: 2.375rem;
-  }
-
-  .play-actions .play-icon {
-    flex: 0 0 2.375rem;
-    min-width: 0;
   }
 
   .keypad button {
@@ -1488,22 +1485,19 @@ footer p {
     height: 2.2rem;
   }
 
+  /* Still one row of four, at the foot of the right-hand rail. They were a
+     column when they carried words; four glyphs fit across it. */
   .play-actions {
     grid-area: 3 / 2 / 4 / 3;
-    flex-direction: column;
     width: 9.5rem;
+    max-width: none;
+    margin: 0;
+    gap: 0.25rem;
     padding: 0.3rem;
   }
 
   .play-actions button {
-    flex: 0 0 auto;
     min-height: 2.2rem;
-    font-size: var(--t-sm);
-  }
-
-  .play-actions .play-icon {
-    flex: 0 0 auto;
-    border-radius: var(--r-sm);
   }
 }
 

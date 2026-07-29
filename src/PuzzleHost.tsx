@@ -430,36 +430,28 @@ export default function PuzzleHost({
 
       <PuzzleKeypad keys={keys} onPress={pressKey} />
 
+      {/* Four, and each of them a glyph. Undo and Redo are the two arrows
+          everything else in the world uses for the same thing; the grid and
+          the three lines say the rest. Words here would only push them apart
+          and make where each one sits depend on how long they are in the
+          reader's language. */}
       <nav className="play-actions">
         <button
           type="button"
+          aria-label={t.play.undo}
           disabled={!undoRedo.undo}
           onClick={() => act((a) => a.undo())}
         >
           <Icon name="undo" />
-          {t.play.undo}
         </button>
         <button
           type="button"
+          aria-label={t.play.redo}
           disabled={!undoRedo.redo}
           onClick={() => act((a) => a.redo())}
         >
           <Icon name="redo" />
-          {t.play.redo}
         </button>
-        {fullscreen.supported && (
-          <button
-            type="button"
-            className="play-icon"
-            aria-label={
-              fullscreen.active ? t.play.exitFullscreen : t.play.fullscreen
-            }
-            aria-pressed={fullscreen.active}
-            onClick={fullscreen.toggle}
-          >
-            <Icon name={fullscreen.active ? 'fullscreenExit' : 'fullscreen'} />
-          </button>
-        )}
         {/* Its own way in, beside the menu rather than inside it: how big a
             board you want is asked far more often than anything the menu
             holds, and on some puzzles the list of answers is longer than the
@@ -467,7 +459,6 @@ export default function PuzzleHost({
         {presets && (
           <button
             type="button"
-            className="play-icon"
             aria-label={t.types.title}
             aria-haspopup="dialog"
             aria-expanded={typesOpen}
@@ -481,7 +472,6 @@ export default function PuzzleHost({
         )}
         <button
           type="button"
-          className="play-icon"
           aria-label={t.play.menu}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}
@@ -569,6 +559,7 @@ export default function PuzzleHost({
         <PuzzleMenu
           canSolve={canSolve}
           permalink={permalink}
+          fullscreen={fullscreen}
           onAction={(action) => {
             act((a) => a[action]())
             setMenuOpen(false)

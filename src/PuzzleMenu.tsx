@@ -39,11 +39,18 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
 export default function PuzzleMenu({
   canSolve,
   permalink,
+  fullscreen,
   onAction,
   onClose,
 }: {
   canSolve: boolean
   permalink?: { desc: string; seed: string | null }
+  /**
+   * Not something asked of the puzzle — it is the window. It sits here rather
+   * than in the bar because the bar is four glyphs now, and of the five this
+   * is the one nobody presses twice a game.
+   */
+  fullscreen: { supported: boolean; active: boolean; toggle: () => void }
   onAction: (action: Action) => void
   onClose: () => void
 }) {
@@ -77,6 +84,19 @@ export default function PuzzleMenu({
               {t.menu[a.action]}
             </button>
           ))}
+          {fullscreen.supported && (
+            <button
+              type="button"
+              aria-pressed={fullscreen.active}
+              onClick={() => {
+                fullscreen.toggle()
+                onClose()
+              }}
+            >
+              <Icon name={fullscreen.active ? 'fullscreenExit' : 'fullscreen'} />
+              {fullscreen.active ? t.play.exitFullscreen : t.play.fullscreen}
+            </button>
+          )}
         </div>
 
         {permalink && (
