@@ -1,7 +1,7 @@
 /**
  * The app's icons, drawn rather than downloaded.
  *
- * Fourteen glyphs is far less than any icon font weighs, and inlining them
+ * A handful of glyphs is far less than any icon font weighs, and inlining them
  * means no extra request, no flash of missing icon, and `currentColor`
  * throughout. They are built from circles, straight lines and quarter turns on
  * a 24 grid — the same vocabulary the puzzles themselves are drawn in.
@@ -21,9 +21,7 @@ export type IconName =
   | 'add'
   | 'restart'
   | 'solve'
-  | 'gameId'
   | 'type'
-  | 'seed'
   | 'prefs'
   | 'external'
   | 'check'
@@ -95,14 +93,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M9.5 15.8V18a1.6 1.6 0 0 0 1.6 1.6h1.8A1.6 1.6 0 0 0 14.5 18v-2.2" />
     </>
   ),
-  gameId: (
-    <>
-      <path d="M9.8 3.5 7.8 20.5" />
-      <path d="M16.6 3.5l-2 17" />
-      <path d="M4.6 9h15" />
-      <path d="M3.6 15h15" />
-    </>
-  ),
   /* A board and the lines that divide it. What the sheet behind this button
      decides is how many squares there are, which is the one thing a grid can
      show without being any particular puzzle. */
@@ -113,15 +103,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M3.6 14.8h16.8" />
       <path d="M9.2 3.6v16.8" />
       <path d="M14.8 3.6v16.8" />
-    </>
-  ),
-  /* Three pips on a die: a seed is a roll. */
-  seed: (
-    <>
-      <rect x="4" y="4" width="16" height="16" rx="3.5" />
-      <circle cx="8.6" cy="8.6" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="15.4" cy="15.4" r="1.15" fill="currentColor" stroke="none" />
     </>
   ),
   prefs: (

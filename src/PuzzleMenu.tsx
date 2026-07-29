@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import ConfigFields from './ConfigFields'
 import Icon from './Icon'
 import type { IconName } from './Icon'
@@ -7,16 +7,33 @@ import { useStrings } from './i18n'
 import { useShare } from './useShare'
 import { useSheetDrag } from './useSheetDrag'
 
-type Action = 'newGame' | 'restart' | 'solve' | 'enterGameId' | 'enterSeed'
+type Action = 'newGame' | 'restart' | 'solve'
 
 /** The label is looked up by the same name the action goes by. */
 const ACTIONS: { action: Action; icon: IconName }[] = [
   { action: 'newGame', icon: 'add' },
   { action: 'restart', icon: 'restart' },
   { action: 'solve', icon: 'solve' },
-  { action: 'enterGameId', icon: 'gameId' },
-  { action: 'enterSeed', icon: 'seed' },
 ]
+
+/** Which address a row is: the position itself, or the deal it came from. */
+type TextKind = 'desc' | 'seed'
+
+/**
+ * An address as a person reads it.
+ *
+ * The back end hands these out ready to go after a `#`, which means escaped:
+ * a seed arrives as `3x3%23124386068392157`. That is what the link wants and
+ * the opposite of what a field wants — and it is not what the back end will
+ * take back, either.
+ */
+const plain = (value: string) => {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
 
 /**
  * Everything you do to the game in front of you.
@@ -32,10 +49,10 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
  * What game you are given next is not here — that is a list as long as the
  * puzzle cares to make it, and it has a sheet of its own. See PuzzleTypes.
  *
- * The preferences are here, and open: they were a button that led to a dialog
- * on top of this sheet, which is a layer too many for a handful of switches
- * that only ever change how the board looks. Each takes effect as it is set,
- * and nothing here closes.
+ * Everything else is laid out flat: the preferences, the game id and the seed
+ * were all buttons that led to a dialog on top of this sheet, which is a layer
+ * too many for a switch to flip or a line to paste. Each takes effect as it is
+ * set, and nothing here closes.
  */
 export default function PuzzleMenu({
   canSolve,
@@ -45,6 +62,8 @@ export default function PuzzleMenu({
   prefsError,
   onOpenPrefs,
   onCommitPrefs,
+  textError,
+  onSubmitText,
   onAction,
   onClose,
 }: {
@@ -62,6 +81,9 @@ export default function PuzzleMenu({
   prefsError: string | null
   onOpenPrefs: () => void
   onCommitPrefs: () => void
+  /** What it said about a typed address, and which of the two it was about. */
+  textError: { kind: TextKind; message: string } | null
+  onSubmitText: (kind: TextKind, text: string) => void
   onAction: (action: Action) => void
   onClose: () => void
 }) {
@@ -138,11 +160,22 @@ export default function PuzzleMenu({
         )}
 
         {permalink && (
-          <section className="sheet-links">
-            <h2>{t.menu.share}</h2>
-            <ShareRow label={t.menu.gameId} value={permalink.desc} />
-            {permalink.seed && (
-              <ShareRow label={t.menu.seed} value={permalink.seed} />
+          <section className="sheet-ids">
+            <TextRow
+              kind="desc"
+              label={t.menu.gameId}
+              value={permalink.desc}
+              error={textError?.kind === 'desc' ? textError.message : null}
+              onSubmit={onSubmitText}
+            />
+            {permalink.seed !== null && (
+              <TextRow
+                kind="seed"
+                label={t.menu.seed}
+                value={permalink.seed}
+                error={textError?.kind === 'seed' ? textError.message : null}
+                onSubmit={onSubmitText}
+              />
             )}
           </section>
         )}
@@ -152,35 +185,104 @@ export default function PuzzleMenu({
 }
 
 /**
- * A link to this exact puzzle, which hands itself out.
+ * One of the two addresses this position has, to read, to hand out, or to
+ * paste one over.
  *
- * The address is not shown. It is thirty characters of base-36 that nobody
- * reads and nobody types — the row is a verb, not a display — and neither is
- * the word "share", which the icon says and the pairing makes obvious.
+ * The same line does all three, because they are the same thing: the id in the
+ * box *is* the game, and typing a different one is how you are given a
+ * different game. It used to be a button to a dialog for typing and a separate
+ * row for sharing, which made two features out of one field.
  *
- * Still an anchor, so the address is real: it can be opened, and the browser's
- * own copy-link is there for anyone who reaches for it. If there is no share
- * sheet and no clipboard — an insecure origin — the click is left alone, and
- * the browser puts the link in the address bar instead.
+ * The field shows what the back end last dealt, not what was last typed. A
+ * refused id leaves what was typed in place, with what the puzzle said about it
+ * underneath; an accepted one is replaced by the puzzle's own spelling of it,
+ * which is rarely character-for-character what went in.
  */
-function ShareRow({ label, value }: { label: string; value: string }) {
+function TextRow({
+  kind,
+  label,
+  value,
+  error,
+  onSubmit,
+}: {
+  kind: TextKind
+  label: string
+  value: string
+  error: string | null
+  onSubmit: (kind: TextKind, text: string) => void
+}) {
+  const t = useStrings()
   const { share, copied } = useShare()
+  const id = useId()
+  const [text, setText] = useState(() => plain(value))
+
+  /*
+   * What was last handed over, which is what "unchanged" means. Not `value`:
+   * a refused id never becomes the value, and blurring the field again should
+   * not send it back for the same refusal.
+   */
+  const sent = useRef(text)
+  useEffect(() => {
+    setText(plain(value))
+    sent.current = plain(value)
+  }, [value])
+
+  const commit = () => {
+    if (text === sent.current) return
+    sent.current = text
+    onSubmit(kind, text)
+  }
+
+  // The address of what is on the board, which is not necessarily what is in
+  // the field. Sharing hands out the game you are looking at.
   const href = `#${value}`
 
   return (
-    <a
-      className="sheet-link"
-      href={href}
-      onClick={(e) => {
-        if (!navigator.share && !navigator.clipboard) return
-        e.preventDefault()
-        share(new URL(href, window.location.href).href, label)
-      }}
-    >
-      <span className="sheet-link-text">{label}</span>
-      <span className="sheet-link-copy" data-copied={copied}>
-        <Icon name={copied ? 'check' : 'share'} size={18} />
-      </span>
-    </a>
+    <div className="sheet-id">
+      <label htmlFor={id}>{label}</label>
+      <div className="sheet-id-row">
+        <input
+          id={id}
+          type="text"
+          value={text}
+          spellCheck={false}
+          autoComplete="off"
+          autoCapitalize="off"
+          autoCorrect="off"
+          onChange={(e) => setText(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return
+            // Nothing to submit it to; the field is the form.
+            e.preventDefault()
+            commit()
+          }}
+        />
+        {/*
+         * Still an anchor, so the address is real: it can be opened, and the
+         * browser's own copy-link is there for anyone who reaches for it. If
+         * there is no share sheet and no clipboard — an insecure origin — the
+         * click is left alone and the browser puts it in the address bar.
+         */}
+        <a
+          className="sheet-id-share"
+          href={href}
+          aria-label={t.menu.share(label)}
+          data-copied={copied}
+          onClick={(e) => {
+            if (!navigator.share && !navigator.clipboard) return
+            e.preventDefault()
+            share(new URL(href, window.location.href).href, label)
+          }}
+        >
+          <Icon name={copied ? 'check' : 'share'} size={18} />
+        </a>
+      </div>
+      {error && (
+        <p className="sheet-custom-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   )
 }

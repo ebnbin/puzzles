@@ -44,6 +44,9 @@ type Inline = { kind: InlineKind; spec: DialogSpec }
 const ask = (api: PuzzleApi, kind: InlineKind) =>
   kind === 'custom' ? api.selectPreset(CUSTOM_PRESET) : api.preferences()
 
+/** The two addresses a position has, each of which can be typed as well as read. */
+type TextKind = 'desc' | 'seed'
+
 /**
  * A puzzle, hosted entirely by React.
  *
@@ -110,6 +113,16 @@ export default function PuzzleHost({
   /** What the fields said when they last came from the back end. */
   const inlineBaseline = useRef('')
 
+  /*
+   * The game id and the seed are config boxes too, but there is nothing in
+   * them worth showing: one field, whose value we already have from the
+   * permalinks. So the box is borrowed rather than displayed — opened, filled
+   * in, answered, all inside one call — and this is where what it says on the
+   * way past is caught.
+   */
+  const borrowed = useRef<{ spec: DialogSpec | null; error: string | null } | null>(null)
+  const [textError, setTextError] = useState<{ kind: TextKind; message: string } | null>(null)
+
   const fullscreen = useFullscreen()
   const help = useHelp(name)
   const theme = useResolvedTheme()
@@ -154,9 +167,10 @@ export default function PuzzleHost({
           setReady(true)
         },
         onError: (message) => {
-          // A refused value belongs against the fields that were refused, not
-          // under the title bar behind the sheet showing them.
-          if (inlineRef.current) setInlineError(message)
+          // A refused value belongs against the field that was refused, not
+          // under the title bar behind the sheet showing it.
+          if (borrowed.current) borrowed.current.error = message
+          else if (inlineRef.current) setInlineError(message)
           else setError(message)
         },
         onStatus: setStatus,
@@ -171,6 +185,12 @@ export default function PuzzleHost({
         onPresetSelected: setSelected,
         onSolveRemoved: () => setCanSolve(false),
         onDialog: (spec) => {
+          // Borrowed: answered before this call returns, so it never reaches
+          // React at all.
+          if (spec && borrowed.current) {
+            borrowed.current.spec = spec
+            return
+          }
           const kind = inlinePending.current
           if (spec && kind) {
             inlinePending.current = null
@@ -291,6 +311,40 @@ export default function PuzzleHost({
     if (!inlineRef.current) {
       inlinePending.current = open.kind
       ask(api, open.kind)
+    }
+  }, [])
+
+  /*
+   * Hand the back end a game id or a random seed.
+   *
+   * It will only take one through a config box, and it has one box, which the
+   * menu is already using for the preferences. So: put those away, borrow the
+   * box, fill it in, answer it, and put the preferences back — all before
+   * this returns, so nothing of it is ever on screen.
+   */
+  const submitText = useCallback((kind: TextKind, text: string) => {
+    const api = apiRef.current
+    if (!api) return
+    const resume = inlineRef.current?.kind ?? null
+    if (resume) api.dialogCancel()
+
+    borrowed.current = { spec: null, error: null }
+    if (kind === 'desc') api.enterGameId()
+    else api.enterSeed()
+    const { spec } = borrowed.current
+    if (spec) {
+      spec.controls[0].value = text
+      api.dialogOk()
+      // Refused, so the box is still open and still has to be answered.
+      if (borrowed.current.error) api.dialogCancel()
+    }
+    const message = borrowed.current.error
+    borrowed.current = null
+    setTextError(message ? { kind, message } : null)
+
+    if (resume) {
+      inlinePending.current = resume
+      ask(api, resume)
     }
   }, [])
 
@@ -497,6 +551,9 @@ export default function PuzzleHost({
           aria-expanded={menuOpen}
           onClick={() => {
             closeTypes()
+            // Whatever the back end said about a typed id was said to a sheet
+            // that is no longer up. Opening a fresh one starts clean.
+            setTextError(null)
             setMenuOpen(true)
           }}
         >
@@ -584,6 +641,8 @@ export default function PuzzleHost({
           prefsError={inlineError}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
+          textError={textError}
+          onSubmitText={submitText}
           onAction={(action) => {
             // The back end will do nothing else while it is sitting in the
             // preferences; answer that first.

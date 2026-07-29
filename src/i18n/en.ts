@@ -64,10 +64,9 @@ export const en = {
     newGame: 'New game',
     restart: 'Restart',
     solve: 'Solve',
-    enterGameId: 'Game ID…',
-    enterSeed: 'Seed…',
     preferences: 'Preferences',
-    share: 'Share',
+    /** Names the icon beside a field, which has only the field for context. */
+    share: (what: string) => `Share ${what}`,
     gameId: 'Game ID',
     seed: 'Random seed',
   },

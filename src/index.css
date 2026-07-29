@@ -1112,63 +1112,82 @@ footer p {
 }
 
 
-/* The two addresses this position has, side by side. Each is a verb, not a
-   display: the id itself is thirty characters nobody reads and nobody types,
-   and the word "share" is what the icon is for. */
-.sheet-links {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/*
+ * The two addresses this position has, each one a field.
+ *
+ * They are laid out down the sheet rather than across it because an id is a
+ * line of text, not a word: at half the sheet's width you can see about eight
+ * characters of it, which is neither readable nor editable.
+ *
+ * The label goes above rather than beside for the same reason — everything
+ * short enough to sit opposite its label already does, in the rows above.
+ */
+.sheet-ids {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.sheet-id label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--text-2);
+  font-size: var(--t-sm);
+}
+
+.sheet-id-row {
+  display: flex;
+  align-items: center;
   gap: 0.4rem;
 }
 
-.sheet-links h2 {
-  grid-column: 1 / -1;
-}
-
-/* A game entered by hand has no seed, and the one row left takes the width. */
-.sheet-link:first-of-type:last-of-type {
-  grid-column: 1 / -1;
-}
-
-.sheet-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.sheet-id-row input {
+  flex: 1;
+  /* Or it refuses to go narrower than the id it is holding. */
+  min-width: 0;
   min-height: var(--touch);
-  padding: 0 0.75rem 0 0.9rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  /* Anything under 16px makes iOS zoom the page when the field is focused. */
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Square, and the same height as the field it belongs to. */
+.sheet-id-share {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
   border-radius: var(--r-sm);
   background: var(--surface-2);
-  color: var(--text);
+  color: var(--text-2);
   text-decoration: none;
   transition: background var(--dur) var(--ease);
 }
 
 @media (hover: hover) {
-  .sheet-link:hover {
+  .sheet-id-share:hover {
     background: var(--surface-3);
   }
 }
 
-.sheet-link:active {
+.sheet-id-share:active {
   background: var(--surface-3);
 }
 
-.sheet-link-text {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--t-sm);
-  font-weight: 500;
-}
-
-.sheet-link-copy {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  color: var(--text-2);
-}
-
-.sheet-link-copy[data-copied='true'] {
+.sheet-id-share[data-copied='true'] {
   color: var(--accent);
+}
+
+/* Against the field it is about, not a paragraph's worth of space below it. */
+.sheet-id .sheet-custom-error {
+  margin-top: 0.35rem;
 }
 
 /* --- dialogs --- */
