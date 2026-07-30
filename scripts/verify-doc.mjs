@@ -129,6 +129,14 @@ try {
 }
 
 // --- the app's own links land somewhere ----------------------------------
+/*
+ * "Full instructions" points at a bare page, no fragment, and lands at the
+ * top. That is only right while the page really is the whole chapter for that
+ * puzzle and nothing else, so it is the page's own first heading that gets
+ * checked: if upstream ever moved a puzzle into a chapter it shares, the top
+ * of the page would stop being the right place to arrive and this would say
+ * so.
+ */
 {
   const games = JSON.parse(readFileSync(join(ROOT, 'src/games.json'), 'utf8'))
   const dead = []
@@ -141,10 +149,12 @@ try {
         dead.push(`${dir}/${name}.html`)
         continue
       }
-      if (!html.includes(`name="${name}"`)) dead.push(`${name}#${name}`)
+      const heading = html.match(/<h1><a name="([^"]+)"><\/a>/)
+      if (heading?.[1] !== name)
+        dead.push(`${name}.html opens on ${heading?.[1] ?? 'no h1 anchor'}`)
     }
   dead.length === 0
-    ? ok(`all ${games.length} "Full instructions" targets resolve in both languages`)
+    ? ok(`all ${games.length} "Full instructions" pages open on their own chapter, both languages`)
     : bad(dead.slice(0, 5).join(', '))
 }
 

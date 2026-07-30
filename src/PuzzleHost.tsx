@@ -673,12 +673,15 @@ export default function PuzzleHost({
                 the new tab was for; the board is now saved after every move,
                 so going there and coming back costs a reload and nothing
                 else. No glyph: the words say where this goes, and the button
-                beside it wears none either. */}
+                beside it wears none either.
+
+                No fragment either. The page is this puzzle's chapter entire,
+                so `#name` could only aim at its own first heading — which
+                bought nothing and cost the top of the page: the contents,
+                the index, and the way to the neighbouring chapters, all
+                scrolled off before the reader arrived. */}
             <div className="dialog-buttons">
-              <a
-                className="dialog-more"
-                href={docHref(lang, `${name}.html#${name}`)}
-              >
+              <a className="dialog-more" href={docHref(lang, `${name}.html`)}>
                 {t.play.fullInstructions}
               </a>
               <button type="button" onClick={() => setHelpOpen(false)}>

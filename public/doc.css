@@ -343,6 +343,21 @@ body {
   font-weight: 650;
   line-height: 1.25;
   letter-spacing: -0.015em;
+}
+
+/*
+ * Room for the bar above whatever a link jumped to.
+ *
+ * It belongs on the anchor and nowhere else. Halibut writes HTML 4 named
+ * anchors — `<h2><a name="net-controls"></a>3.1 Net controls</h2>` — so the
+ * element a fragment scrolls to is that empty `<a>` inside the heading, never
+ * the heading itself. The same margin declared on h1/h2/h3 looks right and
+ * does nothing: the browser reads it off the target, and the target is the
+ * anchor. Every named anchor gets it, not only the ones in headings, because
+ * every one of them is something a link in this manual points at — the
+ * footnote markers and the index entries as much as the section titles.
+ */
+.doc-main a[name] {
   scroll-margin-top: 4.5rem;
 }
 
