@@ -39,6 +39,7 @@ export const en = {
 
   settings: {
     title: 'Settings',
+    haptics: 'Long-press vibration',
     appearance: 'Appearance',
     themeSystem: 'System',
     themeLight: 'Light',

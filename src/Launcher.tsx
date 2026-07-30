@@ -6,6 +6,7 @@ import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
 import { onNavClick, takeLauncherScroll } from './router'
+import { buzz } from './useHaptics'
 import { toggleHidden, useHidden } from './useHidden'
 import { promptInstall, useInstall } from './useInstall'
 
@@ -236,6 +237,8 @@ function Tile({
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => {
       held.current = true
+      // The finger is already down, so this is the only downstroke there is.
+      buzz()
       onToggle(game)
     }, HOLD_MS)
   }

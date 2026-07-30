@@ -22,6 +22,7 @@ export const zh: Strings = {
 
   settings: {
     title: '设置',
+    haptics: '长按震动',
     appearance: '外观',
     themeSystem: '跟随系统',
     themeLight: '浅色',

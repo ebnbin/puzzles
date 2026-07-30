@@ -1,6 +1,7 @@
 import Icon from './Icon'
 import { docHref, useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
+import { canBuzz, useHaptics } from './useHaptics'
 import { useTheme } from './useTheme'
 import type { Theme } from './useTheme'
 
@@ -16,6 +17,7 @@ export default function LauncherSettings({ onClose }: { onClose: () => void }) {
   const t = useStrings()
   const [lang, setLang] = useLang()
   const [theme, setTheme] = useTheme()
+  const [haptics, setHaptics] = useHaptics()
 
   const themes: { value: Theme; label: string }[] = [
     { value: 'system', label: t.settings.themeSystem },
@@ -84,6 +86,19 @@ export default function LauncherSettings({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </div>
+
+        {/* Only on devices that can do it at all — iOS has no vibration API,
+            and a switch that does nothing is worse than no switch. */}
+        {canBuzz() && (
+          <label className="setting setting-check">
+            <span className="setting-text">{t.settings.haptics}</span>
+            <input
+              type="checkbox"
+              checked={haptics}
+              onChange={(e) => setHaptics(e.target.checked)}
+            />
+          </label>
+        )}
 
         {/* A new tab: the manual is a separate site, and coming back should
             not mean loading the app again. */}

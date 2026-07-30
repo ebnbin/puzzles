@@ -149,6 +149,19 @@ a {
   color: var(--text-3);
 }
 
+/* A yes-or-no setting: the same row, a checkbox where the options would be. */
+.setting-check {
+  cursor: pointer;
+}
+
+.setting-check input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 @media (hover: hover) {
   .setting-link:hover .setting-text {
     color: var(--accent);
