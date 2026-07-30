@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
-import { buzz } from './useHaptics'
 
 /**
  * The keys the puzzle asked for, as buttons.
@@ -59,7 +58,6 @@ export default function PuzzleKeypad({
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => {
       held.current = true
-      buzz()
       const box = el.getBoundingClientRect()
       setTip({
         text,

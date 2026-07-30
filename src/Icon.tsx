@@ -37,8 +37,6 @@ export type IconName =
   | 'prefs'
   | KeyIcon
   | 'external'
-  | 'install'
-  | 'shareIos'
   | 'eye'
   | 'eyeOff'
   | 'check'
@@ -231,23 +229,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
   /* Small, and drawn shallow: it sits beside a word rather than in a button
      of its own, and a steep chevron there reads as a second glyph. */
   caret: <path d="m7.5 10 4.5 4.5 4.5-4.5" />,
-  /* The square with the arrow escaping upward: iOS's own share glyph, for
-     when the instructions have to point at it. */
-  shareIos: (
-    <>
-      <path d="M12 3.2v10" />
-      <path d="m8.2 6.4 3.8-3.6 3.8 3.6" />
-      <path d="M8 10.2H6.2A1.7 1.7 0 0 0 4.5 11.9v6.9a1.7 1.7 0 0 0 1.7 1.7h11.6a1.7 1.7 0 0 0 1.7-1.7v-6.9a1.7 1.7 0 0 0-1.7-1.7H16" />
-    </>
-  ),
-  /* An arrow going into a tray: onto the device it goes. */
-  install: (
-    <>
-      <path d="M12 3.4v10.4" />
-      <path d="m7.8 9.8 4.2 4.2 4.2-4.2" />
-      <path d="M4 15.4v3.2A1.9 1.9 0 0 0 5.9 20.5h12.2a1.9 1.9 0 0 0 1.9-1.9v-3.2" />
-    </>
-  ),
   /* An eye, and the same eye struck through: shown and hidden. Drawn small —
      they live in the corner of a tile. */
   eye: (

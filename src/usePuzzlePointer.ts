@@ -99,8 +99,6 @@ export function usePuzzlePointer(
           if (!p) return
           apiRef.current?.mouseup(p.x, p.y, 2)
           held.current.delete(p.pointerId)
-          // Confirm it landed — there is no cursor to show a state change.
-          navigator.vibrate?.(15)
         }, LONG_PRESS_MS),
       }
     },

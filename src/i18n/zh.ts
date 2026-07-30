@@ -12,17 +12,12 @@ export const zh: Strings = {
     hidden: (count: number) => `已隐藏（${count}）`,
     nowHidden: (game: string) => `已隐藏 ${game}`,
     nowShown: (game: string) => `已显示 ${game}`,
-    install: '安装为应用',
-    installIosIntro: '可以把 Puzzles 添加到主屏幕：',
-    installIosShare: '点击分享按钮',
-    installIosAdd: '选择“添加到主屏幕”',
     credit: 'Puzzles 由 Simon Tatham 及众多贡献者开发，基于 MIT 许可证发布。',
     source: '源码：',
   },
 
   settings: {
     title: '设置',
-    haptics: '长按震动',
     appearance: '外观',
     themeSystem: '跟随系统',
     themeLight: '浅色',

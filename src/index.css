@@ -149,19 +149,6 @@ a {
   color: var(--text-3);
 }
 
-/* A yes-or-no setting: the same row, a checkbox where the options would be. */
-.setting-check {
-  cursor: pointer;
-}
-
-.setting-check input {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
 @media (hover: hover) {
   .setting-link:hover .setting-text {
     color: var(--accent);
@@ -394,33 +381,6 @@ a {
   .games-stashed li:hover .games-art {
     opacity: 1;
   }
-}
-
-/* The way onto the home screen, sitting quietly under the collection. */
-.install {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: var(--tap-h);
-  margin-top: 1.25rem;
-  padding: 0 0.8rem;
-  border-radius: var(--r-full);
-  color: var(--text-2);
-  font-size: var(--t-sm);
-  font-weight: 500;
-}
-
-.install-steps {
-  margin: 0.5rem 0 0;
-  padding-left: 1.4rem;
-}
-
-.install-steps li {
-  margin: 0.35rem 0;
-}
-
-.install-steps svg {
-  vertical-align: -0.18em;
 }
 
 /*

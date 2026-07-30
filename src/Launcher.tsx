@@ -6,9 +6,7 @@ import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
 import { onNavClick, takeLauncherScroll } from './router'
-import { buzz } from './useHaptics'
 import { toggleHidden, useHidden } from './useHidden'
-import { promptInstall, useInstall } from './useInstall'
 
 /** A press has to be still for this long before it means hide, not open. */
 const HOLD_MS = 450
@@ -30,11 +28,9 @@ const HOLD_MS = 450
 export default function Launcher() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [hiddenOpen, setHiddenOpen] = useState(false)
-  const [installHelp, setInstallHelp] = useState(false)
   const t = useStrings()
   const games = useGames()
   const hidden = useHidden()
-  const install = useInstall()
 
   const shown = games.filter((g) => !hidden.has(g.name))
   const away = games.filter((g) => hidden.has(g.name))
@@ -134,49 +130,6 @@ export default function Launcher() {
         </section>
       )}
 
-      {/* Only where there is a way in: Chromium's stashed prompt, or iOS's
-          share sheet, which the little dialog gives directions to. A visit
-          already running from the home screen gets nothing. */}
-      {(install === 'prompt' || install === 'ios') && (
-        <button
-          type="button"
-          className="install"
-          onClick={() => {
-            if (install === 'prompt') void promptInstall()
-            else setInstallHelp(true)
-          }}
-        >
-          <Icon name="install" size={16} />
-          {t.launcher.install}
-        </button>
-      )}
-
-      {installHelp && (
-        <div className="dialog-dimmer" onClick={() => setInstallHelp(false)}>
-          <div
-            className="dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.launcher.install}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>{t.launcher.install}</h2>
-            <p>{t.launcher.installIosIntro}</p>
-            <ol className="install-steps">
-              <li>
-                {t.launcher.installIosShare} <Icon name="shareIos" size={15} />
-              </li>
-              <li>{t.launcher.installIosAdd}</li>
-            </ol>
-            <div className="dialog-buttons">
-              <button type="button" onClick={() => setInstallHelp(false)}>
-                {t.play.close}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <footer>
         <p>
           {t.launcher.credit} {t.launcher.source}{' '}
@@ -237,8 +190,6 @@ function Tile({
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => {
       held.current = true
-      // The finger is already down, so this is the only downstroke there is.
-      buzz()
       onToggle(game)
     }, HOLD_MS)
   }
