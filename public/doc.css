@@ -61,7 +61,8 @@
 
   /* The grey the thumbnails are rendered on. Constant across themes: the
      icons are built once, in light, and sit on a plate that matches them.
-     Never applied to the canvas itself — see the note above. */
+     Never applied to the canvas itself — see the note above. What a board
+     becomes on dark is decided in engine/palette.ts, not here. */
   --board: #e6e6e6;
 
   /* The lattice every one of these puzzles is played on, at a contrast you
@@ -98,8 +99,27 @@
   --dur: 170ms;
   --dur-slow: 300ms;
 
-  /* Comfortable thumb target; tightened on pointer devices further down. */
-  --touch: 2.75rem;
+  /*
+   * The lattice every surface of the app stands on — the same one the puzzles
+   * are played on, at a contrast you find only by looking for it. Named here
+   * so the launcher and the puzzle screen paint the identical pattern; the
+   * colour (--grid-line) is a theme token set further down.
+   */
+  --grid-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  --grid-size: 24px 24px;
+  --grid-position: center -1px;
+
+  /*
+   * The size of a button: 40 across, 36 down.
+   *
+   * Not a floor to grow from. A button is this size unless it is stretched
+   * across a row that has to be filled — the four along the foot of the board,
+   * the keys — or unless its own label needs more room than that. Never
+   * because there happened to be space going spare.
+   */
+  --tap-w: 2.5rem;
+  --tap-h: 2.25rem;
 }
 
 :root[data-theme='dark'] {

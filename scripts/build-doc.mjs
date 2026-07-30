@@ -76,6 +76,7 @@ const BACK_ICON =
  * same storage key, same two colours — so following a link into the manual
  * does not flash white at a reader who has chosen dark. The second listener
  * keeps the app's idea of the language in step when it is changed from here.
+ * The third makes the bar's arrow a real back where there is one to take.
  */
 const HEAD_SCRIPT = `<script>
 ;(function () {
@@ -95,6 +96,25 @@ const HEAD_SCRIPT = `<script>
     try {
       localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
     } catch (e) {}
+  })
+  // The arrow means "back to the app". Where the app really is the page
+  // behind this one, take that step, so the reader lands on the board they
+  // left rather than on a second copy of the app pushed over the manual.
+  // Arriving from elsewhere in the manual, or from nowhere at all, the href
+  // stands: home is then somewhere to go, and the manual carries its own
+  // previous and next for moving within itself.
+  document.addEventListener('click', function (event) {
+    var home = event.target.closest && event.target.closest('.doc-home')
+    if (!home || event.defaultPrevented || event.button !== 0) return
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    // A tab of its own has nothing behind it; back would be a dead click.
+    if (history.length < 2) return
+    var from = document.referrer
+    var root = location.origin + '/'
+    if (from.lastIndexOf(root, 0) !== 0) return
+    if (from.slice(location.origin.length).lastIndexOf('/doc/', 0) === 0) return
+    event.preventDefault()
+    history.back()
   })
 })()
 </script>`

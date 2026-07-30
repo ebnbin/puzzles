@@ -668,17 +668,18 @@ export default function PuzzleHost({
                 <p>{objective}</p>
               </div>
             )}
-            {/* The blurb is a paragraph; the manual is the chapter. A new
-                tab, because leaving the page would abandon the position. */}
+            {/* The blurb is a paragraph; the manual is the chapter. Leaving
+                the page used to mean abandoning the position, which is what
+                the new tab was for; the board is now saved after every move,
+                so going there and coming back costs a reload and nothing
+                else. No glyph: the words say where this goes, and the button
+                beside it wears none either. */}
             <div className="dialog-buttons">
               <a
                 className="dialog-more"
                 href={docHref(lang, `${name}.html#${name}`)}
-                target="_blank"
-                rel="noreferrer"
               >
                 {t.play.fullInstructions}
-                <Icon name="external" size={16} />
               </a>
               <button type="button" onClick={() => setHelpOpen(false)}>
                 {t.play.close}

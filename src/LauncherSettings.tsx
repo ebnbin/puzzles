@@ -67,19 +67,17 @@ export default function LauncherSettings({
           </div>
         </div>
 
-        {/* A new tab: the manual is a separate site, and coming back should
-            not mean loading the app again. */}
-        <a
-          className="setting setting-link"
-          href={docHref(lang)}
-          target="_blank"
-          rel="noreferrer"
-        >
+        {/* This tab. The manual is a real site at a real address, so it is
+            read the way a page is read: you go there, and Back brings you
+            home. A new tab would put it outside the app's history, where the
+            manual's own back arrow leads to a second copy of the app and the
+            browser's Back leads nowhere. */}
+        <a className="setting setting-link" href={docHref(lang)}>
           <span className="setting-text">
             {t.settings.manual}
             <em>{t.settings.manualHint}</em>
           </span>
-          <Icon name="external" size={18} />
+          <Icon name="caret" size={18} className="is-next" />
         </a>
 
         <div className="dialog-buttons">
