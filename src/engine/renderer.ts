@@ -18,7 +18,7 @@ export interface Size {
   h: number
 }
 
-import { FIGURE, forDarkBoard, RIM } from './palette'
+import { BACKGROUND, FIGURE, forDarkBoard, RIM } from './palette'
 
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
@@ -139,8 +139,15 @@ export class CanvasRenderer {
 
   // --- shapes --------------------------------------------------------------
 
+  /**
+   * The one call that paints the ground, and it paints it in the background's
+   * own slot — so that slot keeps the board's colour here even where `FIGURE`
+   * holds it still elsewhere, or the whole board would turn over. A rect in any
+   * other slot is drawing, not ground: Undead's pupils are 1x1 rects wherever
+   * the tile is small enough to round their radius away.
+   */
   rect(x: number, y: number, w: number, h: number, colour: number) {
-    this.ctx.fillStyle = this.colours[colour]
+    this.ctx.fillStyle = colour === BACKGROUND ? this.colours[colour] : this.ink(colour)
     this.ctx.fillRect(x, y, w, h)
   }
 
@@ -162,7 +169,9 @@ export class CanvasRenderer {
    */
   line(x1: number, y1: number, x2: number, y2: number, width: number, colour: number) {
     const { ctx } = this
-    const css = this.colours[colour]
+    // A line is a shape too — the zombie's crossed eyes and its mouth are
+    // three of these, and they were the last of it still turning over.
+    const css = this.ink(colour)
     ctx.beginPath()
     ctx.moveTo(x1 + 0.5, y1 + 0.5)
     ctx.lineTo(x2 + 0.5, y2 + 0.5)

@@ -238,9 +238,18 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  *
  * What separates the two jobs is not the slot but the call. Outside
  * `draw_monster`, Undead never hands COL_TEXT to anything but `draw_text`:
- * every circle and polygon that mentions it is part of a monster. So the rule
- * is drawn where the difference is — a shape, not a string — and the renderer
- * applies it. See `Renderer.ink`.
+ * every circle, polygon and line that mentions it is part of a monster. So the
+ * rule is drawn where the difference is — a shape, not a string — and the
+ * renderer applies it. See `Renderer.ink`.
+ *
+ * All three kinds of shape, which took saying twice: the zombie's crossed eyes
+ * and its mouth are lines, and while `line` was still reading the board's table
+ * they stayed white on a face that had gone back to being drawn in black.
+ *
+ * Not `rect`, though, and that is the edge this rule balances on. COL_BACKGROUND
+ * is in the list because it is the monsters' paper, and it is only safe there
+ * because the ground is painted with `draw_rect` while the paper is circles and
+ * polygons. Serve a rect its light value and the whole board turns over.
  *
  * The skins are here too, though nothing else uses them, because a figure
  * dimmed by the veil under an undimmed outline is half a negative rather than
@@ -412,7 +421,7 @@ const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
 }
 
 /** Every game names its background first. */
-const BACKGROUND = 0
+export const BACKGROUND = 0
 
 /**
  * How far to nudge a colour that would otherwise duplicate another.
