@@ -20,6 +20,10 @@ export const en = {
 
   launcher: {
     settings: 'Settings',
+    /** Named for the game, since the button is in its corner. */
+    hide: (game: string) => `Hide ${game}`,
+    show: (game: string) => `Show ${game}`,
+    hidden: (count: number) => `Hidden (${count})`,
     credit:
       'Puzzles are the work of Simon Tatham and contributors, distributed under the MIT licence.',
     source: 'Source:',
