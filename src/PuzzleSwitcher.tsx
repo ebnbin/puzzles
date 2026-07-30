@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
 import { navigateReplace } from './router'
-import { useHidden } from './useHidden'
 
 /**
  * Forty puzzles, one tap away from the one you are playing.
@@ -88,11 +87,9 @@ export default function PuzzleSwitcher({
   onClose: () => void
 }) {
   const t = useStrings()
-  const hidden = useHidden()
-  // What the launcher shows is what there is to switch to: a game put away
-  // there is not offered here either — including the one being played, if
-  // it was opened by address while hidden.
-  const games = useGames().filter((g) => !hidden.has(g.name))
+  // What the launcher shows is what there is to switch to: all forty, in the
+  // collection's own order.
+  const games = useGames()
   const currentRef = useRef<HTMLAnchorElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLUListElement>(null)

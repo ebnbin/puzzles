@@ -37,8 +37,6 @@ export type IconName =
   | 'prefs'
   | KeyIcon
   | 'external'
-  | 'eye'
-  | 'eyeOff'
   | 'check'
   | 'help'
   | 'share'
@@ -229,22 +227,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
   /* Small, and drawn shallow: it sits beside a word rather than in a button
      of its own, and a steep chevron there reads as a second glyph. */
   caret: <path d="m7.5 10 4.5 4.5 4.5-4.5" />,
-  /* An eye, and the same eye struck through: shown and hidden. Drawn small —
-     they live in the corner of a tile. */
-  eye: (
-    <>
-      <path d="M2.8 12S6.2 5.8 12 5.8 21.2 12 21.2 12 17.8 18.2 12 18.2 2.8 12 2.8 12Z" />
-      <circle cx="12" cy="12" r="2.7" />
-    </>
-  ),
-  eyeOff: (
-    <>
-      <path d="M4.4 7.4A16.6 16.6 0 0 0 2.8 12s3.4 6.2 9.2 6.2a8.6 8.6 0 0 0 3.6-.8" />
-      <path d="M8.6 6.5A8.5 8.5 0 0 1 12 5.8c5.8 0 9.2 6.2 9.2 6.2a16.4 16.4 0 0 1-2.9 3.6" />
-      <path d="M9.9 9.9a2.85 2.85 0 1 0 4.2 4.2" />
-      <path d="m4 4 16 16" />
-    </>
-  ),
   /* Three nodes and the lines between them — a network, like half the
      collection. */
   share: (

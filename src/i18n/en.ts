@@ -20,13 +20,6 @@ export const en = {
 
   launcher: {
     settings: 'Settings',
-    /** Named for the game, since the button is in its corner. */
-    hide: (game: string) => `Hide ${game}`,
-    show: (game: string) => `Show ${game}`,
-    hidden: (count: number) => `Hidden (${count})`,
-    /** Said in passing when a tile is put away or brought back. */
-    nowHidden: (game: string) => `${game} hidden`,
-    nowShown: (game: string) => `${game} shown`,
     credit:
       'Puzzles are the work of Simon Tatham and contributors, distributed under the MIT licence.',
     source: 'Source:',
