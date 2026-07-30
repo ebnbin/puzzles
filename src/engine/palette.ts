@@ -325,29 +325,44 @@ const BOARD_IS_PAPER = new Set(['singles', 'range'])
 /**
  * Slots a game measures out from its own background rather than choosing.
  *
- * `ret[COL_GRID] = ret[COL_BACKGROUND] * 0.9F` is not a grey the game picked; it
- * is a statement that this line is a tenth of a step off the board it is drawn
- * on. So it has the bevel's problem, for the bevel's reason: where `needsRoom`
- * lifts the board, a step measured from the background is left being measured
- * from where the background used to be. The lift already carries the bevel
- * along; these are the other colours that have to go with it.
+ * `ret[COL_GRID] = ret[COL_BACKGROUND] * 0.9F` is not a grey the game picked. It
+ * is a statement — this line is a tenth of a step off the board it is drawn on —
+ * and Loopy says it in words where it does the same thing: "we want
+ * COL_LINEUNKNOWN to be a yellow which is a bit darker than the background".
+ * A bit darker is the whole of what that colour means.
  *
- * Blackbox is where it showed. Its border of laser squares is drawn on the board
- * with a COL_GRID line between each pair, and on the lifted board that line came
- * to 1.03:1 against the very surface it divides — you could not see where one
- * laser square ended and the next began, though the same line inside the arena
- * was fine, being drawn on the covers rather than on the board. Carried up with
- * the board it is 1.29:1, against upstream's own 1.25:1.
+ * So these keep their distance from the board rather than their own value: the
+ * contrast upstream gave them, the other way round, because a dark board is the
+ * negative of a light one. Every other rule in this file decides what a colour
+ * *is*; this one decides what it is *next to*, which for a shade of the board is
+ * all it was ever about.
  *
- * Not a guess either: every entry is a line in the game's `game_colours` that
- * multiplies or divides `ret[COL_BACKGROUND]`. Only the two games do it among
- * those whose board is ever lifted, and only these slots.
+ * Two ways it had gone wrong, and they are the same way wrong:
+ *
+ * - Blackbox's border of laser squares is drawn straight on the board with a
+ *   COL_GRID line between each pair, and where `needsRoom` lifts the board that
+ *   line was left at the height the board used to be: 1.03:1 against the very
+ *   surface it divides, so you could not see where one laser square ended and
+ *   the next began.
+ * - Palisade's and Loopy's yellow is every border you have not decided about,
+ *   and it has a hue, so it took the veil — kept its own luminance while the
+ *   board went out from under it. A whisper at 1.34:1 on upstream's board became
+ *   a shout at 6.05:1 on ours, and the wall you had drawn, black and the loudest
+ *   thing on a light board, came out white at 1.72:1 from the yellow it has to be
+ *   told apart from. Which of those two a line is *is* the state of the game.
+ *
+ * Not a guess: every entry is a line in that game's `game_colours` that
+ * multiplies or divides `ret[COL_BACKGROUND]`.
  */
 const DERIVED: Record<string, readonly number[]> = {
   /* COL_COVER, COL_LOCK, COL_GRID — background times 0.5, 0.7 and 0.9 */
   blackbox: [1, 2, 7],
   /* COL_GRID, COL_CURSOR — background over 1.5 and over 2 */
   lightup: [1, 6],
+  /* COL_LINEUNKNOWN — background times 0.9, with the blue taken out */
+  loopy: [2],
+  /* COL_LINE_MAYBE the same, and COL_LINE_NO the same without the tint */
+  palisade: [3, 4],
 }
 
 /**
@@ -492,6 +507,12 @@ function luminance({ r, g, b }: Colour): number {
   return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
 }
 
+/** WCAG's contrast between two luminances, whichever way round they come. */
+function ratio(a: number, b: number): number {
+  const [x, y] = a > b ? [a, b] : [b, a]
+  return (x + 0.05) / (y + 0.05)
+}
+
 /**
  * Black at `VEIL x luminance`, composited over the colour. Since the veil is
  * pure black, that composite is one multiplication per channel — which scales
@@ -611,8 +632,35 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       })
   }
 
-  /* The shades measured out from the background go with it — see `DERIVED`. */
-  for (const index of DERIVED[game] ?? []) carry(index)
+  /*
+   * The shades measured out from the background stand off it by what they
+   * always stood off it — see `DERIVED`. Upstream drew each of these darker
+   * than its board; a dark board is the negative of a light one, so each comes
+   * out lighter than ours by the same contrast.
+   *
+   * Bisected rather than solved: with the hue and the saturation held, contrast
+   * against a fixed board rises monotonically with lightness above it, so twenty
+   * halvings put it within a thousandth. The alternative is the inverse of the
+   * sRGB transfer function through the luminance of three channels, which is a
+   * page of algebra for a number a loop finds exactly.
+   */
+  const darkBoard = parse(flipped[BACKGROUND])
+  for (const index of DERIVED[game] ?? []) {
+    const was = parse(light[index])
+    const now = parse(flipped[index])
+    if (!was || !now || !board || !darkBoard) continue
+    const want = ratio(luminance(board), luminance(was))
+    const ground = luminance(darkBoard)
+    let lo = darkBoard.l
+    let hi = CEILING
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2
+      const at = parse(format({ ...now, l: mid }))
+      if (at && ratio(ground, luminance(at)) < want) lo = mid
+      else hi = mid
+    }
+    flipped[index] = format({ ...now, l: (lo + hi) / 2 })
+  }
 
   /*
    * Keep the light where it was: of each bevel pair, the lit side takes the
