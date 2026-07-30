@@ -4,27 +4,28 @@ import App from './App'
 import { clearLast, readLast } from './engine/saves'
 import games from './games.json'
 import './index.css'
-import { installHistory } from './router'
+import { start } from './view'
 
 /*
- * Settle the history before React exists, once per document.
+ * Settle the first view before React exists, once per document.
  *
- * Where to end up: the address that was loaded — unless it is the root and a
- * last game is remembered, in which case reopen that instead. A remembered
- * name that is not a game is stale and cleared, rather than left to strand
- * every cold start on the not-found page.
- *
- * installHistory then plants the launcher behind whatever game this resolves
- * to, so Back always has a gallery to return to. See router.
+ * The address mirrors the open puzzle as a hash, so a refresh comes back to
+ * it. Failing that — a cold start at the bare address — the last puzzle
+ * played is reopened, which is what makes the gallery a place you choose to be
+ * rather than a toll gate. A remembered name that is not a puzzle is stale and
+ * cleared, rather than left to strand every cold start on the not-found view.
  */
 {
-  let target = window.location.pathname
-  if (target === '/') {
+  const named = (name: string | null) =>
+    name && games.some((g) => g.name === name) ? name : null
+
+  let target = named(window.location.hash.replace(/^#/, ''))
+  if (!target) {
     const last = readLast()
-    if (last && games.some((g) => g.name === last)) target = `/${last}`
-    else if (last) clearLast()
+    target = named(last)
+    if (last && !target) clearLast()
   }
-  installHistory(target)
+  start(target)
 }
 
 createRoot(document.getElementById('root')!).render(

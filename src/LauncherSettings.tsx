@@ -67,17 +67,24 @@ export default function LauncherSettings({
           </div>
         </div>
 
-        {/* This tab. The manual is a real site at a real address, so it is
-            read the way a page is read: you go there, and Back brings you
-            home. A new tab would put it outside the app's history, where the
-            manual's own back arrow leads to a second copy of the app and the
-            browser's Back leads nowhere. */}
-        <a className="setting setting-link" href={docHref(lang)}>
+        {/* A tab of its own, which it was before and is again for a reason
+            that has changed. The objection was that a new tab put the manual
+            outside the app's history; the app has no history now, so there is
+            nothing for it to be outside of — and a same-tab visit would unload
+            the one page this app has, taking the open sheet and the scroll with
+            it. In standalone the same visit would replace the app inside its
+            own window, with no tab to come back from. */}
+        <a
+          className="setting setting-link"
+          href={docHref(lang)}
+          target="_blank"
+          rel="noreferrer"
+        >
           <span className="setting-text">
             {t.settings.manual}
             <em>{t.settings.manualHint}</em>
           </span>
-          <Icon name="caret" size={18} className="is-next" />
+          <Icon name="external" size={18} />
         </a>
 
         <div className="dialog-buttons">

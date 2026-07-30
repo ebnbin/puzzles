@@ -148,12 +148,6 @@ a {
   color: var(--text-3);
 }
 
-/* The caret is drawn pointing down, where it means "unfold". A quarter turn
-   makes it point the way this row goes: onward, to another page. */
-.setting-link .is-next {
-  transform: rotate(-90deg);
-}
-
 @media (hover: hover) {
   .setting-link:hover .setting-text {
     color: var(--accent);

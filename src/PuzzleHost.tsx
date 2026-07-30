@@ -11,7 +11,7 @@ import { clearSave, readSave, writeLast, writeSave } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
-import { onBackClick } from './router'
+import { onBackClick } from './view'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
@@ -193,15 +193,18 @@ export default function PuzzleHost({
     const area = areaRef.current
     if (!canvas || !area) return
 
-    // An id in the address is an explicit ask and wins over the save: a
-    // shared link must open the game it names, not the reader's own past.
-    const gameId = decodeURIComponent(window.location.hash.replace(/^#/, ''))
-    const saved = gameId ? null : readSave(name)
+    /*
+     * Nothing in the address names a position any more. The hash is the view's
+     * own mirror — `#solo` is which puzzle is open, not which board — so
+     * reading it here would hand the midend the puzzle's name as an id. A
+     * position worth opening from outside is the share link's job, and it is a
+     * separate thing; see view.ts.
+     */
+    const saved = readSave(name)
 
     createPuzzle({
       name,
       canvas,
-      gameId,
       // No room stated, so the first board the back end lays out is the one it
       // would have chosen on its own. usePuzzleFit takes it from there, and
       // whichever frame lands first is a board at a size the game asked for —
@@ -512,7 +515,7 @@ export default function PuzzleHost({
       <header className="play-bar">
         <a
           className="play-back"
-          href="/"
+          href="#"
           onClick={onBackClick}
           aria-label={t.play.back}
         >
@@ -679,10 +682,20 @@ export default function PuzzleHost({
                 so `#name` could only aim at its own first heading — which
                 bought nothing and cost the top of the page: the contents,
                 the index, and the way to the neighbouring chapters, all
-                scrolled off before the reader arrived. */}
+                scrolled off before the reader arrived.
+
+                A tab of its own: this app is one page, and leaving it would
+                unload the board, the sheet this link is in, and everything
+                else held in memory. */}
             <div className="dialog-buttons">
-              <a className="dialog-more" href={docHref(lang, `${name}.html`)}>
+              <a
+                className="dialog-more"
+                href={docHref(lang, `${name}.html`)}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {t.play.fullInstructions}
+                <Icon name="external" size={16} />
               </a>
               <button type="button" onClick={() => setHelpOpen(false)}>
                 {t.play.close}

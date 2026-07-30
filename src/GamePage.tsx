@@ -1,7 +1,7 @@
 import PuzzleHost from './PuzzleHost'
 import { useStrings } from './i18n'
 import { useGame } from './i18n/games'
-import { onBackClick } from './router'
+import { onBackClick } from './view'
 
 /**
  * A puzzle under the TypeScript rewrite. Every puzzle runs here as upstream's
@@ -18,7 +18,7 @@ export default function GamePage({ name }: { name: string }) {
         <h1>{t.notFound.title}</h1>
         <p>
           {t.notFound.body(name)}{' '}
-          <a href="/" onClick={onBackClick}>
+          <a href="#" onClick={onBackClick}>
             {t.notFound.back}
           </a>
         </p>

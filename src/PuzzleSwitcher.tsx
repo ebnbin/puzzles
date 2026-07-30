@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
-import { navigateReplace } from './router'
+import { openGame } from './view'
 import { useHidden } from './useHidden'
 
 /**
@@ -139,7 +139,7 @@ export default function PuzzleSwitcher({
               <li key={game.name}>
                 <a
                   ref={here ? currentRef : undefined}
-                  href={`/${game.name}`}
+                  href={`#${game.name}`}
                   aria-current={here ? 'page' : undefined}
                   onClick={(e) => {
                     // Modified and middle clicks open a tab, as on any link.
@@ -160,7 +160,7 @@ export default function PuzzleSwitcher({
                     }
                     // A switch is a sideways move, not a level down: replace,
                     // so Back from the new game is still the gallery.
-                    navigateReplace(`/${game.name}`)
+                    openGame(game.name)
                     onClose()
                   }}
                 >

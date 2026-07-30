@@ -6,7 +6,7 @@ import { useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
-import { onNavClick, takeLauncherScroll } from './router'
+import { onTileClick, takeGalleryScroll } from './view'
 import { toggleHidden, useHidden } from './useHidden'
 
 /** A press has to be still for this long before it means hide, not open. */
@@ -77,7 +77,7 @@ export default function Launcher() {
    * commits, and the scroll has to already be right in that picture.
    */
   useLayoutEffect(() => {
-    window.scrollTo(0, takeLauncherScroll())
+    window.scrollTo(0, takeGalleryScroll())
   }, [])
 
   /*
@@ -235,7 +235,7 @@ function Tile({
   return (
     <li>
       <a
-        href={`/${game.name}`}
+        href={`#${game.name}`}
         onPointerDown={down}
         onPointerUp={up}
         onPointerCancel={up}
@@ -248,7 +248,7 @@ function Tile({
             e.preventDefault()
             return
           }
-          onNavClick(e)
+          onTileClick(e)
         }}
       >
         <span className="games-art">
