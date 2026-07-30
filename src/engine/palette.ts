@@ -390,23 +390,82 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   })
 
   /*
+   * How far `needsRoom` moved the board out from under its own relief.
+   *
+   * A bevel is not free-standing: `game_mkhighlight` builds it by walking a
+   * fixed distance either side of the background, so it means nothing except
+   * as a pair of steps up and down from that surface. The flip carries both
+   * ends of that arrangement across together — but where the board is then
+   * lifted to make room for a black the rules need, the bevel is left behind
+   * at the height the board used to be, and the step up from the board to its
+   * own lit edge is most of what is lost. Blackbox's came to 0.047 where the
+   * eight games with an unmoved board all have about 0.12: a frame you could
+   * find rather than one you could see.
+   *
+   * So the pair goes wherever the board went. Nothing is chosen here either —
+   * the distance is the one the board itself was moved by.
+   */
+  const lift = needsRoom && board ? SEMANTIC_BOARD - flip(board.l) : 0
+
+  /*
    * Keep the light where it was: of each bevel pair, the lit side takes the
    * lighter of the two values.
    *
    * Stated as the thing that must be true rather than as the fix, which is
    * what makes it safe to apply to every pair in the table. The flip reverses
    * a grey pair and this exchanges it back; a veiled pair or a compressed one
-   * came through in order already, and the same line leaves it alone. No new
-   * colour is introduced — the pair keeps both of its values, and only which
-   * slot holds which changes — so the collision pass below sees exactly the
-   * set it would have seen.
+   * came through in order already, and the same line leaves it alone. The
+   * exchange introduces no colour — the pair keeps both of the values it had,
+   * and only which slot holds which changes.
+   *
+   * It does move which slot a value belongs to, though, and that is not free:
+   * see the loop below it.
    */
   for (const [lit, shade] of BEVEL[game] ?? []) {
+    // Only a pair the flip turned over is drawn on the board and follows it.
+    // Unruly's are kept by `SEMANTIC` and stand on their own tone instead —
+    // a white square's highlight belongs to the white square, wherever the
+    // board beneath the two of them has gone.
+    if (lift && !semantic?.includes(lit) && !semantic?.includes(shade))
+      for (const index of [lit, shade]) {
+        const colour = parse(flipped[index])
+        if (colour)
+          flipped[index] = format({
+            ...colour,
+            l: Math.min(CEILING, Math.max(FLOOR, colour.l + lift)),
+          })
+      }
+
     const a = parse(flipped[lit])
     const b = parse(flipped[shade])
     if (!a || !b || a.l >= b.l) continue
     ;[flipped[lit], flipped[shade]] = [flipped[shade], flipped[lit]]
   }
+
+  /*
+   * Two slots the game drew in one colour must still be one colour.
+   *
+   * That is the other half of the invariant the collision pass keeps, and the
+   * exchange above is the only thing in this file that can break it: every
+   * rule maps a colour to a colour, so equal inputs give equal outputs, but
+   * moving a value between two slots does not care what a third slot holds.
+   *
+   * Samegame is where it showed. `game_mkhighlight` saturates its highlight to
+   * white, and Samegame independently paints a selected tile white too, so the
+   * two slots arrive here identical; the exchange then separated them, the
+   * collision pass had to push the lowlight off its step to keep it clear of
+   * the tile it no longer matched, and the bevel lost most of its shaded side
+   * — down to a thirty-fifth of the board's lightness against the hundred and
+   * twenty-fifth every other game gets. Carrying the new value across to the
+   * slots that shared the old one costs nothing and pays twice: the pair keeps
+   * its full step, and the outline Samegame draws round a selected tile — the
+   * lowlight, chosen precisely because the tile is the highlight's colour —
+   * gets the contrast upstream was reaching for rather than the remains of it.
+   */
+  for (const index of BEVEL[game]?.flat() ?? [])
+    light.forEach((css, other) => {
+      if (other !== index && css === light[index]) flipped[other] = flipped[index]
+    })
 
   // Two indices the game drew differently must still be drawn differently.
   // Semantic slots claim their value first: if a bevel and a black pearl land
@@ -414,12 +473,36 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   const taken = new Map<string, number>()
   for (const index of semantic ?? []) taken.set(flipped[index], index)
 
+  /*
+   * And where one has to move, the slots that shared its colour move with it.
+   *
+   * A slot that is nudged aside no longer holds the value its twin holds, and
+   * the twin will be nudged by a different step or not at all, so the two come
+   * apart. Guess draws its frame and its cursor in the same black; both wanted
+   * the light grey the white peg had already claimed, and they landed two steps
+   * apart from each other for no reason either of them states. Following the
+   * first one's destination keeps them together and costs nothing — the value
+   * is already reserved, by the twin.
+   *
+   * `SEMANTIC` slots are exempt, and that exemption is the whole point of the
+   * table: Pattern's two blacks *are* meant to come apart, one being a rule
+   * and one being a line.
+   */
+  const settled = new Map<string, string>()
+
   return flipped.map((css, index) => {
     if (semantic?.includes(index)) return css
+    const twin = settled.get(light[index])
+    if (twin !== undefined) return twin
+
+    const keep = (value: string) => {
+      settled.set(light[index], value)
+      return value
+    }
     const held = taken.get(css)
     if (held === undefined || light[held] === light[index]) {
       taken.set(css, index)
-      return css
+      return keep(css)
     }
     const hsl = parse(css)
     for (const nudge of hsl ? NUDGES : []) {
@@ -428,9 +511,9 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       const moved = format({ ...hsl!, l })
       if (!taken.has(moved)) {
         taken.set(moved, index)
-        return moved
+        return keep(moved)
       }
     }
-    return css
+    return keep(css)
   })
 }
