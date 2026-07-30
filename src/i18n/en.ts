@@ -27,6 +27,11 @@ export const en = {
     /** Said in passing when a tile is put away or brought back. */
     nowHidden: (game: string) => `${game} hidden`,
     nowShown: (game: string) => `${game} shown`,
+    install: 'Install app',
+    /** The two steps iOS insists on doing by hand. */
+    installIosIntro: 'Safari can put Puzzles on your Home Screen:',
+    installIosShare: 'Tap the Share button',
+    installIosAdd: 'Choose “Add to Home Screen”',
     credit:
       'Puzzles are the work of Simon Tatham and contributors, distributed under the MIT licence.',
     source: 'Source:',
