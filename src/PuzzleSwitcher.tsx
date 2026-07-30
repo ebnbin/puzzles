@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStrings } from './i18n'
 import { useGames } from './i18n/games'
-import { onNavClick } from './router'
+import { navigateReplace } from './router'
 import { useHidden } from './useHidden'
 
 /**
@@ -142,13 +142,26 @@ export default function PuzzleSwitcher({
                   href={`/${game.name}`}
                   aria-current={here ? 'page' : undefined}
                   onClick={(e) => {
+                    // Modified and middle clicks open a tab, as on any link.
+                    if (
+                      e.defaultPrevented ||
+                      e.button !== 0 ||
+                      e.metaKey ||
+                      e.ctrlKey ||
+                      e.shiftKey ||
+                      e.altKey
+                    )
+                      return
+                    e.preventDefault()
                     // Already here: the panel is the only thing in the way.
                     if (here) {
-                      e.preventDefault()
                       onClose()
                       return
                     }
-                    onNavClick(e)
+                    // A switch is a sideways move, not a level down: replace,
+                    // so Back from the new game is still the gallery.
+                    navigateReplace(`/${game.name}`)
+                    onClose()
                   }}
                 >
                   <span className="switch-art">

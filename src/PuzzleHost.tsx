@@ -11,7 +11,7 @@ import { clearSave, readSave, writeLast, writeSave } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
-import { onNavClick } from './router'
+import { onBackClick } from './router'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
@@ -513,7 +513,7 @@ export default function PuzzleHost({
         <a
           className="play-back"
           href="/"
-          onClick={onNavClick}
+          onClick={onBackClick}
           aria-label={t.play.back}
         >
           <Icon name="back" />
