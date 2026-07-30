@@ -98,6 +98,17 @@
   --dur-slow: 300ms;
 
   /*
+   * The lattice every surface of the app stands on — the same one the puzzles
+   * are played on, at a contrast you find only by looking for it. Named here
+   * so the launcher and the puzzle screen paint the identical pattern; the
+   * colour (--grid-line) is a theme token set further down.
+   */
+  --grid-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  --grid-size: 24px 24px;
+  --grid-position: center -1px;
+
+  /*
    * The size of a button: 40 across, 36 down.
    *
    * Not a floor to grow from. A button is this size unless it is stretched

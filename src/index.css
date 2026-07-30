@@ -28,12 +28,11 @@ body {
   line-height: 1.5;
   color: var(--text);
   background-color: var(--bg);
-  /* Every puzzle here is played on a lattice. The app stands on the same one,
-     at a contrast you find only by looking for it. */
-  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 24px 24px;
-  background-position: center -1px;
+  /* The app's lattice, defined once in tokens and shared with the puzzle
+     screen so the two never drift. */
+  background-image: var(--grid-image);
+  background-size: var(--grid-size);
+  background-position: var(--grid-position);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -454,7 +453,14 @@ footer p {
   height: 100dvh;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background: var(--bg);
+  /* The same lattice the launcher stands on, rather than a flat plate: it is
+     the one background the whole app shares. The board sits on it with its
+     own lit-plate shadow, so the grid reads as the surface the puzzle rests
+     on. */
+  background-color: var(--bg);
+  background-image: var(--grid-image);
+  background-size: var(--grid-size);
+  background-position: var(--grid-position);
 }
 
 .play[data-ready='false'] .host-board {
