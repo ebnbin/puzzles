@@ -574,7 +574,14 @@ footer p {
   max-width: 100%;
   /* A full thumb target, which the bar's own 3rem has room for. */
   min-height: var(--tap-h);
-  margin-left: -0.4rem;
+  /* No negative margin. It used to pull the text flush with the container's
+     edge, which was safe while a back arrow sat in front of this and the
+     margin only tightened the gap between them. With the arrow gone the title
+     is the first thing in the bar, and the same margin pushed the button past
+     the left edge — where its rounded corners fall outside the viewport, so a
+     press showed a shape rounded on the right and cut square on the left. A
+     control that bleeds off the screen cannot have a radius; this one is a
+     control, so it sits inside. */
   padding: 0 0.4rem;
   border: 0;
   border-radius: var(--r-sm);
