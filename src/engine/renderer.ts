@@ -169,9 +169,23 @@ export class CanvasRenderer {
    */
   line(x1: number, y1: number, x2: number, y2: number, width: number, colour: number) {
     const { ctx } = this
-    // A line is a shape too — the zombie's crossed eyes and its mouth are
-    // three of these, and they were the last of it still turning over.
-    const css = this.ink(colour)
+    /*
+     * A line is a shape too — the zombie's crossed eyes and its mouth are three
+     * of these. But Undead's mirrors are lines in the same slot, and they are
+     * board furniture: held still they go black on a dark board and vanish.
+     *
+     * The width tells them apart, and not by luck: it is the C's own difference
+     * between a stroke and a bar. `draw_line` reaches this port as width 1
+     * exactly (see `js_canvas_draw_line(x1, y1, x2, y2, 1, colour)`), and every
+     * one of Undead's five is inside `draw_monster`; the mirror is its only
+     * `draw_thick_line`, at TILESIZE/16.
+     *
+     * Which leaves one seam: a board small enough for TILESIZE/16 to come out 1
+     * would put a mirror on this side of the line. Undead's largest preset is
+     * 7x7, which is TILESIZE 40 and a mirror two pixels thick; it would take a
+     * custom board about twice that before the two met.
+     */
+    const css = width === 1 ? this.ink(colour) : this.colours[colour]
     ctx.beginPath()
     ctx.moveTo(x1 + 0.5, y1 + 0.5)
     ctx.lineTo(x2 + 0.5, y2 + 0.5)
