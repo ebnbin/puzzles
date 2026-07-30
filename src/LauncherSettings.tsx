@@ -1,5 +1,6 @@
 import Icon from './Icon'
 import { docHref, useLang, useStrings } from './i18n'
+import { useScrollLock } from './useScrollLock'
 import { useTheme } from './useTheme'
 import type { Theme } from './useTheme'
 
@@ -11,12 +12,21 @@ import type { Theme } from './useTheme'
  * screen between the reader and the puzzles for two switches most people touch
  * once.
  */
-export default function LauncherSettings({ onClose }: { onClose: () => void }) {
+export default function LauncherSettings({
+  lockAt,
+  onClose,
+}: {
+  lockAt: number
+  onClose: () => void
+}) {
   const t = useStrings()
   // Read-only here: the language is set on the launcher itself, but the
   // manual's address depends on it.
   const [lang] = useLang()
   const [theme, setTheme] = useTheme()
+  // The launcher scrolls; it must not do so under its own settings. The
+  // offset is the launcher's, caught before the dialog scrolled it away.
+  useScrollLock(lockAt)
 
   const themes: { value: Theme; label: string }[] = [
     { value: 'system', label: t.settings.themeSystem },

@@ -27,7 +27,10 @@ const HOLD_MS = 450
  * always had.
  */
 export default function Launcher() {
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  // Where the page was when the settings opened: opening the dialog scrolls
+  // the document to the top on its own, so it has to be caught on the click,
+  // before that happens, and handed to the lock.
+  const [settingsAt, setSettingsAt] = useState<number | null>(null)
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const t = useStrings()
   const [lang, setLang] = useLang()
@@ -87,10 +90,13 @@ export default function Launcher() {
     clearLast()
   }, [])
 
+  const settingsOpen = settingsAt !== null
+  const openSettings = () => setSettingsAt(window.scrollY)
+  const closeSettings = () => setSettingsAt(null)
   useEffect(() => {
     if (!settingsOpen) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSettingsOpen(false)
+      if (e.key === 'Escape') closeSettings()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -127,7 +133,7 @@ export default function Launcher() {
           aria-label={t.launcher.settings}
           aria-haspopup="dialog"
           aria-expanded={settingsOpen}
-          onClick={() => setSettingsOpen(true)}
+          onClick={openSettings}
         >
           <Icon name="prefs" />
         </button>
@@ -174,8 +180,8 @@ export default function Launcher() {
         </p>
       </footer>
 
-      {settingsOpen && (
-        <LauncherSettings onClose={() => setSettingsOpen(false)} />
+      {settingsAt !== null && (
+        <LauncherSettings lockAt={settingsAt} onClose={closeSettings} />
       )}
 
       {toast && (

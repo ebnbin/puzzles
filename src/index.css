@@ -1351,6 +1351,12 @@ footer p {
   place-items: center;
   padding: 1rem;
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  /* A scroll container of its own, so a dialog taller than the screen scrolls
+     here rather than being clipped, and a wheel or flick over the scrim stops
+     here instead of chaining to the page. useScrollLock holds the page; this
+     catches the gesture. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--scrim);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
