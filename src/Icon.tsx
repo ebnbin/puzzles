@@ -16,14 +16,19 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyIcon =
-  | 'clear'
-  | 'marks'
-  | 'hint'
-  | 'jumble'
-  | 'ghost'
-  | 'vampire'
-  | 'zombie'
+export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'jumble'
+
+/**
+ * And the three that are not glyphs at all but pictures, because the thing
+ * they stand for is already drawn — the same ghost, vampire and zombie the
+ * board shows, cut off it by scripts/build-monsters.mjs. A key that puts a
+ * monster in a square should show that monster, not somebody's shorthand for
+ * it; these are the only keys in the collection where the puzzle itself has
+ * already answered what the key means.
+ */
+export type KeyArt = 'ghost' | 'vampire' | 'zombie'
+
+export type KeyIcon = KeyGlyph | KeyArt
 
 export type IconName =
   | 'back'
@@ -35,7 +40,7 @@ export type IconName =
   | 'solve'
   | 'type'
   | 'prefs'
-  | KeyIcon
+  | KeyGlyph
   | 'external'
   | 'eye'
   | 'eyeOff'
@@ -117,10 +122,9 @@ const PATHS: Record<IconName, React.ReactNode> = {
   ),
   /* --- the keys a puzzle asks for ---------------------------------------
    *
-   * The first four stand in for characters a touch device has no way to type.
-   * The last three are the monsters Undead draws on its board, at the size a
-   * key is: its own draw_monster() builds them out of circles and polygons,
-   * and these are the same shapes, not a copy of the code that draws them.
+   * All four stand in for a character a touch device has no way to type. Undead's
+   * three monsters used to be here as well, drawn in this vocabulary; they are
+   * pictures now — see `KeyArt` above and `PuzzleKeypad`.
    */
 
   /* Backspace, as every keyboard draws it. */
@@ -161,38 +165,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M3.4 16.6h3.8l9.6-9.2h3.8" />
       <path d="m17.8 4.2 3 3.2-3 3.2" />
       <path d="m17.8 13.4 3 3.2-3 3.2" />
-    </>
-  ),
-  /* A head, a hem that zigzags in three, and two eyes. */
-  ghost: (
-    <>
-      <path d="M3.2 12.6a8.8 8.8 0 0 1 17.6 0v8.2l-2.94-2.9-2.93 2.9-2.93-2.9-2.94 2.9-2.93-2.9-2.93 2.9Z" />
-      <circle cx="8.9" cy="11.8" r="1.4" fill="currentColor" stroke="none" />
-      <circle cx="15.1" cy="11.8" r="1.4" fill="currentColor" stroke="none" />
-    </>
-  ),
-  /* A widow's peak, and the two teeth that give it away. */
-  vampire: (
-    <>
-      <circle cx="12" cy="12" r="8.8" />
-      <path d="M3.6 10.2 8.4 11.6 12 14.4l3.6-2.8 4.8-1.4" />
-      <circle cx="9.1" cy="13.6" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="14.9" cy="13.6" r="1.15" fill="currentColor" stroke="none" />
-      <path d="M8.4 16.9h7.2" />
-      <path d="m10.1 16.9.9 2.4.9-2.4" />
-      <path d="m12.1 16.9.9 2.4.9-2.4" />
-    </>
-  ),
-  /* Two crosses for eyes, and a mouth hanging open. */
-  zombie: (
-    <>
-      <circle cx="12" cy="12" r="8.8" />
-      <path d="m7 10.1 2.6 2.6" />
-      <path d="M9.6 10.1 7 12.7" />
-      <path d="m14.4 10.1 2.6 2.6" />
-      <path d="M17 10.1l-2.6 2.6" />
-      <path d="M7.4 16.8h9.2" />
-      <path d="M9.3 16.8a1.9 1.9 0 0 0 3.8 0" />
     </>
   ),
 

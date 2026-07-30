@@ -220,6 +220,38 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
 }
 
 /**
+ * Slots a game draws a picture with, rather than a board with.
+ *
+ * Undead's three monsters are little cartoons: a black outline, a coloured
+ * skin, and whites — eyes, fangs, an open mouth — painted in the board's own
+ * colour because on upstream's near-white board that is what white is. Turn the
+ * board over and every one of those turns with it: the outlines go pale, the
+ * whites go dark, and the vampire's black hair goes light grey. It is a
+ * photographic negative of a drawing, which is not the same kind of thing as a
+ * board seen the other way up. A negative of a grid is a grid; a negative of a
+ * face is an odd face.
+ *
+ * The palette cannot answer it, because both of the slots involved do double
+ * duty: COL_TEXT is the monsters' ink *and* the clue numbers, which have to go
+ * pale to stay readable, and COL_BACKGROUND is their paper *and* the ground.
+ * One colour each, two jobs each, pulling opposite ways.
+ *
+ * What separates the two jobs is not the slot but the call. Outside
+ * `draw_monster`, Undead never hands COL_TEXT to anything but `draw_text`:
+ * every circle and polygon that mentions it is part of a monster. So the rule
+ * is drawn where the difference is — a shape, not a string — and the renderer
+ * applies it. See `Renderer.ink`.
+ *
+ * The skins are here too, though nothing else uses them, because a figure
+ * dimmed by the veil under an undimmed outline is half a negative rather than
+ * none.
+ */
+export const FIGURE: Record<string, readonly number[]> = {
+  /* COL_BACKGROUND, COL_TEXT, COL_GHOST, COL_ZOMBIE, COL_VAMPIRE */
+  undead: [0, 2, 6, 7, 8],
+}
+
+/**
  * Where the board sits for those games.
  *
  * A two-tone puzzle needs a surface between its two tones. Upstream does not

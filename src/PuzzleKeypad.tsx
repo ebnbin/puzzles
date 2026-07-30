@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
+import type { KeyArt, KeyGlyph, KeyIcon } from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
 
@@ -20,6 +21,29 @@ import { useStrings } from './i18n'
 
 /** A press has to be still for this long before it is asking what a key is. */
 const HOLD_MS = 400
+
+/**
+ * Undead's three monsters are pictures rather than glyphs — the board's own
+ * ghost, vampire and zombie, lifted off it by scripts/build-monsters.mjs. They
+ * carry their own colours, so unlike every other key they do not follow the
+ * theme; that is the point, since the monster in the square does not either.
+ *
+ * Not lazy: the keypad is on screen the moment the puzzle is, three files come
+ * to 9 KB between them, and a key that fills in after the fact is a key that
+ * moves under a thumb already reaching for it.
+ */
+const ART: Record<KeyArt, string> = {
+  ghost: '/monsters/ghost.png',
+  vampire: '/monsters/vampire.png',
+  zombie: '/monsters/zombie.png',
+}
+
+const art = (icon: KeyIcon) =>
+  icon in ART ? (
+    <img className="key-art" src={ART[icon as KeyArt]} alt="" width={24} height={24} />
+  ) : (
+    <Icon name={icon as KeyGlyph} />
+  )
 
 export default function PuzzleKeypad({
   keys,
@@ -103,7 +127,7 @@ export default function PuzzleKeypad({
               onPress(key)
             }}
           >
-            {key.icon ? <Icon name={key.icon} /> : key.label}
+            {key.icon ? art(key.icon) : key.label}
           </button>
         )
       })}

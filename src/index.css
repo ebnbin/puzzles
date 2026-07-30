@@ -844,6 +844,15 @@ footer p {
   color: var(--accent);
 }
 
+/* A monster, at the size the glyph beside it is drawn. Bigger than the 20px
+   icons because it is a picture rather than a mark: the same detail — two eyes,
+   two fangs — has to survive in it. */
+.key-art {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 /* Held rather than pressed: what the key would have said, if a key were big
    enough to say it. Fixed, so the keypad's own scrolling does not clip it. */
 .keypad-tip {

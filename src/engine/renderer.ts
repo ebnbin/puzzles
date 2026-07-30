@@ -18,7 +18,7 @@ export interface Size {
   h: number
 }
 
-import { forDarkBoard, RIM } from './palette'
+import { FIGURE, forDarkBoard, RIM } from './palette'
 
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
@@ -185,14 +185,26 @@ export class CanvasRenderer {
       ctx.lineTo(points[i] + 0.5, points[i + 1] + 0.5)
     ctx.closePath()
     if (fill >= 0) {
-      ctx.fillStyle = this.colours[fill]
+      ctx.fillStyle = this.ink(fill)
       ctx.fill()
     }
     ctx.lineWidth = 1
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-    ctx.strokeStyle = this.colours[outline]
+    ctx.strokeStyle = this.ink(outline)
     ctx.stroke()
+  }
+
+  /**
+   * The colour a shape is drawn in, which is not always the colour the board
+   * would use for that slot: see `FIGURE` in palette.ts. A picture drawn on the
+   * board is not part of the board, and turning the board over should not turn
+   * the picture into its own negative — so on a dark board these slots are
+   * served their light values, and only here, where the call is a shape.
+   */
+  private ink(slot: number): string {
+    if (this.dark && FIGURE[this.game]?.includes(slot)) return this.named[slot]
+    return this.colours[slot]
   }
 
   /**
@@ -210,7 +222,7 @@ export class CanvasRenderer {
       const swap = RIM[this.game]?.[outline]
       if (swap !== undefined) return this.colours[swap]
     }
-    return this.colours[outline]
+    return this.ink(outline)
   }
 
   circle(x: number, y: number, r: number, fill: number, outline: number) {
@@ -218,7 +230,7 @@ export class CanvasRenderer {
     ctx.beginPath()
     ctx.arc(x + 0.5, y + 0.5, r, 0, 2 * Math.PI)
     if (fill >= 0) {
-      ctx.fillStyle = this.colours[fill]
+      ctx.fillStyle = this.ink(fill)
       ctx.fill()
     }
     ctx.lineWidth = 1
