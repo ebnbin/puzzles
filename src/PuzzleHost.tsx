@@ -651,7 +651,22 @@ export default function PuzzleHost({
             aria-label={`${t.play.help} — ${title}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2>{t.play.help}</h2>
+            {/* The title and the way out, on one line and staying on it: the
+                blurb scrolls under them rather than taking them with it. A
+                corner cross rather than a button in a row of buttons, because
+                closing is not one of the things this dialog is for — it is how
+                you leave, and this dialog has nothing else to press. */}
+            <div className="dialog-head">
+              <h2>{t.play.help}</h2>
+              <button
+                type="button"
+                className="dialog-close"
+                aria-label={t.play.close}
+                onClick={() => setHelpOpen(false)}
+              >
+                <Icon name="close" size={20} />
+              </button>
+            </div>
             {/*
               What the puzzle looks like when it is done, before a word of it is
               read. Whoever opens this is looking at a board they do not yet
@@ -670,48 +685,41 @@ export default function PuzzleHost({
               src={`/solved/${name}.png`}
               alt={t.play.picture(title)}
             />
-            {/* Upstream's own words. Fetched when the puzzle loads, so this is
-                all but always the full blurb by the time it is asked for; the
-                one-liner covers the case where it is not. */}
-            {help ? (
-              <div
-                className="dialog-prose"
-                dangerouslySetInnerHTML={{ __html: help }}
-              />
-            ) : (
-              <div className="dialog-prose">
+            <div className="dialog-prose">
+              {/* Upstream's own words. Fetched when the puzzle loads, so this
+                  is all but always the full blurb by the time it is asked for;
+                  the one-liner covers the case where it is not. */}
+              {help ? (
+                <div dangerouslySetInnerHTML={{ __html: help }} />
+              ) : (
                 <p>{objective}</p>
-              </div>
-            )}
-            {/* The blurb is a paragraph; the manual is the chapter. Leaving
-                the page used to mean abandoning the position, which is what
-                the new tab was for; the board is now saved after every move,
-                so going there and coming back costs a reload and nothing
-                else. No glyph: the words say where this goes, and the button
-                beside it wears none either.
+              )}
+              {/* The blurb is a paragraph; the manual is the chapter. So the
+                  way to the chapter is the last line of the paragraph — a link
+                  in the prose, where a reader who has read to the end already
+                  is, rather than a button in a row, which is a thing to be
+                  pressed and made this dialog look like it wanted something.
 
-                No fragment either. The page is this puzzle's chapter entire,
-                so `#name` could only aim at its own first heading — which
-                bought nothing and cost the top of the page: the contents,
-                the index, and the way to the neighbouring chapters, all
-                scrolled off before the reader arrived.
+                  No fragment. The page is this puzzle's chapter entire, so
+                  `#name` could only aim at its own first heading — which
+                  bought nothing and cost the top of the page: the contents,
+                  the index, and the way to the neighbouring chapters, all
+                  scrolled off before the reader arrived.
 
-                A tab of its own: this app is one page, and leaving it would
-                unload the board, the sheet this link is in, and everything
-                else held in memory. */}
-            <div className="dialog-buttons">
-              <a
-                className="dialog-more"
-                href={docHref(lang, `${name}.html`)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {t.play.fullInstructions}
-                <Icon name="external" size={16} />
-              </a>
-              <button type="button" onClick={() => setHelpOpen(false)}>
-                {t.play.close}
-              </button>
+                  A tab of its own: this app is one page, and leaving it would
+                  unload the board, the sheet this link is in, and everything
+                  else held in memory. The glyph says so, which inside a
+                  sentence is worth the room it takes. */}
+              <p className="prose-more">
+                <a
+                  href={docHref(lang, `${name}.html`)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {t.play.fullInstructions}
+                  <Icon name="external" size={14} />
+                </a>
+              </p>
             </div>
           </div>
         </div>

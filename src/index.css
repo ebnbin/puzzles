@@ -1404,37 +1404,6 @@ footer p {
   background: var(--accent-hover);
 }
 
-/* The way out of the blurb and into the chapter it was taken from. Shaped like
-   the button beside it, because it is the same size of decision — but it is a
-   link, since it goes somewhere, and it carries the mark that says so. */
-.dialog-more {
-  display: inline-flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  min-height: var(--tap-h);
-  padding: 0 1rem;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: var(--t-md);
-  font-weight: 500;
-  text-decoration: none;
-  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
-}
-
-@media (hover: hover) {
-  .dialog-more:hover {
-    background: var(--surface-3);
-  }
-}
-
-.dialog-more:active {
-  background: var(--surface-3);
-  transform: scale(0.96);
-}
-
 /* The manual's own prose, on request from the bar. */
 .dialog-prose {
   color: var(--text-2);
@@ -1523,16 +1492,80 @@ footer p {
   border-radius: var(--r-sm);
 }
 
+/*
+ * The title and the cross that closes it, on one line.
+ *
+ * Nothing holds it there: the dialog is already a column whose middle is the
+ * only part that scrolls (see `.dialog-help` below), so the row above it stays
+ * where it was put.
+ */
+.dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dialog-head h2 {
+  margin: 0;
+}
+
+/* The masthead's icon button, in a dialog: square, 2.5rem, the glyph inside it
+   half that. The cross is small; what you press is not. */
+.dialog-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: -0.6rem -0.6rem 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .dialog-close:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.dialog-close:active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* The way to the chapter, as the last line of the blurb. The glyph sits on the
+   text rather than beside it, which is what makes it part of the sentence and
+   not a button that happens to be underlined. */
+.prose-more a {
+  display: inline;
+  font-weight: 500;
+}
+
+.prose-more svg {
+  margin-left: 0.3rem;
+  vertical-align: -0.15em;
+}
+
 /* Some chapters run to a screenful and a half, so the prose scrolls inside the
-   dialog rather than the dialog scrolling: the heading and the way out both
-   stay put, which they would not if the whole thing moved. */
+   dialog rather than the dialog scrolling: the title and the way out stay put,
+   which they would not if the whole thing moved. */
 .dialog-help {
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.dialog-help h2 {
+.dialog-help .dialog-head,
+.help-art {
   flex: none;
 }
 
@@ -1541,13 +1574,6 @@ footer p {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-}
-
-.dialog-help .dialog-buttons {
-  flex: none;
-  margin: 0 -1.25rem -1.25rem;
-  padding: 0.85rem 1.25rem 1.25rem;
-  border-top: 1px solid var(--edge);
 }
 
 /* --- pointer devices: more room, smaller targets --- */
@@ -1596,12 +1622,7 @@ footer p {
     justify-content: flex-end;
   }
 
-  /* `.dialog-more` alongside, because it is an anchor and not a button: without
-     it the link went on growing after the buttons beside it had stopped, which
-     on a wide row is one control stretched across the dialog and one the size it
-     asked for. */
-  .dialog-buttons button,
-  .dialog-buttons .dialog-more {
+  .dialog-buttons button {
     flex: 0 0 auto;
     min-width: 5.5rem;
   }
@@ -1674,49 +1695,42 @@ footer p {
   }
 
   /*
-   * How to play, in two columns: the board down the left, the words down the
-   * right. Height is scarce here for the same reason it is on the board screen,
-   * and stacked the picture and the paragraph were each other's competition —
-   * either the picture pushed the words off the bottom or it went so small it
-   * showed nothing.
+   * How to play, in two columns under one title: the title across the top, and
+   * below it the board on the left and the words on the right.
    *
-   * Side by side, neither has to give: the picture is a fixed square that never
-   * moves, and the reading happens in its own scroller with the heading pinned
-   * above it and the buttons pinned below. The dialog itself stops scrolling —
-   * a wide box whose whole contents slide is how you lose the buttons.
+   * Height is scarce here for the same reason it is on the board screen, and
+   * stacked, the picture and the paragraph were each other's competition —
+   * either the picture pushed the words off the bottom or it went so small it
+   * showed nothing. Side by side neither has to give: the picture is a fixed
+   * square that never moves, and the reading happens in its own scroller. The
+   * dialog itself stops scrolling, which is what keeps the title where it was
+   * put; the sticky it uses in portrait has nothing to do here.
    */
   .dialog-help {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
     column-gap: 1.25rem;
     max-width: 42rem;
     overflow: hidden;
   }
 
-  .dialog-help h2 {
-    grid-area: 1 / 2;
-    margin-bottom: 0.6rem;
+  .dialog-help .dialog-head {
+    grid-area: 1 / 1 / 2 / 3;
   }
 
-  /* All three rows of the left column, aligned with the heading rather than
-     floating in the middle of however much text there is. */
+  /* Aligned with the first line of the text beside it, not floating in the
+     middle of however much of it there is. */
   .help-art {
-    grid-area: 1 / 1 / 4 / 2;
+    grid-area: 2 / 1 / 3 / 2;
     align-self: start;
     margin: 0;
   }
 
   .dialog-help .dialog-prose {
-    grid-area: 2 / 2;
+    grid-area: 2 / 2 / 3 / 3;
     overflow-y: auto;
     overscroll-behavior: contain;
-  }
-
-  .dialog-help .dialog-buttons {
-    grid-area: 3 / 2;
-    /* Clear of the text it now sits under rather than after. */
-    margin-top: 0.9rem;
   }
 }
 

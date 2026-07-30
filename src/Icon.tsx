@@ -40,6 +40,7 @@ export type IconName =
   | 'eye'
   | 'eyeOff'
   | 'check'
+  | 'close'
   | 'help'
   | 'share'
   | 'sun'
@@ -203,6 +204,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   check: <path d="M5 12.5l4.5 4.5L19 8" />,
+  /* Two quarter turns of the same line, which is all a cross is. */
+  close: (
+    <>
+      <path d="M6 6l12 12" />
+      <path d="M18 6L6 18" />
+    </>
+  ),
   help: (
     <>
       <circle cx="12" cy="12" r="8.75" />
