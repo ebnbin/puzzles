@@ -7,6 +7,11 @@ export const zh: Strings = {
 
   launcher: {
     settings: '设置',
+    hide: (game: string) => `隐藏${game}`,
+    show: (game: string) => `显示${game}`,
+    hidden: (count: number) => `已隐藏（${count}）`,
+    nowHidden: (game: string) => `已隐藏 ${game}`,
+    nowShown: (game: string) => `已显示 ${game}`,
     credit: 'Puzzles 由 Simon Tatham 及众多贡献者开发，基于 MIT 许可证发布。',
     source: '源码：',
   },
