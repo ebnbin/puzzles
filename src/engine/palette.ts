@@ -29,19 +29,25 @@
  * quite where saturation puts it: Pearl's two circles carry meaning and have
  * no hue at all, and flipping them states the puzzle backwards.
  *
+ * Then one correction, over the top of all three: a bevel's lit side must
+ * come out the lighter of its pair. The three rules are about what a colour
+ * *is*, and get that right; relief is about where the light *comes from*, and
+ * a rule that only preserves differences cannot see it. See `BEVEL`.
+ *
  * ---------------------------------------------------------------------------
  * WHAT IS COMPUTED AND WHAT IS NOT
  * ---------------------------------------------------------------------------
  *
  * No colour in this file is chosen. All 426 dark values are the output of the
- * three functions above, and nothing hand-picks a hex.
+ * three functions above, and nothing hand-picks a hex. The bevel correction
+ * adds none either: it exchanges two values a rule already produced.
  *
  * Which rule a slot takes is computed too — from its saturation — for 400 of
  * them. The other 26 come from `SEMANTIC`, a table, because the fact that
  * *this* black is a rule and *that* black is a line is not in the colour: it
- * is in the game. That table is the one piece of knowledge here that no
- * amount of arithmetic could have recovered, and it was assembled from
- * evidence rather than taste — see its comment.
+ * is in the game. `BEVEL` is a table for the same reason, and both were
+ * assembled from evidence rather than taste — see their comments. They are the
+ * knowledge here that no amount of arithmetic could have recovered.
  *
  * Five constants are tuned: `ACHROMATIC`, `FLOOR`, `CEILING`, `VEIL`,
  * `SEMANTIC_BOARD`. Each carries the measurement that fixed it.
@@ -52,11 +58,14 @@
  *
  * The flip is monotonic in lightness, so every "is lighter than" in the
  * original survives as "is darker than" here — which keeps a game's shading
- * readable without knowing anything about what it draws. Two slots the game
- * drew differently must still be drawn differently; the flipped greys land
- * among the dimmed hues, so the collision pass at the end is cheap insurance
- * rather than an assumption. Measured over all forty palettes: 426 colours,
- * no collisions, every ordering preserved.
+ * readable without knowing anything about what it draws. That is the right
+ * trade everywhere except relief, which is what `BEVEL` is for: eleven pairs
+ * across nine games are held the way up they were drawn, and ten of the
+ * eleven needed it. Two slots the game drew differently must still be drawn
+ * differently; the flipped greys land among the dimmed hues, so the collision
+ * pass at the end is cheap insurance rather than an assumption. Measured over
+ * all forty palettes: 426 colours, no collisions, every ordering preserved and
+ * every bevel still lit from the top left.
  *
  * ---------------------------------------------------------------------------
  * THE TWO PIECES OF THIS STORY THAT ARE NOT IN THIS FILE
@@ -160,6 +169,76 @@ const SEMANTIC: Record<string, readonly number[]> = {
  * are a lighter grey than the other thirty.
  */
 const SEMANTIC_BOARD = 0.26
+
+/**
+ * The pairs of slots a game draws relief with: the lit side, then the shaded.
+ *
+ * Relief is the one thing in a palette that is not a relative fact. Every
+ * other ordering here can be turned over and still be read, because what it
+ * carries is a difference: two greys the game drew apart stay apart, and
+ * which of them is the lighter is only a convention that the dark board is
+ * free to reverse. A bevel is not that. It says *this face is turned towards
+ * the light*, and the light does not move when the theme does — it comes from
+ * the top left, in every toolkit anyone has ever drawn a button in. Turn the
+ * pair over and the tile does not become a dark tile. It becomes a hole.
+ *
+ * For six of these games that is merely wrong to look at: Fifteen, Sixteen,
+ * Twiddle, Samegame, Flood and Blackbox bevel everything alike, so inverting
+ * it inverts figure and ground together — Fifteen's fifteen tiles read as
+ * fifteen pits, and the one gap between them becomes the only thing standing
+ * up, which is precisely the opposite of what it is.
+ *
+ * For three it states something false, because there the relief *is* the
+ * state:
+ *
+ *   - Mines. The C's own comment at the bevel is "Draw highlights to indicate
+ *     the square is covered", and a square already dug gets the shade along
+ *     its top and left instead — sunken. Invert the pair and the two states
+ *     swap appearances: covered squares read as dug, dug ones as covered.
+ *   - Pegs, whose board is a raised surface with holes cut into it. "First
+ *     pass: draw the full relief square," says the C. Inverted, the holes
+ *     become bumps.
+ *   - Inertia, where only a wall is bevelled. Inverted, the walls become the
+ *     pits and the floor becomes solid.
+ *
+ * Which slots those are is not in the colours — it is in each game's `COL_*`
+ * enum, so this is a table, read out of the C the same way `SEMANTIC` was.
+ * Only pairs actually drawn as opposed faces are here: Signpost derives a
+ * highlight and a lowlight and never draws with either, and the lone
+ * `COL_HIGHLIGHT` that Solo, Keen, Towers, Undead, Unequal and Filling use to
+ * tint a selected cell is no bevel at all — in four of those it is *darker*
+ * than the board it sits on.
+ *
+ * Two of the eleven pairs listed need nothing done to them, and they are here
+ * to be checked rather than changed: Twiddle's cursor pair is a red, so it is
+ * veiled rather than flipped and keeps its order, and Unruly's two pairs are
+ * already spared by `SEMANTIC`. A rule that names the pairs and states what
+ * must be true of them covers those for free; a rule that just swapped them
+ * would have broken both.
+ */
+const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
+  /* COL_HIGHLIGHT, COL_LOWLIGHT — the tile, and the cursor's own outline */
+  fifteen: [[2, 3]],
+  sixteen: [[2, 3]],
+  /* ...the tile, the gentler pair the rotating block is shaded with, and the
+     cursor's, which is a red and comes out right on its own */
+  twiddle: [
+    [2, 4],
+    [3, 5],
+    [6, 7],
+  ],
+  mines: [[16, 17]],
+  samegame: [[12, 13]],
+  pegs: [[1, 2]],
+  blackbox: [[5, 6]],
+  inertia: [[2, 3]],
+  flood: [[12, 13]],
+  /* COL_0 and COL_1 each with their own bevel; kept in order by SEMANTIC */
+  unruly: [
+    [4, 5],
+    [7, 8],
+  ],
+}
 
 /** Every game names its background first. */
 const BACKGROUND = 0
@@ -309,6 +388,25 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     if (colour.s >= ACHROMATIC) return veil(colour)
     return format({ ...colour, l: flip(colour.l) })
   })
+
+  /*
+   * Keep the light where it was: of each bevel pair, the lit side takes the
+   * lighter of the two values.
+   *
+   * Stated as the thing that must be true rather than as the fix, which is
+   * what makes it safe to apply to every pair in the table. The flip reverses
+   * a grey pair and this exchanges it back; a veiled pair or a compressed one
+   * came through in order already, and the same line leaves it alone. No new
+   * colour is introduced — the pair keeps both of its values, and only which
+   * slot holds which changes — so the collision pass below sees exactly the
+   * set it would have seen.
+   */
+  for (const [lit, shade] of BEVEL[game] ?? []) {
+    const a = parse(flipped[lit])
+    const b = parse(flipped[shade])
+    if (!a || !b || a.l >= b.l) continue
+    ;[flipped[lit], flipped[shade]] = [flipped[shade], flipped[lit]]
+  }
 
   // Two indices the game drew differently must still be drawn differently.
   // Semantic slots claim their value first: if a bevel and a black pearl land
