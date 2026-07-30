@@ -118,6 +118,27 @@ const CEILING = 0.82
  * — keeping them dark would put dark ink on a dark tile. Flip, and Guess's
  * pegs beyond the two markers, where light and dark are decoration and the
  * manual never appeals to them.
+ *
+ * Nor Galaxies, though it was for a while, and it is worth saying why: its
+ * `COL_*` enum is full of the right words — WHITEBG, BLACKBG, WHITEDOT,
+ * BLACKDOT — and every one of them fails the test above. Its chapter does not
+ * contain the word "black", or "white"; the rules are about dots, regions and
+ * 180-degree symmetry, and say nothing about colour. And `F_DOT_BLACK`, the
+ * flag those slots exist to draw, is only ever set inside
+ * `#ifdef STANDALONE_PICTURE_GENERATOR`: no dot in a game anybody plays is
+ * black. The names were enough to get it listed, and the names were the only
+ * evidence there was.
+ *
+ * Keeping it cost more than the mistake looked worth. WHITEBG marks a square
+ * as claimed, which upstream draws as a whisper — #ffffff on a #d5d5d5 board.
+ * Compressed to the top of the range on a board `needsRoom` had lifted, the
+ * whisper became a shout: an 0.56 step where upstream has 0.165, so a solved
+ * board was one bright slab. COL_EDGE — the region boundaries, which are the
+ * answer — flipped to the top of the same range, collided with it, was nudged
+ * aside, and came to rest a twelfth of a step from the fill it exists to
+ * divide. The marks you make were the one thing you could not see. Flipped
+ * instead, the claimed square goes dark by the same 0.125 everything else
+ * moves by and the edges land at #d1d1d1 against it.
  */
 const SEMANTIC: Record<string, readonly number[]> = {
   /* COL_EMPTY, COL_FULL, COL_UNKNOWN — "black or white", "grey" for unknown */
@@ -138,8 +159,6 @@ const SEMANTIC: Record<string, readonly number[]> = {
   guess: [16, 17],
   /* COL_BALL — the manual calls them black circles */
   blackbox: [8],
-  /* COL_WHITEBG, COL_BLACKBG, COL_WHITEDOT, COL_BLACKDOT */
-  galaxies: [1, 2, 3, 4],
 }
 
 /**
