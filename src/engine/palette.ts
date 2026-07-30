@@ -417,15 +417,24 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * Whether this game's board has to move, worked out rather than asserted:
    * it does if anything the rules call black would end up below the board the
    * flip would otherwise give it, because then there is nothing to see it
-   * against. As it happens that is true of all ten — which is the answer to
-   * "why can these boards not just stay as dark as the rest?". They cannot;
-   * a game whose darkest kept colour still cleared the board would keep it.
+   * against. That is the answer to "why can these boards not just stay as dark
+   * as the rest?" — a game whose darkest kept colour still cleared the board
+   * would keep it, and eight of the nine cannot.
+   *
+   * Pearl is the ninth, and it was the reason the exception was written: a
+   * black pearl on an unlifted board came to 1.18:1, which is a disc you can
+   * find rather than a circle you read. It has a rim now, and a rim is
+   * something to see it against — the very thing the test above is asking
+   * after. So a slot `RIM` covers does not ask for room, and Pearl's board
+   * comes back down to the #2f2f2f the other thirty share.
    */
   const board = parse(light[BACKGROUND])
+  const rimmed = RIM[game] ?? {}
   const needsRoom =
     !!semantic &&
     !!board &&
     semantic.some((i) => {
+      if (i in rimmed) return false
       const kept = parse(light[i])
       return !!kept && compress(kept.l) < flip(board.l)
     })
