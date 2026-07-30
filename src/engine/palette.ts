@@ -115,9 +115,20 @@ const CEILING = 0.82
  *
  * Deliberately not here: Mines' 7 and 8, which are black and grey only by
  * Minesweeper convention and are drawn on a cell that has itself turned over
- * — keeping them dark would put dark ink on a dark tile. Flip, and Guess's
- * pegs beyond the two markers, where light and dark are decoration and the
- * manual never appeals to them.
+ * — keeping them dark would put dark ink on a dark tile. And Guess's pegs
+ * beyond the two markers, where light and dark are decoration and the manual
+ * never appeals to them.
+ *
+ * Flip was in that sentence for a while, and it did not belong there: its
+ * chapter opens "You have a grid of squares, some light and some dark. Your aim
+ * is to light all the squares up at the same time", and its two slots are named
+ * COL_RIGHT and COL_WRONG in the C. The test above was applied by searching the
+ * chapters for "black" and "white", and Flip states the same fact in the other
+ * pair of words — so the search missed the one game that names its goal by
+ * lightness rather than by colour. Turned over, the board asked the reader to
+ * make every square the darkest thing on the screen while the words above it
+ * said light up. All forty chapters have since been read for light/dark wording
+ * too; Flip is the only one it caught.
  *
  * Nor Galaxies, though it was for a while, and it is worth saying why: its
  * `COL_*` enum is full of the right words — WHITEBG, BLACKBG, WHITEDOT,
@@ -143,6 +154,16 @@ const CEILING = 0.82
 const SEMANTIC: Record<string, readonly number[]> = {
   /* COL_EMPTY, COL_FULL, COL_UNKNOWN — "black or white", "grey" for unknown */
   pattern: [1, 2, 4],
+  /*
+   * COL_WRONG, COL_RIGHT — "some light and some dark", and the aim is to light
+   * them all up — plus COL_GRID and COL_DIAG, which are one colour upstream and
+   * the same kind of member as Pattern's grey above: the little diagram in every
+   * square is drawn in it on both tones, so its job is to sit between them.
+   * Flipped while the two tones are kept, it lands beside the dark one at 1.4:1
+   * and the diagrams disappear from every unlit square; kept, it stays the mid
+   * grey upstream chose, reading at about 2.4:1 either side.
+   */
+  flip: [1, 2, 3, 4],
   /* COL_BLACK, COL_WHITE — "black and white circles", different rules each */
   pearl: [3, 4],
   /* COL_0 and COL_1 with their bevels — "black and white squares" */
