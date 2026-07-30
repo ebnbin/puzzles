@@ -242,10 +242,44 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  * its empty peg holes into it. Lower is better as long as the black half
  * survives, and at this value it does.
  *
- * It is the price of the exception, and it is paid honestly: these ten boards
- * are a lighter grey than the other thirty.
+ * It is the price of the exception, and it is paid honestly: these boards are a
+ * lighter grey than the other thirty.
  */
 const SEMANTIC_BOARD = 0.26
+
+/**
+ * Where the board sits for the games whose white half *is* the board.
+ *
+ * `SEMANTIC_BOARD` assumes the game paints both halves of its pair and the
+ * board is a third surface between them. Two games do not: Singles paints a
+ * white square by painting nothing — `bg = COL_BACKGROUND`, and its COL_WHITE
+ * is set in `game_colours` and then never used by any draw call — and Range has
+ * no white slot at all, its white squares being the board with nothing on it.
+ * Both chapters state the rules in those words all the same: "colour some of the
+ * squares black", "the remaining white squares".
+ *
+ * So for those two the board is not a surface between the tones; it is one of
+ * them, and standing it at 0.26 stood the white half almost on top of the black.
+ * Everything drawn came to 1.91:1 — the clue numbers included, and in Range the
+ * numbers, the grid, your own entries and the black squares are one aliased
+ * slot, so that was the whole board. Measured over a dealt position, every pixel
+ * of both boards was within 2:1 of the surface it was drawn on.
+ *
+ * This is where black ink clears 4.5:1 against it, which is what a number has to
+ * clear to be read: #0f0f0f on #7d7d7d is 4.66:1, where 0.48 would be 4.47 and
+ * miss. It is no longer a dark board, and saying otherwise would be a fiction —
+ * it is paper, dimmed as far as paper can be dimmed while the ink on it stays
+ * ink.
+ */
+const PAPER_BOARD = 0.49
+
+/**
+ * The games that board belongs to — the ones where nothing is painted white
+ * because the paper is the white. Declared rather than computed: whether a slot
+ * is ever drawn is a fact about the C, not about the colour in it, and Singles'
+ * unused COL_WHITE is exactly the case that would fool a test on colours alone.
+ */
+const BOARD_IS_PAPER = new Set(['singles', 'range'])
 
 /**
  * The pairs of slots a game draws relief with: the lit side, then the shaded.
@@ -460,12 +494,16 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       return !!kept && compress(kept.l) < flip(board.l)
     })
 
+  /* Where a board that has to move goes, which is not the same place for a
+     board that is a surface between the two tones and one that is one of them. */
+  const raised = BOARD_IS_PAPER.has(game) ? PAPER_BOARD : SEMANTIC_BOARD
+
   const flipped = light.map((css, index) => {
     const colour = parse(css)
     if (!colour) return css
     if (semantic) {
       if (index === BACKGROUND && needsRoom)
-        return format({ ...colour, l: SEMANTIC_BOARD })
+        return format({ ...colour, l: raised })
       // Compressed, not inverted: same range as the flip, same direction as
       // the original.
       if (semantic.includes(index))
@@ -491,7 +529,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * So the pair goes wherever the board went. Nothing is chosen here either —
    * the distance is the one the board itself was moved by.
    */
-  const lift = needsRoom && board ? SEMANTIC_BOARD - flip(board.l) : 0
+  const lift = needsRoom && board ? raised - flip(board.l) : 0
 
   /*
    * Keep the light where it was: of each bevel pair, the lit side takes the
