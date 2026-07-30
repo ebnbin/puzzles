@@ -6,7 +6,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
-import { clearSave, readSave, writeLast, writeSave } from './engine/saves'
+import { clearSave, readSave, writeCurrent, writeLast, writeSave } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
@@ -165,9 +165,15 @@ export default function PuzzleHost({
     })
   }, [name])
 
-  /* This is now the game to come back to, from the moment it is opened. */
+  /*
+   * This is now the game to come back to, from the moment it is opened — and
+   * the one the gallery marks, which is a different fact: `last` is a screen and
+   * is dropped as soon as the gallery is the screen, while the mark has to
+   * survive being left.
+   */
   useEffect(() => {
     writeLast(name)
+    writeCurrent(name)
   }, [name])
 
   useEffect(() => {

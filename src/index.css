@@ -238,6 +238,8 @@ a {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
+  /* For the current tile's ring, below. */
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -308,6 +310,30 @@ a {
 .games .games-tile:active {
   box-shadow: var(--shadow-1);
   transform: scale(0.985);
+}
+
+/*
+ * The one you are on: the card's own edge, in the accent, with the name to
+ * match. Marking the card rather than the art keeps the ring off the picture,
+ * which has enough going on.
+ *
+ * Drawn as a pseudo-element rather than folded into the tile's shadow, which is
+ * already three states deep — rest, hover, press — and a ring inside it would
+ * have to be repeated in each. Not an outline either: that is what focus is
+ * drawn with, and a mark identical to the focus ring would hide it.
+ */
+.games [aria-current]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--accent);
+  border-radius: var(--r);
+  pointer-events: none;
+}
+
+.games [aria-current] strong {
+  color: var(--accent);
+  font-weight: 650;
 }
 
 /*

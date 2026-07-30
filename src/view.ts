@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { flushSync } from 'react-dom'
+import { readScroll, writeScroll } from './engine/saves'
 
 /*
  * What the app is showing, held in memory.
@@ -36,9 +37,9 @@ import { flushSync } from 'react-dom'
  *
  * Replacing a screen throws it away, so anything worth keeping is kept
  * elsewhere: the puzzle in `puzzles.save.<name>`, written after every move, and
- * the gallery's scroll position in `galleryScroll` below. Which screen the app
- * opens on is `puzzles.last` — a puzzle's name, or nothing for the gallery — so
- * a cold start resumes whichever of the two you were last on.
+ * the gallery's scroll position below. Which screen the app opens on is
+ * `puzzles.last` — a puzzle's name, or nothing for the gallery — so a cold start
+ * resumes whichever of the two you were last on.
  */
 
 /** The open puzzle's name, or null for the gallery. */
@@ -48,18 +49,28 @@ let view: string | null = null
  * Where the gallery was scrolled to when a puzzle replaced it.
  *
  * The gallery stops being rendered, so the browser has nothing to restore and
- * clamps the position to zero. The one moment it still exists is on the way
- * out.
+ * clamps the position to zero. The one moment it still exists is on the way out.
+ *
+ * Held here for the session and mirrored to the store, which is what carries it
+ * across a cold start — and a cold start is exactly when it matters most: the
+ * app comes back up inside the puzzle you were playing, so the gallery's first
+ * appearance of the visit is after a reload, with nothing in memory to restore.
  */
-let galleryScroll = 0
+let galleryScroll: number | null = readScroll()
 
 const listeners = new Set<() => void>()
 
 if ('scrollRestoration' in window.history)
   window.history.scrollRestoration = 'manual'
 
-export function takeGalleryScroll(): number {
+/** Where to open the gallery, or null if it has never said. */
+export function takeGalleryScroll(): number | null {
   return galleryScroll
+}
+
+export function rememberGalleryScroll(y: number): void {
+  galleryScroll = y
+  writeScroll(y)
 }
 
 function announce() {
@@ -80,7 +91,7 @@ function show(name: string | null) {
   if (view === name) return
   // The outgoing screen is still on the page at this instant, so its scroll is
   // real; a moment later it is gone and the position is clamped away.
-  if (view === null && name !== null) galleryScroll = window.scrollY
+  if (view === null && name !== null) rememberGalleryScroll(window.scrollY)
   view = name
 
   const start = (document as WithViewTransition).startViewTransition
