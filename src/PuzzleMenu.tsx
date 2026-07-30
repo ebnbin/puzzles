@@ -123,22 +123,12 @@ export default function PuzzleMenu({
           ))}
         </div>
 
-        {/* Some puzzles offer none, and an empty heading is worse than no
-            heading. */}
-        {prefs && prefs.controls.length > 0 && (
-          <section>
-            <h2>{t.menu.preferences}</h2>
-            <div className="sheet-prefs">
-              <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
-              {prefsError && (
-                <p className="sheet-custom-error" role="alert">
-                  {prefsError}
-                </p>
-              )}
-            </div>
-          </section>
-        )}
-
+        {/* Above the preferences, because this is the sheet's other half of
+            what the actions above do: the id names the game those buttons deal
+            you, and handing it out or pasting one in is a way of getting a game
+            rather than a way of setting one up. The preferences are the tail of
+            the sheet — settings you touch once, if ever, and every puzzle's own
+            are different. */}
         {permalink && (
           <section className="sheet-ids">
             <TextRow
@@ -157,6 +147,22 @@ export default function PuzzleMenu({
                 onSubmit={onSubmitText}
               />
             )}
+          </section>
+        )}
+
+        {/* Some puzzles offer none, and an empty heading is worse than no
+            heading. */}
+        {prefs && prefs.controls.length > 0 && (
+          <section>
+            <h2>{t.menu.preferences}</h2>
+            <div className="sheet-prefs">
+              <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
+              {prefsError && (
+                <p className="sheet-custom-error" role="alert">
+                  {prefsError}
+                </p>
+              )}
+            </div>
           </section>
         )}
       </div>

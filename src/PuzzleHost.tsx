@@ -625,8 +625,12 @@ export default function PuzzleHost({
             <Icon name="type" />
           </button>
         )}
+        {/* The one in the row that opens something rather than doing something,
+            drawn in the accent to say so — the same distinction the keypad makes
+            between a key that fills a square and a key that acts on the board. */}
         <button
           type="button"
+          className="is-menu"
           aria-label={t.play.menu}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}

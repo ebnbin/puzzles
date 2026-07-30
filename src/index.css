@@ -886,6 +886,14 @@ footer p {
   height: var(--tap-w);
 }
 
+/* Everything else in this row acts on the board and can be greyed out when
+   there is nothing to act on; this one opens the rest of the puzzle and is never
+   unavailable. Drawn in the accent for the same reason the keypad's board-wide
+   keys are: a different kind of press, said in colour rather than in shape. */
+.play-actions .is-menu {
+  color: var(--accent);
+}
+
 /* --- the menu, over the board rather than under it --- */
 
 @keyframes scrim-in {
