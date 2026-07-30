@@ -1,6 +1,5 @@
 import Icon from './Icon'
 import { docHref, useLang, useStrings } from './i18n'
-import type { Lang } from './i18n'
 import { useTheme } from './useTheme'
 import type { Theme } from './useTheme'
 
@@ -14,20 +13,15 @@ import type { Theme } from './useTheme'
  */
 export default function LauncherSettings({ onClose }: { onClose: () => void }) {
   const t = useStrings()
-  const [lang, setLang] = useLang()
+  // Read-only here: the language is set on the launcher itself, but the
+  // manual's address depends on it.
+  const [lang] = useLang()
   const [theme, setTheme] = useTheme()
 
   const themes: { value: Theme; label: string }[] = [
     { value: 'system', label: t.settings.themeSystem },
     { value: 'light', label: t.settings.themeLight },
     { value: 'dark', label: t.settings.themeDark },
-  ]
-
-  // The one list on this screen that is the same in both languages: a language
-  // is named in itself, or the reader who needs it cannot find it.
-  const langs: { value: Lang; label: string }[] = [
-    { value: 'en', label: 'English' },
-    { value: 'zh', label: '简体中文' },
   ]
 
   return (
@@ -56,28 +50,6 @@ export default function LauncherSettings({ onClose }: { onClose: () => void }) {
                   value={option.value}
                   checked={theme === option.value}
                   onChange={() => setTheme(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="setting">
-          <span className="setting-text">{t.settings.language}</span>
-          <div
-            className="segmented"
-            role="radiogroup"
-            aria-label={t.settings.language}
-          >
-            {langs.map((option) => (
-              <label key={option.value} data-selected={lang === option.value}>
-                <input
-                  type="radio"
-                  name="lang"
-                  value={option.value}
-                  checked={lang === option.value}
-                  onChange={() => setLang(option.value)}
                 />
                 {option.label}
               </label>
