@@ -652,6 +652,24 @@ export default function PuzzleHost({
             onClick={(e) => e.stopPropagation()}
           >
             <h2>{t.play.help}</h2>
+            {/*
+              What the puzzle looks like when it is done, before a word of it is
+              read. Whoever opens this is looking at a board they do not yet
+              understand, and a finished one answers "what am I aiming at" in
+              the time it takes to glance — which no paragraph can, and which is
+              the whole reason the covers are crops of a real position rather
+              than drawings.
+
+              Not lazy and not preloaded: the dialog is only rendered while it
+              is open, so the fetch happens when it is asked for, and the worker
+              keeps it afterwards — a puzzle whose help you have read once is
+              still illustrated on a plane.
+            */}
+            <img
+              className="help-art"
+              src={`/solved/${name}.png`}
+              alt={t.play.picture(title)}
+            />
             {/* Upstream's own words. Fetched when the puzzle loads, so this is
                 all but always the full blurb by the time it is asked for; the
                 one-liner covers the case where it is not. */}

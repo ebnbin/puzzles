@@ -1481,6 +1481,46 @@ footer p {
   max-width: 30rem;
 }
 
+/*
+ * The board above the blurb.
+ *
+ * A plate of the grey the boards are rendered on — the same trick as the
+ * gallery's tiles, and for the same reason: the pictures carry that grey to
+ * their own edges, so the plate makes each one edgeless rather than a pasted-in
+ * rectangle. Constant across themes, because the pictures are built once, in
+ * light.
+ *
+ * Its height is fixed rather than the picture's, so nothing moves when the
+ * picture arrives, and so forty boards of different shapes — square, portrait,
+ * landscape — all sit in the same frame. A third of the viewport at most: on a
+ * short screen the words matter more than the picture.
+ */
+/*
+ * Sized by its height and centred, with no plate behind it.
+ *
+ * A plate was the obvious thing — it is what the gallery's tiles do — but these
+ * boards do not agree on a background: twenty-four are rendered on #e6e6e6 and
+ * sixteen on #d5d5d5, the ones whose back end dims it to leave room for a
+ * highlight above. One plate colour cannot match both, and a plate that nearly
+ * matches is worse than none: it draws a mount around the picture on the forty
+ * per cent it misses. So the picture's own margin is its mount, and there is no
+ * letterbox to fill — the height is fixed and the width follows the board,
+ * whatever shape it came out.
+ *
+ * Fixed in height rather than width, so a portrait board (Guess) and a square
+ * one take the same bite out of the dialog, and so the words below do not move
+ * when the picture arrives. A third of the viewport at most: on a short screen
+ * the words matter more than the picture.
+ */
+.help-art {
+  display: block;
+  height: min(15rem, 32vh);
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto 1rem;
+  border-radius: var(--r-sm);
+}
+
 /* Some chapters run to a screenful and a half, so the prose scrolls inside the
    dialog rather than the dialog scrolling: the heading and the way out both
    stay put, which they would not if the whole thing moved. */

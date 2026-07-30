@@ -46,6 +46,13 @@ export const en = {
 
   play: {
     help: 'How to play',
+    /**
+     * Names the board shown above the blurb, for a reader who cannot see it.
+     * Says only what it is a picture of: the words below say what to do with
+     * it, and most of these are finished boards but not all — six puzzles have
+     * no answer worth photographing (see scripts/build-solved.mjs).
+     */
+    picture: (name: string) => `A ${name} board`,
     /** Leads out of the one-paragraph blurb and into the manual proper. */
     fullInstructions: 'Full instructions',
     close: 'Close',

@@ -30,6 +30,7 @@ export const zh: Strings = {
 
   play: {
     help: '玩法',
+    picture: (name: string) => `${name} 的棋盘`,
     /** Leads out of the one-paragraph blurb and into the manual proper. */
     fullInstructions: '完整说明',
     close: '关闭',
