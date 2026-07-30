@@ -1496,27 +1496,29 @@ footer p {
  * short screen the words matter more than the picture.
  */
 /*
- * Sized by its height and centred, with no plate behind it.
+ * A square, whatever shape the board came out, with the board fitted inside it
+ * and the rest left as space.
  *
- * A plate was the obvious thing — it is what the gallery's tiles do — but these
- * boards do not agree on a background: twenty-four are rendered on #e6e6e6 and
- * sixteen on #d5d5d5, the ones whose back end dims it to leave room for a
- * highlight above. One plate colour cannot match both, and a plate that nearly
- * matches is worse than none: it draws a mount around the picture on the forty
- * per cent it misses. So the picture's own margin is its mount, and there is no
- * letterbox to fill — the height is fixed and the width follows the board,
- * whatever shape it came out.
+ * Square because forty pictures in one place should be one size, not forty: the
+ * frame is the constant and the board varies within it. Twenty-eight are square
+ * anyway; Guess is half as wide as it is tall and now takes the same bite out of
+ * the dialog as Net does.
  *
- * Fixed in height rather than width, so a portrait board (Guess) and a square
- * one take the same bite out of the dialog, and so the words below do not move
- * when the picture arrives. A third of the viewport at most: on a short screen
- * the words matter more than the picture.
+ * The space around a board that does not fill its square is nothing — no plate.
+ * A plate was the obvious thing, and it is what the gallery's tiles do, but
+ * these boards do not agree on a background: twenty-four are rendered on
+ * #e6e6e6 and sixteen on #d5d5d5, the ones whose back end dims it to leave room
+ * for a highlight. One colour cannot match both, and one that nearly matches is
+ * worse than none — it draws a visible mount on the forty per cent it misses.
+ *
+ * The height is capped against the viewport as well, for the landscape layout
+ * below: a fixed 10rem would be most of a phone lying on its side.
  */
 .help-art {
   display: block;
-  height: min(15rem, 32vh);
-  width: auto;
-  max-width: 100%;
+  width: min(10rem, 40vh);
+  aspect-ratio: 1;
+  object-fit: contain;
   margin: 0 auto 1rem;
   border-radius: var(--r-sm);
 }
@@ -1594,7 +1596,12 @@ footer p {
     justify-content: flex-end;
   }
 
-  .dialog-buttons button {
+  /* `.dialog-more` alongside, because it is an anchor and not a button: without
+     it the link went on growing after the buttons beside it had stopped, which
+     on a wide row is one control stretched across the dialog and one the size it
+     asked for. */
+  .dialog-buttons button,
+  .dialog-buttons .dialog-more {
     flex: 0 0 auto;
     min-width: 5.5rem;
   }
@@ -1664,6 +1671,52 @@ footer p {
     margin: 0;
     gap: var(--key-gap);
     padding: 0.3rem 0;
+  }
+
+  /*
+   * How to play, in two columns: the board down the left, the words down the
+   * right. Height is scarce here for the same reason it is on the board screen,
+   * and stacked the picture and the paragraph were each other's competition —
+   * either the picture pushed the words off the bottom or it went so small it
+   * showed nothing.
+   *
+   * Side by side, neither has to give: the picture is a fixed square that never
+   * moves, and the reading happens in its own scroller with the heading pinned
+   * above it and the buttons pinned below. The dialog itself stops scrolling —
+   * a wide box whose whole contents slide is how you lose the buttons.
+   */
+  .dialog-help {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    column-gap: 1.25rem;
+    max-width: 42rem;
+    overflow: hidden;
+  }
+
+  .dialog-help h2 {
+    grid-area: 1 / 2;
+    margin-bottom: 0.6rem;
+  }
+
+  /* All three rows of the left column, aligned with the heading rather than
+     floating in the middle of however much text there is. */
+  .help-art {
+    grid-area: 1 / 1 / 4 / 2;
+    align-self: start;
+    margin: 0;
+  }
+
+  .dialog-help .dialog-prose {
+    grid-area: 2 / 2;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .dialog-help .dialog-buttons {
+    grid-area: 3 / 2;
+    /* Clear of the text it now sits under rather than after. */
+    margin-top: 0.9rem;
   }
 }
 
