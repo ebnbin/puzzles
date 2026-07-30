@@ -12,20 +12,30 @@ import { flushSync } from 'react-dom'
  * `/solo` reach the app at all.
  *
  * ---------------------------------------------------------------------------
- * THE URL IS A MIRROR, NOT A ROUTE
+ * THE ADDRESS IS ALWAYS THE SAME ONE
  * ---------------------------------------------------------------------------
  *
- * The open puzzle is still written into the address, as a hash — `/#solo` —
- * and that is all it is: a reflection, kept up to date so that a refresh comes
- * back to the same puzzle and so that a tile can still be middle-clicked into
- * a tab of its own. Nothing reads it to decide what to draw except the one
- * line in `start` that opens the app.
+ * `/`, whatever is open. Nothing about the view is written into it, and any
+ * other path a reader arrives on is normalised to it.
  *
- * A hash rather than a path, deliberately. It never reaches the server, so
- * there is nothing to configure and no address that can 404; and it does not
- * look like a page, which is honest, because it is not one. A puzzle worth
- * sending to somebody is a different thing from a puzzle you happen to have
- * open, and it will get a real address of its own.
+ * There was a hash here for a while — `/#solo`, a mirror of the open puzzle —
+ * on the grounds that it let a refresh come back to the same puzzle and let a
+ * tile be middle-clicked into a tab of its own. The first of those was free
+ * already: `puzzles.last` is written when a puzzle opens and cleared when the
+ * gallery is reached, so it says exactly what the hash said, and the reload
+ * path reads it either way. The second was real and is given up.
+ *
+ * What it cost was worth more. `/#solo` is half a share link: copy it out of
+ * the bar, send it, and it opens Solo without the position — which is exactly
+ * the confusion between "the app" and "a puzzle worth sending to somebody"
+ * that keeping those two apart is meant to prevent. One fixed address means
+ * every link copied out of the app is unambiguously the app, and a position
+ * gets its own shape.
+ *
+ * A consequence, stated plainly: the app is now effectively single-tab. Two
+ * tabs share one `puzzles.last`, so reloading either lands on whichever wrote
+ * last. Multiple tabs were what the middle click was for, so this is the same
+ * trade and not a second one.
  *
  * ---------------------------------------------------------------------------
  * WHAT BACK DOES, AND HOW IT KNOWS
@@ -76,14 +86,9 @@ export function takeGalleryScroll(): number {
   return galleryScroll
 }
 
-/**
- * The address that mirrors a given view.
- *
- * Always the root, so the app has exactly one address and any other path a
- * reader arrives on — an old `/solo` link, a typo — is normalised away rather
- * than left sitting in the bar over a gallery.
- */
-const mirror = (name: string | null) => (name ? `/#${name}` : '/')
+/** The app's one address. Passed to every history call, so any other path a
+ *  reader arrives on — an old `/solo` link, a typo — is normalised away. */
+const HERE = '/'
 
 function announce() {
   for (const listener of listeners) listener()
@@ -116,26 +121,24 @@ function show(name: string | null) {
 /**
  * Settle the first view, before React exists. Runs once, from main.tsx.
  *
- * `name` is the puzzle to open — from the address if it names one, or the last
- * one played, which the launcher hands in. The address is normalised either
- * way, so a stale or nonsense hash does not stay in the bar.
+ * `name` is the puzzle to open, which main.tsx takes from `puzzles.last`.
  */
 export function start(name: string | null) {
   view = name
   pushed = false
-  window.history.replaceState(name ? { game: name } : null, '', mirror(name))
+  window.history.replaceState(name ? { game: name } : null, '', HERE)
 }
 
 /** The gallery opening a puzzle: one level down, and the app's only push. */
 export function openGame(name: string) {
   if (name === view) return
   if (view === null) {
-    window.history.pushState({ game: name }, '', mirror(name))
+    window.history.pushState({ game: name }, '', HERE)
     pushed = true
   } else {
     // Sideways, from the switcher: the same level, a different puzzle, so Back
     // still means the gallery rather than a trail of the puzzles seen before.
-    window.history.replaceState({ game: name }, '', mirror(name))
+    window.history.replaceState({ game: name }, '', HERE)
   }
   show(name)
 }
@@ -151,7 +154,7 @@ export function showGallery() {
     window.history.back()
     return
   }
-  window.history.replaceState(null, '', mirror(null))
+  window.history.replaceState(null, '', HERE)
   show(null)
 }
 
@@ -173,46 +176,3 @@ window.addEventListener(POP, () => {
   pushed = name !== null
   show(name)
 })
-
-/*
- * The mirror, read the other way.
- *
- * Editing the hash in the address bar is a navigation the app would otherwise
- * miss: it is same-document, so it arrives as `hashchange` and never as a
- * popstate, and `pushState`/`replaceState` do not raise it — so this cannot
- * loop with the writes above. Nothing in the app produces one; it is here so
- * that an address which says `#solo` is showing Solo however it came to say so.
- */
-window.addEventListener('hashchange', () => {
-  const name = window.location.hash.replace(/^#/, '') || null
-  if (name === view) return
-  pushed = false
-  show(name)
-})
-
-/**
- * Click handler for a tile. The href is the mirror address, so a modified or
- * middle click still opens the puzzle in a tab of its own — the one thing the
- * URL is kept for besides refreshing.
- */
-export function onTileClick(event: React.MouseEvent<HTMLAnchorElement>) {
-  if (event.defaultPrevented) return
-  if (event.button !== 0) return
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-
-  const name = event.currentTarget.getAttribute('href')?.replace(/^#/, '')
-  if (!name) return
-
-  event.preventDefault()
-  openGame(name)
-}
-
-/** The same, for a link whose job is the way back. */
-export function onBackClick(event: React.MouseEvent<HTMLAnchorElement>) {
-  if (event.defaultPrevented) return
-  if (event.button !== 0) return
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-
-  event.preventDefault()
-  showGallery()
-}

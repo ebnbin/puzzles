@@ -9,22 +9,16 @@ import { start } from './view'
 /*
  * Settle the first view before React exists, once per document.
  *
- * The address mirrors the open puzzle as a hash, so a refresh comes back to
- * it. Failing that — a cold start at the bare address — the last puzzle
- * played is reopened, which is what makes the gallery a place you choose to be
- * rather than a toll gate. A remembered name that is not a puzzle is stale and
- * cleared, rather than left to strand every cold start on the not-found view.
+ * Nothing in the address says what to open — there is only one address — so the
+ * last puzzle played is what a cold start or a refresh comes back to, which is
+ * also what makes the gallery a place you choose to be rather than a toll gate.
+ * A remembered name that is not a puzzle is stale and cleared, rather than left
+ * to strand every start on the not-found view.
  */
 {
-  const named = (name: string | null) =>
-    name && games.some((g) => g.name === name) ? name : null
-
-  let target = named(window.location.hash.replace(/^#/, ''))
-  if (!target) {
-    const last = readLast()
-    target = named(last)
-    if (last && !target) clearLast()
-  }
+  const last = readLast()
+  const target = last && games.some((g) => g.name === last) ? last : null
+  if (last && !target) clearLast()
   start(target)
 }
 

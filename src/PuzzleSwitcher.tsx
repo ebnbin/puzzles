@@ -93,7 +93,7 @@ export default function PuzzleSwitcher({
   // there is not offered here either — including the one being played, if
   // it was opened by address while hidden.
   const games = useGames().filter((g) => !hidden.has(g.name))
-  const currentRef = useRef<HTMLAnchorElement>(null)
+  const currentRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLUListElement>(null)
   // The trigger is already on screen, so the first render can be in the right
@@ -137,22 +137,14 @@ export default function PuzzleSwitcher({
             const here = game.name === current
             return (
               <li key={game.name}>
-                <a
+                {/* A button: nothing here is an address to go to. */}
+                <button
+                  type="button"
+                  className="switch-tile"
+                  data-game={game.name}
                   ref={here ? currentRef : undefined}
-                  href={`#${game.name}`}
-                  aria-current={here ? 'page' : undefined}
-                  onClick={(e) => {
-                    // Modified and middle clicks open a tab, as on any link.
-                    if (
-                      e.defaultPrevented ||
-                      e.button !== 0 ||
-                      e.metaKey ||
-                      e.ctrlKey ||
-                      e.shiftKey ||
-                      e.altKey
-                    )
-                      return
-                    e.preventDefault()
+                  aria-current={here ? 'true' : undefined}
+                  onClick={() => {
                     // Already here: the panel is the only thing in the way.
                     if (here) {
                       onClose()
@@ -178,7 +170,7 @@ export default function PuzzleSwitcher({
                     />
                   </span>
                   <span className="switch-name">{game.displayName}</span>
-                </a>
+                </button>
               </li>
             )
           })}

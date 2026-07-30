@@ -11,7 +11,7 @@ import { clearSave, readSave, writeLast, writeSave } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
 import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
-import { onBackClick } from './view'
+import { showGallery } from './view'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useResolvedTheme } from './useResolvedTheme'
@@ -513,14 +513,14 @@ export default function PuzzleHost({
   return (
     <div className="play" data-ready={ready}>
       <header className="play-bar">
-        <a
+        <button
+          type="button"
           className="play-back"
-          href="#"
-          onClick={onBackClick}
+          onClick={showGallery}
           aria-label={t.play.back}
         >
           <Icon name="back" />
-        </a>
+        </button>
         {/* The name is also the way to the other thirty-nine: it is what you
             would point at to say "not this one", and it costs the bar
             nothing it was not already spending. */}

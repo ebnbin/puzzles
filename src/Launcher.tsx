@@ -6,7 +6,7 @@ import { useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
-import { onTileClick, takeGalleryScroll } from './view'
+import { openGame, takeGalleryScroll } from './view'
 import { toggleHidden, useHidden } from './useHidden'
 
 /** A press has to be still for this long before it means hide, not open. */
@@ -194,7 +194,7 @@ export default function Launcher() {
 }
 
 /**
- * One game: a link, with the way to put it away riding along.
+ * One game: a button, with the way to put it away riding along.
  *
  * Two ways in, one per kind of device. A long press, because on a phone
  * that is what "do something about this tile, don't open it" has come to
@@ -234,21 +234,24 @@ function Tile({
 
   return (
     <li>
-      <a
-        href={`#${game.name}`}
+      {/* A button, not a link: there is no address for a puzzle to be at, and
+          pressing this changes what the app shows rather than going anywhere. */}
+      <button
+        type="button"
+        className="games-tile"
+        data-game={game.name}
         onPointerDown={down}
         onPointerUp={up}
         onPointerCancel={up}
         onPointerLeave={up}
         // The browser's own long-press menu would race ours.
         onContextMenu={(e) => e.preventDefault()}
-        onClick={(e) => {
+        onClick={() => {
           if (held.current) {
             held.current = false
-            e.preventDefault()
             return
           }
-          onTileClick(e)
+          openGame(game.name)
         }}
       >
         <span className="games-art">
@@ -266,7 +269,7 @@ function Tile({
         </span>
         <strong>{game.displayName}</strong>
         <span className="games-desc">{game.description}</span>
-      </a>
+      </button>
       <button
         type="button"
         className="games-stow"
