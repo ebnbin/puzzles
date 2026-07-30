@@ -18,7 +18,7 @@ export interface Size {
   h: number
 }
 
-import { forDarkBoard } from './palette'
+import { forDarkBoard, RIM } from './palette'
 
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
@@ -195,6 +195,24 @@ export class CanvasRenderer {
     ctx.stroke()
   }
 
+  /**
+   * A rim the same colour as its fill is no rim, and on one board that is the
+   * difference between seeing a clue and not. See `RIM` in palette.ts for
+   * which circle, in which puzzle, and why the palette cannot answer it on its
+   * own: the fill and the rim are the same slot, and a table of colours by
+   * slot has only one colour to give.
+   *
+   * Dark boards only, and only where the two arrive equal — so upstream's own
+   * rendering, which is what the light board is, passes through untouched.
+   */
+  private rim(fill: number, outline: number): string {
+    if (this.dark && fill === outline) {
+      const swap = RIM[this.game]?.[outline]
+      if (swap !== undefined) return this.colours[swap]
+    }
+    return this.colours[outline]
+  }
+
   circle(x: number, y: number, r: number, fill: number, outline: number) {
     const { ctx } = this
     ctx.beginPath()
@@ -206,7 +224,7 @@ export class CanvasRenderer {
     ctx.lineWidth = 1
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-    ctx.strokeStyle = this.colours[outline]
+    ctx.strokeStyle = this.rim(fill, outline)
     ctx.stroke()
   }
 

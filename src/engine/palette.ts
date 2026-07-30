@@ -162,6 +162,43 @@ const SEMANTIC: Record<string, readonly number[]> = {
 }
 
 /**
+ * A circle whose rim has to be drawn in something other than its own fill,
+ * and which slot to draw it in: `game: { fill: rim }`, both slot numbers.
+ *
+ * Only Pearl, and only on the dark board. Its clues are one call —
+ * `draw_circle(dr, cx, cy, TILE_SIZE/4, c, COL_BLACK)` — where the fill is
+ * COL_WHITE or COL_BLACK by the clue and the rim is always COL_BLACK. On
+ * upstream's near-white board that one rim does everything asked of it: it is
+ * what makes a white circle a circle at all, since white on #e6e6e6 is 1.25:1,
+ * and on a black circle it is invisible and unmissed, because a black disc on a
+ * near-white board needs no help at 16.8:1.
+ *
+ * Turn the board over and the same rim serves the same circle, which is now the
+ * one that did not need it. The black clue falls to 1.91:1 and has nothing to
+ * outline it, being its own rim. That is not a matter of tuning: #424242 is
+ * 0.0545 in luminance, so *nothing* darker than it can reach even 2.1:1, and a
+ * board pale enough to give the two clues equal contrast comes out at #6b6b6b,
+ * which is no longer a dark board. Upstream met the same wall from the other
+ * side and answered it with a rim on the clue that needed one. This is that
+ * answer applied to the clue that needs one here.
+ *
+ * So the two clues ring each other: white filled and ringed in black going one
+ * way, black filled and ringed in white going the other. Nothing is invented —
+ * the rim is a colour the game already named, and both of these are slots whose
+ * meaning `SEMANTIC` is already holding still. Pearl's chapter states its rules
+ * in those words ("black and white circles", "A black circle in a square
+ * indicates that that square is a corner"), which is why it is in that table
+ * and why the two tones must stay the way up they are.
+ *
+ * Light boards never consult this: upstream's own rendering is what a light
+ * board is, exactly, and it is right there already.
+ */
+export const RIM: Record<string, Readonly<Record<number, number>>> = {
+  /* COL_BLACK ringed in COL_WHITE */
+  pearl: { 3: 4 },
+}
+
+/**
  * Where the board sits for those games.
  *
  * A two-tone puzzle needs a surface between its two tones. Upstream does not
