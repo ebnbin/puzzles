@@ -3,7 +3,6 @@ import Icon from './Icon'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
-import PuzzleSwitcher from './PuzzleSwitcher'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
@@ -77,7 +76,6 @@ export default function PuzzleHost({
   const effectAlive = useRef(false)
   /** Whether the running back end still has a host to report to. */
   const liveRef = useRef(true)
-  const titleRef = useRef<HTMLButtonElement>(null)
 
   const [status, setStatus] = useState<string | null>(null)
   const [presets, setPresets] = useState<Preset[] | null>(null)
@@ -95,7 +93,6 @@ export default function PuzzleHost({
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const [switcherOpen, setSwitcherOpen] = useState(false)
 
   /*
    * A configuration laid out inside a sheet rather than put in a dialog of
@@ -462,7 +459,6 @@ export default function PuzzleHost({
       // control inside the sheet, which is where it will be after a preset.
       if (e.key === 'Escape') {
         if (helpOpen) setHelpOpen(false)
-        else if (switcherOpen) setSwitcherOpen(false)
         // Not a layer of its own: the parameters are part of the sheet, so
         // the sheet is what closes, and closing it answers the config box.
         else if (typesOpen) closeTypes()
@@ -471,7 +467,7 @@ export default function PuzzleHost({
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen || switcherOpen || typesOpen) return
+      if (dialog || helpOpen || typesOpen) return
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
       const api = apiRef.current
@@ -496,7 +492,6 @@ export default function PuzzleHost({
     closeTypes,
     closeMenu,
     helpOpen,
-    switcherOpen,
   ])
 
   const pressKey = useCallback((key: KeyLabel) => {
@@ -513,25 +508,18 @@ export default function PuzzleHost({
   return (
     <div className="play" data-ready={ready}>
       <header className="play-bar">
-        <button
-          type="button"
-          className="play-back"
-          onClick={showGallery}
-          aria-label={t.play.back}
-        >
-          <Icon name="back" />
-        </button>
-        {/* The name is also the way to the other thirty-nine: it is what you
-            would point at to say "not this one", and it costs the bar
-            nothing it was not already spending. */}
+        {/* The name is the way to the other thirty-nine, and the only way off
+            this screen. There is no back arrow because there is nothing behind
+            here: the gallery is the app's other screen, not its parent, so
+            this is a place to go rather than a thing to close. It is what you
+            would point at to say "not this one", and it costs the bar nothing
+            it was not already spending. */}
         <h1>
           <button
-            ref={titleRef}
             type="button"
             className="play-title"
-            aria-haspopup="dialog"
-            aria-expanded={switcherOpen}
-            onClick={() => setSwitcherOpen(true)}
+            onClick={showGallery}
+            aria-label={`${title} — ${t.play.switcher}`}
           >
             <span>{title}</span>
             <Icon name="caret" size={18} />
@@ -703,14 +691,6 @@ export default function PuzzleHost({
             </div>
           </div>
         </div>
-      )}
-
-      {switcherOpen && (
-        <PuzzleSwitcher
-          current={name}
-          anchor={titleRef}
-          onClose={() => setSwitcherOpen(false)}
-        />
       )}
 
       {typesOpen && presets && (

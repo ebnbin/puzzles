@@ -45,7 +45,6 @@ export const en = {
   },
 
   play: {
-    back: 'All puzzles',
     help: 'How to play',
     /** Leads out of the one-paragraph blurb and into the manual proper. */
     fullInstructions: 'Full instructions',
@@ -53,7 +52,9 @@ export const en = {
     undo: 'Undo',
     redo: 'Redo',
     menu: 'Menu',
-    switcher: 'Switch puzzle',
+    /** The name in the bar is the way to the gallery, so it says where it
+     *  goes rather than what it closes. */
+    switcher: 'All puzzles',
     /* Named for what the press does, not for where you are. */
     toDark: 'Switch to dark',
     toLight: 'Switch to light',

@@ -29,7 +29,6 @@ export const zh: Strings = {
   },
 
   play: {
-    back: '全部谜题',
     help: '玩法',
     /** Leads out of the one-paragraph blurb and into the manual proper. */
     fullInstructions: '完整说明',
@@ -37,7 +36,7 @@ export const zh: Strings = {
     undo: '撤销',
     redo: '重做',
     menu: '菜单',
-    switcher: '切换谜题',
+    switcher: '全部谜题',
     toDark: '切换到深色',
     toLight: '切换到浅色',
     keypad: '谜题按键',

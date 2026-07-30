@@ -520,7 +520,6 @@ footer p {
 /* The bar's own buttons are bare: no fill until touched. A filled control up
    here would compete with the board for the eye, and there is nothing else in
    the bar for it to group with. */
-.play-back,
 .play-bar .play-icon {
   display: grid;
   flex: none;
@@ -543,13 +542,11 @@ footer p {
 }
 
 @media (hover: hover) {
-  .play-back:hover,
   .play-bar .play-icon:hover {
     background: var(--surface-2);
   }
 }
 
-.play-back:active,
 .play-bar .play-icon:active {
   background: var(--surface-3);
   transform: scale(0.92);
@@ -992,138 +989,6 @@ footer p {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-/* --- switching puzzle ---------------------------------------------------
- *
- * The gallery, packed down. Four across on a phone against the gallery's
- * three: nothing here has a description to read, and the point of a switcher
- * is how much of the collection is in front of you at once.
- */
-
-/* Catches the click that dismisses, and dims and blurs what it covers — the
-   same veil the sheets draw, so everything that opens over the board says it
-   the same way. */
-.pop-catcher {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: var(--scrim);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-  animation: scrim-in var(--dur) var(--ease) backwards;
-}
-
-/* Placed by measurement — top, left, width and max-height all arrive as inline
-   values from the button that opened it. Grown from its top-left corner, which
-   is the corner pinned to the name. */
-.pop {
-  position: fixed;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 0.5rem;
-  border-radius: var(--r);
-  background: var(--surface);
-  box-shadow: var(--shadow-3);
-  transform-origin: top left;
-  animation: pop-in var(--dur) var(--ease) backwards;
-}
-
-@keyframes pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.97);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pop {
-    animation: none;
-  }
-}
-
-.switch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
-  gap: 0.5rem 0.4rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* Each one a card with its own edges. That is what lets the panel stop
-   halfway down a row: a half card is obviously a card that continues, where a
-   half of something unbounded is just a rendering fault. */
-.switch-grid .switch-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: 100%;
-  padding: 0.3rem 0.3rem 0.35rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--edge);
-  color: var(--text);
-  font: inherit;
-  text-align: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
-}
-
-/* The board's own grey under every thumbnail, so the art bleeds to the tile's
-   edges the way it does in the gallery. Fixed square: these are 256x256 and
-   must not be allowed to set their own height. */
-.switch-art {
-  display: block;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: var(--r-sm);
-  background: var(--board);
-  box-shadow: inset 0 0 0 1px rgb(20 20 30 / 0.08);
-}
-
-.switch-art img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.switch-name {
-  display: block;
-  margin-top: 0.3rem;
-  overflow: hidden;
-  font-size: var(--t-2xs);
-  font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Where you already are: the card's own edge, drawn in the accent and drawn
-   heavier. Marking the card rather than the art keeps the ring off the
-   picture, which has enough going on. */
-.switch-grid [aria-current] {
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.switch-grid [aria-current] .switch-name {
-  color: var(--accent);
-  font-weight: 650;
-}
-
-@media (hover: hover) {
-  .switch-grid .switch-tile:hover {
-    background: var(--surface-3);
-  }
-}
-
-.switch-grid .switch-tile:active {
-  background: var(--surface-3);
-  box-shadow: inset 0 0 0 1px var(--edge-strong);
 }
 
 .sheet p {
