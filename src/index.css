@@ -682,9 +682,25 @@ footer p {
   user-select: none;
 }
 
+/*
+ * No ring, and `none` rather than nothing at all, because the base rule above
+ * would otherwise draw one.
+ *
+ * The board is focusable so that arrow keys reach the puzzle, and that is all
+ * the tabindex is for; it stays exactly as it was. But Chrome reads
+ * `:focus-visible` generously for anything focusable only by tabindex — a
+ * button suppresses the ring on a click and a canvas does not — so an ordinary
+ * tap on the board lit a 2px accent outline round the whole puzzle, which
+ * looks like the board has been selected rather than played.
+ *
+ * The ring was there to say "keys will land here", and the puzzles say it
+ * better themselves: press an arrow and the game draws its own cursor on the
+ * square it would act on. That is a real focus indicator, drawn where the
+ * keyboard is actually pointing, and it is upstream's.
+ */
+.host-board:focus,
 .host-board:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: none;
 }
 
 /* --- buttons -----------------------------------------------------------
