@@ -383,6 +383,40 @@ a {
   }
 }
 
+/*
+ * A word of confirmation, said and gone. Same voice as the keypad's
+ * long-press label: the page's own ink, inverted.
+ */
+.toast {
+  position: fixed;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 50;
+  max-width: min(85vw, 22rem);
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--r-full);
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--t-sm);
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: toast-in var(--dur) var(--ease);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
 footer {
   margin-top: 2.5rem;
   padding-top: 1.25rem;

@@ -36,6 +36,29 @@ export default function Launcher() {
   const away = games.filter((g) => hidden.has(g.name))
 
   /*
+   * A word of confirmation when a tile is put away or brought back. The tile
+   * moving is the real feedback, but the long press gives none until it has
+   * already happened, and a vanished tile does not say where it went. Keyed,
+   * so a second toggle restarts the animation instead of extending the old
+   * toast's stay.
+   */
+  const [toast, setToast] = useState<{ text: string; key: number } | null>(null)
+  const toastKey = useRef(0)
+  useEffect(() => {
+    if (!toast) return
+    const timer = window.setTimeout(() => setToast(null), 2200)
+    return () => window.clearTimeout(timer)
+  }, [toast])
+
+  const toggle = (game: GameText) => {
+    const text = hidden.has(game.name)
+      ? t.launcher.nowShown(game.displayName)
+      : t.launcher.nowHidden(game.displayName)
+    toggleHidden(game.name)
+    setToast({ text, key: ++toastKey.current })
+  }
+
+  /*
    * Back where the reader left off. Layout-effect, not effect: inside the
    * view transition the new page is snapshotted as soon as this render
    * commits, and the scroll has to already be right in that picture.
@@ -81,7 +104,7 @@ export default function Launcher() {
 
       <ul className="games">
         {shown.map((game) => (
-          <Tile key={game.name} game={game} hidden={false} />
+          <Tile key={game.name} game={game} hidden={false} onToggle={toggle} />
         ))}
       </ul>
 
@@ -100,7 +123,7 @@ export default function Launcher() {
           {hiddenOpen && (
             <ul className="games games-stashed">
               {away.map((game) => (
-                <Tile key={game.name} game={game} hidden />
+                <Tile key={game.name} game={game} hidden onToggle={toggle} />
               ))}
             </ul>
           )}
@@ -123,6 +146,12 @@ export default function Launcher() {
       {settingsOpen && (
         <LauncherSettings onClose={() => setSettingsOpen(false)} />
       )}
+
+      {toast && (
+        <div key={toast.key} className="toast" role="status">
+          {toast.text}
+        </div>
+      )}
     </div>
   )
 }
@@ -140,7 +169,15 @@ export default function Launcher() {
  * that follows it is swallowed, the same way the keypad's long-press help
  * does it.
  */
-function Tile({ game, hidden }: { game: GameText; hidden: boolean }) {
+function Tile({
+  game,
+  hidden,
+  onToggle,
+}: {
+  game: GameText
+  hidden: boolean
+  onToggle: (game: GameText) => void
+}) {
   const t = useStrings()
   const label = hidden ? t.launcher.show(game.displayName) : t.launcher.hide(game.displayName)
 
@@ -153,7 +190,7 @@ function Tile({ game, hidden }: { game: GameText; hidden: boolean }) {
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => {
       held.current = true
-      toggleHidden(game.name)
+      onToggle(game)
     }, HOLD_MS)
   }
   const up = () => window.clearTimeout(timer.current)
@@ -198,7 +235,7 @@ function Tile({ game, hidden }: { game: GameText; hidden: boolean }) {
         className="games-stow"
         aria-label={label}
         title={label}
-        onClick={() => toggleHidden(game.name)}
+        onClick={() => onToggle(game)}
       >
         <Icon name={hidden ? 'eye' : 'eyeOff'} size={15} />
       </button>
