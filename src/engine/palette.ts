@@ -282,6 +282,34 @@ const PAPER_BOARD = 0.49
 const BOARD_IS_PAPER = new Set(['singles', 'range'])
 
 /**
+ * Slots a game measures out from its own background rather than choosing.
+ *
+ * `ret[COL_GRID] = ret[COL_BACKGROUND] * 0.9F` is not a grey the game picked; it
+ * is a statement that this line is a tenth of a step off the board it is drawn
+ * on. So it has the bevel's problem, for the bevel's reason: where `needsRoom`
+ * lifts the board, a step measured from the background is left being measured
+ * from where the background used to be. The lift already carries the bevel
+ * along; these are the other colours that have to go with it.
+ *
+ * Blackbox is where it showed. Its border of laser squares is drawn on the board
+ * with a COL_GRID line between each pair, and on the lifted board that line came
+ * to 1.03:1 against the very surface it divides — you could not see where one
+ * laser square ended and the next began, though the same line inside the arena
+ * was fine, being drawn on the covers rather than on the board. Carried up with
+ * the board it is 1.29:1, against upstream's own 1.25:1.
+ *
+ * Not a guess either: every entry is a line in the game's `game_colours` that
+ * multiplies or divides `ret[COL_BACKGROUND]`. Only the two games do it among
+ * those whose board is ever lifted, and only these slots.
+ */
+const DERIVED: Record<string, readonly number[]> = {
+  /* COL_COVER, COL_LOCK, COL_GRID — background times 0.5, 0.7 and 0.9 */
+  blackbox: [1, 2, 7],
+  /* COL_GRID, COL_CURSOR — background over 1.5 and over 2 */
+  lightup: [1, 6],
+}
+
+/**
  * The pairs of slots a game draws relief with: the lit side, then the shaded.
  *
  * Relief is the one thing in a palette that is not a relative fact. Every
@@ -531,6 +559,20 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    */
   const lift = needsRoom && board ? raised - flip(board.l) : 0
 
+  /** Move a slot the distance the board moved, staying inside the range. */
+  const carry = (index: number) => {
+    if (!lift || semantic?.includes(index)) return
+    const colour = parse(flipped[index])
+    if (colour)
+      flipped[index] = format({
+        ...colour,
+        l: Math.min(CEILING, Math.max(FLOOR, colour.l + lift)),
+      })
+  }
+
+  /* The shades measured out from the background go with it — see `DERIVED`. */
+  for (const index of DERIVED[game] ?? []) carry(index)
+
   /*
    * Keep the light where it was: of each bevel pair, the lit side takes the
    * lighter of the two values.
@@ -550,15 +592,8 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     // Unruly's are kept by `SEMANTIC` and stand on their own tone instead —
     // a white square's highlight belongs to the white square, wherever the
     // board beneath the two of them has gone.
-    if (lift && !semantic?.includes(lit) && !semantic?.includes(shade))
-      for (const index of [lit, shade]) {
-        const colour = parse(flipped[index])
-        if (colour)
-          flipped[index] = format({
-            ...colour,
-            l: Math.min(CEILING, Math.max(FLOOR, colour.l + lift)),
-          })
-      }
+    if (!semantic?.includes(lit) && !semantic?.includes(shade))
+      for (const index of [lit, shade]) carry(index)
 
     const a = parse(flipped[lit])
     const b = parse(flipped[shade])
