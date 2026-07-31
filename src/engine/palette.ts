@@ -56,7 +56,7 @@
  * have recovered.
  *
  * Five constants are tuned: `ACHROMATIC`, `FLOOR`, `CEILING`, `VEIL`,
- * `SEMANTIC_BOARD`. Each carries the measurement that fixed it.
+ * `PAPER_BOARD`. Each carries the measurement that fixed it.
  *
  * ---------------------------------------------------------------------------
  * WHAT HOLDS AFTERWARDS
@@ -188,7 +188,7 @@ const LIFT_CEILING = 0.7
  * from is the red of a missed one. Held dark it came to 1.91:1 at the reveal,
  * which is the one moment the game asks you to look at the balls rather than
  * deduce them; flipped it is 8.77:1, the negative of the 14.31:1 upstream
- * draws. The board it was holding up came down with it: see `BOARD_MOVES_TO`.
+ * draws. The board it was holding up came down with it: see `BOARD_IS_PAPER`.
  *
  * Flip was in that sentence for a while, and it did not belong there: its
  * chapter opens "You have a grid of squares, some light and some dark. Your aim
@@ -355,61 +355,43 @@ export const INK: Record<string, readonly number[]> = {
 }
 
 /**
- * Where the board sits for those games.
+ * Where a moved board goes. There is one height, and this is it.
  *
- * A two-tone puzzle needs a surface between its two tones. Upstream does not
- * need one — its board is near-white and sits beside the white half — but on
- * a dark board there is no room below the bottom of the scale, so leaving the
- * background where the flip puts it (0.13) would leave the black half of the
- * puzzle nowhere to be. A black pearl on that board comes to 1.18:1 — put
- * beside the same position on a raised one, it is a disc you can find if you
- * look for it rather than a black circle you read. The white pearls beside it
- * are at 12:1, so the two halves of the puzzle stop being each other's equal
- * and opposite, which is the whole of what the rules are about. #424242 has
- * #0f0f0f visibly below it and #d1d1d1 well above, and still reads as a dark
- * board.
- *
- * Applied only where it is needed, and whether it is needed is computed: see
- * `needsRoom`.
- *
- * Tried at the midpoint of the range too, which is the safe answer on paper
- * and the wrong one on screen: the board stops looking dark, and Guess loses
- * its empty peg holes into it. Lower is better as long as the black half
- * survives, and at this value it does.
- *
- * It is the price of the exception, and it is paid honestly: these boards are a
- * lighter grey than the other thirty.
- */
-const SEMANTIC_BOARD = 0.26
-
-/**
- * Where the board sits for the games whose white half *is* the board.
- *
- * `SEMANTIC_BOARD` assumes the game paints both halves of its pair and the
- * board is a third surface between them. Two games do not: Singles paints a
- * white square by painting nothing — `bg = COL_BACKGROUND`, and its COL_WHITE
- * is set in `game_colours` and then never used by any draw call — and Range has
- * no white slot at all, its white squares being the board with nothing on it.
- * Both chapters state the rules in those words all the same: "colour some of the
- * squares black", "the remaining white squares".
- *
- * So for those two the board is not a surface between the tones; it is one of
- * them, and standing it at 0.26 stood the white half almost on top of the black.
- * Everything drawn came to 1.91:1 — the clue numbers included, and in Range the
- * numbers, the grid, your own entries and the black squares are one aliased
- * slot, so that was the whole board. Measured over a dealt position, every pixel
- * of both boards was within 2:1 of the surface it was drawn on.
+ * A board only ever moves for one reason — a black the rules keep would
+ * otherwise be darker than the surface it is read against — so what the move
+ * has to buy is always the same thing: room under the board for that black.
+ * Leaving the background where the flip puts it (0.13) leaves none, there being
+ * no room below the bottom of the scale; a kept black on it comes to 1.20:1,
+ * which is a shape you can find if you look for it rather than one you read.
  *
  * This is where black ink clears 4.5:1 against it, which is what a number has to
  * clear to be read: #0f0f0f on #7d7d7d is 4.66:1, where 0.48 would be 4.47 and
  * miss. It is no longer a dark board, and saying otherwise would be a fiction —
  * it is paper, dimmed as far as paper can be dimmed while the ink on it stays
  * ink.
+ *
+ * Two heights lived here for a while — 0.26 for a board that is a third surface
+ * between a game's two tones, 0.49 for a board that *is* the white tone — and
+ * the split did not survive being looked at. Light Up was the one game on the
+ * lower shelf, and it is the case the shelf was supposed to fit: its walls are
+ * painted black and the board is the unlit square between them. But 0.26 is
+ * measured for a black you can *locate*, and Light Up writes clue numbers on
+ * those walls, so it needed the reading contrast too. Measured against upstream
+ * rather than against itself, every ratio that matters moves toward the original
+ * at 0.49 and away from it at 0.26: the wall 16.83 upstream, 1.91 at 0.26, 4.66
+ * here; the bulb 1.25 / 6.58 / 2.70; a lit square 1.16 / 4.14 / 1.70. The lower
+ * shelf was not a gentler version of this one, it was an overshoot in the other
+ * direction — the board had gone so dark that white-on-board was louder than
+ * upstream by as much as black-on-board was quieter.
+ *
+ * So the exception is now a single number applied to a set, rather than a scale
+ * with two stops on it, and it is paid for honestly either way: these three
+ * boards are a lighter grey than the other thirty-seven.
  */
 const PAPER_BOARD = 0.49
 
 /**
- * The games whose board has to move at all, and where each one goes.
+ * The games whose board has to move at all.
  *
  * Moving a board is the most expensive thing in this file: everything drawn on
  * it loses the contrast the board gained, and these boards end up a lighter
@@ -433,7 +415,8 @@ const PAPER_BOARD = 0.49
  * The three below fail that test:
  *
  *   - Light Up. An unlit square *is* COL_BACKGROUND, so a wall is black on the
- *     board. Unraised it comes to 1.20:1.
+ *     board. Unraised it comes to 1.20:1, and the clue numbers are written on
+ *     the walls, so they go with it.
  *   - Singles, and Range. Their white half is the board: Singles paints a white
  *     square by painting nothing, and its COL_WHITE is set in `game_colours`
  *     and never used by any draw call; Range has no white slot at all. Both
@@ -441,10 +424,11 @@ const PAPER_BOARD = 0.49
  *     remaining white squares". Unraised, both boards go almost entirely to
  *     1.20:1 and stop being legible at all.
  *
- * Which is also why the heights differ. Light Up's board is a third surface
- * between its tones, so `SEMANTIC_BOARD` is enough. The other two *are* the
- * white tone, and have to carry black ink at reading contrast, which is what
- * `PAPER_BOARD` is measured for.
+ * All three go to the same place, because all three are asking for the same
+ * thing. Their light boards happen to be the same #e6e6e6 as well, so the three
+ * dark boards come out identical — but that is the tables agreeing, not a rule:
+ * `PAPER_BOARD` is an absolute height and would land them together whatever
+ * their originals were.
  *
  * Black Box was here, and the way it left is worth keeping. Its arena is
  * COL_COVER for the whole game and its balls sit on that at #9d9d9d — but
@@ -462,11 +446,7 @@ const PAPER_BOARD = 0.49
  * the colours in its palette. Singles' unused COL_WHITE would fool a test on
  * colours alone, and Black Box's reveal would fool a test on one screenshot.
  */
-const BOARD_MOVES_TO: Record<string, number> = {
-  lightup: SEMANTIC_BOARD,
-  singles: PAPER_BOARD,
-  range: PAPER_BOARD,
-}
+const BOARD_IS_PAPER: ReadonlySet<string> = new Set(['lightup', 'singles', 'range'])
 
 /**
  * Slots a game measures out from its own background rather than choosing.
@@ -714,25 +694,26 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   const semantic = SEMANTIC[game]
 
   /*
-   * Whether this game's board has to move, worked out rather than asserted:
-   * it does if anything the rules call black would end up below the board the
-   * flip would otherwise give it, because then there is nothing to see it
-   * against. That is the answer to "why can these boards not just stay as dark
-   * as the rest?" — a game whose darkest kept colour still cleared the board
-   * would keep it, and eight of the nine cannot.
+   * Whether this game's board has to move. `BOARD_IS_PAPER` says which games
+   * draw a kept black *on* the board — a fact about drawing code, not about
+   * colours, so it has to be declared. The rest is worked out: the move is
+   * only warranted if such a black would in fact end up below the board the
+   * flip would otherwise give it, because that is the only thing being bought.
+   * A game whose darkest kept colour already cleared its flipped board would
+   * keep that board even if it were listed.
    *
-   * Pearl is the ninth, and it was the reason the exception was written: a
-   * black pearl on an unlifted board came to 1.18:1, which is a disc you can
-   * find rather than a circle you read. It has a rim now, and a rim is
-   * something to see it against — the very thing the test above is asking
-   * after. So a slot `RIM` covers does not ask for room, and Pearl's board
-   * comes back down to the #2f2f2f the other thirty share.
+   * Which is not hypothetical — it is how Pearl left. A black pearl on an
+   * unlifted board came to 1.18:1, a disc you can find rather than a circle
+   * you read, and that was the case the exception was first written for. It
+   * has a rim now, and a rim is something to see it against — the very thing
+   * this test is asking after. So a slot `RIM` covers does not ask for room,
+   * and Pearl's board came back down to #2f2f2f — where the flip puts a
+   * #d5d5d5 board, which is what fourteen other games have.
    */
   const board = parse(light[BACKGROUND])
   const rimmed = RIM[game] ?? {}
-  const raised = BOARD_MOVES_TO[game]
   const needsRoom =
-    raised !== undefined &&
+    BOARD_IS_PAPER.has(game) &&
     !!semantic &&
     !!board &&
     semantic.some((i) => {
@@ -746,7 +727,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     if (!colour) return css
     if (semantic) {
       if (index === BACKGROUND && needsRoom)
-        return format({ ...colour, l: raised })
+        return format({ ...colour, l: PAPER_BOARD })
       // Compressed, not inverted: same range as the flip, same direction as
       // the original.
       if (semantic.includes(index))
@@ -772,7 +753,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * So the pair goes wherever the board went. Nothing is chosen here either —
    * the distance is the one the board itself was moved by.
    */
-  const lift = needsRoom && board ? raised - flip(board.l) : 0
+  const lift = needsRoom && board ? PAPER_BOARD - flip(board.l) : 0
 
   /** Move a slot the distance the board moved, staying inside the range. */
   const carry = (index: number) => {
