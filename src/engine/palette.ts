@@ -141,6 +141,17 @@ const LIFT_CEILING = 0.7
  * beyond the two markers, where light and dark are decoration and the manual
  * never appeals to them.
  *
+ * Black Box's COL_BALL was here on the strength of one sentence, and the
+ * sentence is in the wrong chapter: "left-click within the arena and a black
+ * circle will appear marking the guess" is under *controls*, describing what
+ * the interface does, where every other entry here is quoted from a statement
+ * of the rules. Black Box has no white ball to be the other half of a pair —
+ * a square either holds one or does not, and the thing a ball is told apart
+ * from is the red of a missed one. Held dark it came to 1.91:1 at the reveal,
+ * which is the one moment the game asks you to look at the balls rather than
+ * deduce them; flipped it is 8.77:1, the negative of the 14.31:1 upstream
+ * draws. The board it was holding up came down with it: see `BOARD_MOVES_TO`.
+ *
  * Flip was in that sentence for a while, and it did not belong there: its
  * chapter opens "You have a grid of squares, some light and some dark. Your aim
  * is to light all the squares up at the same time", and its two slots are named
@@ -200,8 +211,6 @@ const SEMANTIC: Record<string, readonly number[]> = {
   lightup: [2, 3],
   /* COL_CORRECTPLACE, COL_CORRECTCOLOUR — Mastermind's black and white pegs */
   guess: [16, 17],
-  /* COL_BALL — the manual calls them black circles */
-  blackbox: [8],
 }
 
 /**
@@ -388,9 +397,7 @@ const PAPER_BOARD = 0.49
  * Pattern's clue numbers, which were paying 8.20:1 down to 5.18:1 for a raise
  * that bought them nothing.
  *
- * The four below all fail that test, and the last of them is the reason this
- * has to be read out of the drawing code rather than the tile a screenshot
- * happens to show:
+ * The three below fail that test:
  *
  *   - Light Up. An unlit square *is* COL_BACKGROUND, so a wall is black on the
  *     board. Unraised it comes to 1.20:1.
@@ -400,17 +407,22 @@ const PAPER_BOARD = 0.49
  *     chapters say it in those words — "colour some of the squares black", "the
  *     remaining white squares". Unraised, both boards go almost entirely to
  *     1.20:1 and stop being legible at all.
- *   - Black Box, which spends the whole game with its arena filled in COL_COVER
- *     and its balls on that, at #9d9d9d — and then, in the one state that
- *     matters, does not: `bg = (gs->reveal ? COL_BACKGROUND : ... COL_COVER)`.
- *     At the reveal the arena is repainted in the board and the balls are drawn
- *     straight onto it, which is exactly when you are looking at them. 1.43:1
- *     unraised, against 1.91:1 with.
  *
- * Which is also why the heights differ. Light Up's and Black Box's boards are a
- * third surface between the tones, so `SEMANTIC_BOARD` is enough. The other two
- * *are* the white tone, and have to carry black ink at reading contrast, which
- * is what `PAPER_BOARD` is measured for.
+ * Which is also why the heights differ. Light Up's board is a third surface
+ * between its tones, so `SEMANTIC_BOARD` is enough. The other two *are* the
+ * white tone, and have to carry black ink at reading contrast, which is what
+ * `PAPER_BOARD` is measured for.
+ *
+ * Black Box was here, and the way it left is worth keeping. Its arena is
+ * COL_COVER for the whole game and its balls sit on that at #9d9d9d — but
+ * `bg = (gs->reveal ? COL_BACKGROUND : ... COL_COVER)`, so at the reveal the
+ * arena is repainted in the board and every ball is drawn straight onto it. A
+ * black ball there was 1.43:1 unraised, so the board went up to give it
+ * 1.91:1. The better answer was to stop insisting the ball is black: nothing
+ * in the rules says it is, and flipped it reads at 8.77:1 on a board that
+ * never had to move. See the note in `SEMANTIC`. A raise is what you reach for
+ * when a colour has to stay where it is; it is worth asking first whether it
+ * does.
  *
  * Declared rather than computed, because whether a cell is painted — and in
  * which of a game's states — is a fact about its drawing code and not about
@@ -419,7 +431,6 @@ const PAPER_BOARD = 0.49
  */
 const BOARD_MOVES_TO: Record<string, number> = {
   lightup: SEMANTIC_BOARD,
-  blackbox: SEMANTIC_BOARD,
   singles: PAPER_BOARD,
   range: PAPER_BOARD,
 }
