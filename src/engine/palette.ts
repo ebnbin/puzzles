@@ -785,24 +785,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * already stands off the dark board as far as it did off the light one is
    * left exactly where the veil put it. Mines' 3 is 3.20:1 upstream and 3.46:1
    * here, and does not move.
-   *
-   * And which is why the ground here is the board the flip alone would have
-   * given, not the one the raise left. The lift answers a fact about the
-   * colour — that a hue chosen as ink for white paper has no light to spare on
-   * a dark surface — and that fact does not change when we move the board.
-   * Measured against the raised board it answers a different question, "make
-   * up what the raise cost", and answers it one hue at a time: eight games
-   * raise their board, and #ff0000 came out of them as four different reds
-   * (#ff5656, #ff2e2e, #ff2b2b, and #ff6666 where the paper boards are)
-   * because each aimed at the contrast it happened to have against its own
-   * paper, and those papers differ by two per cent. One red, drawn by thirty
-   * puzzles to mean one thing, arriving in four colours.
-   *
-   * Against the settled board it is #ec0000 in all thirty. The raise still
-   * costs those eight games contrast — Pattern's error goes from 3.20:1
-   * upstream to 2.19:1 here — but it costs every slot on the board the same,
-   * which is what raising a board means. Pattern's own COL_TEXT pays it too,
-   * and nothing was compensating that.
    */
   for (let index = 0; index < light.length; index++) {
     if (index === BACKGROUND) continue
@@ -811,8 +793,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     const now = parse(flipped[index])
     if (!was || !now || !board || !darkBoard) continue
     if (was.s < ACHROMATIC) continue
-    const settled = parse(format({ ...board, l: flip(board.l) }))
-    const ground = luminance(settled ?? darkBoard)
+    const ground = luminance(darkBoard)
     const want = ratio(luminance(board), luminance(was))
     if (ratio(ground, luminance(now)) >= want) continue
     flipped[index] = standOff(now, ground, want, now.l, LIFT_CEILING)

@@ -147,8 +147,7 @@ export class CanvasRenderer {
    * the tile is small enough to round their radius away.
    */
   rect(x: number, y: number, w: number, h: number, colour: number) {
-    this.ctx.fillStyle =
-      colour === BACKGROUND ? this.colours[colour] : (this.marked(colour) ?? this.ink(colour))
+    this.ctx.fillStyle = colour === BACKGROUND ? this.colours[colour] : this.ink(colour)
     this.ctx.fillRect(x, y, w, h)
   }
 
@@ -186,8 +185,7 @@ export class CanvasRenderer {
      * 7x7, which is TILESIZE 40 and a mirror two pixels thick; it would take a
      * custom board about twice that before the two met.
      */
-    const css =
-      this.marked(colour) ?? (width === 1 ? this.ink(colour) : this.colours[colour])
+    const css = width === 1 ? this.ink(colour) : this.colours[colour]
     ctx.beginPath()
     ctx.moveTo(x1 + 0.5, y1 + 0.5)
     ctx.lineTo(x2 + 0.5, y2 + 0.5)
@@ -230,31 +228,6 @@ export class CanvasRenderer {
   private ink(slot: number): string {
     if (this.dark && FIGURE[this.game]?.includes(slot)) return this.named[slot]
     return this.colours[slot]
-  }
-
-  /**
-   * What a slot means when it is a mark on the board rather than the thing the
-   * palette kept it for, or nothing if it is not one of those slots.
-   *
-   * `SEMANTIC` holds a colour still because of what it *is* somewhere. Pearl's
-   * COL_BLACK is a black pearl, and a black pearl has to come out black. But
-   * the same slot lays the loop and draws the no-line crosses, and those are
-   * not pearls — they are what the player writes on the board, and writing on
-   * a dark board is light. Held still, the loop arrives at #0f0f0f on a
-   * #2f2f2f board: 1.4:1, where upstream draws it at 14.3:1. The one thing you
-   * are actually drawing is the least visible thing on the board.
-   *
-   * `RIM` already names the tone that stands in for this one on a dark board,
-   * and names it for the same reason — that a rule about black and white on
-   * paper has to be read the other way round on a dark surface. So this asks
-   * that table rather than introducing a second one.
-   *
-   * Only `rect` and `line` consult it, which is what keeps the pearl itself
-   * out: a pearl is a `circle`, and its fill goes through `ink` as before.
-   */
-  private marked(slot: number): string | undefined {
-    const other = this.dark ? RIM[this.game]?.[slot] : undefined
-    return other === undefined ? undefined : this.colours[other]
   }
 
   /**
