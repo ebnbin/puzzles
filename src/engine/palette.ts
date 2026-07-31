@@ -730,11 +730,37 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     const was = parse(light[index])
     const now = parse(flipped[index])
     if (!was || !now || !board || !darkBoard) continue
+    /*
+     * The search starts a step above the board rather than flush with it.
+     *
+     * Upstream says "a bit darker than the background" and the mirror of that
+     * is "a bit lighter", so the bit has to be worth something. Searching from
+     * the board's own lightness allowed nothing: Palisade's undecided border
+     * came out #444400, whose lightness is 0.133 — the dark board's exactly —
+     * and a line the same lightness as the surface it is drawn on is held up by
+     * its hue alone. It read as an unlit edge rather than an undecided one,
+     * which in a game whose state *is* which of two lines you are looking at is
+     * the wrong thing to say.
+     *
+     * That it landed there at all is the tell: the contrast it was aiming for
+     * was unreachable and it stopped at the wall. Yellow is why — #cfcf00 is
+     * light enough to throw 0.579 against a board throwing 0.791, so 1.34:1 is
+     * most of the way explained by yellow being a bright hue rather than by the
+     * colour sitting close to the board. Asking for that ratio on a dark board
+     * asks the yellow to give up being yellow.
+     *
+     * The step is `NUDGES[1]`, which is already this file's unit of "far enough
+     * apart to see" — the smallest move the collision pass will make. Nothing
+     * new is chosen. It binds only where the aim was already unreachable: five
+     * of the eight slots move by less than 0.05, and the two yellows go to
+     * #727200, which is 3.1:1 against the board and still four stops clear of
+     * the wall they have to be told from.
+     */
     flipped[index] = standOff(
       now,
       luminance(darkBoard),
       ratio(luminance(board), luminance(was)),
-      darkBoard.l,
+      Math.min(darkBoard.l + NUDGES[1], CEILING),
     )
   }
 
