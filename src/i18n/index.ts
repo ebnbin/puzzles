@@ -76,10 +76,12 @@ export function useStrings(): Strings {
 }
 
 /**
- * Where a page of the manual lives. The English tree is at the root of
- * `/doc/` because that is where it has always been — the WebAssembly pages
- * under `public/games/` link into it with relative paths, and those are not
- * ours to rewrite.
+ * Where a page of the manual lives. The English tree sits at the root of
+ * `/doc/` and the translation hangs off it — an asymmetry that upstream's own
+ * pages used to require, linking into it as `../doc/<game>.html` with paths
+ * that were not ours to rewrite. Those pages are gone. Nothing forces the shape
+ * now; it is simply where the tree already is, and where every link written to
+ * it since points.
  */
 export function docHref(lang: Lang, page = ''): string {
   return `/doc/${lang === 'zh' ? 'zh/' : ''}${page}`

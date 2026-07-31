@@ -6,7 +6,7 @@
 # deployment never needs a C toolchain. You only need to run this when bumping
 # the vendored upstream source or changing build flags.
 #
-# Requires: cmake, ninja, halibut, perl, git, python3
+# Requires: cmake, ninja, halibut, git, python3
 #
 set -euo pipefail
 
@@ -14,17 +14,17 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$ROOT/vendor/sgtpuzzles"
 BUILD="$ROOT/.build"
 EMSDK_DIR="$BUILD/emsdk"
-OUT_GAMES="$ROOT/public/games"
 OUT_DOC="$ROOT/public/doc"
 OUT_ENGINE="$ROOT/public/engine"
 
-# Every puzzle is built twice: once as upstream ships it, into public/games,
-# and once as an ES module the React host can mount, into public/engine. The
-# two differ only in their JavaScript wrapper — the .wasm must come out
-# identical, which is checked below.
+# Every puzzle is built twice from the same C: once with upstream's own
+# JavaScript wrapper, and once as an ES module the React host can mount. Only
+# the second is published, into public/engine. The first is never copied out of
+# the build directory — it exists so that the two .wasm can be compared.
 #
-# Both sets are committed, and the duplicated .wasm costs nothing: identical
-# content means git stores one blob for each pair.
+# That comparison is the whole reason it is built. Swapping emccpre.js and
+# emcclib.js for ours must not reach the binary; if it ever does, the puzzle the
+# app runs has quietly stopped being the puzzle upstream wrote.
 
 EMSDK_VERSION=6.0.4
 
@@ -60,36 +60,18 @@ echo "==> activating emscripten $EMSDK_VERSION"
 # shellcheck disable=SC1091
 source "$EMSDK_DIR/emsdk_env.sh" >/dev/null 2>&1
 
-# --- Compile the puzzles --------------------------------------------------
-echo "==> configuring"
+# --- Reference build: upstream's own wrapper ------------------------------
+# Nothing here is published. It is compiled so the ES modules below have
+# something to be compared against; see the note at the top.
+echo "==> configuring (reference)"
 emcmake cmake -S "$SRC" -B "$BUILD/web" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DMIN_CHROME_VERSION="$MIN_CHROME_VERSION" \
   -DMIN_FIREFOX_VERSION="$MIN_FIREFOX_VERSION" \
   -DMIN_SAFARI_VERSION="$MIN_SAFARI_VERSION"
 
-echo "==> compiling"
+echo "==> compiling (reference)"
 cmake --build "$BUILD/web" --parallel "$(nproc)"
-
-# --- Generate the per-game HTML pages -------------------------------------
-# jspage.pl is upstream's own page generator; the pages it emits are the ones
-# shipped on the upstream website, and are used here unmodified.
-echo "==> generating game pages"
-rm -rf "$OUT_GAMES"
-mkdir -p "$OUT_GAMES/js"
-(cd "$OUT_GAMES" && perl "$SRC/html/jspage.pl" \
-  --jspath=js/ /dev/null "$SRC"/html/*.html)
-
-# unfinished/ puzzles (currently just `group`) are not published upstream.
-rm -f "$OUT_GAMES/group.html"
-
-for js in "$BUILD/web"/*.js; do
-  name="$(basename "$js" .js)"
-  # nullgame is an internal template, not a playable puzzle.
-  [ "$name" = nullgame ] && continue
-  [ -f "$OUT_GAMES/$name.html" ] || continue
-  cp "$js" "$BUILD/web/$name.wasm" "$OUT_GAMES/js/"
-done
 
 # --- Build the manual -----------------------------------------------------
 # Runs halibut with the flags copied verbatim from upstream's Buildscr, lays
@@ -132,16 +114,21 @@ cmake --build "$BUILD/esm" --parallel "$(nproc)"
 
 rm -rf "$OUT_ENGINE"
 mkdir -p "$OUT_ENGINE"
-# Whatever was published as a playable puzzle, publish an ES module for.
-for html in "$OUT_GAMES"/*.html; do
+# Which puzzles are playable is upstream's answer rather than ours: html/ holds
+# one page per published puzzle, and is what its own website is built from.
+# `group` is the exception it makes for itself — an unfinished/ puzzle, carried
+# there but not shipped — and nullgame, being an internal template, has no page
+# to be found here at all.
+for html in "$SRC"/html/*.html; do
   name="$(basename "$html" .html)"
+  [ "$name" = group ] && continue
   [ -f "$BUILD/esm/$name.js" ] || { echo "no ES module built for $name" >&2; exit 1; }
   cp "$BUILD/esm/$name.js" "$BUILD/esm/$name.wasm" "$OUT_ENGINE/"
 
   # Only the JavaScript wrapper differs between the two builds, so the
   # binaries must stay identical. If they ever diverge, the rewrite is no
   # longer being compared against the same puzzle.
-  cmp "$OUT_GAMES/js/$name.wasm" "$OUT_ENGINE/$name.wasm" ||
+  cmp "$BUILD/web/$name.wasm" "$OUT_ENGINE/$name.wasm" ||
     { echo "$name.wasm differs between the two builds" >&2; exit 1; }
 done
 
@@ -167,4 +154,4 @@ kill $preview 2>/dev/null
 trap - EXIT
 
 echo
-echo "done: $(ls "$OUT_GAMES"/*.html | wc -l) games, $(ls "$OUT_DOC"/*.html | wc -l) manual pages"
+echo "done: $(ls "$OUT_ENGINE"/*.js | wc -l) games, $(ls "$OUT_DOC"/*.html | wc -l) manual pages"

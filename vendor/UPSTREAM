@@ -18,4 +18,4 @@ To refresh:
     ./scripts/build-games.sh
 
 Then update the commit details above and commit both the source and the
-regenerated public/games and public/doc output together.
+regenerated public/engine and public/doc output together.

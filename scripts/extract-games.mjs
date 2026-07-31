@@ -68,11 +68,19 @@ for (const [, name, body] of cmake.matchAll(/^puzzle\((\w+)([\s\S]*?)\)\s*$/gm))
   })
 }
 
+/*
+ * Which puzzles are published — asked of upstream rather than of our own
+ * output. html/ holds one page per playable puzzle and is what upstream's own
+ * website is built from; `group` is carried there but is an unfinished/ puzzle
+ * and is not shipped. build-games.sh publishes exactly this set, and the blurbs
+ * above come out of the same directory.
+ */
 const shipped = new Set(
   fs
-    .readdirSync(path.join(root, 'public/games'))
+    .readdirSync(path.join(root, 'vendor/sgtpuzzles/html'))
     .filter((f) => f.endsWith('.html'))
-    .map((f) => f.replace(/\.html$/, '')),
+    .map((f) => f.replace(/\.html$/, ''))
+    .filter((name) => name !== 'group'),
 )
 
 // Order the launcher the way the manual orders its chapters, which is roughly
