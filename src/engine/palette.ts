@@ -14,13 +14,17 @@
  *    say. Kept the way up it started, only pulled into the dark board's
  *    range. Black stays black. See `SEMANTIC`; 26 of the 426.
  *
- * 2. `veil` — anything with a hue. Kept, but with black laid over it in
- *    proportion to how much light it throws, because upstream chose these
- *    against a white board and at full strength they are the brightest thing
- *    on a dark one. See `VEIL`; 200 of the 426.
+ * 2. `veil` — anything with a hue. Kept, and stood off the dark board by what
+ *    it stood off the light one. Which way that goes depends on the hue: one
+ *    with light to spare has black laid over it in proportion to how much it
+ *    throws, because upstream chose these against a white board and at full
+ *    strength they are the brightest thing on a dark one; one with none — ink
+ *    chosen to be dark on white paper, `#000080` and its like — is instead
+ *    lifted until it stands as far off. Multiplying by at most 1 can only ever
+ *    do the first. See `VEIL`; 198 of the 426.
  *
  * 3. `flip` — every other grey: the board, the shading, the ink, the lines.
- *    Turned over. See `FLOOR` and `CEILING`; the remaining 200.
+ *    Turned over. See `FLOOR` and `CEILING`; 194 of them.
  *
  * Behind them is one distinction. A puzzle's *structure* lives in its
  * neutrals and wants to be the other way up on a dark surface; its *meaning*
@@ -39,15 +43,17 @@
  * ---------------------------------------------------------------------------
  *
  * No colour in this file is chosen. All 426 dark values are the output of the
- * three functions above, and nothing hand-picks a hex. The bevel correction
- * adds none either: it exchanges two values a rule already produced.
+ * rules above, and nothing hand-picks a hex. The bevel correction adds none
+ * either: it exchanges two values a rule already produced. Nor does either
+ * search — both aim at a contrast upstream itself drew, and stop there.
  *
- * Which rule a slot takes is computed too — from its saturation — for 400 of
- * them. The other 26 come from `SEMANTIC`, a table, because the fact that
- * *this* black is a rule and *that* black is a line is not in the colour: it
- * is in the game. `BEVEL` is a table for the same reason, and both were
- * assembled from evidence rather than taste — see their comments. They are the
- * knowledge here that no amount of arithmetic could have recovered.
+ * Which rule a slot takes is computed too — from its saturation — for 392 of
+ * them. Another 26 come from `SEMANTIC` and 8 from `DERIVED`, tables, because
+ * the fact that *this* black is a rule and *that* black is a line is not in
+ * the colour: it is in the game. `BEVEL` is a table for the same reason, and
+ * all of them were assembled from evidence rather than taste — see their
+ * comments. They are the knowledge here that no amount of arithmetic could
+ * have recovered.
  *
  * Five constants are tuned: `ACHROMATIC`, `FLOOR`, `CEILING`, `VEIL`,
  * `SEMANTIC_BOARD`. Each carries the measurement that fixed it.
@@ -645,21 +651,69 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * page of algebra for a number a loop finds exactly.
    */
   const darkBoard = parse(flipped[BACKGROUND])
+
+  /**
+   * The lightness at which `colour` stands `want` off `ground`, searched
+   * between `from` and the ceiling. Hue and saturation are held, so this only
+   * ever returns a paler version of the colour it was given.
+   */
+  const standOff = (colour: Colour, ground: number, want: number, from: number) => {
+    let lo = from
+    let hi = CEILING
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2
+      const at = parse(format({ ...colour, l: mid }))
+      if (at && ratio(ground, luminance(at)) < want) lo = mid
+      else hi = mid
+    }
+    return format({ ...colour, l: (lo + hi) / 2 })
+  }
+
   for (const index of DERIVED[game] ?? []) {
     const was = parse(light[index])
     const now = parse(flipped[index])
     if (!was || !now || !board || !darkBoard) continue
-    const want = ratio(luminance(board), luminance(was))
+    flipped[index] = standOff(
+      now,
+      luminance(darkBoard),
+      ratio(luminance(board), luminance(was)),
+      darkBoard.l,
+    )
+  }
+
+  /*
+   * The other half of the veil.
+   *
+   * `veil` lays black over a hue in proportion to the light it throws, because
+   * upstream chose these against a white board and at full strength they are
+   * the brightest thing on a dark one. That is true of a bright hue and exactly
+   * backwards for a dark one: `#000080` is ink chosen to be dark on white
+   * paper, and multiplying it by anything at most 1 cannot do to it what the
+   * dark board needs. Mines' 4 came out at 1.01:1 against its own board — three
+   * of that puzzle's numerals were, in effect, not drawn.
+   *
+   * So the rule is said in full: a hue stands off the dark board by what it
+   * stood off the light one. Veiling is what that means for a hue with light to
+   * spare; this is what it means for one with none. Both keep the colour and
+   * change only how much of it there is against the ground, and neither picks a
+   * number — the target is the contrast upstream itself drew.
+   *
+   * Which is why the condition is a comparison and not a threshold: a hue that
+   * already stands off the dark board as far as it did off the light one is
+   * left exactly where the veil put it. Mines' 3 is 3.20:1 upstream and 3.46:1
+   * here, and does not move.
+   */
+  for (let index = 0; index < light.length; index++) {
+    if (index === BACKGROUND) continue
+    if (semantic?.includes(index) || DERIVED[game]?.includes(index)) continue
+    const was = parse(light[index])
+    const now = parse(flipped[index])
+    if (!was || !now || !board || !darkBoard) continue
+    if (was.s < ACHROMATIC) continue
     const ground = luminance(darkBoard)
-    let lo = darkBoard.l
-    let hi = CEILING
-    for (let i = 0; i < 20; i++) {
-      const mid = (lo + hi) / 2
-      const at = parse(format({ ...now, l: mid }))
-      if (at && ratio(ground, luminance(at)) < want) lo = mid
-      else hi = mid
-    }
-    flipped[index] = format({ ...now, l: (lo + hi) / 2 })
+    const want = ratio(luminance(board), luminance(was))
+    if (ratio(ground, luminance(now)) >= want) continue
+    flipped[index] = standOff(now, ground, want, now.l)
   }
 
   /*
