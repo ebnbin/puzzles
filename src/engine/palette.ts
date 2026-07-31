@@ -105,6 +105,22 @@ const FLOOR = 0.06
 const CEILING = 0.82
 
 /**
+ * How far the veil's lifting half may climb.
+ *
+ * Not `CEILING`, which is where flipped black ink lands, and not for that
+ * reason alone: a hue raised that far has spent most of its colour getting
+ * there. Pure blue at `CEILING` is #a1a1ff, which nobody would call blue —
+ * raising HSL lightness with the saturation held walks the other two channels
+ * up towards the first, and #0000ff arrives as lavender. At 0.70 the same blue
+ * is #6666ff, still plainly blue, and still 3.7:1 against the board.
+ *
+ * So this is the point past which a hue stops being worth the contrast: the
+ * lift takes what it can get below it and stops, even where the board is owed
+ * more.
+ */
+const LIFT_CEILING = 0.7
+
+/**
  * Slots whose being black, or being white, is something the rules say.
  *
  * The flip is a photographic negative, and a negative is exactly wrong for a
@@ -264,6 +280,36 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
 export const FIGURE: Record<string, readonly number[]> = {
   /* COL_BACKGROUND, COL_TEXT, COL_GHOST, COL_ZOMBIE, COL_VAMPIRE */
   undead: [0, 2, 6, 7, 8],
+}
+
+/**
+ * Slots whose *writing* is done on top of something the game drew, rather than
+ * on the board.
+ *
+ * A colour that is ink on the board wants to turn over with it; a colour that is
+ * ink on a figure wants to stay where it is, because the figure did not turn
+ * over — a veiled hue is still a mid-tone on the dark board, exactly as it was
+ * on the light one. Guess is the case that shows it. Its `COL_FRAME` is pure
+ * black and does four jobs, and only one of them is against the board: the rule
+ * under the solution row. The other three are the ring round a peg, the ring
+ * round a feedback dot, and the number written *on* a peg — and it is black
+ * because that is what stands off ten coloured discs, not because the board is
+ * white.
+ *
+ * Flipped, it came out #bababa and landed among the discs it exists to be read
+ * against: 1.24:1 at worst, against 2.57:1 upstream. Kept the way up instead it
+ * is 2.25:1 — the same relationship the game was drawn with. Asked of every grey
+ * from #000000 to #ffffff, black is the best a single value can do here, and
+ * `compress` is where a rule already puts it.
+ *
+ * Only the text is served this way, by `CanvasRenderer.text`. The rings are left
+ * flipped: a ring is a separation rather than a symbol, and a light one round a
+ * lit disc separates it from the board as well as a dark one did from paper.
+ * That also leaves the rule under the solution row where it can be seen.
+ */
+export const INK: Record<string, readonly number[]> = {
+  /* COL_FRAME — the number written on a peg */
+  guess: [1],
 }
 
 /**
@@ -561,6 +607,15 @@ const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
 /** Where a kept colour goes: same range, same direction as it started. */
 const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
 
+/**
+ * The same colour, kept the way up it started. What `INK` slots are written in:
+ * see the table for why that is the right answer for ink on a figure.
+ */
+export function keptUp(css: string): string {
+  const colour = parse(css)
+  return colour ? format({ ...colour, l: compress(colour.l) }) : css
+}
+
 export function forDarkBoard(light: readonly string[], game = ''): string[] {
   const semantic = SEMANTIC[game]
 
@@ -657,9 +712,11 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * between `from` and the ceiling. Hue and saturation are held, so this only
    * ever returns a paler version of the colour it was given.
    */
-  const standOff = (colour: Colour, ground: number, want: number, from: number) => {
+  const standOff = (
+    colour: Colour, ground: number, want: number, from: number, ceiling = CEILING,
+  ) => {
     let lo = from
-    let hi = CEILING
+    let hi = ceiling
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2
       const at = parse(format({ ...colour, l: mid }))
@@ -713,7 +770,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     const ground = luminance(darkBoard)
     const want = ratio(luminance(board), luminance(was))
     if (ratio(ground, luminance(now)) >= want) continue
-    flipped[index] = standOff(now, ground, want, now.l)
+    flipped[index] = standOff(now, ground, want, now.l, LIFT_CEILING)
   }
 
   /*

@@ -18,7 +18,7 @@ export interface Size {
   h: number
 }
 
-import { BACKGROUND, FIGURE, forDarkBoard, RIM } from './palette'
+import { BACKGROUND, FIGURE, INK, forDarkBoard, keptUp, RIM } from './palette'
 
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
@@ -342,7 +342,16 @@ export class CanvasRenderer {
   ) {
     const { ctx } = this
     this.setFont(ctx, fontsize, monospaced)
-    ctx.fillStyle = this.colours[colour]
+    /*
+     * Writing on a figure rather than on the board, so it keeps the way up it
+     * started — the figure did not turn over. See `INK` in palette.ts. Only
+     * here: the same slot's lines and rectangles are drawn against the board
+     * and follow it.
+     */
+    ctx.fillStyle =
+      this.dark && INK[this.game]?.includes(colour)
+        ? keptUp(this.named[colour])
+        : this.colours[colour]
     ctx.textAlign = halign === 0 ? 'left' : halign === 1 ? 'center' : 'right'
     ctx.textBaseline = 'alphabetic'
     ctx.fillText(str, x, y)
