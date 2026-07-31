@@ -85,43 +85,8 @@
  *   thumbnails are rendered once, in light.
  */
 
-/**
- * The closest two slots a game drew differently may end up.
- *
- * A weighted RGB distance, on the scale where black to white is about 3. Set
- * from the pairs the rules already separate correctly rather than chosen: at
- * 0.20 the twelve pairs that had collapsed — Unruly's board against its black
- * square at 0.14, its grid against a lowlight at 0.04 — are pushed apart, and
- * no pair the rules had already spaced is disturbed.
- */
-export const APART = 0.2
-
-/**
- * And how far apart the game drew them, for the pair to count as one it meant
- * to keep apart. Below this the two are near neighbours by upstream's own
- * choice — the two sides of a bevel, a tile and its shadow — and the dark board
- * bringing them nearer still is the rules working, not failing.
- */
-export const DRAWN_APART = 0.3
-
-/**
- * Below this contrast against its own board, a hue is ground rather than mark.
- *
- * Upstream draws Tents' grass at 1.04:1 against the board and Flip's lit square
- * at 1.25:1 — a colour laid down that close to the surface is the surface, a
- * field the puzzle is played on rather than something set on top of it. The
- * veil does not know the difference: it treats every hue as a mark and, on a
- * dark board, stands it well clear of the ground it was meant to be. Tents'
- * grass came out at 6.56:1 and covers the whole board, so the screen is green
- * and light where the theme is supposed to be dark.
- *
- * A hue below this keeps the distance it was drawn at instead. Nothing else
- * changes about it — the veil still owns every hue above.
- */
-export const GROUND = 1.7
-
 /** Below this saturation a colour is carrying structure, not meaning. */
-export const ACHROMATIC = 0.15
+const ACHROMATIC = 0.15
 
 /**
  * The range a grey is mapped into, held off pure black and pure white.
@@ -136,8 +101,8 @@ export const ACHROMATIC = 0.15
  * light, still 9.8:1 against the board, and still unmistakably the light
  * thing drawn on it.
  */
-export const FLOOR = 0.06
-export const CEILING = 0.82
+const FLOOR = 0.06
+const CEILING = 0.82
 
 /**
  * How far the veil's lifting half may climb.
@@ -153,7 +118,7 @@ export const CEILING = 0.82
  * lift takes what it can get below it and stops, even where the board is owed
  * more.
  */
-export const LIFT_CEILING = 0.7
+const LIFT_CEILING = 0.7
 
 /**
  * Slots whose being black, or being white, is something the rules say.
@@ -170,16 +135,7 @@ export const LIFT_CEILING = 0.7
  * circles", "black or white respectively"), cross-referenced against the
  * `COL_*` enum in its C to find which slots those words are about.
  *
- * Deliberately not here: Signpost, whose chapter does say "starts off black,
- * and goes grey once you connect the square to its successor" — but that is one
- * thing in two states rather than two tones told apart by which is black, and
- * the flip carries the distinction across intact as white and grey. Put in the
- * table its arrow compresses to #0f0f0f and comes to 1.91:1 against its own
- * board, which is the puzzle's main mark all but gone. The wording is the test
- * this table uses and here the wording is misleading; the rule the words state
- * is what matters.
- *
- * Also not here: Mines' 7 and 8, which are black and grey only by
+ * Deliberately not here: Mines' 7 and 8, which are black and grey only by
  * Minesweeper convention and are drawn on a cell that has itself turned over
  * — keeping them dark would put dark ink on a dark tile. And Guess's pegs
  * beyond the two markers, where light and dark are decoration and the manual
@@ -217,7 +173,7 @@ export const LIFT_CEILING = 0.7
  * instead, the claimed square goes dark by the same 0.125 everything else
  * moves by and the edges land at #d1d1d1 against it.
  */
-export const SEMANTIC: Record<string, readonly number[]> = {
+const SEMANTIC: Record<string, readonly number[]> = {
   /* COL_EMPTY, COL_FULL, COL_UNKNOWN — "black or white", "grey" for unknown */
   pattern: [1, 2, 4],
   /*
@@ -354,12 +310,6 @@ export const FIGURE: Record<string, readonly number[]> = {
 export const INK: Record<string, readonly number[]> = {
   /* COL_FRAME — the number written on a peg */
   guess: [1],
-  /* COL_GRID — the region number written on a map region */
-  map: [1],
-  /* COL_TEXT — the area written on a rectangle */
-  rect: [3],
-  /* COL_TEXT — the number written on a tile */
-  twiddle: [1],
 }
 
 /**
@@ -388,7 +338,7 @@ export const INK: Record<string, readonly number[]> = {
  * It is the price of the exception, and it is paid honestly: these boards are a
  * lighter grey than the other thirty.
  */
-export const SEMANTIC_BOARD = 0.26
+const SEMANTIC_BOARD = 0.26
 
 /**
  * Where the board sits for the games whose white half *is* the board.
@@ -414,7 +364,7 @@ export const SEMANTIC_BOARD = 0.26
  * it is paper, dimmed as far as paper can be dimmed while the ink on it stays
  * ink.
  */
-export const PAPER_BOARD = 0.49
+const PAPER_BOARD = 0.49
 
 /**
  * The games that board belongs to — the ones where nothing is painted white
@@ -422,7 +372,7 @@ export const PAPER_BOARD = 0.49
  * is ever drawn is a fact about the C, not about the colour in it, and Singles'
  * unused COL_WHITE is exactly the case that would fool a test on colours alone.
  */
-export const BOARD_IS_PAPER = new Set(['singles', 'range'])
+const BOARD_IS_PAPER = new Set(['singles', 'range'])
 
 /**
  * Slots a game measures out from its own background rather than choosing.
@@ -456,32 +406,13 @@ export const BOARD_IS_PAPER = new Set(['singles', 'range'])
  * Not a guess: every entry is a line in that game's `game_colours` that
  * multiplies or divides `ret[COL_BACKGROUND]`.
  */
-export const DERIVED: Record<string, readonly number[]> = {
-  /* Every entry below is a slot the C writes as `ret[COL_BACKGROUND] * k` with
-     the same k on all three channels — a shade of the board and nothing else.
-     The list was assembled by scanning all forty games for that construction;
-     the criterion is uniformity, which is what separates a shade from a hue
-     that merely happens to be built out of the background's channels (Undead's
-     monsters take the red channel alone and are a colour in their own right). */
-  net: [1, 2],
-  rect: [1, 4],
-  netslide: [1, 2, 7],
-  solo: [1, 5],
-  mines: [1, 17],
-  flip: [1, 3],
-  guess: [5],
-  dominosa: [5],
-  slant: [1, 7, 8],
-  filling: [2, 3, 6],
-  keen: [3],
-  towers: [3, 6],
-  undead: [4, 9],
+const DERIVED: Record<string, readonly number[]> = {
   /* COL_COVER, COL_LOCK, COL_GRID — background times 0.5, 0.7 and 0.9 */
   blackbox: [1, 2, 7],
   /* COL_GRID, COL_CURSOR — background over 1.5 and over 2 */
   lightup: [1, 6],
   /* COL_LINEUNKNOWN — background times 0.9, with the blue taken out */
-  loopy: [2, 6],
+  loopy: [2],
   /* COL_LINE_MAYBE the same, and COL_LINE_NO the same without the tint */
   palisade: [3, 4],
 }
@@ -532,7 +463,7 @@ export const DERIVED: Record<string, readonly number[]> = {
  * must be true of them covers those for free; a rule that just swapped them
  * would have broken both.
  */
-export const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
+const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
   /* COL_HIGHLIGHT, COL_LOWLIGHT — the tile, and the cursor's own outline */
   fifteen: [[2, 3]],
   sixteen: [[2, 3]],
@@ -567,7 +498,7 @@ export const BACKGROUND = 0
  * than the ceiling exists to allow — after the white cells had already
  * claimed #d1d1d1.
  */
-export const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
+const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
 
 /**
  * How opaque the veil over a hue gets at its brightest.
@@ -592,7 +523,7 @@ export const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
  * five games have two hues within a just-noticeable distance of each other,
  * against three both here and before any of this.
  */
-export const VEIL = 0.35
+const VEIL = 0.35
 
 type Colour = { h: number; s: number; l: number; r: number; g: number; b: number }
 
@@ -834,37 +765,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   }
 
   /*
-   * Ground stays ground.
-   *
-   * See `GROUND`. A hue upstream laid within touching distance of its own board
-   * is a surface, and the veil would otherwise send it into the air: the same
-   * solve the shades use, aimed at the contrast the C drew, brings it back down.
-   * Only downward — a ground that came out below where it was drawn is left
-   * alone, since the lift below is what handles a hue with too little light.
-   */
-  for (let index = 0; index < light.length; index++) {
-    if (index === BACKGROUND) continue
-    if (semantic?.includes(index) || DERIVED[game]?.includes(index)) continue
-    const was = parse(light[index])
-    const now = parse(flipped[index])
-    if (!was || !now || !board || !darkBoard) continue
-    if (was.s < ACHROMATIC) continue
-    const want = ratio(luminance(board), luminance(was))
-    if (want > GROUND) continue
-    const ground = luminance(darkBoard)
-    if (ratio(ground, luminance(now)) <= want) continue
-    let lo = darkBoard.l
-    let hi = now.l
-    for (let i = 0; i < 20; i++) {
-      const mid = (lo + hi) / 2
-      const at = parse(format({ ...now, l: mid }))
-      if (at && ratio(ground, luminance(at)) > want) hi = mid
-      else lo = mid
-    }
-    flipped[index] = format({ ...now, l: (lo + hi) / 2 })
-  }
-
-  /*
    * The other half of the veil.
    *
    * `veil` lays black over a hue in proportion to the light it throws, because
@@ -913,28 +813,14 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * It does move which slot a value belongs to, though, and that is not free:
    * see the loop below it.
    */
-  /*
-   * Everything drawn on a board that moved moves with it.
-   *
-   * `carry` was reached from the bevel loop alone, so of the eight games whose
-   * board is raised only the two with a bevel followed it — the other six had
-   * their board lifted out from under everything on them. A bevel is only the
-   * clearest case of a general fact: a colour chosen against a surface means
-   * nothing except as a distance from that surface, and the raise moves the
-   * surface. Semantic slots are exempt, as they always were: they stand on
-   * their own tone rather than on the board.
-   */
-  if (lift) for (let index = 0; index < flipped.length; index++) {
-    if (index === BACKGROUND) continue
-    if (DERIVED[game]?.includes(index)) continue
-    carry(index)
-  }
-
   for (const [lit, shade] of BEVEL[game] ?? []) {
     // Only a pair the flip turned over is drawn on the board and follows it.
     // Unruly's are kept by `SEMANTIC` and stand on their own tone instead —
     // a white square's highlight belongs to the white square, wherever the
     // board beneath the two of them has gone.
+    if (!semantic?.includes(lit) && !semantic?.includes(shade))
+      for (const index of [lit, shade]) carry(index)
+
     const a = parse(flipped[lit])
     const b = parse(flipped[shade])
     if (!a || !b || a.l >= b.l) continue
@@ -963,12 +849,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    */
   for (const index of BEVEL[game]?.flat() ?? [])
     light.forEach((css, other) => {
-      // Not onto a semantic slot. Two slots can share a light value and still
-      // be different things: Pearl paints its white circle the same #ffffff
-      // `game_mkhighlight` saturates its highlight to, and carrying a swapped
-      // bevel across would take the white half of the puzzle with it. What the
-      // rules say a colour means outranks what it happened to equal.
-      if (semantic?.includes(other)) return
       if (other !== index && css === light[index]) flipped[other] = flipped[index]
     })
 
@@ -977,54 +857,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   // on the same grey, it is the bevel that should move.
   const taken = new Map<string, number>()
   for (const index of semantic ?? []) taken.set(flipped[index], index)
-
-  /*
-   * Two colours collide when the eye cannot separate them, not only when the
-   * strings match.
-   *
-   * The pass compared hex for equality, which caught the case where a rule maps
-   * two different colours onto exactly the same value and missed every case
-   * where it maps them a hair apart. Unruly's board and its black square came
-   * out #424242 and #363636 — 0.14 apart on a scale where they began 2.11 apart
-   * — and the game is entirely black squares and white ones.
-   *
-   * The distance is a weighted RGB one rather than a contrast ratio, because
-   * this question is about telling two colours apart and contrast ratio cannot
-   * see hue: #7a7a7a and #6666ff are 1.004:1 and nobody has ever confused them.
-   * `APART` is the smallest gap the collision pass will accept, and it is set to
-   * the smallest gap the rules themselves produce between slots they intend to
-   * be different.
-   */
-  const rgbOf = (css: string) => {
-    const n = parseInt(css.slice(1), 16)
-    return [(n >> 16) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
-  }
-  const apart = (a: string, b: string) => {
-    const [r1, g1, b1] = rgbOf(a)
-    const [r2, g2, b2] = rgbOf(b)
-    const rm = (r1 + r2) / 2
-    return Math.sqrt(
-      (2 + rm) * (r1 - r2) ** 2 + 4 * (g1 - g2) ** 2 + (3 - rm) * (b1 - b2) ** 2,
-    )
-  }
-  /*
-   * A collision, and not merely a resemblance: the two must have been drawn
-   * apart to begin with. Upstream puts plenty of colours close together on
-   * purpose — a bevel is two steps either side of a surface — and pushing
-   * those apart would be inventing a distinction the game never made. So the
-   * criterion is the same shape as `INK`'s: what the C did, and then what the
-   * dark board made of it.
-   */
-  const nearest = (css: string, index: number) => {
-    if (!/^#[0-9a-f]{6}$/i.test(css)) return taken.get(css)
-    for (const [held, at] of taken) {
-      if (!/^#[0-9a-f]{6}$/i.test(held)) continue
-      if (apart(css, held) >= APART) continue
-      if (apart(light[index], light[at]) < DRAWN_APART) continue
-      return at
-    }
-    return undefined
-  }
 
   /*
    * And where one has to move, the slots that shared its colour move with it.
@@ -1052,7 +884,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       settled.set(light[index], value)
       return value
     }
-    const held = nearest(css, index)
+    const held = taken.get(css)
     if (held === undefined || light[held] === light[index]) {
       taken.set(css, index)
       return keep(css)
@@ -1062,7 +894,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       const l = hsl!.l + nudge
       if (l < FLOOR || l > CEILING) continue
       const moved = format({ ...hsl!, l })
-      if (nearest(moved, index) === undefined) {
+      if (!taken.has(moved)) {
         taken.set(moved, index)
         return keep(moved)
       }
