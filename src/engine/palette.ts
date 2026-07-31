@@ -412,7 +412,7 @@ const DERIVED: Record<string, readonly number[]> = {
   /* COL_GRID, COL_CURSOR — background over 1.5 and over 2 */
   lightup: [1, 6],
   /* COL_LINEUNKNOWN — background times 0.9, with the blue taken out */
-  loopy: [2],
+  loopy: [2, 6],
   /* COL_LINE_MAYBE the same, and COL_LINE_NO the same without the tint */
   palisade: [3, 4],
 }
@@ -465,6 +465,12 @@ const DERIVED: Record<string, readonly number[]> = {
  */
 const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
   /* COL_HIGHLIGHT, COL_LOWLIGHT — the tile, and the cursor's own outline */
+  bridges: [[2, 3]],
+  unequal: [[6, 7]],
+  galaxies: [[1, 2]],
+  magnets: [[1, 2]],
+  signpost: [[1, 2]],
+  pearl: [[1, 2]],
   fifteen: [[2, 3]],
   sixteen: [[2, 3]],
   /* ...the tile, the gentler pair the rotating block is shaded with, and the
@@ -849,6 +855,12 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    */
   for (const index of BEVEL[game]?.flat() ?? [])
     light.forEach((css, other) => {
+      // Never onto a semantic slot. Two slots can share a light value and still
+      // be different things: Pearl paints its white circle the same #ffffff
+      // `game_mkhighlight` saturates a highlight to, and carrying a swapped
+      // bevel across would take the white half of the puzzle with it. What the
+      // rules say a colour means outranks what it happened to equal.
+      if (semantic?.includes(other)) return
       if (other !== index && css === light[index]) flipped[other] = flipped[index]
     })
 
