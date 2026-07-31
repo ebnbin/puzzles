@@ -649,6 +649,13 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
      board that is a surface between the two tones and one that is one of them. */
   const raised = BOARD_IS_PAPER.has(game) ? PAPER_BOARD : SEMANTIC_BOARD
 
+  /*
+   * Whether this board is still paper, which decides which way "away from the
+   * board" points. See the veil's second half, which is the only thing that
+   * asks.
+   */
+  const stillPaper = needsRoom && BOARD_IS_PAPER.has(game)
+
   const flipped = light.map((css, index) => {
     const colour = parse(css)
     if (!colour) return css
@@ -709,14 +716,17 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
 
   /**
    * The lightness at which `colour` stands `want` off `ground`, searched
-   * between `from` and the ceiling. Hue and saturation are held, so this only
-   * ever returns a paler version of the colour it was given.
+   * between `from` and `far`. Hue and saturation are held, so this only ever
+   * returns a paler or a deeper version of the colour it was given, never
+   * another colour. `far` may be below `from`; the bisection only needs the
+   * contrast to rise monotonically from one end to the other, which it does
+   * either side of the ground.
    */
   const standOff = (
-    colour: Colour, ground: number, want: number, from: number, ceiling = CEILING,
+    colour: Colour, ground: number, want: number, from: number, far = CEILING,
   ) => {
     let lo = from
-    let hi = ceiling
+    let hi = far
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2
       const at = parse(format({ ...colour, l: mid }))
@@ -785,6 +795,17 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * already stands off the dark board as far as it did off the light one is
    * left exactly where the veil put it. Mines' 3 is 3.20:1 upstream and 3.46:1
    * here, and does not move.
+   *
+   * "Stands off" does not say which way, and the direction is not always up.
+   * On a board that is the negative of upstream's, away from it is lighter,
+   * and that is every board but two. A `BOARD_IS_PAPER` board is not a
+   * negative — it is still the white half of the puzzle, parked at
+   * `PAPER_BOARD` instead of down near the floor — so there the ink stays ink
+   * and away from it is darker, which is also where upstream had it. Searching
+   * up on those two cannot arrive at all: Singles' error red reaches 1.44:1
+   * against #7d7d7d at the lift's ceiling, against the 3.20:1 it has upstream,
+   * because every step up is a step towards the board. Downwards, #600000 is
+   * 3.41:1 and two thirds of the way to it.
    */
   for (let index = 0; index < light.length; index++) {
     if (index === BACKGROUND) continue
@@ -796,7 +817,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     const ground = luminance(darkBoard)
     const want = ratio(luminance(board), luminance(was))
     if (ratio(ground, luminance(now)) >= want) continue
-    flipped[index] = standOff(now, ground, want, now.l, LIFT_CEILING)
+    flipped[index] = standOff(now, ground, want, now.l, stillPaper ? FLOOR : LIFT_CEILING)
   }
 
   /*
