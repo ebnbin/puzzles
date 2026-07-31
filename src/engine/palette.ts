@@ -80,7 +80,7 @@
  */
 
 /** Below this saturation a colour is carrying structure, not meaning. */
-export const ACHROMATIC = 0.15
+const ACHROMATIC = 0.15
 
 /**
  * The range a grey is mapped into, held off pure black and pure white.
@@ -95,8 +95,8 @@ export const ACHROMATIC = 0.15
  * light, still 9.8:1 against the board, and still unmistakably the light
  * thing drawn on it.
  */
-export const FLOOR = 0.06
-export const CEILING = 0.82
+const FLOOR = 0.06
+const CEILING = 0.82
 
 /**
  * Slots whose being black, or being white, is something the rules say.
@@ -151,7 +151,7 @@ export const CEILING = 0.82
  * instead, the claimed square goes dark by the same 0.125 everything else
  * moves by and the edges land at #d1d1d1 against it.
  */
-export const SEMANTIC: Record<string, readonly number[]> = {
+const SEMANTIC: Record<string, readonly number[]> = {
   /* COL_EMPTY, COL_FULL, COL_UNKNOWN — "black or white", "grey" for unknown */
   pattern: [1, 2, 4],
   /*
@@ -286,7 +286,7 @@ export const FIGURE: Record<string, readonly number[]> = {
  * It is the price of the exception, and it is paid honestly: these boards are a
  * lighter grey than the other thirty.
  */
-export const SEMANTIC_BOARD = 0.26
+const SEMANTIC_BOARD = 0.26
 
 /**
  * Where the board sits for the games whose white half *is* the board.
@@ -312,7 +312,7 @@ export const SEMANTIC_BOARD = 0.26
  * it is paper, dimmed as far as paper can be dimmed while the ink on it stays
  * ink.
  */
-export const PAPER_BOARD = 0.49
+const PAPER_BOARD = 0.49
 
 /**
  * The games that board belongs to — the ones where nothing is painted white
@@ -320,7 +320,7 @@ export const PAPER_BOARD = 0.49
  * is ever drawn is a fact about the C, not about the colour in it, and Singles'
  * unused COL_WHITE is exactly the case that would fool a test on colours alone.
  */
-export const BOARD_IS_PAPER = new Set(['singles', 'range'])
+const BOARD_IS_PAPER = new Set(['singles', 'range'])
 
 /**
  * Slots a game measures out from its own background rather than choosing.
@@ -354,7 +354,7 @@ export const BOARD_IS_PAPER = new Set(['singles', 'range'])
  * Not a guess: every entry is a line in that game's `game_colours` that
  * multiplies or divides `ret[COL_BACKGROUND]`.
  */
-export const DERIVED: Record<string, readonly number[]> = {
+const DERIVED: Record<string, readonly number[]> = {
   /* COL_COVER, COL_LOCK, COL_GRID — background times 0.5, 0.7 and 0.9 */
   blackbox: [1, 2, 7],
   /* COL_GRID, COL_CURSOR — background over 1.5 and over 2 */
@@ -411,7 +411,7 @@ export const DERIVED: Record<string, readonly number[]> = {
  * must be true of them covers those for free; a rule that just swapped them
  * would have broken both.
  */
-export const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
+const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
   /* COL_HIGHLIGHT, COL_LOWLIGHT — the tile, and the cursor's own outline */
   fifteen: [[2, 3]],
   sixteen: [[2, 3]],
@@ -446,7 +446,7 @@ export const BACKGROUND = 0
  * than the ceiling exists to allow — after the white cells had already
  * claimed #d1d1d1.
  */
-export const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
+const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
 
 /**
  * How opaque the veil over a hue gets at its brightest.
@@ -471,7 +471,7 @@ export const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
  * five games have two hues within a just-noticeable distance of each other,
  * against three both here and before any of this.
  */
-export const VEIL = 0.35
+const VEIL = 0.35
 
 type Colour = { h: number; s: number; l: number; r: number; g: number; b: number }
 
