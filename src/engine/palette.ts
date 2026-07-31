@@ -367,12 +367,55 @@ const SEMANTIC_BOARD = 0.26
 const PAPER_BOARD = 0.49
 
 /**
- * The games that board belongs to — the ones where nothing is painted white
- * because the paper is the white. Declared rather than computed: whether a slot
- * is ever drawn is a fact about the C, not about the colour in it, and Singles'
- * unused COL_WHITE is exactly the case that would fool a test on colours alone.
+ * The games whose board has to move at all, and where each one goes.
+ *
+ * Moving a board is the most expensive thing in this file: everything drawn on
+ * it loses the contrast the board gained, and these boards end up a lighter
+ * grey than the other thirty-seven. It buys exactly one thing — a kept black
+ * that would otherwise be darker than the surface it is *read against*. So the
+ * question is not whether a game has such a black. It is whether that black is
+ * read against the board at all.
+ *
+ * For most games it is not, because they paint every cell. Pattern's squares
+ * are COL_EMPTY or COL_FULL, Unruly's are COL_0 or COL_1, Mosaic's are one of
+ * its three tones, and Blackbox's balls sit on COL_COVER at #9d9d9d; in all
+ * four the board is the margin round the grid and nothing is ever read against
+ * it. Guess draws its black marker on the board, but draws it
+ * `draw_circle(..., col, COL_FRAME)` — the game rims it itself, which is the
+ * same thing `rimmed` below exempts Pearl for, only stated in the C instead of
+ * in `RIM`. Measured: with the board left where the flip put it, every
+ * within-game contrast in those five is unchanged to the digit, because
+ * `compress` and `flip` do not read the board. All that changed was the
+ * margin — and Pattern's clue numbers, which were paying 8.20:1 down to 5.18:1
+ * for a raise that bought them nothing.
+ *
+ * That leaves three, and all three are the same case: the board is one of the
+ * puzzle's own tones.
+ *
+ *   - Light Up. An unlit square *is* COL_BACKGROUND, so a wall is black on the
+ *     board. Unraised it comes to 1.20:1.
+ *   - Singles, and Range. Their white half is the board: Singles paints a white
+ *     square by painting nothing, and its COL_WHITE is set in `game_colours`
+ *     and never used by any draw call; Range has no white slot at all. Both
+ *     chapters say it in those words — "colour some of the squares black", "the
+ *     remaining white squares". Unraised, both boards go almost entirely to
+ *     1.20:1 and stop being legible at all.
+ *
+ * Which is also why the two heights differ. Light Up's board is a third surface
+ * between its tones, so `SEMANTIC_BOARD` is enough. The other two *are* the
+ * white tone, and have to carry black ink at reading contrast, which is what
+ * `PAPER_BOARD` is measured for.
+ *
+ * Declared rather than computed, because whether a cell is painted is a fact
+ * about each game's drawing code and not about the colours in its palette —
+ * Singles' unused COL_WHITE is exactly the case that would fool a test on
+ * colours alone.
  */
-const BOARD_IS_PAPER = new Set(['singles', 'range'])
+const BOARD_MOVES_TO: Record<string, number> = {
+  lightup: SEMANTIC_BOARD,
+  singles: PAPER_BOARD,
+  range: PAPER_BOARD,
+}
 
 /**
  * Slots a game measures out from its own background rather than choosing.
@@ -636,7 +679,9 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    */
   const board = parse(light[BACKGROUND])
   const rimmed = RIM[game] ?? {}
+  const raised = BOARD_MOVES_TO[game]
   const needsRoom =
+    raised !== undefined &&
     !!semantic &&
     !!board &&
     semantic.some((i) => {
@@ -644,10 +689,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       const kept = parse(light[i])
       return !!kept && compress(kept.l) < flip(board.l)
     })
-
-  /* Where a board that has to move goes, which is not the same place for a
-     board that is a surface between the two tones and one that is one of them. */
-  const raised = BOARD_IS_PAPER.has(game) ? PAPER_BOARD : SEMANTIC_BOARD
 
   const flipped = light.map((css, index) => {
     const colour = parse(css)
