@@ -121,7 +121,7 @@ const CEILING = 0.82
 const LIFT_CEILING = 0.7
 
 /**
- * Slots whose being black, or being white, is something the rules say.
+ * Everything that has to be read against a tone the rules name.
  *
  * The flip is a photographic negative, and a negative is exactly wrong for a
  * puzzle played in black and white: Pearl's white circles would come out
@@ -130,10 +130,48 @@ const LIFT_CEILING = 0.7
  * their order — black stays the dark one — and are compressed into the same
  * range instead, which leaves black at #0f0f0f and white at #d1d1d1.
  *
- * The list is not a guess. Every entry is a game whose manual chapter states
- * the rule in terms of the colour ("black squares", "black and white
- * circles", "black or white respectively"), cross-referenced against the
- * `COL_*` enum in its C to find which slots those words are about.
+ * A hue is never at risk here. `veil` composites pure black, which scales the
+ * channels and leaves hue and saturation exactly where they were; blue comes
+ * out blue. A neutral is the only thing this file ever turns over, and turning
+ * a black into a white is the one edit that can make a rule read backwards. So
+ * this is the table that guards against that, and it wants one criterion:
+ *
+ *     A slot is kept — never flipped — if and only if it has to be read
+ *     *against* one of the tones the manual's rules name.
+ *
+ * That comes out in three shapes, all of them the same criterion:
+ *
+ *   1. It is one of those tones. Pattern's black and white squares, Pearl's two
+ *      circles, Guess's two markers.
+ *   2. It is the third tone standing between them — the undecided square, drawn
+ *      as a cell beside both. Pattern's COL_UNKNOWN and Unruly's COL_EMPTY.
+ *      Flip's COL_GRID and COL_DIAG belong here too: the little diagram in
+ *      every square is drawn in them on *both* tones, so their job is to sit
+ *      between. Flipped while the tones are kept, they land beside the dark one
+ *      at 1.4:1 and vanish from every unlit square.
+ *   3. It is drawn *on* those tones — the ink written on them, the relief built
+ *      out of them, the line that separates them. Singles' number on a black
+ *      square, Light Up's number on a black wall, Unruly's four bevel edges
+ *      (which the C measures out of COL_0 and COL_1 by `game_mkhighlight_specific`),
+ *      Mosaic's solved clue, and the grids of Pattern, Unruly and Singles.
+ *
+ * Shape 3 is where the reasoning is easiest to get wrong, and the test is the
+ * same every time: upstream draws each of these nearer one tone than the other,
+ * and flipping it while the tones stay put *mirrors* that. Pattern's grid is
+ * 2.48:1 from its black and 8.45:1 from its white, so black regions read as
+ * solid blocks and the grid shows between white ones; flipped it becomes
+ * 6.56:1 and 1.91:1 and the picture inverts. Kept, 2.16:1 and 5.80:1 — the
+ * arrangement upstream drew.
+ *
+ * Out, uniformly: cursors, error highlights and victory flashes. They are
+ * interaction and animation rather than anything the puzzle is made of, and no
+ * chapter states a rule in terms of them.
+ *
+ * The list is not a guess. Every game here has a manual chapter that states the
+ * rule in terms of the colour ("black squares", "black and white circles",
+ * "black or white respectively"), cross-referenced against the `COL_*` enum in
+ * its C to find which slots those words are about, and then against each game's
+ * drawing code to find what else is read against them.
  *
  * Deliberately not here: Mines' 7 and 8, which are black and grey only by
  * Minesweeper convention and are drawn on a cell that has itself turned over
@@ -185,31 +223,26 @@ const LIFT_CEILING = 0.7
  * moves by and the edges land at #d1d1d1 against it.
  */
 const SEMANTIC: Record<string, readonly number[]> = {
-  /* COL_EMPTY, COL_FULL, COL_UNKNOWN — "black or white", "grey" for unknown */
-  pattern: [1, 2, 4],
-  /*
-   * COL_WRONG, COL_RIGHT — "some light and some dark", and the aim is to light
-   * them all up — plus COL_GRID and COL_DIAG, which are one colour upstream and
-   * the same kind of member as Pattern's grey above: the little diagram in every
-   * square is drawn in it on both tones, so its job is to sit between them.
-   * Flipped while the two tones are kept, it lands beside the dark one at 1.4:1
-   * and the diagrams disappear from every unlit square; kept, it stays the mid
-   * grey upstream chose, reading at about 2.4:1 either side.
-   */
+  /* (1) COL_EMPTY, COL_FULL  (2) COL_UNKNOWN  (3) COL_GRID, between the two */
+  pattern: [1, 2, 4, 5],
+  /* (1) COL_WRONG, COL_RIGHT — "some light and some dark", and the aim is to
+     light them all up  (2) COL_GRID and COL_DIAG, one colour upstream */
   flip: [1, 2, 3, 4],
-  /* COL_BLACK, COL_WHITE — "black and white circles", different rules each */
+  /* (1) COL_BLACK, COL_WHITE — "black and white circles", different rules each */
   pearl: [3, 4],
-  /* COL_0 and COL_1 with their bevels — "black and white squares" */
-  unruly: [3, 4, 5, 6, 7, 8],
-  /* COL_MARKED, COL_BLANK — "black or white respectively" */
-  mosaic: [3, 4],
-  /* COL_BLACK, COL_WHITE, COL_BLACKNUM — "white squares must all..." */
-  singles: [3, 4, 5],
-  /* One aliased slot: grid, black squares, text and your entries together */
+  /* (3) COL_GRID  (2) COL_EMPTY  (1) COL_0, COL_1 with (3) their four bevel
+     edges, which `game_mkhighlight_specific` measures out of the two stones */
+  unruly: [1, 2, 3, 4, 5, 6, 7, 8],
+  /* (1) COL_MARKED, COL_BLANK  (3) COL_TEXT_SOLVED, written on both */
+  mosaic: [3, 4, 5],
+  /* (1) COL_BLACK, COL_WHITE  (3) COL_BLACKNUM on the black square, COL_GRID
+     between it and the white half, which here is the board itself */
+  singles: [3, 4, 5, 6],
+  /* (1) One aliased slot: grid, black squares, text and your entries together */
   range: [1],
-  /* COL_BLACK, COL_LIGHT — the C's own comments say black and white */
+  /* (1) COL_BLACK  (3) COL_LIGHT, the number written on a black wall */
   lightup: [2, 3],
-  /* COL_CORRECTPLACE, COL_CORRECTCOLOUR — Mastermind's black and white pegs */
+  /* (1) COL_CORRECTPLACE, COL_CORRECTCOLOUR — Mastermind's black and white pegs */
   guess: [16, 17],
 }
 
