@@ -376,21 +376,21 @@ const PAPER_BOARD = 0.49
  * question is not whether a game has such a black. It is whether that black is
  * read against the board at all.
  *
- * For most games it is not, because they paint every cell. Pattern's squares
- * are COL_EMPTY or COL_FULL, Unruly's are COL_0 or COL_1, Mosaic's are one of
- * its three tones, and Blackbox's balls sit on COL_COVER at #9d9d9d; in all
- * four the board is the margin round the grid and nothing is ever read against
- * it. Guess draws its black marker on the board, but draws it
- * `draw_circle(..., col, COL_FRAME)` — the game rims it itself, which is the
- * same thing `rimmed` below exempts Pearl for, only stated in the C instead of
- * in `RIM`. Measured: with the board left where the flip put it, every
- * within-game contrast in those five is unchanged to the digit, because
- * `compress` and `flip` do not read the board. All that changed was the
- * margin — and Pattern's clue numbers, which were paying 8.20:1 down to 5.18:1
- * for a raise that bought them nothing.
+ * For four games it is not, because they paint every cell they draw on:
+ * Pattern's squares are COL_EMPTY or COL_FULL, Unruly's are COL_0 or COL_1,
+ * Mosaic's are one of its three tones — none of the three ever fills a cell
+ * with COL_BACKGROUND in any state — and Guess draws its black marker on the
+ * board but draws it `draw_circle(..., col, COL_FRAME)`, rimming it in the
+ * game's own C, which is the same thing `rimmed` below exempts Pearl for.
+ * Measured: with the board left where the flip put it, every within-game
+ * contrast in those four is unchanged to the digit, because `compress` and
+ * `flip` do not read the board. All that changed was the margin — and
+ * Pattern's clue numbers, which were paying 8.20:1 down to 5.18:1 for a raise
+ * that bought them nothing.
  *
- * That leaves three, and all three are the same case: the board is one of the
- * puzzle's own tones.
+ * The four below all fail that test, and the last of them is the reason this
+ * has to be read out of the drawing code rather than the tile a screenshot
+ * happens to show:
  *
  *   - Light Up. An unlit square *is* COL_BACKGROUND, so a wall is black on the
  *     board. Unraised it comes to 1.20:1.
@@ -400,19 +400,26 @@ const PAPER_BOARD = 0.49
  *     chapters say it in those words — "colour some of the squares black", "the
  *     remaining white squares". Unraised, both boards go almost entirely to
  *     1.20:1 and stop being legible at all.
+ *   - Black Box, which spends the whole game with its arena filled in COL_COVER
+ *     and its balls on that, at #9d9d9d — and then, in the one state that
+ *     matters, does not: `bg = (gs->reveal ? COL_BACKGROUND : ... COL_COVER)`.
+ *     At the reveal the arena is repainted in the board and the balls are drawn
+ *     straight onto it, which is exactly when you are looking at them. 1.43:1
+ *     unraised, against 1.91:1 with.
  *
- * Which is also why the two heights differ. Light Up's board is a third surface
- * between its tones, so `SEMANTIC_BOARD` is enough. The other two *are* the
- * white tone, and have to carry black ink at reading contrast, which is what
- * `PAPER_BOARD` is measured for.
+ * Which is also why the heights differ. Light Up's and Black Box's boards are a
+ * third surface between the tones, so `SEMANTIC_BOARD` is enough. The other two
+ * *are* the white tone, and have to carry black ink at reading contrast, which
+ * is what `PAPER_BOARD` is measured for.
  *
- * Declared rather than computed, because whether a cell is painted is a fact
- * about each game's drawing code and not about the colours in its palette —
- * Singles' unused COL_WHITE is exactly the case that would fool a test on
- * colours alone.
+ * Declared rather than computed, because whether a cell is painted — and in
+ * which of a game's states — is a fact about its drawing code and not about
+ * the colours in its palette. Singles' unused COL_WHITE would fool a test on
+ * colours alone, and Black Box's reveal would fool a test on one screenshot.
  */
 const BOARD_MOVES_TO: Record<string, number> = {
   lightup: SEMANTIC_BOARD,
+  blackbox: SEMANTIC_BOARD,
   singles: PAPER_BOARD,
   range: PAPER_BOARD,
 }
