@@ -88,7 +88,18 @@ for (const game of games) {
   page.on('pageerror', (e) => errors.push(e.message))
 
   try {
-    await page.goto(`${BASE}/ts/${game.name}`, { waitUntil: 'load' })
+    /*
+     * There is one address, so which puzzle to open is `puzzles.last` and
+     * nothing else. Seed it, then come back through about:blank — a second
+     * `goto` of the same address would not reload.
+     */
+    await page.goto(BASE, { waitUntil: 'load' })
+    await page.evaluate((name) => {
+      localStorage.clear()
+      localStorage.setItem('puzzles.last', name)
+    }, game.name)
+    await page.goto('about:blank')
+    await page.goto(BASE, { waitUntil: 'load' })
     await page.waitForSelector('.host-board', { timeout: 30000 })
     await page.waitForFunction(
       () => {
