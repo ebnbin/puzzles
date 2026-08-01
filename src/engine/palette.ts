@@ -107,18 +107,33 @@ const CEILING = 0.82
 /**
  * How far the veil's lifting half may climb.
  *
- * Not `CEILING`, which is where flipped black ink lands, and not for that
- * reason alone: a hue raised that far has spent most of its colour getting
- * there. Pure blue at `CEILING` is #a1a1ff, which nobody would call blue —
- * raising HSL lightness with the saturation held walks the other two channels
- * up towards the first, and #0000ff arrives as lavender. At 0.70 the same blue
- * is #6666ff, still plainly blue, and still 3.7:1 against the board.
+ * Not `CEILING`, which is where flipped black ink lands: a hue raised that far
+ * has spent most of its colour getting there. Raising HSL lightness with the
+ * saturation held walks the other two channels up towards the first, so what a
+ * hue loses on the way up is the gap between its channels — the only thing that
+ * makes it that hue rather than a grey. Measured as max channel minus min, pure
+ * blue keeps 0.37 of that gap at `CEILING`, 0.60 here at 0.70, 0.76 at 0.62.
  *
- * So this is the point past which a hue stops being worth the contrast: the
- * lift takes what it can get below it and stops, even where the board is owed
- * more.
+ * 0.62 is where it sits, and 0.70 is where it sat. #6666ff was described here
+ * as "still plainly blue" and it is not: at 0.60 of the gap, two fifths of the
+ * way to grey, it reads as lavender, and the same arithmetic had #800000
+ * arriving as a pink #ff6666 rather than a dark red. #3d3dff and #ff3d3d are
+ * the same colours the game chose, dimmer. That is what this constant is for.
+ *
+ * The price is paid against the board and it is real: that blue goes from
+ * 3.13:1 to 2.11:1 on a #2f2f2f board, the whole lifted set from 3.69 to 3.18
+ * on average, and four more slots come to rest on the ceiling instead of on
+ * their target — 28 rather than 22 — so a little more of the collapse this
+ * ceiling causes. Lower still is worse than it looks: at 0.58 Mines' #000080
+ * arrives at #0000fa and is back under 2:1 against its own board, which is the
+ * "in effect, not drawn" this whole lifting half exists to prevent.
+ *
+ * So: the point past which a hue stops being worth the contrast. The lift takes
+ * what it can get below it and stops, even where the board is owed more. Only
+ * slots that would have overshot are touched — anything that reaches its target
+ * below this height lands on the target and does not read this number at all.
  */
-const LIFT_CEILING = 0.7
+const LIFT_CEILING = 0.62
 
 /**
  * Everything that has to be read against a tone the rules name.
