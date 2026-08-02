@@ -28,6 +28,16 @@ const START_FAILED = '\0start'
  */
 const CUSTOM_PRESET = -1
 
+/**
+ * The keys the page forwards to the board on the board's behalf.
+ *
+ * They are the back end's own shortcuts, not ours — `one_key_shortcuts` in
+ * midend.c, offered to the reader as "Keyboard shortcuts without Ctrl" — and
+ * what they do, including whether they do anything at all, is its answer to
+ * give. This list exists only to say which keys are worth asking it about.
+ */
+const SHORTCUT_KEYS = /^[urn]$/i
+
 /** Enough of a dialog to tell whether anything in it was changed. */
 const values = (spec: DialogSpec) =>
   JSON.stringify(spec.controls.map((c) => c.value))
@@ -474,19 +484,30 @@ export default function PuzzleHost({
         return
       }
       if (dialog || helpOpen || typesOpen) return
+      /*
+       * The board had it first and spent it. Undo, redo and new game are the
+       * back end's own one-key shortcuts, so with the board focused the press
+       * has already been acted on by the time it reaches the window — and
+       * acting on it a second time here is what made one press of `u` undo two
+       * moves, one `r` redo two, and one `n` deal two games and show the
+       * second. Measured on Net by the midend's own STATEPOS.
+       */
+      if (e.defaultPrevented) return
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
       const api = apiRef.current
       if (!api) return
-      const shortcut: Record<string, () => void> = {
-        u: () => api.undo(),
-        r: () => api.redo(),
-        n: () => api.newGame(),
-      }
-      const run = shortcut[e.key.toLowerCase()]
-      if (!run) return
-      run()
-      e.preventDefault()
+      if (!SHORTCUT_KEYS.test(e.key)) return
+      /*
+       * Handed over as the keypress it is, rather than run as the action it
+       * usually means, so that these three keys say the same thing off the
+       * board as on it: nothing, for a reader who has turned the shortcuts
+       * off, and a move rather than a shortcut in a game that wants the letter
+       * for itself. Calling undo() here would speak over both.
+       */
+      arm()
+      if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
+        e.preventDefault()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -498,6 +519,7 @@ export default function PuzzleHost({
     closeTypes,
     closeMenu,
     helpOpen,
+    arm,
   ])
 
   const pressKey = useCallback((key: KeyLabel) => {
