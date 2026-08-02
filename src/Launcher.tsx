@@ -8,6 +8,8 @@ import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
 import { openGame, rememberGalleryScroll, takeGalleryScroll } from './view'
 import { toggleHidden, useHidden } from './useHidden'
+import { useResolvedTheme } from './useResolvedTheme'
+import { setTheme } from './useTheme'
 
 /** A press has to be still for this long before it means hide, not open. */
 const HOLD_MS = 450
@@ -40,6 +42,7 @@ export default function Launcher() {
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const t = useStrings()
   const [lang, setLang] = useLang()
+  const dark = useResolvedTheme() === 'dark'
   const games = useGames()
   const hidden = useHidden()
 
@@ -180,6 +183,20 @@ export default function Launcher() {
             </label>
           ))}
         </div>
+        {/* The same one press the puzzle screen has had all along, now here
+            and in the manual too, so the shortest way to turn the lights off
+            is the same wherever you are. It commits to a side rather than
+            cycling through "system": having asked for an appearance, a reader
+            should get it until they say otherwise. The three-way choice —
+            including following the system — is still in the settings. */}
+        <button
+          type="button"
+          className="masthead-icon"
+          aria-label={dark ? t.play.toLight : t.play.toDark}
+          onClick={() => setTheme(dark ? 'light' : 'dark')}
+        >
+          <Icon name={dark ? 'sun' : 'moon'} />
+        </button>
         <button
           type="button"
           className="masthead-icon"

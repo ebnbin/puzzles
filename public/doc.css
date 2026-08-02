@@ -185,8 +185,25 @@
  * it is, so the styling takes both rather than forcing one.
  */
 
+/*
+ * Equal columns, and no wider than the widest of them needs.
+ *
+ * The two demands pull against each other. A switch whose halves are
+ * different sizes reads as two separate buttons — EN sets to 18px and 中文 to
+ * 24px, and left alone they look like a pair of unrelated chips. But the fix
+ * used to be a `min-width` of 3.5rem, which is a number somebody chose: wide
+ * enough for anything, and so wider than anything, at 118px for a control
+ * saying four characters.
+ *
+ * A grid of `1fr` columns answers both without a number. Every column takes
+ * the width of the widest item, and the track sizing of an inline grid is its
+ * content — so the control comes out at exactly twice the wider label and not
+ * a pixel more, in any language, for two options or three.
+ */
 .segmented {
-  display: inline-flex;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   flex: none;
   gap: 0.125rem;
   padding: 0.1875rem;
@@ -198,12 +215,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* Every option the same width, whatever it says. Two letters and two
-     Chinese characters set to very different widths, and a switch whose
-     halves are different sizes reads as two separate controls. */
-  min-width: 3.5rem;
   min-height: 1.875rem;
-  padding: 0 0.55rem;
+  /* Enough that the pill reads as a pill around the shorter label rather than
+     as a circle, and no more. */
+  padding: 0 0.5rem;
   border-radius: var(--r-full);
   color: var(--text-2);
   font-size: var(--t-xs);
@@ -312,16 +327,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  /* `.play-bar`'s own numbers, with the screen's edges honoured — this bar
+     runs to the edge of the window where that one sits inside a padded
+     column. Symmetrical again now that this one also ends in an icon button:
+     it briefly needed more on the right, when the last thing in it was a
+     filled pill with no slack of its own to keep it off the glass. */
   min-height: 3rem;
-  /*
-   * `.play-bar`'s 3rem, and its 0.3rem on the left, where both bars begin with
-   * the same bare text button. The right is wider because the two bars end
-   * differently: that one ends in an icon button, whose glyph sits 8px inside
-   * its own box, and this one ends in a filled pill with no such slack. Equal
-   * numbers would put the pill against the glass. These land the two on the
-   * same optical edge, which is what being the same bar means here.
-   */
-  padding: 0 max(0.75rem, env(safe-area-inset-right)) 0
+  padding: 0 max(0.3rem, env(safe-area-inset-right)) 0
     max(0.3rem, env(safe-area-inset-left));
   background-color: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(12px);
@@ -364,6 +376,52 @@ body {
 
 .doc-home:active {
   background-color: var(--surface-3);
+}
+
+/*
+ * The bar's own button, set as `.play-icon` is: bare until it is touched, so
+ * nothing up here competes with the page for the eye.
+ *
+ * Both glyphs are in the markup and the stylesheet picks one, because there is
+ * no script here to swap them and `data-theme` is on the root before the first
+ * paint anyway. The one shown is what a press would give you — the sun while
+ * the page is dark — which is the rule the app's own button follows.
+ */
+.doc-theme {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tap-w);
+  height: var(--tap-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.doc-theme svg {
+  grid-area: 1 / 1;
+}
+
+:root[data-theme='light'] .doc-theme svg:first-child,
+:root[data-theme='dark'] .doc-theme svg:last-child {
+  display: none;
+}
+
+@media (hover: hover) {
+  .doc-theme:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.doc-theme:active {
+  background-color: var(--surface-3);
+  transform: scale(0.92);
 }
 
 /* Where the puzzle screen puts its status. Same size and same tone: what sits

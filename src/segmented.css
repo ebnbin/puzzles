@@ -18,8 +18,25 @@
  * it is, so the styling takes both rather than forcing one.
  */
 
+/*
+ * Equal columns, and no wider than the widest of them needs.
+ *
+ * The two demands pull against each other. A switch whose halves are
+ * different sizes reads as two separate buttons — EN sets to 18px and 中文 to
+ * 24px, and left alone they look like a pair of unrelated chips. But the fix
+ * used to be a `min-width` of 3.5rem, which is a number somebody chose: wide
+ * enough for anything, and so wider than anything, at 118px for a control
+ * saying four characters.
+ *
+ * A grid of `1fr` columns answers both without a number. Every column takes
+ * the width of the widest item, and the track sizing of an inline grid is its
+ * content — so the control comes out at exactly twice the wider label and not
+ * a pixel more, in any language, for two options or three.
+ */
 .segmented {
-  display: inline-flex;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   flex: none;
   gap: 0.125rem;
   padding: 0.1875rem;
@@ -31,12 +48,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* Every option the same width, whatever it says. Two letters and two
-     Chinese characters set to very different widths, and a switch whose
-     halves are different sizes reads as two separate controls. */
-  min-width: 3.5rem;
   min-height: 1.875rem;
-  padding: 0 0.55rem;
+  /* Enough that the pill reads as a pill around the shorter label rather than
+     as a circle, and no more. */
+  padding: 0 0.5rem;
   border-radius: var(--r-full);
   color: var(--text-2);
   font-size: var(--t-xs);

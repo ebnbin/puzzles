@@ -45,6 +45,9 @@ const CHROME = {
     htmlLang: 'en',
     home: 'Puzzles',
     section: 'Manual',
+    /* One label for both states, because there is no React here to rewrite it
+       on the way past and a stale one is worse than a general one. */
+    theme: 'Light or dark',
     footer:
       "Simon Tatham's Portable Puzzle Collection, distributed under the " +
       '<a href="licence.html#licence">MIT licence</a>.',
@@ -54,6 +57,7 @@ const CHROME = {
     htmlLang: 'zh-Hans',
     home: 'Puzzles',
     section: '手册',
+    theme: '浅色或深色',
     footer:
       'Simon Tatham’s Portable Puzzle Collection，以 ' +
       '<a href="licence.html#licence">MIT 许可证</a>分发。' +
@@ -64,38 +68,78 @@ const CHROME = {
 const LANGS = /** @type {const} */ (['en', 'zh'])
 const LABEL = { en: 'EN', zh: '中文' }
 
-/** The app's back arrow, drawn the same way Icon.tsx draws it. */
-const BACK_ICON =
-  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" ' +
+/** The app's glyphs, drawn the same way Icon.tsx draws them. */
+const icon = (size, body) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" ` +
   'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" ' +
-  'stroke-linejoin="round" aria-hidden="true" focusable="false">' +
-  '<path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>'
+  `stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`
+
+const BACK_ICON = icon(18, '<path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/>')
+
+/*
+ * Both of them, always in the markup, with the stylesheet showing whichever
+ * names what a press would do — the sun while the page is dark, as in the
+ * app. There is no script here to swap them with, and one that did would have
+ * to run after the theme is resolved and again on every toggle; `data-theme`
+ * is already on the root by then, so CSS can simply read it.
+ */
+const SUN_ICON = icon(
+  20,
+  '<circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/>' +
+    '<path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/>' +
+    '<path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/>' +
+    '<path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/>',
+)
+const MOON_ICON = icon(
+  20,
+  '<path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/>',
+)
 
 /*
  * Resolve the theme before anything is painted, exactly as index.html does —
  * same storage key, same two colours — so following a link into the manual
- * does not flash white at a reader who has chosen dark. The second listener
- * keeps the app's idea of the language in step when it is changed from here.
- * The third makes the bar's arrow a real back where there is one to take.
+ * does not flash white at a reader who has chosen dark. A blocked store is
+ * only a lost preference, so the read is what is guarded and not the applying:
+ * the system's answer still gets used, and the root still gets an attribute
+ * for the stylesheet to read.
+ *
+ * Then three listeners. The first keeps the app's idea of the language in step
+ * when it is changed from here; the second is the bar's own light-and-dark
+ * button; the third makes the bar's arrow a real back where there is one.
  */
 const HEAD_SCRIPT = `<script>
 ;(function () {
+  var root = document.documentElement
+  var bar = document.querySelector('meta[name="theme-color"]')
+  var choice = null
   try {
-    var choice = localStorage.getItem('puzzles.theme')
-    var dark =
-      choice === 'dark' ||
-      (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
-    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
-    document
-      .querySelector('meta[name="theme-color"]')
-      .setAttribute('content', dark ? '#101013' : '#fafaf9')
+    choice = localStorage.getItem('puzzles.theme')
   } catch (e) {}
+  var dark =
+    choice === 'dark' ||
+    (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+  root.dataset.theme = dark ? 'dark' : 'light'
+  bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
   document.addEventListener('click', function (event) {
     var link = event.target.closest && event.target.closest('.doc-lang a')
     if (!link) return
     try {
       localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
     } catch (e) {}
+  })
+  // The same one press the app has, doing the same thing to the same key:
+  // commit to a side, write it down, and turn this page over on the spot.
+  // "System" is a third state and stays where a third state can be shown,
+  // which is the app's settings.
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('.doc-theme')
+    if (!button) return
+    var next = root.dataset.theme === 'dark' ? 'light' : 'dark'
+    try {
+      localStorage.setItem('puzzles.theme', next)
+    } catch (e) {}
+    root.dataset.theme = next
+    bar.setAttribute('content', next === 'dark' ? '#101013' : '#fafaf9')
   })
   // The arrow means "back to the app". Where the app really is the page
   // behind this one, take that step, so the reader lands on the board they
@@ -153,6 +197,7 @@ function topBar(lang, file) {
 <a class="doc-home" href="/">${BACK_ICON}${c.home}</a>
 <span class="doc-top-title">${c.section}</span>
 <span class="segmented doc-lang">${choices}</span>
+<button type="button" class="doc-theme" aria-label="${c.theme}">${SUN_ICON}${MOON_ICON}</button>
 </header>`
 }
 

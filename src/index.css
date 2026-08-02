@@ -447,8 +447,10 @@ footer p {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* No top inset: the bar takes that one itself, so its plate reaches the top
+     of the screen rather than starting below the notch. */
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
   /* The same lattice the launcher stands on, rather than a flat plate: it is
      the one background the whole app shares. The board sits on it with its
      own lit-plate shadow, so the grid reads as the surface the puzzle rests
@@ -479,9 +481,7 @@ footer p {
   user-select: none;
 }
 
-/* One line: back, which puzzle, how it is going, how it is played. No rule
-   under it — the board below is a lit plate with its own edge, which separates
-   the two better than a hairline would.
+/* One line: back, which puzzle, how it is going, how it is played.
 
    The chrome is lifted a layer so the board's shadow, which now has no padding
    to spend itself in, passes under it rather than over its text. */
@@ -497,8 +497,25 @@ footer p {
   flex: none;
   align-items: center;
   gap: 0.25rem;
-  min-height: 3rem;
-  padding: 0 0.3rem;
+  /*
+   * A surface of its own, and the notch strip along with it.
+   *
+   * It used to have no background at all, so the page's lattice ran up through
+   * the title and the clock — which reads as the bar having been forgotten
+   * rather than as the bar being part of the board's surface. A plate and a
+   * hairline give it the edge the manual's bar has had all along, and the two
+   * are now the same object seen on two screens.
+   *
+   * The inset comes here rather than staying on `.play` because a coloured bar
+   * that stops below a notch leaves a band of latticed page above it, which
+   * looks like a mistake. Taking it means adding it back to the height: the
+   * box is border-box, so `min-height` would otherwise be spent on the inset
+   * and the row would come out short by exactly the notch.
+   */
+  min-height: calc(3rem + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 0.3rem 0;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--edge);
 }
 
 /* The bar's own buttons are bare: no fill until touched. A filled control up
