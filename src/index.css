@@ -429,11 +429,11 @@ a {
 /*
  * A word of confirmation, said and gone.
  *
- * The same box a refusal comes in — see `p.notice` — in the accent rather than
- * in red, because a tile going into the stash is not a thing that went wrong.
- * It used to be the page's own ink inverted, in a bare pill, which read as
- * quieter than what it was carrying: the long press gives no sign until the
- * tile has already gone, so this line is the only thing that says where.
+ * The same box a refusal comes in — see `p.notice` — on the chip's dark ground
+ * rather than in a colour, because a tile going into the stash is neither a
+ * thing that went wrong nor a thing the page is saying about itself. It is a
+ * card in front of the page, and it is the only thing in the app whose ground
+ * stays dark on both themes; see `--chip` for why.
  *
  * At the head of the window rather than the foot: the reader's eye is on the
  * tile they just pressed, which is somewhere in the grid, and a line at the
@@ -451,6 +451,14 @@ a {
  *
  * `pointer-events: none` throughout — the tiles it covers are tap targets and
  * stay ones.
+ *
+ * The name is what keeps it above the tiles it is about. `z-index` cannot: the
+ * tiles are named for the length of a flight (see above), which lifts them into
+ * the view-transition layer, and everything unnamed — this line included — is
+ * flattened into one picture underneath. It came up *behind* the moving tiles
+ * and only cleared them when the flight ended. Named, it is a picture of its
+ * own, and the pictures are stacked in the order they were taken, which is
+ * document order: this is the last thing the gallery renders.
  */
 p.notice-toast {
   position: fixed;
@@ -459,11 +467,12 @@ p.notice-toast {
   z-index: 50;
   max-width: min(85vw, 22rem);
   margin: 0;
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
+  background: var(--chip);
+  color: var(--chip-text);
   box-shadow: var(--shadow-2);
   pointer-events: none;
   transform: translateX(-50%);
+  view-transition-name: toast;
   animation: toast-in var(--dur) var(--ease);
 }
 

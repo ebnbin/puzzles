@@ -62,6 +62,17 @@
      (5.73:1) — the tint says what it is without costing legibility. */
   --danger-soft: #fbeae8;
 
+  /* A word said over the top of the page rather than on it: the gallery's
+     confirmation that a tile has been put away or brought back.
+
+     Dark ground and light text in both themes, which is the one pair here that
+     does not flip — inverting it would turn the chip white on a dark page, and
+     a white card reads as a piece of the interface rather than as a passing
+     word about it. Here that is the page's own ink under the page's own
+     ground, so no new colour enters the app: 17.13:1. */
+  --chip: #17171a;
+  --chip-text: #fafaf9;
+
   /* The grey the thumbnails are rendered on. Constant across themes: the
      icons are built once, in light, and sit on a plate that matches them.
      Never applied to the canvas itself — see the note above. What a board
@@ -134,6 +145,14 @@
   --raised: #2c2c34;
   --edge: #26262d;
   --edge-strong: #6b6b7d;
+
+  /* The ground moves and the ink does not. Light's ink is #17171a and this
+     page is #101013: a black card on a black page is a card you cannot see,
+     and only the shadow's hairline was holding it off the lattice. `raised` is
+     the step this app already uses for a thing sitting above the page, so the
+     chip takes it — 1.37:1 off the page, the same separation every raised
+     surface here has, and 13.25:1 under the text, which is what matters. */
+  --chip: #2c2c34;
 
   --text: #ececef;
   --text-2: #a2a2ad;

@@ -14,6 +14,43 @@ import { toggleHidden, useHidden } from './useHidden'
 const HOLD_MS = 450
 
 /**
+ * Eat the click that ends a long press.
+ *
+ * A hold acts at 450ms, while the finger is still down, and the tile it acts on
+ * leaves the grid there and then. The finger comes up some time later onto
+ * whatever has slid into that place, and the browser resolves the tap against
+ * what is under it *now*: measured on a phone profile, a 1400ms press on Cube
+ * hid Cube and opened Fifteen.
+ *
+ * The tile used to swallow its own click, which was right while a hold could
+ * only ever produce a click on the tile that was held. It cannot: the click
+ * lands somewhere else by definition, because the press is what moved the thing
+ * that was there. So the swallow is on the window, in the capture phase, ahead
+ * of every tile.
+ *
+ * It comes off on that click, whichever tile it was headed for. If none ever
+ * arrives — a press the browser cancels out from under us, taking the tap with
+ * it — the pointer coming up sweeps it away a beat later, so a listener that
+ * has nothing to eat cannot sit there waiting to eat something else.
+ */
+function swallowTapAfterHold() {
+  const eat = (event: MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  const done = () => {
+    window.removeEventListener('click', eat, true)
+    window.removeEventListener('pointerup', sweep, true)
+    window.removeEventListener('pointercancel', sweep, true)
+  }
+  const sweep = () => window.setTimeout(done, 400)
+
+  window.addEventListener('click', eat, { capture: true, once: true })
+  window.addEventListener('pointerup', sweep, { capture: true, once: true })
+  window.addEventListener('pointercancel', sweep, { capture: true, once: true })
+}
+
+/**
  * The gallery.
  *
  * Forty thumbnails rendered from the positions upstream chose are the best
@@ -336,9 +373,8 @@ export default function Launcher() {
  * afford to offer what a touch screen has no room for. The button is also
  * the way in from a keyboard.
  *
- * A press that turned out to be a hold must not also be a click: the click
- * that follows it is swallowed, the same way the keypad's long-press help
- * does it.
+ * A press that turned out to be a hold must not also open anything, and the
+ * tap it ends with is not this tile's to refuse — see swallowTapAfterHold.
  */
 function Tile({
   game,
@@ -361,14 +397,12 @@ function Tile({
   const label = hidden ? t.launcher.show(game.displayName) : t.launcher.hide(game.displayName)
 
   const timer = useRef(0)
-  const held = useRef(false)
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
   const down = () => {
-    held.current = false
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => {
-      held.current = true
+      swallowTapAfterHold()
       onToggle(game)
     }, HOLD_MS)
   }
@@ -394,13 +428,7 @@ function Tile({
         onPointerLeave={up}
         // The browser's own long-press menu would race ours.
         onContextMenu={(e) => e.preventDefault()}
-        onClick={() => {
-          if (held.current) {
-            held.current = false
-            return
-          }
-          openGame(game.name)
-        }}
+        onClick={() => openGame(game.name)}
       >
         <span className="games-art">
           {/* Not lazy: the server answers these with no-cache, so a lazy
