@@ -10,6 +10,7 @@ import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
 import {
   clearSave,
+  isPlayed,
   readSave,
   setPlaying,
   takeIntroduction,
@@ -164,10 +165,13 @@ export default function PuzzleHost({
    * game is serialised and put away. Writes from one gesture coalesce into a
    * microtask.
    *
-   * Armed only by an actual act of playing. Everything before that — the
-   * starting deal, a restored save, a shared link being looked at — saves
-   * nothing, so opening a link never costs a saved game until the reader
-   * plays into it.
+   * Armed by the reader touching anything, and not before: the opening deal
+   * and the restore that may follow it happen without a hand on the screen, and
+   * nothing about them is worth writing down — the deal because it is not
+   * progress, the restore because it is what was already there.
+   *
+   * What comes back out of the store is a separate judgement, made where the
+   * save is restored: a saved board nobody moved in is dealt over.
    */
   const armed = useRef(false)
   const restoring = useRef(false)
@@ -290,6 +294,11 @@ export default function PuzzleHost({
      * and a screen to arrive on — and none of it exists; see view.ts.
      */
     const saved = readSave(name)
+    /*
+     * Whether the save above went in. A stale one is refused whole and cleared
+     * below, and there is then nothing of the reader's to deal over.
+     */
+    let restored = true
 
     createPuzzle({
       name,
@@ -319,12 +328,34 @@ export default function PuzzleHost({
             } finally {
               restoring.current = false
             }
+            /*
+             * And if there was nothing in it, deal over the top of it.
+             *
+             * A save with one state is a board nobody moved in — dealt, and
+             * then left. Restoring it means coming back to the same untouched
+             * puzzle, which is not what leaving an untouched puzzle feels like
+             * it should do, and is not what the app does when there is no save
+             * at all: a puzzle opened for the first time deals afresh on every
+             * visit. The same board in a puzzle played once before came back
+             * exactly as it was, because dealing a new game had armed the save
+             * and written the fresh board over the old one. One question,
+             * answered two ways, depending on a thing the reader cannot see.
+             *
+             * It is loaded first and dealt over rather than simply discarded,
+             * because the position is not all it carries. The size and the
+             * difficulty are in there too, and they are the reader's answer to
+             * a different question — throwing the save away sent somebody who
+             * had chosen 9x9 back to a 5x5, which is a worse bug than the one
+             * being fixed. So the parameters survive and the board does not.
+             */
+            if (restored && !isPlayed(saved)) api.newGame()
           }
           setPresets(list)
           setReady(true)
         },
         onError: (message) => {
           if (restoring.current) {
+            restored = false
             clearSave(name)
             console.warn(`discarded a stale save for ${name}:`, message)
             return

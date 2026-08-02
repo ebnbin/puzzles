@@ -45,6 +45,36 @@ const save = (name: string) => `puzzles.save.${name}`
 /** The first bytes of every genuine midend save. */
 const MAGIC = 'SAVEFILE'
 
+/**
+ * How many positions a serialised game holds. One means the deal and nothing
+ * since.
+ *
+ * The midend writes each field as a left-justified eight-character key, then
+ * the length, then the value — `NSTATES :1:3` — so the padding is part of the
+ * line. See the `wr` macro in midend.c.
+ */
+const STATES = /^NSTATES\s*:\d+:(\d+)$/m
+
+/**
+ * Whether anybody has moved in this game, as opposed to merely being dealt it.
+ *
+ * `midend_can_undo` is the wrong question and the app was effectively asking
+ * it: it is true after a new game as well, because the midend keeps a separate
+ * undo across deals so that dealing one can be taken back. That list is not
+ * serialised, which is the tell — what is written down is `NSTATES`, the length
+ * of the current game's own state list, and that is 1 for a board nobody has
+ * touched. Restart appends a state rather than truncating to one, so a
+ * restarted game counts as played and keeps its id, which is right: restarting
+ * is a move, and an undoable one.
+ *
+ * A save this cannot read is kept. Being wrong in that direction costs a
+ * needless write; being wrong in the other costs somebody their game.
+ */
+export function isPlayed(game: string): boolean {
+  const found = STATES.exec(game)
+  return found ? Number(found[1]) > 1 : true
+}
+
 export function readSave(name: string): string | null {
   try {
     const text = window.localStorage.getItem(save(name))
