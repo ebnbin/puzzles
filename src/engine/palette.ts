@@ -12,7 +12,7 @@
  *
  * 1. `compress` — a grey whose being black or white is something the rules
  *    say. Kept the way up it started, only pulled into the dark board's
- *    range. Black stays black. See `SEMANTIC`; 26 of the 426.
+ *    range. Black stays black. See `SEMANTIC`; 30 of the 426.
  *
  * 2. `veil` — anything with a hue. Kept, and stood off the dark board by what
  *    it stood off the light one. Which way that goes depends on the hue: one
@@ -21,10 +21,11 @@
  *    strength they are the brightest thing on a dark one; one with none — ink
  *    chosen to be dark on white paper, `#000080` and its like — is instead
  *    lifted until it stands as far off. Multiplying by at most 1 can only ever
- *    do the first. See `VEIL`; 198 of the 426.
+ *    do the first. See `VEIL`; 200 of the 426.
  *
  * 3. `flip` — every other grey: the board, the shading, the ink, the lines.
- *    Turned over. See `FLOOR` and `CEILING`; 194 of them.
+ *    Turned over. See `FLOOR` and `CEILING`; 193 of them. Three boards do not
+ *    turn over but become paper instead: see `BOARD_IS_PAPER`.
  *
  * Behind them is one distinction. A puzzle's *structure* lives in its
  * neutrals and wants to be the other way up on a dark surface; its *meaning*
@@ -65,13 +66,18 @@
  * The flip is monotonic in lightness, so every "is lighter than" in the
  * original survives as "is darker than" here — which keeps a game's shading
  * readable without knowing anything about what it draws. That is the right
- * trade everywhere except relief, which is what `BEVEL` is for: eleven pairs
- * across nine games are held the way up they were drawn, and ten of the
- * eleven needed it. Two slots the game drew differently must still be drawn
- * differently; the flipped greys land among the dimmed hues, so the collision
- * pass at the end is cheap insurance rather than an assumption. Measured over
- * all forty palettes: 426 colours, no collisions, every ordering preserved and
- * every bevel still lit from the top left.
+ * trade everywhere except relief, which is what `BEVEL` is for: thirteen pairs
+ * across ten games are held the way up they were drawn, and eleven of the
+ * thirteen needed exchanging. Two slots the game drew in the *same* colour must
+ * still come out the same, which the exchange alone can break, so one pass at
+ * the end carries a swapped value across to whatever shared it.
+ *
+ * Two slots the game drew *differently* are not guaranteed to stay different.
+ * A pass used to enforce that and was removed: six of its seven slots existed
+ * only because `flip` and `compress` share `FLOOR` and `CEILING` and run
+ * opposite ways, so their ends coincide. Mines now draws its 1 and its 4 in one
+ * blue. Measured over all forty palettes: 426 colours, every ordering preserved
+ * and every bevel still lit from the top left.
  *
  * ---------------------------------------------------------------------------
  * THE TWO PIECES OF THIS STORY THAT ARE NOT IN THIS FILE
@@ -227,10 +233,14 @@ const LIFT_CEILING = 0.66
  * BLACKDOT — and every one of them fails the test above. Its chapter does not
  * contain the word "black", or "white"; the rules are about dots, regions and
  * 180-degree symmetry, and say nothing about colour. And `F_DOT_BLACK`, the
- * flag those slots exist to draw, is only ever set inside
- * `#ifdef STANDALONE_PICTURE_GENERATOR`: no dot in a game anybody plays is
- * black. The names were enough to get it listed, and the names were the only
- * evidence there was.
+ * flag those slots exist to draw, is set in two places: inside
+ * `#ifdef STANDALONE_PICTURE_GENERATOR`, and when a game description is
+ * decoded, where an upper-case letter encodes a black dot. The encoder only
+ * writes those upper-case letters for a dot the picture generator marked, so a
+ * generated game never has one — but a pasted game ID can. It does not matter
+ * either way: the dot takes the flip and comes out light, which is the point
+ * `RIM` turns on below. The names were enough to get it listed, and the names
+ * were the only evidence there was.
  *
  * Keeping it cost more than the mistake looked worth. WHITEBG marks a square
  * as claimed, which upstream draws as a whisper — #ffffff on a #d5d5d5 board.
@@ -268,33 +278,47 @@ const SEMANTIC: Record<string, readonly number[]> = {
 }
 
 /**
- * A circle whose rim has to be drawn in something other than its own fill,
- * and which slot to draw it in: `game: { fill: rim }`, both slot numbers.
+ * A shape whose rim has to be drawn in something other than its own fill, and
+ * which slot to draw it in: `game: { fill: rim }`, both slot numbers.
  *
- * Only Pearl, and only on the dark board. Its clues are one call —
- * `draw_circle(dr, cx, cy, TILE_SIZE/4, c, COL_BLACK)` — where the fill is
- * COL_WHITE or COL_BLACK by the clue and the rim is always COL_BLACK. On
- * upstream's near-white board that one rim does everything asked of it: it is
- * what makes a white circle a circle at all, since white on #e6e6e6 is 1.25:1,
- * and on a black circle it is invisible and unmissed, because a black disc on a
- * near-white board needs no help at 16.8:1.
+ * Pearl's clues are one call — `draw_circle(dr, cx, cy, TILE_SIZE/4, c,
+ * COL_BLACK)` — where the fill is COL_WHITE or COL_BLACK by the clue and the
+ * rim is always COL_BLACK. A black clue is therefore its own rim. On upstream's
+ * near-white board that costs nothing: the disc is 14.31:1 against the board and
+ * needs no outline. Here COL_BLACK is one of the tones the chapter names, so
+ * `SEMANTIC` holds it down at #0f0f0f, and against a #2f2f2f board the disc
+ * comes to 1.43:1 with nothing to outline it.
  *
- * Turn the board over and the same rim serves the same circle, which is now the
- * one that did not need it. The black clue falls to 1.91:1 and has nothing to
- * outline it, being its own rim. That is not a matter of tuning: #424242 is
- * 0.0545 in luminance, so *nothing* darker than it can reach even 2.1:1, and a
- * board pale enough to give the two clues equal contrast comes out at #6b6b6b,
- * which is no longer a dark board. Upstream met the same wall from the other
- * side and answered it with a rim on the clue that needed one. This is that
- * answer applied to the clue that needs one here.
+ * Three things have to be true together, and it is the third that is easy to
+ * miss:
  *
- * So the two clues ring each other: white filled and ringed in black going one
- * way, black filled and ringed in white going the other. Nothing is invented —
- * the rim is a colour the game already named, and both of these are slots whose
- * meaning `SEMANTIC` is already holding still. Pearl's chapter states its rules
- * in those words ("black and white circles", "A black circle in a square
- * indicates that that square is a corner"), which is why it is in that table
- * and why the two tones must stay the way up they are.
+ *   1. fill and rim reach the same slot at run time, so there is no rim;
+ *   2. the shape is then left standing on its own contrast with the board;
+ *   3. and that contrast collapses — which happens only if the fill is *held*
+ *      rather than flipped.
+ *
+ * Galaxies is the control, and it is the same call to the letter:
+ * `draw_circle(..., dotval == 1 ? COL_WHITEDOT : COL_BLACKDOT, COL_BLACKDOT)`.
+ * Same structure, same #000000, same shape outlining itself. But nothing pins
+ * Galaxies' dots — its chapter never says a colour — so COL_BLACKDOT takes the
+ * flip, arrives at #d1d1d1, and stands 8.77:1 off the board on its own. No rim
+ * needed. Guess's empty peg (2.21 → 2.26), Tents' grass (1.04 → 6.56) and
+ * Twiddle's rotating faces (1.47 → 1.61) are the same story: fill meets rim,
+ * and nothing collapses, because none of them is held.
+ *
+ * So the whole collection has one member. Every other shape that outlines itself
+ * either flips or is veiled, and comes out of the dark board able to stand up.
+ *
+ * Nothing is invented here — the rim is a colour the game already named, and
+ * both slots are ones `SEMANTIC` is holding still. Pearl's chapter states its
+ * rules in those words ("black and white circles", "A black circle in a square
+ * indicates that that square is a corner"), which is why it is in that table and
+ * why the two tones must stay the way up they are. So the two clues ring each
+ * other: white filled and ringed in black going one way, black filled and ringed
+ * in white going the other.
+ *
+ * It pays for itself twice. `needsRoom` exempts a slot this table covers, so
+ * Pearl's board never has to move: one ring instead of lifting a whole board.
  *
  * Light boards never consult this: upstream's own rendering is what a light
  * board is, exactly, and it is right there already.
