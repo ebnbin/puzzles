@@ -345,35 +345,6 @@ export const FIGURE: Record<string, readonly number[]> = {
   undead: [0, 2, 6, 7, 8],
 }
 
-/**
- * Slots whose *writing* is done on top of something the game drew, rather than
- * on the board.
- *
- * A colour that is ink on the board wants to turn over with it; a colour that is
- * ink on a figure wants to stay where it is, because the figure did not turn
- * over — a veiled hue is still a mid-tone on the dark board, exactly as it was
- * on the light one. Guess is the case that shows it. Its `COL_FRAME` is pure
- * black and does four jobs, and only one of them is against the board: the rule
- * under the solution row. The other three are the ring round a peg, the ring
- * round a feedback dot, and the number written *on* a peg — and it is black
- * because that is what stands off ten coloured discs, not because the board is
- * white.
- *
- * Flipped, it came out #bababa and landed among the discs it exists to be read
- * against: 1.24:1 at worst, against 2.57:1 upstream. Kept the way up instead it
- * is 2.25:1 — the same relationship the game was drawn with. Asked of every grey
- * from #000000 to #ffffff, black is the best a single value can do here, and
- * `compress` is where a rule already puts it.
- *
- * Only the text is served this way, by `CanvasRenderer.text`. The rings are left
- * flipped: a ring is a separation rather than a symbol, and a light one round a
- * lit disc separates it from the board as well as a dark one did from paper.
- * That also leaves the rule under the solution row where it can be seen.
- */
-export const INK: Record<string, readonly number[]> = {
-  /* COL_FRAME — the number written on a peg */
-  guess: [1],
-}
 
 /**
  * Where a moved board goes. There is one height, and this is it.
@@ -651,14 +622,6 @@ const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
 /** Where a kept colour goes: same range, same direction as it started. */
 const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
 
-/**
- * The same colour, kept the way up it started. What `INK` slots are written in:
- * see the table for why that is the right answer for ink on a figure.
- */
-export function keptUp(css: string): string {
-  const colour = parse(css)
-  return colour ? format({ ...colour, l: compress(colour.l) }) : css
-}
 
 export function forDarkBoard(light: readonly string[], game = ''): string[] {
   const semantic = SEMANTIC[game]

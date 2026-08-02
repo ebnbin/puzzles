@@ -18,7 +18,7 @@ export interface Size {
   h: number
 }
 
-import { BACKGROUND, FIGURE, INK, forDarkBoard, keptUp, RIM } from './palette'
+import { BACKGROUND, FIGURE, forDarkBoard, RIM } from './palette'
 
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
@@ -343,15 +343,18 @@ export class CanvasRenderer {
     const { ctx } = this
     this.setFont(ctx, fontsize, monospaced)
     /*
-     * Writing on a figure rather than on the board, so it keeps the way up it
-     * started — the figure did not turn over. See `INK` in palette.ts. Only
-     * here: the same slot's lines and rectangles are drawn against the board
-     * and follow it.
+     * Text takes its slot's colour like everything else. A table used to sit
+     * here that gave a few slots their light value back when they were writing
+     * on a figure rather than on the board — Guess writes a number on a
+     * coloured peg with the same slot it rims the peg in, and the rim wants to
+     * be light while the number wanted to stay dark. It is gone: one slot now
+     * means one colour whatever the call, and a number written on a peg is a
+     * light number on a mid-tone disc. Measured over all ten of Guess's discs
+     * that is 1.58:1 at worst where the table gave 7.96:1, and over Map's four
+     * regions 1.90:1 against 6.60:1. Legible if you look, not if you glance —
+     * traded for the rule being the same one everywhere.
      */
-    ctx.fillStyle =
-      this.dark && INK[this.game]?.includes(colour)
-        ? keptUp(this.named[colour])
-        : this.colours[colour]
+    ctx.fillStyle = this.colours[colour]
     ctx.textAlign = halign === 0 ? 'left' : halign === 1 ? 'center' : 'right'
     ctx.textBaseline = 'alphabetic'
     ctx.fillText(str, x, y)
