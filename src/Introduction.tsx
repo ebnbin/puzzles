@@ -16,16 +16,18 @@ import { useStrings } from './i18n'
  * over a board that is still visible around it. The rules are still behind that
  * button, for the reader who wants them.
  *
- * The same box a refusal comes in, in the accent rather than in red — see
- * `p.notice` — because arriving at a new puzzle is not a thing that went wrong.
- * The gallery's toast made the same move for the same reason.
+ * The same box a refusal comes in, without the red — see `p.notice` — because
+ * arriving at a new puzzle is not a thing that went wrong. It is the chrome's
+ * own raised grey, not the accent, for the reason tokens.css gives: the one
+ * colour this interface has is spent on state, and a sentence is not a state.
  *
  * And it waits. The floating note beside it is about a press and leaves on its
  * own three seconds later, because a remark nobody asked for should not become
  * furniture. This one was not asked for either, but it is the only thing on the
  * screen that says what the game is, and a reader who looks up from the board
  * to read it should not find it already gone. So it stays until it is closed,
- * and the close is the only thing that closes it.
+ * the close is the only thing that closes it, and closing it is what marks the
+ * puzzle introduced — see owesIntroduction.
  */
 export default function Introduction({
   text,

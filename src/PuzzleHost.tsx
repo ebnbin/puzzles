@@ -12,9 +12,10 @@ import { keysFor, READS_PREFS } from './engine/keys'
 import {
   clearSave,
   isPlayed,
+  markIntroduced,
+  owesIntroduction,
   readSave,
   setPlaying,
-  takeIntroduction,
   writeRecent,
   writeSave,
 } from './engine/saves'
@@ -253,7 +254,7 @@ export default function PuzzleHost({
    * sentence about nothing.
    */
   useEffect(() => {
-    if (ready && takeIntroduction(name)) setIntro(true)
+    if (ready && owesIntroduction(name)) setIntro(true)
   }, [ready, name])
 
   useEffect(() => {
@@ -756,7 +757,16 @@ export default function PuzzleHost({
             its own three seconds later — whereupon this comes back, still
             unread and still waiting to be closed. */}
         {intro && !error && (
-          <Introduction text={objective} onClose={() => setIntro(false)} />
+          <Introduction
+            text={objective}
+            onClose={() => {
+              // Spent here and not when it appeared: closing it is the only
+              // thing that ends it, so it is the only thing that can mean it
+              // has been read. See owesIntroduction.
+              markIntroduced(name)
+              setIntro(false)
+            }}
+          />
         )}
         <canvas
           ref={canvasRef}

@@ -531,18 +531,22 @@ a {
 /*
  * A word of confirmation, said and gone.
  *
- * The same box a refusal comes in — see `p.notice` — in the accent rather than
- * in red, because a tile going into the stash is not a thing that went wrong.
- * It was the page's own ink inverted, in a bare pill, which read as quieter
- * than what it was carrying: the long press gives no sign until the tile has
- * already gone, so this line is the only thing that says where.
+ * The same box a refusal comes in — see `p.notice` — without the red, because a
+ * tile going into the stash is not a thing that went wrong. It was the page's
+ * own ink inverted, in a bare pill, which read as quieter than what it was
+ * carrying: the long press gives no sign until the tile has already gone, so
+ * this line is the only thing that says where.
  *
  * A dark chip was tried here — the snackbar every phone has — and taken back.
  * It cannot be one colour: black on a light page is a card, black on the dark
  * theme's #101013 page is a card held off the lattice by nothing but the
  * shadow's hairline, so the ground has to step with the theme and stops being
- * the one thing it was chosen for. The accent's soft pair already works on
- * both, measured, and it says the same thing.
+ * the one thing it was chosen for. `--raised` is that ground, stepping with the
+ * theme on purpose and already in tokens.css for it. The accent's soft pair
+ * stood here for a while and did the job, but it spent the one colour this
+ * chrome has on a sentence — and tokens.css keeps the accent for state, for
+ * what is selected and what is on. The puzzle screen's introduction is the same
+ * box for the same reason, and the two change together.
  *
  * At the head of the window rather than the foot: the reader's eye is on the
  * tile they just pressed, which is somewhere in the grid, and a line at the
@@ -576,8 +580,8 @@ p.notice-toast {
   z-index: 50;
   max-width: min(85vw, 22rem);
   margin: 0;
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
+  background: var(--raised);
+  color: var(--text);
   box-shadow: var(--shadow-2);
   pointer-events: none;
   transform: translateX(-50%);
@@ -910,13 +914,22 @@ p.notice-error.is-floating {
 }
 
 /*
- * The introduction. The accent's soft pair rather than the danger one, the same
- * substitution and the same reason as the gallery's toast: a new puzzle saying
- * what it is is not a thing that went wrong.
+ * The introduction, and the gallery's toast with it: `--raised` over the page's
+ * own ink, which is what `--raised` is in tokens.css for — the tone that has to
+ * read as lifted off whatever it lands on, and the reason it is a token rather
+ * than `--surface` is that on dark it lifts by getting lighter and on light by
+ * getting whiter.
+ *
+ * Not the accent, which both of these wore for a while. tokens.css says what
+ * the accent is for — "spent only on state: what is selected, what has focus,
+ * what is on" — and a sentence is none of those. Blue on a board that is
+ * already drawing in the collection's own #0000ff also had the note answering
+ * the puzzle in the puzzle's colour. Red stays where it belongs, on the
+ * refusal, and everything else here is the chrome's own achromatic ladder.
  */
 p.notice-intro {
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
+  background: var(--raised);
+  color: var(--text);
 }
 
 p.notice-intro span {

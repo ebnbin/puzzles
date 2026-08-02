@@ -200,24 +200,28 @@ function read(): Set<string> {
 }
 
 /**
- * Whether this puzzle still owes the reader its introduction — and, in the
- * asking, spends it.
+ * Whether this puzzle still owes the reader its introduction.
  *
- * Asking is what uses it up, rather than the reader closing what it opened.
- * That is deliberate and it is the weaker promise: what is offered is one
- * unbidden note per puzzle, not that anybody read it. Spending it on the close
- * instead would mean a note that survives every reload until it is dismissed,
- * which is a thing to be got past rather than a thing to be told — and there is
- * no window here in which a reload could earn a second one.
+ * Asking does not spend it. Reading and spending are two calls because the note
+ * this gates is closed by hand and by nothing else — no timer, no tap
+ * elsewhere — so anything that ended it without the reader saying so would be
+ * the auto-dismissal the note is designed to refuse, and a reload is exactly
+ * that if being shown is what marks it read. Shown and not closed means it is
+ * still owed.
  */
-export function takeIntroduction(name: string): boolean {
+export function owesIntroduction(name: string): boolean {
   introduced ??= read()
-  if (introduced.has(name)) return false
+  return !introduced.has(name)
+}
+
+/** Spent — the reader has closed it. */
+export function markIntroduced(name: string): void {
+  introduced ??= read()
+  if (introduced.has(name)) return
   introduced.add(name)
   try {
     window.localStorage.setItem(INTRODUCED, JSON.stringify([...introduced]))
   } catch {
     // Blocked; the session's own copy still holds until the tab is closed.
   }
-  return true
 }
