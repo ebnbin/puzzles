@@ -25,7 +25,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { chromium } from 'playwright'
-import { root, BASE, CHROMIUM, dealIconPosition, readRedos } from './lib/pictures.mjs'
+import { root, BASE, CHROMIUM } from './lib/pictures.mjs'
 
 const OUT = path.join(root, 'docs')
 const FILE = 'gallery.png'
@@ -36,11 +36,7 @@ const FILE = 'gallery.png'
  */
 const SHOTS = [
   { theme: 'light', lang: 'en', width: 1280, height: 844 },
-  // A board rather than the gallery again, and the same board its own tile in
-  // the gallery is a picture of: upstream's saved position for Net, restored
-  // move for move. The two halves of this image are then the two screens this
-  // app has, rather than one screen twice.
-  { theme: 'dark', lang: 'zh', width: 390, height: 844, game: 'net' },
+  { theme: 'dark', lang: 'zh', width: 390, height: 844 },
 ]
 const SCALE = 1
 
@@ -48,9 +44,7 @@ const SCALE = 1
 const GAP = 32
 const PLATE = '#8a8a8f'
 
-const redos = readRedos()
-
-const shot = async (browser, { theme, lang, width, height, game }) => {
+const shot = async (browser, { theme, lang, width, height }) => {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: SCALE,
@@ -58,36 +52,22 @@ const shot = async (browser, { theme, lang, width, height, game }) => {
   })
   const page = await context.newPage()
   await page.goto(BASE, { waitUntil: 'load' })
-  // A first visit, with nothing remembered — except, for a board, which puzzle
-  // to open and that it has already introduced itself, since the how-to dialog
-  // would otherwise be sitting over the thing being photographed.
+  // A first visit, with nothing remembered.
   await page.evaluate((want) => {
     localStorage.clear()
     localStorage.setItem('puzzles.theme', want.theme)
     localStorage.setItem('puzzles.lang', want.lang)
-    if (want.game) {
-      localStorage.setItem('puzzles.recent', want.game)
-      localStorage.setItem('puzzles.playing', '1')
-      localStorage.setItem('puzzles.introduced', JSON.stringify([want.game]))
-    }
-  }, { theme, lang, game })
+  }, { theme, lang })
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
-  if (game) {
-    await page.waitForFunction(() => document.querySelector('.host-board')?.width > 0, null, {
-      timeout: 30000,
-    })
-    await dealIconPosition(page, { game, redos })
-  } else {
-    // Every thumbnail decoded, or the shot catches the grey plates under them.
-    await page.waitForFunction(
-      () =>
-        document.querySelectorAll('.games img').length === 40 &&
-        [...document.querySelectorAll('.games img')].every((i) => i.complete && i.naturalWidth),
-      null,
-      { timeout: 30000 },
-    )
-  }
+  // Every thumbnail decoded, or the shot catches the grey plates under them.
+  await page.waitForFunction(
+    () =>
+      document.querySelectorAll('.games img').length === 40 &&
+      [...document.querySelectorAll('.games img')].every((i) => i.complete && i.naturalWidth),
+    null,
+    { timeout: 30000 },
+  )
   await page.waitForTimeout(400)
   const png = await page.screenshot()
   await context.close()
@@ -139,5 +119,5 @@ const bytes = Buffer.from(composed.split(',')[1], 'base64')
 fs.writeFileSync(path.join(OUT, FILE), bytes)
 console.log(
   `docs/${FILE}  ${bytes.length} bytes  ` +
-    SHOTS.map((s) => `${s.width}x${s.height} ${s.theme} ${s.lang} ${s.game ?? 'gallery'}`).join(' + '),
+    SHOTS.map((s) => `${s.width}x${s.height} ${s.theme} ${s.lang}`).join(' + '),
 )
