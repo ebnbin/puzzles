@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Dialog from './Dialog'
 import ErrorNote from './ErrorNote'
 import Icon from './Icon'
+import Introduction from './Introduction'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
@@ -13,6 +14,7 @@ import {
   isPlayed,
   readSave,
   setPlaying,
+  takeIntroduction,
   writeRecent,
   writeSave,
 } from './engine/saves'
@@ -115,6 +117,8 @@ export default function PuzzleHost({
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  /** Whether this puzzle is still saying what it is. See Introduction. */
+  const [intro, setIntro] = useState(false)
 
   /*
    * A configuration laid out inside a sheet rather than put in a dialog of
@@ -240,6 +244,17 @@ export default function PuzzleHost({
     writeRecent(name)
     setPlaying(true)
   }, [name])
+
+  /*
+   * A puzzle you have not met before says what it is, once. See Introduction.
+   *
+   * After `ready` rather than on mount: it floats over the board area, and
+   * putting it over a rectangle that has not been dealt into yet would be a
+   * sentence about nothing.
+   */
+  useEffect(() => {
+    if (ready && takeIntroduction(name)) setIntro(true)
+  }, [ready, name])
 
   useEffect(() => {
     /*
@@ -735,6 +750,13 @@ export default function PuzzleHost({
             floating
             text={error === START_FAILED ? t.play.error : error}
           />
+        )}
+        {/* The two want the same place, and a refusal is the more urgent of
+            them: it answers the press that has just happened, and it leaves on
+            its own three seconds later — whereupon this comes back, still
+            unread and still waiting to be closed. */}
+        {intro && !error && (
+          <Introduction text={objective} onClose={() => setIntro(false)} />
         )}
         <canvas
           ref={canvasRef}

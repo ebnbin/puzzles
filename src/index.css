@@ -878,22 +878,20 @@ p.notice-error {
 }
 
 /*
- * The one on the puzzle screen, floating over the top of the board.
+ * The two on the puzzle screen, floating over the top of the board: a refusal,
+ * and the sentence a puzzle opens with the first time it is met.
  *
  * Absolute rather than a row in the column: a row would take that height off
  * the board for as long as the message stood, and shrink the puzzle to say a
- * sentence that leaves again in four seconds. Anchored to the top of the board
+ * sentence that leaves again in a few seconds. Anchored to the top of the board
  * area, which begins where the bar ends, so `top` is the gap from the bar and
  * has nothing to do with how tall the bar is or whether there is a notch.
- *
- * `pointer-events: none` because it sits over a board that is being played:
- * a message must never be the thing a tap lands on.
  */
 .play-board {
   position: relative;
 }
 
-p.notice-error.is-floating {
+p.notice.is-floating {
   position: absolute;
   top: 0.6rem;
   right: 0.6rem;
@@ -901,8 +899,51 @@ p.notice-error.is-floating {
   z-index: 2;
   margin: 0;
   box-shadow: var(--shadow-2);
-  pointer-events: none;
   animation: notice-in var(--dur) var(--ease);
+}
+
+/* The refusal alone takes no taps: it sits over a board that is being played
+   and leaves on its own, so it must never be the thing a tap lands on. The
+   introduction has a button in it and is closed by nothing else. */
+p.notice-error.is-floating {
+  pointer-events: none;
+}
+
+/*
+ * The introduction. The accent's soft pair rather than the danger one, the same
+ * substitution and the same reason as the gallery's toast: a new puzzle saying
+ * what it is is not a thing that went wrong.
+ */
+p.notice-intro {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+p.notice-intro span {
+  flex: 1;
+}
+
+/*
+ * The close, which is the only way out of it.
+ *
+ * The glyph is 16px and the target around it is 44, which is the smallest thing
+ * a thumb should be asked to hit; the padding that makes it and the negative
+ * margin that takes it back out again leave the note the height of its own
+ * sentence rather than the height of the target inside it.
+ */
+p.notice-intro button {
+  flex: none;
+  margin: -0.85rem -0.85rem -0.85rem 0;
+  padding: 0.85rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+p.notice-intro button:active {
+  opacity: 0.6;
 }
 
 @keyframes notice-in {

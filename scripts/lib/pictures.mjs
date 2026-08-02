@@ -59,6 +59,9 @@ export const savePath = (game) => path.join(upstreamIcons, `${game}.sav`)
  * same address would not reload. The theme is seeded the same way rather than
  * left to `colorScheme`, because the app resolves "system" itself and the
  * pictures must not depend on what the machine building them prefers.
+ *
+ * `puzzles.introduced` goes in too: a first visit floats the puzzle's objective
+ * over the top of the board, and the board is what is being photographed.
  */
 export async function openBoard(browser, { game, theme, viewport = { width: 900, height: 900 } }) {
   const context = await browser.newContext({ viewport, deviceScaleFactor: 2, colorScheme: theme })
@@ -73,6 +76,7 @@ export async function openBoard(browser, { game, theme, viewport = { width: 900,
       localStorage.setItem('puzzles.recent', name)
       localStorage.setItem('puzzles.playing', '1')
       localStorage.setItem('puzzles.theme', want)
+      localStorage.setItem('puzzles.introduced', JSON.stringify([name]))
     },
     { name: game, want: theme },
   )

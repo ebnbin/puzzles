@@ -5,11 +5,12 @@
  * what the desktop builds write to a .sav file, rewritten after every move so
  * there is never a moment worth losing.
  *
- * Then three keys for the app itself. `recent` is the puzzle most recently
+ * Then four keys for the app itself. `recent` is the puzzle most recently
  * played and `playing` is whether the app was left inside it, which together
  * decide where a cold start lands. `scroll` is where the gallery was, and is
  * why coming back to it is coming back to the same place rather than to the top
- * of a list of forty.
+ * of a list of forty. `introduced` is which puzzles have already said what they
+ * are.
  *
  * ---------------------------------------------------------------------------
  * WHY THE SCREEN IS A BIT AND NOT A NAME
@@ -38,6 +39,7 @@
 const PLAYING = 'puzzles.playing'
 const RECENT = 'puzzles.recent'
 const SCROLL = 'puzzles.scroll'
+const INTRODUCED = 'puzzles.introduced'
 const save = (name: string) => `puzzles.save.${name}`
 
 /** The first bytes of every genuine midend save. */
@@ -169,4 +171,53 @@ export function writeScroll(y: number): void {
   } catch {
     // See above.
   }
+}
+
+/*
+ * Which puzzles have already said what they are.
+ *
+ * A set of names under one key rather than a key each, the way the put-away
+ * games are kept: forty booleans that are only ever asked about together are
+ * one fact, not forty.
+ *
+ * Held in memory as well, and that is not an optimisation. Where the store is
+ * blocked the answer read back is always "no", so a puzzle left for the gallery
+ * and opened again would introduce itself a second time, and a third. The
+ * session's own copy is what stops that; it is seeded from the store the first
+ * time anything asks.
+ */
+let introduced: Set<string> | null = null
+
+function read(): Set<string> {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(INTRODUCED) ?? '[]')
+    return new Set(
+      Array.isArray(stored) ? stored.filter((n) => typeof n === 'string') : [],
+    )
+  } catch {
+    return new Set()
+  }
+}
+
+/**
+ * Whether this puzzle still owes the reader its introduction — and, in the
+ * asking, spends it.
+ *
+ * Asking is what uses it up, rather than the reader closing what it opened.
+ * That is deliberate and it is the weaker promise: what is offered is one
+ * unbidden note per puzzle, not that anybody read it. Spending it on the close
+ * instead would mean a note that survives every reload until it is dismissed,
+ * which is a thing to be got past rather than a thing to be told — and there is
+ * no window here in which a reload could earn a second one.
+ */
+export function takeIntroduction(name: string): boolean {
+  introduced ??= read()
+  if (introduced.has(name)) return false
+  introduced.add(name)
+  try {
+    window.localStorage.setItem(INTRODUCED, JSON.stringify([...introduced]))
+  } catch {
+    // Blocked; the session's own copy still holds until the tab is closed.
+  }
+  return true
 }
