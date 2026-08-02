@@ -1,4 +1,4 @@
-import type { KeyLabel } from './types'
+import type { DialogControl, KeyLabel } from './types'
 
 /**
  * Which keys a puzzle needs offered on a device without a keyboard.
@@ -70,7 +70,47 @@ function size(p: string): number | null {
   return n >= 1 && n <= MAX_SYMBOLS ? n : null
 }
 
-const RULES: Record<string, (p: string) => KeyLabel[] | null> = {
+/**
+ * Which of a preference's answers is selected, or null if the box on offer
+ * does not hold that preference at all.
+ *
+ * There is nothing to name it by. Every preference has a keyword upstream —
+ * undead.c calls this one `monsters` — but emcc.c passes only the name and the
+ * list of answers across the boundary, so the keyword never reaches this side.
+ * Of the two that do arrive, the answers are the better thing to match on:
+ * they are what is acted on below, so a preference renamed upstream would
+ * still be read correctly, and one that gained or reordered an answer — the
+ * change that would put the wrong face on a key — would be missed rather than
+ * quietly misread.
+ */
+function preference(
+  prefs: readonly DialogControl[],
+  answers: readonly string[],
+): number | null {
+  for (const control of prefs)
+    if (
+      control.kind === 'choices' &&
+      control.choices.length === answers.length &&
+      control.choices.every((answer, i) => answer === answers[i])
+    )
+      return control.value
+  return null
+}
+
+/** undead.c's "Monster representation", by its two answers. */
+const MONSTERS = ['Pictures', 'Letters']
+
+/** The three monsters, in the board's two ways of drawing them. */
+const UNDEAD = [
+  { letter: 'G', icon: 'ghost' },
+  { letter: 'V', icon: 'vampire' },
+  { letter: 'Z', icon: 'zombie' },
+] as const
+
+const RULES: Record<
+  string,
+  (p: string, prefs: readonly DialogControl[]) => KeyLabel[] | null
+> = {
   // Digits 1..c*r: a 3x3 sudoku wants 1-9, a 4x4 wants 1-9 and a-g.
   //
   // Following solo.c's decode_params, because the encoding has a turn in it.
@@ -109,13 +149,30 @@ const RULES: Record<string, (p: string) => KeyLabel[] | null> = {
   },
   // Always 1-9, whatever the grid.
   filling: () => [...digits(9), CLEAR],
-  undead: () => [
-    { button: 'G'.charCodeAt(0), icon: 'ghost' },
-    { button: 'V'.charCodeAt(0), icon: 'vampire' },
-    { button: 'Z'.charCodeAt(0), icon: 'zombie' },
-    CLEAR,
-    MARKS,
-  ],
+  /*
+   * The three monsters, wearing what the board is wearing.
+   *
+   * Undead draws a ghost either as a ghost or as a G, and the key has to agree
+   * with the square it fills: a button showing a vampire that writes a V is a
+   * second puzzle on top of the first. Only the face changes — the key sent is
+   * 'G', 'V' or 'Z' either way, which is what undead.c reads either way.
+   *
+   * The setting moves two ways and both land here, because both are the same
+   * bit: the preferences box, and `a`, which undead.c turns over on its own
+   * without saving it or announcing it. get_prefs reports `ui->ascii` as it
+   * stands, so asking the box is asking the board.
+   */
+  undead(_p, prefs) {
+    const letters = preference(prefs, MONSTERS) === MONSTERS.indexOf('Letters')
+    return [
+      ...UNDEAD.map(({ letter, icon }): KeyLabel => ({
+        button: letter.charCodeAt(0),
+        ...(letters ? { label: letter } : { icon }),
+      })),
+      CLEAR,
+      MARKS,
+    ]
+  },
 
   // Nothing to put in a square — only the key that was out of reach.
   net: () => [JUMBLE],
@@ -133,10 +190,21 @@ const RULES: Record<string, (p: string) => KeyLabel[] | null> = {
   },
 }
 
-export function keysFor(name: string, gameId: string): KeyLabel[] {
+/**
+ * Puzzles whose keypad is not settled by the game id alone. Everything else
+ * here is worked out once per deal; these have to be worked out again whenever
+ * a preference might have moved, which is what tells the host to go and look.
+ */
+export const READS_PREFS = new Set(['undead'])
+
+export function keysFor(
+  name: string,
+  gameId: string,
+  prefs: readonly DialogControl[] = [],
+): KeyLabel[] {
   const rule = RULES[name]
   if (!rule) return []
-  const keys = rule(params(gameId))
+  const keys = rule(params(gameId), prefs)
   // A misread game id would put a keypad of the wrong length on screen, which
   // is worse than none: better to show nothing than to offer a digit the
   // puzzle will not take, or to leave one out that it needs.

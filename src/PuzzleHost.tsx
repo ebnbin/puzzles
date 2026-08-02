@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Dialog from './Dialog'
 import ErrorNote from './ErrorNote'
 import Icon from './Icon'
@@ -7,7 +7,7 @@ import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
-import { keysFor } from './engine/keys'
+import { keysFor, READS_PREFS } from './engine/keys'
 import {
   clearSave,
   readSave,
@@ -17,7 +17,7 @@ import {
   writeSave,
 } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
-import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
+import type { DialogControl, DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useHelp } from './useHelp'
@@ -47,9 +47,9 @@ const CUSTOM_PRESET = -1
  */
 const SHORTCUT_KEYS = /^[urn]$/i
 
-/** Enough of a dialog to tell whether anything in it was changed. */
-const values = (spec: DialogSpec) =>
-  JSON.stringify(spec.controls.map((c) => c.value))
+/** Enough of a set of controls to tell whether anything in it was changed. */
+const values = (controls: readonly DialogControl[]) =>
+  JSON.stringify(controls.map((c) => c.value))
 
 /**
  * Which of the two configurations a sheet is showing without a dialog: the
@@ -103,7 +103,11 @@ export default function PuzzleHost({
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
-  const [keys, setKeys] = useState<KeyLabel[]>([])
+  /**
+   * The preferences, as the back end last described them. Only the keypad
+   * reads them, and only one puzzle's keypad does — see READS_PREFS.
+   */
+  const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
   // A message from the back end, or the sentinel for the one failure that is
   // ours to describe. Kept as a sentinel rather than as the sentence itself so
   // that it is still in the reader's language if they change it afterwards.
@@ -339,9 +343,6 @@ export default function PuzzleHost({
         onKeyLabels: () => {},
         onPermalinks: (desc, seed) => {
           setPermalink({ desc, seed })
-          // The keypad follows the game id: it is where the grid size lives,
-          // and it is reissued whenever the preset changes.
-          setKeys(keysFor(name, decodeURIComponent(desc)))
           queueSave()
         },
         onPresetSelected: setSelected,
@@ -357,9 +358,13 @@ export default function PuzzleHost({
           if (spec && kind) {
             inlinePending.current = null
             inlineRef.current = { kind, spec }
-            inlineBaseline.current = values(spec)
+            inlineBaseline.current = values(spec.controls)
             setInlineError(null)
             setInline({ kind, spec })
+            // Free of charge, and the newest word there is: a settled field
+            // is enacted at once (commitInline), and the box the back end
+            // then hands back is the one being described here.
+            if (kind === 'prefs') setPrefs(spec.controls)
             return
           }
           // Closing, and it was ours: the back end has finished with it,
@@ -397,6 +402,19 @@ export default function PuzzleHost({
       })
     }
   }, [name])
+
+  /*
+   * What the keypad should be, from the two things that decide it.
+   *
+   * The game id, mostly: it is where the grid size lives, and the back end
+   * reissues it whenever the preset changes, so a 4x4 Solo grows its keypad by
+   * arriving. And, for the one puzzle that draws its pieces two ways, the
+   * preferences — see READS_PREFS in keys.ts.
+   */
+  const keys = useMemo(
+    () => (permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []),
+    [name, permalink, prefs],
+  )
 
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
@@ -473,7 +491,7 @@ export default function PuzzleHost({
     const api = apiRef.current
     const open = inlineRef.current
     if (!api || !open) return
-    if (values(open.spec) === inlineBaseline.current) return
+    if (values(open.spec.controls) === inlineBaseline.current) return
     acted()
     setInlineError(null)
     api.dialogOk()
@@ -518,6 +536,39 @@ export default function PuzzleHost({
     }
   }, [])
 
+  /*
+   * Go and see what the preferences say.
+   *
+   * Nothing announces one changing. The back end describes its config box only
+   * when the box is asked for, and undead.c's `a` key turns its own setting
+   * over without going near the box at all — no save, no callback, just a
+   * different-looking grid. So the box is borrowed for a look, the same way the
+   * game id is, and this one is only a look: cfg_end(false) in emcc.c frees the
+   * config and reselects the preset, and the game is left exactly where it was.
+   *
+   * Not while a dialog or a sheet has the box, which is the same one box.
+   */
+  const readPrefs = useCallback(() => {
+    const api = apiRef.current
+    if (!api || dialog || inlineRef.current) return
+    borrowed.current = { spec: null, error: null }
+    api.preferences()
+    const { spec } = borrowed.current
+    if (spec) api.dialogCancel()
+    borrowed.current = null
+    // Nothing moved is the usual answer — this runs after every press — and
+    // handing back the same array is what keeps the keypad from being worked
+    // out again, and the screen from being drawn again, for nothing.
+    if (spec)
+      setPrefs((was) => (values(was) === values(spec.controls) ? was : spec.controls))
+  }, [dialog])
+
+  // Once the puzzle is running, for the reader who set this a month ago: the
+  // back end restored their preferences from localStorage before it started.
+  useEffect(() => {
+    if (ready && READS_PREFS.has(name)) readPrefs()
+  }, [ready, name, readPrefs])
+
   const closeTypes = useCallback(() => {
     if (inlineRef.current) apiRef.current?.dialogCancel()
     setTypesOpen(false)
@@ -541,7 +592,12 @@ export default function PuzzleHost({
     acted()
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
-  }, [acted])
+    // Some of what the board takes changes a preference — undead's `a` — and
+    // it says nothing when it does, so a puzzle whose keypad follows one is
+    // asked again after every press. Which key it was is undead.c's business,
+    // not ours, and asking is cheap: one config box, built and freed.
+    if (READS_PREFS.has(name)) readPrefs()
+  }, [acted, name, readPrefs])
 
   // Shortcuts on the page rather than the board, so they work wherever focus
   // is. Skipped while a dialog is up or a field has focus.

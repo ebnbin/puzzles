@@ -31,6 +31,10 @@ import type { Theme } from './useTheme'
  * Not lazy: the keypad is on screen the moment the puzzle is, the three come to
  * a few KB between them, and a key that fills in after the fact is a key that
  * moves under a thumb already reaching for it.
+ *
+ * The same three keys arrive as plain G, V and Z when the reader has Undead
+ * drawing letters instead — which is keys.ts's decision, made from the same
+ * preference the board reads, and nothing here has to know about it.
  */
 const ART: readonly KeyArt[] = ['ghost', 'vampire', 'zombie']
 
