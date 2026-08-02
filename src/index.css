@@ -379,28 +379,19 @@ a {
 }
 
 /*
- * A tile moving is one thing crossing a page that is otherwise standing still,
- * so the page has to stand still.
+ * --- a tile going somewhere ----------------------------------------------
  *
- * Left to itself the root cross-fades under every transition, which is right
- * for the other one in the app — a screen swap replaces the whole page, and
- * that fade is the whole of the effect. Here it washes the masthead, the stash
- * line and the footer out and back in around a tile that is merely moving, and
- * reads as the page having been replaced rather than as a tile having gone
- * somewhere. Both snapshots unanimated is a cut, since the new one is painted
- * over the old; what is left moving is the tiles, which are the point.
+ * Both rules are scoped on an attribute the transition puts on the root for its
+ * own duration — see transition.ts — because these pseudo-elements are one per
+ * document, and the app's other transition is a screen swap that wants the
+ * opposite of both.
  *
- * Scoped on an attribute the transition puts on the root for its own duration
- * — see transition.ts — because these pseudo-elements are one per document and
- * there is nothing else to tell the two kinds of transition apart by.
- */
-/*
- * The flight itself, on the app's own motion rather than the browser's.
- *
- * `--dur-slow` and not `--dur`: this is the longest journey anything in the app
- * makes — a tile crossing most of a screen to reach the stash — and the whole
- * point of animating it is that the reader can follow where it went. 170ms is
- * the app's number for a control answering a press, which is a different thing.
+ * The flight itself runs on the app's own motion rather than the browser's
+ * 250ms and `ease`. `--dur-slow` and not `--dur`: this is the longest journey
+ * anything in the app makes — a tile crossing most of a screen to reach the
+ * stash — and the whole point of animating it is that the reader can follow
+ * where it went. 170ms is the app's number for a control answering a press,
+ * which is a different thing.
  *
  * While it runs, the gallery does not answer presses: the snapshots are a layer
  * over the page and Chromium routes every hit to the document element, whatever
@@ -419,8 +410,17 @@ a {
   animation-timing-function: var(--ease);
 }
 
-/* After the rule above, which would otherwise give the root a duration it has
-   no animation to spend it on. */
+/*
+ * And the page it crosses holds still. Left to itself the root cross-fades
+ * under every transition, which washes the masthead, the stash line and the
+ * footer out and back in around a tile that is merely moving — the page reads
+ * as having been replaced rather than as having had one thing move across it.
+ * Both snapshots unanimated is a cut, since the new one is painted over the
+ * old; what is left moving is the tiles, which are the point.
+ *
+ * After the rule above, which would otherwise hand the root a duration to spend
+ * on an animation it is not going to run.
+ */
 :root[data-transition='tiles']::view-transition-old(root),
 :root[data-transition='tiles']::view-transition-new(root) {
   animation: none;
@@ -435,13 +435,26 @@ a {
  * quieter than what it was carrying: the long press gives no sign until the
  * tile has already gone, so this line is the only thing that says where.
  *
- * Still at the foot of the window, where it does not cover the grid it is
- * about, and still `pointer-events: none` — the tile it names is a tap target
- * and stays one.
+ * At the head of the window rather than the foot: the reader's eye is on the
+ * tile they just pressed, which is somewhere in the grid, and a line at the
+ * bottom of a page forty tiles long can be most of a screen away from it. Comes
+ * down from above, the way the puzzle screen's own floating note does.
+ *
+ * 5rem, which is where it stops fighting the masthead. The gallery has no bar
+ * of its own to hang under and nothing here is sticky, so the number is
+ * measured rather than derived: the body's 2rem of padding plus the 2.5rem
+ * settings button, which is the tallest thing in the masthead, put its lower
+ * edge at 72px on a phone, and 80 clears it. Wider than 48em the masthead grows
+ * to 89 and this does dip into its box — with nothing in the way, because there
+ * its title and its controls are at the two ends and the middle is empty, which
+ * is exactly where a centred line lands. Checked at 360, 390, 768 and 1280.
+ *
+ * `pointer-events: none` throughout — the tiles it covers are tap targets and
+ * stay ones.
  */
 p.notice-toast {
   position: fixed;
-  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  top: 5rem;
   left: 50%;
   z-index: 50;
   max-width: min(85vw, 22rem);
@@ -457,7 +470,7 @@ p.notice-toast {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(0.4rem);
+    transform: translateX(-50%) translateY(-0.4rem);
   }
 }
 
