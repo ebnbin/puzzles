@@ -2,14 +2,14 @@
  * The picture in the README: the gallery on a desktop, and on a phone beside it.
  *
  * Two shots at one height, so they sit together without either being scaled to
- * fit the other. The wide one is light and the narrow one is dark, which makes
- * one image carry both of the things worth showing about this screen — that it
- * lays itself out for whatever it is given, and that it turns over.
+ * fit the other. They differ in every way this screen can differ: a desktop
+ * window and a phone, light and dark, English and Chinese. Three facts about it
+ * in one picture, and none of them needing a caption.
  *
  * A screenshot is a generated artefact like every other picture here, so it is
  * taken by a script rather than by hand. Not for tidiness — a shot taken by
  * hand is a shot nobody can retake the same way. This one fixes the things that
- * would otherwise drift between one and the next: the sizes, the language, the
+ * would otherwise drift between one and the next: the sizes, the languages, the
  * scroll position, and above all an empty store, so the gallery is the one a
  * visitor sees on their first load and not one wearing whatever was left over
  * from testing — a ring on some puzzle, four games in the stash.
@@ -35,8 +35,8 @@ const FILE = 'gallery.png'
  * to stand beside the other.
  */
 const SHOTS = [
-  { theme: 'light', width: 1280, height: 844 },
-  { theme: 'dark', width: 390, height: 844 },
+  { theme: 'light', lang: 'en', width: 1280, height: 844 },
+  { theme: 'dark', lang: 'zh', width: 390, height: 844 },
 ]
 const SCALE = 1
 
@@ -44,7 +44,7 @@ const SCALE = 1
 const GAP = 32
 const PLATE = '#8a8a8f'
 
-const shot = async (browser, { theme, width, height }) => {
+const shot = async (browser, { theme, lang, width, height }) => {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: SCALE,
@@ -52,12 +52,12 @@ const shot = async (browser, { theme, width, height }) => {
   })
   const page = await context.newPage()
   await page.goto(BASE, { waitUntil: 'load' })
-  // A first visit, in Chinese, with nothing remembered.
+  // A first visit, with nothing remembered.
   await page.evaluate((want) => {
     localStorage.clear()
-    localStorage.setItem('puzzles.theme', want)
-    localStorage.setItem('puzzles.lang', 'zh')
-  }, theme)
+    localStorage.setItem('puzzles.theme', want.theme)
+    localStorage.setItem('puzzles.lang', want.lang)
+  }, { theme, lang })
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
   // Every thumbnail decoded, or the shot catches the grey plates under them.
@@ -119,5 +119,5 @@ const bytes = Buffer.from(composed.split(',')[1], 'base64')
 fs.writeFileSync(path.join(OUT, FILE), bytes)
 console.log(
   `docs/${FILE}  ${bytes.length} bytes  ` +
-    SHOTS.map((s) => `${s.width}x${s.height} ${s.theme}`).join(' + '),
+    SHOTS.map((s) => `${s.width}x${s.height} ${s.theme} ${s.lang}`).join(' + '),
 )

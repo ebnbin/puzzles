@@ -6,7 +6,7 @@ Simon Tatham 的四十个谜题，做成了一个网页应用。手机上可以�
 
 > Think between vibes.
 
-![首页，桌面与手机](docs/gallery.png)
+![首页：桌面浅色英文，手机深色中文](docs/gallery.png)
 
 ## 能做什么
 
