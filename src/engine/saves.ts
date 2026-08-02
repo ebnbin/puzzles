@@ -5,12 +5,13 @@
  * what the desktop builds write to a .sav file, rewritten after every move so
  * there is never a moment worth losing.
  *
- * Then three keys for the app itself. `last` is a screen: the game that was up
+ * Then four keys for the app itself. `last` is a screen: the game that was up
  * when the app was left, so the next cold start goes straight back to it, and
- * arriving at the gallery on purpose deletes it. The other two are the
- * gallery's own memory of itself — which puzzle to mark and where it was
- * scrolled to — and they are why coming back to it is coming back to the same
- * place rather than to the top of a list of forty.
+ * arriving at the gallery on purpose deletes it. Two more are the gallery's own
+ * memory of itself — which puzzle to mark and where it was scrolled to — and
+ * they are why coming back to it is coming back to the same place rather than
+ * to the top of a list of forty. The last one is which puzzles have already
+ * introduced themselves.
  *
  * Everything here shrugs off a blocked store — private browsing, quota — the
  * same way the preferences do: the app is fine, it just forgets.
@@ -19,6 +20,7 @@
 const LAST = 'puzzles.last'
 const CURRENT = 'puzzles.current'
 const SCROLL = 'puzzles.scroll'
+const INTRODUCED = 'puzzles.helpseen'
 const save = (name: string) => `puzzles.save.${name}`
 
 /** The first bytes of every genuine midend save. */
@@ -121,4 +123,48 @@ export function writeScroll(y: number): void {
   } catch {
     // See above.
   }
+}
+
+/*
+ * Which puzzles have introduced themselves.
+ *
+ * A set of names under one key rather than a key each, the way the put-away
+ * games are kept: forty booleans that are only ever asked about together are
+ * one fact, not forty.
+ *
+ * Held in memory as well, and that is not an optimisation. Where the store is
+ * blocked the answer read back is always "no", so a puzzle left for the gallery
+ * and opened again would introduce itself a second time, and a third. The
+ * session's own copy is what stops that; it is seeded from the store the first
+ * time anything asks.
+ */
+let introduced: Set<string> | null = null
+
+function read(): Set<string> {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(INTRODUCED) ?? '[]')
+    return new Set(
+      Array.isArray(stored) ? stored.filter((n) => typeof n === 'string') : [],
+    )
+  } catch {
+    return new Set()
+  }
+}
+
+/**
+ * Whether this puzzle still owes the reader its introduction — and, in the
+ * saying, spends it. Asking is what uses it up, so there is no way to ask and
+ * then forget to write it down, and no window in which a reload gets a second
+ * one.
+ */
+export function takeIntroduction(name: string): boolean {
+  introduced ??= read()
+  if (introduced.has(name)) return false
+  introduced.add(name)
+  try {
+    window.localStorage.setItem(INTRODUCED, JSON.stringify([...introduced]))
+  } catch {
+    // Blocked; the session's own copy still holds until the tab is closed.
+  }
+  return true
 }
