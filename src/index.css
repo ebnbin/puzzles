@@ -271,7 +271,8 @@ a {
 }
 
 /* The thumbnails are rendered on the C's own background colour, so a plate of
-   the same grey makes each one bleed to the edges of its tile. */
+   the same grey makes each one bleed to the edges of its tile. Seen only while
+   a picture loads: the pictures are square and cover this exactly. */
 .games-art {
   display: block;
   background: var(--board);
@@ -1636,32 +1637,21 @@ p.notice-error.is-floating {
 /*
  * The board above the blurb.
  *
- * A plate of the grey the boards are rendered on — the same trick as the
- * gallery's tiles, and for the same reason: the pictures carry that grey to
- * their own edges, so the plate makes each one edgeless rather than a pasted-in
- * rectangle. Constant across themes, because the pictures are built once, in
- * light.
- *
- * Its height is fixed rather than the picture's, so nothing moves when the
- * picture arrives, and so forty boards of different shapes — square, portrait,
- * landscape — all sit in the same frame. A third of the viewport at most: on a
- * short screen the words matter more than the picture.
- */
-/*
  * A square, whatever shape the board came out, with the board fitted inside it
- * and the rest left as space.
+ * and the rest padded — by the builder, not by this rule.
  *
  * Square because forty pictures in one place should be one size, not forty: the
  * frame is the constant and the board varies within it. Twenty-eight are square
- * anyway; Guess is half as wide as it is tall and now takes the same bite out of
+ * anyway; Guess is half as wide as it is tall and takes the same bite out of
  * the dialog as Net does.
  *
- * The space around a board that does not fill its square is nothing — no plate.
- * A plate was the obvious thing, and it is what the gallery's tiles do, but
- * these boards do not agree on a background: twenty-four are rendered on
- * #e6e6e6 and sixteen on #d5d5d5, the ones whose back end dims it to leave room
- * for a highlight. One colour cannot match both, and one that nearly matches is
- * worse than none — it draws a visible mount on the forty per cent it misses.
+ * The padding is each board's own edge colour, filled in when the picture is
+ * built (scripts/build-howto.mjs). This used to be an argument for having no
+ * plate at all: the forty do not agree on a background — twenty-four are drawn
+ * on #e6e6e6 and sixteen on #d5d5d5, the ones whose back end dims it to leave
+ * room for a highlight — so one colour could not match them and a near match
+ * was worse than none. A picture that brings its own settles it, and does so in
+ * either theme, which a single CSS colour never could.
  *
  * The height is capped against the viewport as well, because in this layout the
  * picture is stacked above the words and takes its room out of theirs. The cap
@@ -1679,7 +1669,6 @@ p.notice-error.is-floating {
   display: block;
   width: min(10.125rem, 40vh);
   aspect-ratio: 1;
-  object-fit: contain;
   margin: 0 auto 1rem;
   border-radius: var(--r-sm);
 }

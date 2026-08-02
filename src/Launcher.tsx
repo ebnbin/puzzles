@@ -9,6 +9,7 @@ import type { GameText } from './i18n/games'
 import { canTransition, withViewTransition } from './transition'
 import { openGame, rememberGalleryScroll, takeGalleryScroll } from './view'
 import { toggleHidden, useHidden } from './useHidden'
+import { useTheme } from './useTheme'
 
 /** A press has to be still for this long before it means hide, not open. */
 const HOLD_MS = 450
@@ -389,6 +390,7 @@ function Tile({
   moving: boolean
 }) {
   const t = useStrings()
+  const [theme] = useTheme()
   const label = hidden ? t.launcher.show(game.displayName) : t.launcher.hide(game.displayName)
 
   const timer = useRef(0)
@@ -431,7 +433,7 @@ function Tile({
               into view — and again on every return from a game. Forty small
               PNGs are cheaper than the blank. */}
           <img
-            src={`/icons/${game.name}.png`}
+            src={`/icons/${game.name}-${theme}.png`}
             alt=""
             width={256}
             height={256}

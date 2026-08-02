@@ -21,7 +21,7 @@ export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'jumble'
 /**
  * And the three that are not glyphs at all but pictures, because the thing
  * they stand for is already drawn — the same ghost, vampire and zombie the
- * board shows, cut off it by scripts/build-monsters.mjs. A key that puts a
+ * board shows, cut off it by scripts/build-art.mjs. A key that puts a
  * monster in a square should show that monster, not somebody's shorthand for
  * it; these are the only keys in the collection where the puzzle itself has
  * already answered what the key means.

@@ -14,7 +14,7 @@
       ]
     },
     {
-      "source": "/(icons|solved|monsters)/(.*)",
+      "source": "/(icons|howto|art)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

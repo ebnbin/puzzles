@@ -3,6 +3,8 @@ import type { KeyArt, KeyGlyph, KeyIcon } from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
 import { HoldTip, useHoldTip } from './useHoldTip'
+import { useTheme } from './useTheme'
+import type { Theme } from './useTheme'
 
 /**
  * The keys the puzzle asked for, as buttons.
@@ -21,25 +23,22 @@ import { HoldTip, useHoldTip } from './useHoldTip'
 
 /**
  * Undead's three monsters are pictures rather than glyphs — the board's own
- * ghost, vampire and zombie, lifted off it by scripts/build-monsters.mjs. They
- * carry their own colours, so unlike every other key they do not follow the
- * theme; that is the point, since the monster in the square does not either.
+ * ghost, vampire and zombie, lifted off it by scripts/build-art.mjs. One pair
+ * each, because the monster in the square is not the same drawing on a dark
+ * board: its skin is veiled and `FIGURE` re-serves its paper and its ink. The
+ * key follows the board, which is the whole reason these are photographs of it.
  *
- * Not lazy: the keypad is on screen the moment the puzzle is, three files come
- * to 9 KB between them, and a key that fills in after the fact is a key that
+ * Not lazy: the keypad is on screen the moment the puzzle is, the three come to
+ * a few KB between them, and a key that fills in after the fact is a key that
  * moves under a thumb already reaching for it.
  */
-const ART: Record<KeyArt, string> = {
-  ghost: '/monsters/ghost.png',
-  vampire: '/monsters/vampire.png',
-  zombie: '/monsters/zombie.png',
-}
+const ART: readonly KeyArt[] = ['ghost', 'vampire', 'zombie']
 
-const art = (icon: KeyIcon) =>
-  icon in ART ? (
+const art = (icon: KeyIcon, theme: Theme) =>
+  (ART as readonly string[]).includes(icon) ? (
     <img
       className="key-art"
-      src={ART[icon as KeyArt]}
+      src={`/art/${icon}-${theme}.png`}
       alt=""
       width={24}
       height={24}
@@ -57,6 +56,7 @@ export default function PuzzleKeypad({
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
+  const [theme] = useTheme()
 
   /*
    * What a key does, said in words. Only the ones that are a picture need it:
@@ -97,7 +97,7 @@ export default function PuzzleKeypad({
               onPress(key)
             }}
           >
-            {key.icon ? art(key.icon) : key.label}
+            {key.icon ? art(key.icon, theme) : key.label}
           </button>
         )
       })}

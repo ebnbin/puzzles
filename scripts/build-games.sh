@@ -136,11 +136,16 @@ done
 echo "==> extracting game metadata"
 node "$ROOT/scripts/extract-games.mjs"
 
-# --- Thumbnails -----------------------------------------------------------
-# Rendered in a browser against a preview of the site, so the site has to be
-# built and served first. See scripts/build-icons.mjs for why they come from
-# upstream's saved positions.
-echo "==> rendering icons"
+# --- Pictures ---------------------------------------------------------------
+# Every picture in the app is a real board, rendered in a browser against a
+# preview of the site — so the site has to be built and served first, and one
+# server does all three. See scripts/build-icons.mjs for why the positions come
+# from upstream's saved games.
+#
+# All three, not just the thumbnails: they are photographs of the engine and of
+# engine/palette.ts, so an upstream upgrade or a palette change dates every one
+# of them at once. Running one and not the others is how they drift apart.
+echo "==> rendering pictures"
 npm --prefix "$ROOT" run build
 npm --prefix "$ROOT" exec -- vite preview --port 4173 --strictPort &
 preview=$!
@@ -150,6 +155,8 @@ for _ in $(seq 30); do
   sleep 1
 done
 node "$ROOT/scripts/build-icons.mjs"
+node "$ROOT/scripts/build-howto.mjs"
+node "$ROOT/scripts/build-art.mjs"
 kill $preview 2>/dev/null
 trap - EXIT
 

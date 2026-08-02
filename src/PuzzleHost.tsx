@@ -792,7 +792,7 @@ export default function PuzzleHost({
           */}
           <img
             className="help-art"
-            src={`/solved/${name}.png`}
+            src={`/howto/${name}-${theme}.png`}
             alt={t.play.picture(title)}
             draggable={false}
           />
