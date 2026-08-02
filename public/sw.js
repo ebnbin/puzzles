@@ -32,8 +32,9 @@
 
 /* Bumped when a rule here changes, so the entries stored under the old one go:
    v2 threw away what the cache-first rule had pinned, v3 the pictures this
-   worker no longer answers for. */
-const CACHE = 'puzzles-v3'
+   worker no longer answers for, v4 the ones it went on answering for anyway
+   under their new names. */
+const CACHE = 'puzzles-v4'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -84,8 +85,14 @@ self.addEventListener('fetch', (event) => {
    * the `Cache-Control` vercel.json gives them and can serve them off its own
    * disk with no network — which is the offline story they had here, kept, and
    * a first frame with pictures in it, which they did not.
+   *
+   * The list is the same three vercel.json names, and has to stay that way: one
+   * grants the cache this relies on, the other steps out of its light. They were
+   * `solved` and `monsters` until the sets were renamed, and this half of the
+   * pair was left behind — so the help picture and the key art went back to
+   * being answered here, silently, with nothing to fail.
    */
-  if (/^\/(icons|solved|monsters)\//.test(url.pathname)) return
+  if (/^\/(icons|howto|art)\//.test(url.pathname)) return
 
   if (request.mode === 'navigate') {
     event.respondWith(
