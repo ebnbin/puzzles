@@ -236,8 +236,8 @@ a {
  */
 .games {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1664,11 +1664,11 @@ p.notice-error.is-floating {
  * worse than none — it draws a visible mount on the forty per cent it misses.
  *
  * The height is capped against the viewport as well, for the landscape layout
- * below: a fixed 10rem would be most of a phone lying on its side.
+ * below: a fixed 10.125rem would be most of a phone lying on its side.
  */
 .help-art {
   display: block;
-  width: min(10rem, 40vh);
+  width: min(10.125rem, 40vh);
   aspect-ratio: 1;
   object-fit: contain;
   margin: 0 auto 1rem;
