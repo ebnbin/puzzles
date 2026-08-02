@@ -100,7 +100,7 @@ try {
         html.includes(`<html lang="${htmlLang}">`) &&
         // Both classes: the app's shared control, and the hook the head
         // script listens on. See topBar in build-doc.mjs.
-        /class="doc-lang lang-switch"/.test(html)
+        html.includes('class="segmented doc-lang"')
       )
     })
     missing.length === 0

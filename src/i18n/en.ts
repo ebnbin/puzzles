@@ -19,9 +19,7 @@ export const en = {
   brand: 'Puzzles',
 
   launcher: {
-    /** Names the one-press language control, whose visible label is the other
-        language's own name — so the label cannot say what the button is for. */
-    switchLang: 'Switch to 中文',
+    language: 'Language',
     /** The way to the manual, at the foot of the gallery. */
     manual: 'Manual',
     /** Named for the game, since the button is in its corner. */

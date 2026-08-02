@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#fafaf9">
 <title>Light Up</title>
-<link rel="stylesheet" href="/doc.css?v=90a82ba2">
+<link rel="stylesheet" href="/doc.css?v=c052751a">
 <link rel="previous" href="slant.html">
 <link rel="ToC" href="index.html">
 <link rel="up" href="index.html">
@@ -34,7 +34,7 @@
     if (event.key === null || event.key === 'puzzles.theme') paint(stored())
   })
   document.addEventListener('click', function (event) {
-    var link = event.target.closest && event.target.closest('.doc-lang')
+    var link = event.target.closest && event.target.closest('.doc-lang a')
     if (!link) return
     try {
       localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
@@ -79,7 +79,7 @@
 <header class="doc-top">
 <a class="doc-home" href="/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Puzzles</a>
 <span class="doc-top-title">手册</span>
-<a class="doc-lang lang-switch" href="/doc/lightup.html" data-lang="en" hreflang="en" lang="en">EN</a>
+<span class="segmented doc-lang"><a href="/doc/lightup.html" data-lang="en" hreflang="en">EN</a><a href="/doc/zh/lightup.html" data-lang="zh" hreflang="zh-Hans" aria-current="true">中文</a></span>
 <button type="button" class="doc-theme" aria-label="浅色或深色"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/><path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/><path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/><path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/></svg></button>
 </header>
 <main class="doc-main">
