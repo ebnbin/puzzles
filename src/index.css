@@ -1663,8 +1663,17 @@ p.notice-error.is-floating {
  * for a highlight. One colour cannot match both, and one that nearly matches is
  * worse than none — it draws a visible mount on the forty per cent it misses.
  *
- * The height is capped against the viewport as well, for the landscape layout
- * below: a fixed 10.125rem would be most of a phone lying on its side.
+ * The height is capped against the viewport as well, because in this layout the
+ * picture is stacked above the words and takes its room out of theirs. The cap
+ * bites below 405px of viewport — 40vh of that is 162 — which in practice means
+ * it never fires: the shortest phone held upright is around 568. It is here for
+ * a window someone has made short, not for a phone.
+ *
+ * It used to say it was for the landscape layout, and that was wrong by the
+ * time the landscape layout became a grid: there the picture sits *beside* the
+ * words, competes with them for width rather than height, and the cap was
+ * shrinking it against an axis nothing was contending for — 150px instead of
+ * 162, with 106px of empty column underneath it. Landscape overrides it below.
  */
 .help-art {
   display: block;
@@ -2170,11 +2179,17 @@ p.notice-error.is-floating {
   }
 
   /* Aligned with the first line of the text beside it, not floating in the
-     middle of however much of it there is. */
+     middle of however much of it there is.
+
+     Full size, against the portrait rule's viewport cap: a column of its own is
+     not room taken from the reading, which happens in the scroller next to it.
+     Height is what that cap measures, and height is the one thing this picture
+     is not short of here. */
   .help-art {
     grid-area: 2 / 1 / 3 / 2;
     align-self: start;
     margin: 0;
+    width: 10.125rem;
   }
 
   .dialog-help .dialog-prose {
