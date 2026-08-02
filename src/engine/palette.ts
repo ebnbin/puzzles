@@ -510,6 +510,17 @@ const BOARD_IS_PAPER: ReadonlySet<string> = new Set(['lightup', 'singles', 'rang
  * already spared by `SEMANTIC`. A rule that names the pairs and states what
  * must be true of them covers those for free; a rule that just swapped them
  * would have broken both.
+ *
+ * No game is in both this table and `BOARD_IS_PAPER`, and
+ * `scripts/verify-palette.mjs` holds that. A pass used to live here for the
+ * case where one was: a bevel is built by walking a fixed distance either side
+ * of the board, so a board that moves leaves its own relief behind, and
+ * Blackbox's lit step came to 0.047 against the 0.12 every unmoved board gets.
+ * Blackbox left `BOARD_IS_PAPER` when its ball turned white, and nothing
+ * replaced it — the three boards that do turn to paper cannot have a bevel at
+ * all, Light Up having no such slots, and Singles and Range asking
+ * `game_mkhighlight` for one side only. So the pass had no work left and is
+ * gone; the check is what stops it being needed again without anyone noticing.
  */
 const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
   /* COL_HIGHLIGHT, COL_LOWLIGHT — the tile, and the cursor's own outline */
@@ -695,35 +706,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   })
 
   /*
-   * How far `needsRoom` moved the board out from under its own relief.
-   *
-   * A bevel is not free-standing: `game_mkhighlight` builds it by walking a
-   * fixed distance either side of the background, so it means nothing except
-   * as a pair of steps up and down from that surface. The flip carries both
-   * ends of that arrangement across together — but where the board is then
-   * lifted to make room for a black the rules need, the bevel is left behind
-   * at the height the board used to be, and the step up from the board to its
-   * own lit edge is most of what is lost. Blackbox's came to 0.047 where the
-   * eight games with an unmoved board all have about 0.12: a frame you could
-   * find rather than one you could see.
-   *
-   * So the pair goes wherever the board went. Nothing is chosen here either —
-   * the distance is the one the board itself was moved by.
-   */
-  const lift = needsRoom && board ? PAPER_BOARD - flip(board.l) : 0
-
-  /** Move a slot the distance the board moved, staying inside the range. */
-  const carry = (index: number) => {
-    if (!lift || semantic?.includes(index)) return
-    const colour = parse(flipped[index])
-    if (colour)
-      flipped[index] = format({
-        ...colour,
-        l: Math.min(CEILING, Math.max(FLOOR, colour.l + lift)),
-      })
-  }
-
-  /*
    * The board the veil's lifting half measures against: not the flip of the
    * light board but whatever this game's board actually became, so a board that
    * turned to paper is what its hues are held up against.
@@ -805,13 +787,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * see the loop below it.
    */
   for (const [lit, shade] of BEVEL[game] ?? []) {
-    // Only a pair the flip turned over is drawn on the board and follows it.
-    // Unruly's are kept by `SEMANTIC` and stand on their own tone instead —
-    // a white square's highlight belongs to the white square, wherever the
-    // board beneath the two of them has gone.
-    if (!semantic?.includes(lit) && !semantic?.includes(shade))
-      for (const index of [lit, shade]) carry(index)
-
     const a = parse(flipped[lit])
     const b = parse(flipped[shade])
     if (!a || !b || a.l >= b.l) continue

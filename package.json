@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/verify-palette.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
     "doc": "node scripts/build-doc.mjs",
-    "verify-doc": "node scripts/verify-doc.mjs"
+    "verify-doc": "node scripts/verify-doc.mjs",
+    "verify-palette": "node scripts/verify-palette.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
