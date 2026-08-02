@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
-import { clearLast, readCurrent } from './engine/saves'
+import { readRecent, setPlaying } from './engine/saves'
 import { useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
@@ -95,7 +95,7 @@ export default function Launcher() {
 
   // The puzzle you are on, marked wherever it falls — including in the stash,
   // if you put away the one you were playing.
-  const current = readCurrent()
+  const current = readRecent()
   const currentRef = useRef<HTMLButtonElement>(null)
 
   /*
@@ -239,7 +239,7 @@ export default function Launcher() {
    * for it — and the way back in is a tile, not the next cold start.
    */
   useEffect(() => {
-    clearLast()
+    setPlaying(false)
   }, [])
 
   const settingsOpen = settingsAt !== null

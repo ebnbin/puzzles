@@ -11,9 +11,9 @@ import { keysFor, READS_PREFS } from './engine/keys'
 import {
   clearSave,
   readSave,
+  setPlaying,
   takeIntroduction,
-  writeCurrent,
-  writeLast,
+  writeRecent,
   writeSave,
 } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
@@ -225,13 +225,17 @@ export default function PuzzleHost({
 
   /*
    * This is now the game to come back to, from the moment it is opened — and
-   * the one the gallery marks, which is a different fact: `last` is a screen and
-   * is dropped as soon as the gallery is the screen, while the mark has to
-   * survive being left.
+   * the one the gallery marks, which is the same fact stored once. What the
+   * gallery drops on arrival is the flag beside it, not the name.
+   *
+   * The name goes first. Either write can fail on its own — a full store, a
+   * blocked one — and the half that leaves the flag set with no name to go with
+   * it is the half that would strand a cold start; this order fails the other
+   * way, to the gallery.
    */
   useEffect(() => {
-    writeLast(name)
-    writeCurrent(name)
+    writeRecent(name)
+    setPlaying(true)
   }, [name])
 
   /*

@@ -54,13 +54,13 @@ export const savePath = (game) => path.join(iconsDir, `${game}.sav`)
 /**
  * The app, open on one puzzle in one theme, with a board that has been drawn.
  *
- * There is one address, so which puzzle to open is `puzzles.last` and nothing
+ * There is one address, so which puzzle to open is `puzzles.recent` plus the flag beside it, and nothing
  * else. Seed it, then come back through about:blank — a second `goto` of the
  * same address would not reload. The theme is seeded the same way rather than
  * left to `colorScheme`, because the app resolves "system" itself and the
  * pictures must not depend on what the machine building them prefers.
  *
- * `puzzles.helpseen` goes in too: a first visit puts the how-to-play dialog
+ * `puzzles.introduced` goes in too: a first visit puts the how-to-play dialog
  * over the board, and the board is what is being photographed.
  */
 export async function openBoard(browser, { game, theme, viewport = { width: 900, height: 900 } }) {
@@ -73,9 +73,10 @@ export async function openBoard(browser, { game, theme, viewport = { width: 900,
   await page.evaluate(
     ({ name, want }) => {
       localStorage.clear()
-      localStorage.setItem('puzzles.last', name)
+      localStorage.setItem('puzzles.recent', name)
+      localStorage.setItem('puzzles.playing', '1')
       localStorage.setItem('puzzles.theme', want)
-      localStorage.setItem('puzzles.helpseen', JSON.stringify([name]))
+      localStorage.setItem('puzzles.introduced', JSON.stringify([name]))
     },
     { name: game, want: theme },
   )

@@ -84,8 +84,10 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 是设计而不是欠账。
 
 进度和位置存在 localStorage(`src/engine/saves.ts`):`puzzles.save.<name>` 是 midend
-自己的存档格式,每步棋后写;`puzzles.last`/`puzzles.current`/`puzzles.scroll` 分别是
-「冷启动回到哪」「画廊给谁画圈」「画廊滚到哪」——三件不同的事,别合并。
+自己的存档格式,每步棋后写;`puzzles.recent` 是「最近玩的是哪个」(画廊拿它画圈),
+`puzzles.playing` 是「离开时在不在游戏里」的一个 bit(有值即真,回画廊就删掉,没有
+「false」这个写法),`puzzles.scroll` 是「画廊滚到哪」——三件不同的事,别合并。发布前
+改 key 名字很便宜,发布后就不便宜了,所以改之前先想清楚。
 
 ### 深色棋盘 = 重写调色板
 

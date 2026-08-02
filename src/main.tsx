@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-import { clearLast, readLast } from './engine/saves'
+import { readPlaying, readRecent, setPlaying } from './engine/saves'
 import games from './games.json'
 import './index.css'
 import { start } from './view'
@@ -9,16 +9,24 @@ import { start } from './view'
 /*
  * Settle the first view before React exists, once per document.
  *
- * Nothing in the address says what to open — there is only one address — so the
- * last puzzle played is what a cold start or a refresh comes back to, which is
+ * Nothing in the address says what to open — there is only one address — so a
+ * cold start or a refresh comes back to the puzzle it was left in, which is
  * also what makes the gallery a place you choose to be rather than a toll gate.
- * A remembered name that is not a puzzle is stale and cleared, rather than left
- * to strand every start on the not-found view.
+ * Two facts, and both have to hold: which puzzle was last played, and whether
+ * the app was still in it. Leaving one for the gallery clears the second and
+ * keeps the first, which is what the gallery marks its tile with.
+ *
+ * A remembered name that is no longer a puzzle — upstream dropped it, or the
+ * store was edited — is stale, and the flag goes rather than being left to
+ * strand every start on the not-found view. The name itself can stay: no tile
+ * matches it, so nothing is marked, and the next puzzle opened overwrites it.
  */
 {
-  const last = readLast()
-  const target = last && games.some((g) => g.name === last) ? last : null
-  if (last && !target) clearLast()
+  const playing = readPlaying()
+  const recent = readRecent()
+  const target =
+    playing && recent && games.some((g) => g.name === recent) ? recent : null
+  if (playing && !target) setPlaying(false)
   start(target)
 }
 

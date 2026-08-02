@@ -38,8 +38,9 @@ import { withViewTransition } from './transition'
  * Replacing a screen throws it away, so anything worth keeping is kept
  * elsewhere: the puzzle in `puzzles.save.<name>`, written after every move, and
  * the gallery's scroll position below. Which screen the app opens on is
- * `puzzles.last` — a puzzle's name, or nothing for the gallery — so a cold start
- * resumes whichever of the two you were last on.
+ * `puzzles.playing` — set while a puzzle is up, gone once the gallery is — read
+ * against `puzzles.recent` for which puzzle that was, so a cold start resumes
+ * whichever of the two you were last on.
  */
 
 /** The open puzzle's name, or null for the gallery. */
