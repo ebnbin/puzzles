@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import type { CanvasRenderer } from './engine/renderer'
 import type { PuzzleApi } from './engine/types'
 
@@ -84,11 +84,11 @@ export function usePuzzleFit(
   const natural = useRef<{ w: number; h: number } | null>(null)
 
   // A new set of parameters is a new grid, so the measurement is stale.
-  useLayoutEffect(() => {
+  useEffect(() => {
     natural.current = null
   }, [params])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const area = areaRef.current
     if (!area || !enabled) return
 
@@ -139,25 +139,7 @@ export function usePuzzleFit(
 
     const observer = new ResizeObserver(schedule)
     observer.observe(area)
-
-    /*
-     * The first fit runs here and now, not on the next frame.
-     *
-     * The board is hidden until `enabled` — `data-ready` in the stylesheet —
-     * and this effect turns on in the same commit that reveals it. Scheduling
-     * the first fit meant the board was shown at whatever size the back end
-     * laid it out at unaided and then jumped to the fitted one a frame or two
-     * later: measured on Solo, visible at 481px at 1039ms and 390px at 1078ms,
-     * a fifth of its width, in the open. The reason it reads as a fault rather
-     * than as loading is that it happens *after* the board looks finished, and
-     * the help dialog opening on the same beat gives the eye a second thing to
-     * blame.
-     *
-     * A layout effect, so this is over before the frame is painted. Later fits
-     * keep the frame: they answer a resize, where nothing has just appeared and
-     * coalescing a burst matters more than being early.
-     */
-    fit()
+    schedule()
 
     return () => {
       cancelAnimationFrame(frame)

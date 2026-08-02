@@ -1275,15 +1275,6 @@ p.notice-error.is-floating {
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--scrim);
-  /*
-   * Fades in with what it is dimming for, as the sheets' scrim already did.
-   * Without it the scrim arrived at full strength on the first frame while the
-   * dialog spent the next 300ms coming up from nothing, so a third of a second
-   * of the board simply went dark with nothing on it — read as a layer
-   * flashing rather than as a dialog opening. Same animation and same duration
-   * as `.sheet-dimmer`, because it is the same event.
-   */
-  animation: scrim-in var(--dur) var(--ease) backwards;
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   animation: scrim-in var(--dur) var(--ease) backwards;
