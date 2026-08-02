@@ -13,7 +13,6 @@ import {
   isPlayed,
   readSave,
   setPlaying,
-  takeIntroduction,
   writeRecent,
   writeSave,
 } from './engine/saves'
@@ -241,30 +240,6 @@ export default function PuzzleHost({
     writeRecent(name)
     setPlaying(true)
   }, [name])
-
-  /*
-   * A puzzle you have not met before says what it is, once.
-   *
-   * Forty boards and no two are played the same way; arriving at one of them
-   * cold, the first question is always "what am I looking at", and the answer
-   * was behind a button in the corner that you had to know to press. So it is
-   * offered rather than waited for — and only ever once per puzzle, because
-   * the second time you are here you came on purpose.
-   *
-   * After `ready` and not on mount: the dialog is mostly the picture of a
-   * finished board, and putting it over a board that has not been dealt yet
-   * would mean closing it to find out whether the puzzle even started. By the
-   * time this runs the blurb is usually here too — the fetch was started when
-   * the puzzle was — and if it is not, the dialog opens on the one-line
-   * objective and fills in.
-   *
-   * Asking marks it read, rather than closing it doing so. The promise is one
-   * unbidden dialog per puzzle, not that anybody looked: a reload while it is
-   * open is a reader who has had it and has moved on.
-   */
-  useEffect(() => {
-    if (ready && takeIntroduction(name)) setHelpOpen(true)
-  }, [ready, name])
 
   useEffect(() => {
     /*
