@@ -93,7 +93,8 @@ try {
       const html = readFileSync(join(dir, f), 'utf8')
       return !(
         html.includes('<meta name="viewport" content="width=device-width') &&
-        html.includes('<link rel="stylesheet" href="/doc.css">') &&
+        // Versioned, so the worker cannot pin an old one. See build-doc.mjs.
+        /<link rel="stylesheet" href="\/doc\.css\?v=[0-9a-f]{8}">/.test(html) &&
         html.includes('<meta charset="utf-8">') &&
         html.includes("localStorage.getItem('puzzles.theme')") &&
         html.includes(`<html lang="${htmlLang}">`) &&
