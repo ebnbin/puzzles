@@ -18,7 +18,7 @@ export interface Size {
   h: number
 }
 
-import { BACKGROUND, FIGURE, forDarkBoard, RIM } from './palette'
+import { BACKGROUND, FIGURE, figureInk, forDarkBoard, RIM } from './palette'
 
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
@@ -142,9 +142,9 @@ export class CanvasRenderer {
   /**
    * The one call that paints the ground, and it paints it in the background's
    * own slot — so that slot keeps the board's colour here even where `FIGURE`
-   * holds it still elsewhere, or the whole board would turn over. A rect in any
-   * other slot is drawing, not ground: Undead's pupils are 1x1 rects wherever
-   * the tile is small enough to round their radius away.
+   * gives it a second one elsewhere, or the whole board would go to #bebebe. A
+   * rect in any other slot is drawing, not ground: Undead's pupils are 1x1
+   * rects wherever the tile is small enough to round their radius away.
    */
   rect(x: number, y: number, w: number, h: number, colour: number) {
     this.ctx.fillStyle = colour === BACKGROUND ? this.colours[colour] : this.ink(colour)
@@ -172,7 +172,8 @@ export class CanvasRenderer {
     /*
      * A line is a shape too — the zombie's crossed eyes and its mouth are three
      * of these. But Undead's mirrors are lines in the same slot, and they are
-     * board furniture: held still they go black on a dark board and vanish.
+     * board furniture: served the figure's ink they come out #0f0f0f on a
+     * #222222 board, 1.20:1, and the puzzle's whole structure disappears.
      *
      * The width tells them apart, and not by luck: it is the C's own difference
      * between a stroke and a bar. `draw_line` reaches this port as width 1
@@ -220,13 +221,17 @@ export class CanvasRenderer {
 
   /**
    * The colour a shape is drawn in, which is not always the colour the board
-   * would use for that slot: see `FIGURE` in palette.ts. A picture drawn on the
-   * board is not part of the board, and turning the board over should not turn
-   * the picture into its own negative — so on a dark board these slots are
-   * served their light values, and only here, where the call is a shape.
+   * would use for that slot: see `FIGURE` in palette.ts. Those slots have a
+   * second job the table's one cell is already spoken for — the monsters' paper
+   * and their ink, where the cell holds the ground and the clue numbers. The
+   * second job is served here, and only here, where the call is a shape.
+   *
+   * It is served the *compressed* light value, not the light value itself:
+   * the same rule `SEMANTIC` runs, so the drawing lands inside the range the
+   * other 426 slots land in rather than outside both ends of it.
    */
   private ink(slot: number): string {
-    if (this.dark && FIGURE[this.game]?.includes(slot)) return this.named[slot]
+    if (this.dark && FIGURE[this.game]?.includes(slot)) return figureInk(this.named[slot])
     return this.colours[slot]
   }
 

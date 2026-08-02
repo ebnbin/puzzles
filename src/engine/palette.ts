@@ -329,7 +329,7 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
 }
 
 /**
- * Slots a game draws a picture with, rather than a board with.
+ * Slots that carry a second job the board's own colour cannot serve.
  *
  * Undead's three monsters are little cartoons: a black outline, a coloured
  * skin, and whites — eyes, fangs, an open mouth — painted in the board's own
@@ -340,33 +340,41 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  * board seen the other way up. A negative of a grid is a grid; a negative of a
  * face is an odd face.
  *
- * The palette cannot answer it, because both of the slots involved do double
- * duty: COL_TEXT is the monsters' ink *and* the clue numbers, which have to go
- * pale to stay readable, and COL_BACKGROUND is their paper *and* the ground.
- * One colour each, two jobs each, pulling opposite ways.
+ * Which is a preference, and a preference is not enough to earn a table. What
+ * earns it is that two of the slots have somewhere else to be. COL_TEXT is the
+ * monsters' ink *and* the clue numbers *and* the mirrors — the second and third
+ * are read against the board and have to go pale; the first is read against a
+ * face and has to stay dark. COL_BACKGROUND is the monsters' paper *and the
+ * ground itself*, and no single value is both. One slot, one cell, two jobs
+ * pulling opposite ways: this is the whole of the reason, and it is checkable
+ * in the C rather than argued from taste.
  *
- * What separates the two jobs is not the slot but the call. Outside
- * `draw_monster`, Undead never hands COL_TEXT to anything but `draw_text`:
- * every circle, polygon and line that mentions it is part of a monster. So the
- * rule is drawn where the difference is — a shape, not a string — and the
- * renderer applies it. See `Renderer.ink`.
+ * So the table is those two slots and no others. The skins were in it once, on
+ * the grounds that a veiled figure under an unveiled outline is half a negative
+ * — but they have no second job at all (outside `game_colours` they appear only
+ * inside `draw_monster`), so nothing forces their hand and they take the veil
+ * like every other hue in the collection.
  *
- * All three kinds of shape, which took saying twice: the zombie's crossed eyes
- * and its mouth are lines, and while `line` was still reading the board's table
- * they stayed white on a face that had gone back to being drawn in black.
+ * What separates the two jobs is not the slot but the call, so that is where
+ * the rule is drawn and `Renderer.ink` is what applies it. Three exclusions,
+ * each holding down one thing: `draw_text` is the clue numbers, a `draw_rect`
+ * in COL_BACKGROUND is the ground, and a line thicker than one pixel is a
+ * mirror — the last being the C's own distinction between `draw_line` and
+ * `draw_thick_line`, not a guess about widths. Everything else in Undead that
+ * mentions these two slots is part of a monster.
  *
- * Not `rect`, though, and that is the edge this rule balances on. COL_BACKGROUND
- * is in the list because it is the monsters' paper, and it is only safe there
- * because the ground is painted with `draw_rect` while the paper is circles and
- * polygons. Serve a rect its light value and the whole board turns over.
- *
- * The skins are here too, though nothing else uses them, because a figure
- * dimmed by the veil under an undimmed outline is half a negative rather than
- * none.
+ * The value served is `compress`, the same rule `SEMANTIC` uses: the drawing is
+ * redrawn in the dark theme's range rather than pasted out of the light one.
+ * That matters beyond tidiness — the light values sit outside the range every
+ * other colour in the collection lands in (#e6e6e6 at 0.90, #000000 at 0.00,
+ * against a floor of 0.06 and a ceiling of 0.82), so pasting them made this the
+ * one place on 426 slots that put an out-of-range colour on screen. Compressed
+ * they come to #bebebe and #0f0f0f, both inside, and the second is a value the
+ * palette already holds.
  */
 export const FIGURE: Record<string, readonly number[]> = {
-  /* COL_BACKGROUND, COL_TEXT, COL_GHOST, COL_ZOMBIE, COL_VAMPIRE */
-  undead: [0, 2, 6, 7, 8],
+  /* COL_BACKGROUND — the monsters' paper; COL_TEXT — their ink */
+  undead: [0, 2],
 }
 
 
@@ -656,6 +664,17 @@ const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
 
 /** Where a kept colour goes: same range, same direction as it started. */
 const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
+
+/**
+ * The same compression, for the one caller that cannot go through the table:
+ * a `FIGURE` slot's second job, which the renderer serves from the light value
+ * because the slot's cell in the table is spoken for. Exported rather than
+ * duplicated, so there is one compression in the file and not two.
+ */
+export const figureInk = (css: string): string => {
+  const colour = parse(css)
+  return colour ? format({ ...colour, l: compress(colour.l) }) : css
+}
 
 
 export function forDarkBoard(light: readonly string[], game = ''): string[] {
