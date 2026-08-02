@@ -56,6 +56,11 @@
   --accent-soft-text: #1e1e9e;
 
   --danger: #b3261e;
+  /* The ground a refusal is written on, so that a sentence from the back end
+     reads as one at a glance rather than as a caption. Measured at 5.61:1
+     against `danger`, which is where the message already sat on `surface-2`
+     (5.73:1) — the tint says what it is without costing legibility. */
+  --danger-soft: #fbeae8;
 
   /* The grey the thumbnails are rendered on. Constant across themes: the
      icons are built once, in light, and sit on a plate that matches them.
@@ -141,6 +146,8 @@
   --accent-soft-text: #c3c3ff;
 
   --danger: #f2b8b5;
+  /* 8.60:1 against `danger`, against 9.37:1 on `surface-2`. */
+  --danger-soft: #3a2220;
 
   --grid-line: rgb(236 236 239 / 0.05);
 

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import ConfigFields from './ConfigFields'
+import ErrorNote from './ErrorNote'
 import Icon from './Icon'
 import type { IconName } from './Icon'
 import type { DialogSpec } from './engine/types'
@@ -157,11 +158,7 @@ export default function PuzzleMenu({
             <h2>{t.menu.preferences}</h2>
             <div className="sheet-prefs">
               <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
-              {prefsError && (
-                <p className="sheet-custom-error" role="alert">
-                  {prefsError}
-                </p>
-              )}
+              {prefsError && <ErrorNote text={prefsError} />}
             </div>
           </section>
         )}
@@ -264,11 +261,7 @@ function TextRow({
           <Icon name={copied ? 'check' : 'share'} size={18} />
         </a>
       </div>
-      {error && (
-        <p className="sheet-custom-error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ErrorNote text={error} />}
     </div>
   )
 }

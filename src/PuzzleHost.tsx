@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import ErrorNote from './ErrorNote'
 import Icon from './Icon'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
@@ -162,8 +163,27 @@ export default function PuzzleHost({
   const armed = useRef(false)
   const restoring = useRef(false)
   const savePending = useRef(false)
-  const arm = useCallback(() => {
+  /*
+   * The reader has asked for something. Two things follow from that, and this
+   * is every place either of them is true, so they are said once.
+   *
+   * The save arms, as above. And whatever the back end last refused stops
+   * being on the screen: that sentence is about the press before this one, and
+   * it went out of date the moment there was another. It used to have no way
+   * of going at all — `setError` was only ever called with a message — so a
+   * "Game has not been started yet" from Solve sat under the title bar for the
+   * rest of the session, through the click that started the game and through
+   * the Solve that then worked.
+   *
+   * Cleared here, on the way in, rather than when the next thing succeeds: for
+   * Solve the back end reports the refusal and *then* announces the move
+   * (emcc.c case 9 calls js_error_box before post_move), so a rule that
+   * cleared on the announcement would wipe the message in the same tick it
+   * arrived, and it would never be seen at all.
+   */
+  const acted = useCallback(() => {
     armed.current = true
+    setError(null)
   }, [])
   const queueSave = useCallback(() => {
     if (!armed.current || savePending.current) return
@@ -358,11 +378,11 @@ export default function PuzzleHost({
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
       if (!apiRef.current || dialog) return
-      arm()
+      acted()
       fn(apiRef.current)
       canvasRef.current?.focus()
     },
-    [dialog, arm],
+    [dialog, acted],
   )
 
   /*
@@ -403,7 +423,7 @@ export default function PuzzleHost({
     const open = inlineRef.current
     if (!api || !open) return
     if (values(open.spec) === inlineBaseline.current) return
-    arm()
+    acted()
     setInlineError(null)
     api.dialogOk()
     if (!inlineRef.current) {
@@ -423,7 +443,7 @@ export default function PuzzleHost({
   const submitText = useCallback((kind: TextKind, text: string) => {
     const api = apiRef.current
     if (!api) return
-    arm()
+    acted()
     const resume = inlineRef.current?.kind ?? null
     if (resume) api.dialogCancel()
 
@@ -460,10 +480,10 @@ export default function PuzzleHost({
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
-    arm()
+    acted()
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
-  }, [arm])
+  }, [acted])
 
   // Shortcuts on the page rather than the board, so they work wherever focus
   // is. Skipped while a dialog is up or a field has focus.
@@ -505,7 +525,7 @@ export default function PuzzleHost({
        * off, and a move rather than a shortcut in a game that wants the letter
        * for itself. Calling undo() here would speak over both.
        */
-      arm()
+      acted()
       if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
         e.preventDefault()
     }
@@ -519,13 +539,13 @@ export default function PuzzleHost({
     closeTypes,
     closeMenu,
     helpOpen,
-    arm,
+    acted,
   ])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
     if (!api) return
-    arm()
+    acted()
     // Every puzzle that requests keys requests ASCII ones, so the ordinary
     // key path carries them: a one-character string is taken as the button
     // itself, and the midend folds 8 and 127 together into backspace.
@@ -588,15 +608,13 @@ export default function PuzzleHost({
       </header>
 
       {error && (
-        <p className="play-error">
-          {error === START_FAILED ? t.play.error : error}
-        </p>
+        <ErrorNote text={error === START_FAILED ? t.play.error : error} />
       )}
 
       <div className="play-board" ref={areaRef}>
         <canvas
           ref={canvasRef}
-          onPointerDownCapture={arm}
+          onPointerDownCapture={acted}
           className="host-board"
           tabIndex={0}
           onContextMenu={(e) => e.preventDefault()}

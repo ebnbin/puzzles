@@ -670,14 +670,44 @@ footer p {
   background: var(--surface-2);
 }
 
-.play-error {
+/*
+ * A refusal, wherever it is said. See ErrorNote.tsx for why there is one of
+ * these rather than the two treatments there used to be.
+ *
+ * Selected as `p.notice-error` and not `.notice-error`: three of the four sit
+ * inside a sheet, where `.sheet p` claims the colour at (0,1,1). Matching that
+ * specificity and coming later is what lets the red through — an override
+ * without an `!important`, and the tag in the selector is true, since every
+ * one of these is a paragraph.
+ */
+p.notice-error {
   flex: none;
-  margin: 0 0.75rem;
-  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.7rem;
   border-radius: var(--r-sm);
-  background: var(--surface-2);
+  background: var(--danger-soft);
   color: var(--danger);
   font-size: var(--t-sm);
+  /* Room for ErrorNote's own scroll to leave, so the sentence it just brought
+     up is above the edge of the sheet rather than flush against it —
+     `nearest` otherwise lands it on the boundary, and the sheet's bottom
+     padding takes the last few pixels of it. */
+  scroll-margin: 0.75rem;
+}
+
+/* The glyph sits on the first line of a sentence that may take three. */
+p.notice-error svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+/* Under the title bar rather than inside a sheet: the one that is a bar across
+   the screen, so it takes the screen's margin instead of a block's. */
+.play > p.notice-error {
+  margin: 0 0.75rem;
 }
 
 /*
@@ -1041,7 +1071,13 @@ footer p {
   text-transform: uppercase;
 }
 
-.sheet p {
+/*
+ * The sheet's prose, which a refusal is not. Without the exclusion this rule
+ * and `p.notice-error` tie at (0,1,1) and the later one wins — and this one is
+ * later, which is how the error notes in all three sheets came to be grey.
+ * Excluding them here settles it by meaning rather than by line number.
+ */
+.sheet p:not(.notice-error) {
   margin: 0;
   color: var(--text-2);
   font-size: var(--t-sm);
@@ -1202,11 +1238,6 @@ footer p {
   accent-color: var(--accent);
 }
 
-.sheet-custom-error {
-  margin: 0.75rem 0 0;
-  color: var(--danger);
-  font-size: var(--t-sm);
-}
 
 .sheet-preset-group {
   width: 100%;
@@ -1292,7 +1323,7 @@ footer p {
 }
 
 /* Against the field it is about, not a paragraph's worth of space below it. */
-.sheet-id .sheet-custom-error {
+.sheet-id p.notice-error {
   margin-top: 0.35rem;
 }
 

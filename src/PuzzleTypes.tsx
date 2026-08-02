@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
+import ErrorNote from './ErrorNote'
 import type { DialogSpec, Preset } from './engine/types'
 import { useStrings } from './i18n'
 import { useSheetDrag } from './useSheetDrag'
@@ -135,11 +136,7 @@ export default function PuzzleTypes({
             {/* The back end refuses a set of parameters by handing back a
                 sentence. It belongs against the fields that were refused, not
                 under the title bar behind this sheet. */}
-            {customError && (
-              <p className="sheet-custom-error" role="alert">
-                {customError}
-              </p>
-            )}
+            {customError && <ErrorNote text={customError} />}
           </div>
         )}
       </div>

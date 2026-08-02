@@ -47,6 +47,7 @@ export type IconName =
   | 'check'
   | 'close'
   | 'help'
+  | 'alert'
   | 'share'
   | 'sun'
   | 'moon'
@@ -188,6 +189,16 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="12" cy="12" r="8.75" />
       <path d="M9.5 9.4a2.6 2.6 0 1 1 4 2.2c-.9.6-1.5 1.1-1.5 2v.6" />
       <circle cx="12" cy="17.1" r="1.05" fill="currentColor" stroke="none" />
+    </>
+  ),
+  /* The same circle as `help`, with the stroke and the dot the other way up:
+     these two are the pair a reader meets in this app — one is asking, the
+     other is being told. */
+  alert: (
+    <>
+      <circle cx="12" cy="12" r="8.75" />
+      <path d="M12 7.4v5.2" />
+      <circle cx="12" cy="16.6" r="1.05" fill="currentColor" stroke="none" />
     </>
   ),
   /* The two of these name what you get, not what you are on: the sun is shown
