@@ -650,69 +650,6 @@ export const BACKGROUND = 0
 const VEIL = 0.4
 
 
-/**
- * The six numbers above, in one place the rules read them from.
- *
- * They stay `const`s because that is where their reasoning lives — every
- * measurement, every rejected value, every "0.70 said this and was wrong" is
- * written against the declaration it belongs to, and a bare object literal
- * would strand all of it. This is the indirection that lets a tuning panel
- * move one at runtime without any of that moving with it, and it is why the
- * rules below say `TUNING.FLOOR` rather than `FLOOR`.
- *
- * `scripts/verify-palette.mjs` and the palette document both read the `const`s
- * by name, so they see the declared values whatever a panel has done. That is
- * the right answer for both: they check and describe what ships.
- */
-const TUNING = { ACHROMATIC, FLOOR, CEILING, LIFT_CEILING, VEIL, PAPER_BOARD }
-
-export type Tuning = typeof TUNING
-export const TUNING_DEFAULTS: Readonly<Tuning> = { ...TUNING }
-
-/** What the rules are reading right now. */
-export const tuning = (): Readonly<Tuning> => TUNING
-
-/**
- * Move one or more of them. The caller is responsible for asking whatever is
- * on screen to repaint — nothing here is watching, because the rules are
- * pure functions and the renderer only re-runs them when it is told to.
- */
-export function setTuning(next: Partial<Tuning>): void {
-  Object.assign(TUNING, next)
-}
-
-/**
- * What a tuning panel needs to draw a row: what the number does in a sentence,
- * how far it is worth dragging, and where the useful part of that travel is.
- *
- * The bounds are wider than the recommended band on purpose. The band is the
- * conclusion; the travel outside it is the evidence, and a reader who drags
- * `PAPER_BOARD` to 0.62 and watches Light Up's bulb sink into the paper has
- * learnt more than the band alone could tell them.
- *
- * `range` and `advice` are measured, not guessed: each was swept over the whole
- * collection, all 426 slots recomputed at every step, and the ends are where
- * something named breaks. The wording is deliberately plain — this is the one
- * place in the engine that talks to a person rather than to a compiler.
- */
-export type Knob = {
-  key: keyof Tuning
-  /** Slider travel. Wider than `band`, so the edges can be felt. */
-  range: [number, number]
-  /** Where the value is worth leaving. */
-  band: [number, number]
-  step: number
-}
-
-export const KNOBS: readonly Knob[] = [
-  { key: 'FLOOR', range: [0, 0.25], band: [0.03, 0.12], step: 0.005 },
-  { key: 'CEILING', range: [0.6, 1], band: [0.72, 0.9], step: 0.005 },
-  { key: 'VEIL', range: [0, 1], band: [0.15, 0.55], step: 0.01 },
-  { key: 'LIFT_CEILING', range: [0.4, 0.9], band: [0.6, 0.72], step: 0.005 },
-  { key: 'ACHROMATIC', range: [0, 0.5], band: [0.01, 0.19], step: 0.005 },
-  { key: 'PAPER_BOARD', range: [0.25, 0.75], band: [0.47, 0.53], step: 0.005 },
-]
-
 type Colour = { h: number; s: number; l: number; r: number; g: number; b: number }
 
 /** The back end always sends `#rrggbb`; anything else is left alone. */
@@ -760,7 +697,7 @@ function ratio(a: number, b: number): number {
  * still means what it meant; there is just less of it.
  */
 function veil(colour: Colour): string {
-  const keep = 1 - TUNING.VEIL * luminance(colour)
+  const keep = 1 - VEIL * luminance(colour)
   const channel = (v: number) =>
     Math.round(v * keep * 255)
       .toString(16)
@@ -790,10 +727,10 @@ function format({ h, s, l }: { h: number; s: number; l: number }): string {
 }
 
 /** Where the flip would put a lightness — the ordinary case. */
-const flip = (l: number) => TUNING.FLOOR + (1 - l) * (TUNING.CEILING - TUNING.FLOOR)
+const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
 
 /** Where a kept colour goes: same range, same direction as it started. */
-const compress = (l: number) => TUNING.FLOOR + l * (TUNING.CEILING - TUNING.FLOOR)
+const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
 
 /**
  * The same compression, for the one caller that cannot go through the table:
@@ -844,13 +781,13 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     if (!colour) return css
     if (semantic) {
       if (index === BACKGROUND && needsRoom)
-        return format({ ...colour, l: TUNING.PAPER_BOARD })
+        return format({ ...colour, l: PAPER_BOARD })
       // Compressed, not inverted: same range as the flip, same direction as
       // the original.
       if (semantic.includes(index))
         return format({ ...colour, l: compress(colour.l) })
     }
-    if (colour.s >= TUNING.ACHROMATIC) return veil(colour)
+    if (colour.s >= ACHROMATIC) return veil(colour)
     return format({ ...colour, l: flip(colour.l) })
   })
 
@@ -914,11 +851,11 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     const was = parse(light[index])
     const now = parse(flipped[index])
     if (!was || !now || !board || !darkBoard) continue
-    if (was.s < TUNING.ACHROMATIC) continue
+    if (was.s < ACHROMATIC) continue
     const ground = luminance(darkBoard)
     const want = ratio(luminance(board), luminance(was))
     if (ratio(ground, luminance(now)) >= want) continue
-    flipped[index] = standOff(now, ground, want, now.l, TUNING.LIFT_CEILING)
+    flipped[index] = standOff(now, ground, want, now.l, LIFT_CEILING)
   }
 
   /*

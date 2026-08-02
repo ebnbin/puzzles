@@ -6,7 +6,6 @@ import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
-import TuningPanel from './TuningPanel'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
 import {
@@ -426,17 +425,6 @@ export default function PuzzleHost({
     apiRef.current?.rescale()
   }, [theme, ready])
 
-  /**
-   * Same two steps, for the tuning panel: it edits the constants the rules
-   * read, which changes the answer for a board that has not moved. `setDark`
-   * would decline — the theme it would be handed is the one already in force —
-   * so the renderer is told to run the rules again outright.
-   */
-  const applyTuning = useCallback(() => {
-    rendererRef.current?.recolour()
-    apiRef.current?.rescale()
-  }, [])
-
   /** A dialog is modal to the game; the C side is waiting for its answer. */
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
@@ -777,13 +765,6 @@ export default function PuzzleHost({
         </button>
         <HoldTip tip={tip} />
       </nav>
-
-      {/* Temporary, and deliberately always there: judging a palette constant
-          means moving it back and forth over a live board, and a dialog
-          charges for every trip. The stylesheet gives it a rail of its own
-          past 64em and nothing below that. Meant to come out once the values
-          are judged. */}
-      <TuningPanel onApply={applyTuning} dark={dark} />
 
       {helpOpen && (
         /* A corner cross rather than a button in a row of buttons, because

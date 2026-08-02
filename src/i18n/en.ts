@@ -109,64 +109,6 @@ export const en = {
     ok: 'OK',
   },
 
-  /**
-   * The palette tuning panel. Every one of these is a plain-language gloss on
-   * a constant in engine/palette.ts, written for someone moving a slider and
-   * watching the board — not for someone reading the algorithm. The numbers in
-   * them were measured by sweeping each constant over all 426 colours; the
-   * comment on each `const` has the workings.
-   */
-  tuning: {
-    title: 'Palette tuning',
-    open: 'Tune the palette',
-    subtitle:
-      'Six numbers turn every light colour into its dark one. Drag to see what each does. The marked span is where the value is worth leaving; outside it, something named breaks.',
-    lightOnly:
-      'These only apply to the dark board. Switch to dark to see them do anything.',
-    reset: 'Reset',
-    resetAll: 'Reset all',
-    band: 'Recommended',
-    dflt: 'Default',
-    knobs: {
-      FLOOR: {
-        name: 'Darkest point',
-        what: 'How black the dark board is. Everything that was lightest upstream lands here.',
-        low: 'Board goes darker; at 0 a kept black is pure #000000 with nowhere left to go.',
-        high: 'Board goes pale — by 0.20 it is a mid grey, and ink loses a third of its contrast.',
-      },
-      CEILING: {
-        name: 'Brightest point',
-        what: 'How bright the ink gets. Everything that was darkest upstream lands here.',
-        low: 'Ink goes grey rather than white. Still readable, just softer.',
-        high: 'Glare. From 0.94 up, sixty slots cross into hurting to look at; 1.00 is pure white.',
-      },
-      VEIL: {
-        name: 'Colour dimming',
-        what: 'How far coloured things are pulled down. Touches only the 200 slots that have a hue — the board and the ink do not move at all.',
-        low: 'Colours get brighter and start to glow: at 0 the cyans and yellows are the loudest thing on screen.',
-        high: 'Everything muddies. Past 0.55 the hues stop standing off the board.',
-      },
-      LIFT_CEILING: {
-        name: 'Dark-colour lift',
-        what: 'How far a colour picked to be dark on white paper may be raised. Raising it costs colour, so this is where to stop.',
-        low: 'Dark blues and reds sink back into the board — the thing this lift exists to prevent.',
-        high: 'They wash out. By 0.82 a navy is lavender.',
-      },
-      ACHROMATIC: {
-        name: 'Grey / colour line',
-        what: 'Below this saturation a colour counts as structure and is turned over; above it, as meaning and is kept.',
-        low: 'At 0 even pure grey counts as coloured — the whole board stops turning over and dark mode disappears.',
-        high: 'Muted colours start being treated as greys and inverted.',
-      },
-      PAPER_BOARD: {
-        name: 'Paper board height',
-        what: 'Where the board moves to in the three games that draw a kept black on it. Light Up, Singles and Range only.',
-        low: 'Black writing on the board stops being readable against it.',
-        high: 'The light things drawn on the paper sink into it instead.',
-      },
-    },
-  },
-
   notFound: {
     title: 'Not found',
     body: (name: string) => `There is no puzzle called “${name}”.`,
