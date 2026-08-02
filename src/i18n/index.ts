@@ -87,13 +87,12 @@ export function useStrings(): Strings {
 }
 
 /**
- * Where a page of the manual lives. The English tree sits at the root of
- * `/doc/` and the translation hangs off it — an asymmetry that upstream's own
- * pages used to require, linking into it as `../doc/<game>.html` with paths
- * that were not ours to rewrite. Those pages are gone. Nothing forces the shape
- * now; it is simply where the tree already is, and where every link written to
- * it since points.
+ * Where a page of the manual lives: one directory per language, named after it,
+ * neither of them the default. The English tree used to sit at the root of
+ * `/doc/` with the translation hanging off it — an asymmetry upstream's own
+ * gallery pages once required, linking in as `../doc/<game>.html` with paths
+ * that were not ours to rewrite. Those pages are not published here.
  */
 export function docHref(lang: Lang, page = ''): string {
-  return `/doc/${lang === 'zh' ? 'zh/' : ''}${page}`
+  return `/doc/${lang}/${page}`
 }

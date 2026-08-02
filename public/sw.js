@@ -10,8 +10,8 @@
  * That used to be all: a cache hit was returned and nothing was fetched. It
  * rested on a claim in this comment — that every file here changes its URL
  * when it changes its contents — and the claim was false. Vite hashes the
- * bundles, and the wasm is rebuilt rarely and deliberately, but /doc.css is
- * one file at one address regenerated on every change to the manual's
+ * bundles, and the wasm is rebuilt rarely and deliberately, but /doc/doc.css
+ * is one file at one address regenerated on every change to the manual's
  * styling. So a reader who had once opened the manual kept that stylesheet
  * for good: new pages, and the rules that were supposed to lay them out from
  * five deploys ago. The light-and-dark button showed both of its faces

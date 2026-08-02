@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Introduction</title>
+<link rel="stylesheet" href="/doc/doc.css?v=df51a7b6">
+<link rel="previous" href="index.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="common.html">
+<script>
+;(function () {
+  // Open at the top of the page, not a screenful into it.
+  //
+  // Halibut writes every cross-reference as file plus fragment — the contents
+  // page links Net as `net.html#net` — because in its world one file may hold
+  // several chapters. Here one never does: `-Chtml-template-filename:%k.html`
+  // against `-Chtml-template-fragment:%k` puts each chapter in a file named
+  // after it, so that fragment names the h1 rather than picking one chapter out
+  // of many, and following it scrolls off the two things standing above the
+  // h1 — halibut's own Previous | Contents | Index | Next row, and the
+  // chapter's list of its own sections. Arriving with both gone reads as a page
+  // that opened halfway through, which is what it is.
+  //
+  // Only the page's own name is dropped, and only from the address it was
+  // loaded with; `#net-controls` is a real jump into the chapter and every
+  // index entry is one too, so they are left exactly as they are. Rewriting
+  // before the parser reaches <body> is enough on its own: the browser takes
+  // the scroll from the URL once the document is parsed, and by then there is
+  // nothing there to scroll to. Measured on net.html at a phone's width: this
+  // opens at 0, and without it the page arrives 191px down.
+  var self = location.pathname.replace(/.*\//, '').replace(/\.html$/, '')
+  if (self && location.hash === '#' + self) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
+  var root = document.documentElement
+  var bar = document.querySelector('meta[name="theme-color"]')
+  function paint(dark) {
+    root.dataset.theme = dark ? 'dark' : 'light'
+    bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  }
+  var system = matchMedia('(prefers-color-scheme: dark)')
+  // Stored light or dark wins; anything else — including nothing stored, which
+  // is the common case — means whatever the machine is set to. useTheme's
+  // `read` and `resolve`, in the form a page with no React can use.
+  function stored() {
+    try {
+      var value = localStorage.getItem('puzzles.theme')
+      if (value === 'light' || value === 'dark') return value === 'dark'
+    } catch (e) {}
+    return system.matches
+  }
+  paint(stored())
+  // The app is a tab of its own — this page was opened from it — and the two
+  // share one setting, so a change made over there has to arrive here. Fires
+  // in every other document of the origin and never in the one that wrote.
+  addEventListener('storage', function (event) {
+    if (event.key === null || event.key === 'puzzles.theme') paint(stored())
+  })
+  // And the machine changing its mind, which reaches this page only while the
+  // reader has left the setting to it — `stored` ignores it otherwise.
+  system.addEventListener('change', function () {
+    paint(stored())
+  })
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+  // One press, committing to a side: it writes light or dark, so a page left on
+  // the machine's answer stops following it from here on. "System" is a third
+  // state and stays where a third state can be shown, which is the app's
+  // settings — and this is the only press of its kind left, the puzzle screen
+  // having given its one up. A page of prose has nowhere else to put one.
+  //
+  // Reads the painted attribute rather than the stored value, so the side it
+  // commits to is the opposite of what is on the screen, whether that came
+  // from a choice or from the machine.
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('.doc-theme')
+    if (!button) return
+    var dark = root.dataset.theme !== 'dark'
+    try {
+      localStorage.setItem('puzzles.theme', dark ? 'dark' : 'light')
+    } catch (e) {}
+    paint(dark)
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<span class="doc-top-title">Puzzles</span>
+<span class="segmented doc-lang"><a href="/doc/en/intro.html" data-lang="en" hreflang="en" aria-current="true">EN</a><a href="/doc/zh/intro.html" data-lang="zh" hreflang="zh-Hans">中文</a></span>
+<button type="button" class="doc-theme" aria-label="Light or dark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/><path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/><path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/><path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/></svg></button>
+</header>
+<main class="doc-main">
+<p><a href="index.html">Previous</a> | <a href="index.html">Contents</a> | <a href="indexpage.html">Index</a> | <a href="common.html">Next</a></p>
+<h1><a name="intro"></a>Chapter 1: Introduction</h1>
+<p>
+I wrote this collection because I thought there should be more small desktop toys available: little games you can pop up in a window and play for two or three minutes while you take a break from whatever else you were doing. And I was also annoyed that every time I found a good game on (say) <a name="i0"></a>Unix, it wasn't available the next time I was sitting at a <a name="i1"></a>Windows machine, or vice versa; so I arranged that everything in my personal puzzle collection will happily run on both, and have more recently done a port to <a name="i2"></a>Mac OS X as well. When I find (or perhaps invent) further puzzle games that I like, they'll be added to this collection and will immediately be available on both platforms. And if anyone feels like writing any other front ends &#8211; PocketPC, Mac OS pre-10, or whatever it might be &#8211; then all the games in this framework will immediately become available on another platform as well.
+</p>
+<p>
+The actual games in this collection were mostly not my invention; they are re-implementations of existing game concepts within my portable puzzle framework. I do not claim credit, in general, for inventing the rules of any of these puzzles. (I don't even claim authorship of all the code; some of the puzzles have been submitted by other authors.)
+</p>
+<p>
+This collection is distributed under the <a name="i3"></a>MIT licence (see <a href="licence.html#licence">appendix A</a>). This means that you can do pretty much anything you like with the game binaries or the code, except pretending you wrote them yourself, or suing me if anything goes wrong.
+</p>
+<p>
+The most recent versions, and <a name="i4"></a>source code, can be found at <a name="i5"></a><a href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/"><code>https://www.chiark.greenend.org.uk/~sgtatham/puzzles/</code></a>.
+</p>
+<p>
+Please report <a name="i6"></a><a name="i7"></a>bugs to <a href="mailto:anakin@pobox.com"><code>anakin@pobox.com</code></a>. You might find it helpful to read this article before reporting a bug:
+</p>
+<p>
+<a href="https://www.chiark.greenend.org.uk/~sgtatham/bugs.html"><code>https://www.chiark.greenend.org.uk/~sgtatham/bugs.html</code></a>
+</p>
+<p>
+<a name="i8"></a>Patches are welcome. Especially if they provide a new front end (to make all these games run on another platform), or a new game.
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham's Portable Puzzle Collection, distributed under the <a href="licence.html#licence">MIT licence</a>.</p></footer>
+</body>
+</html>

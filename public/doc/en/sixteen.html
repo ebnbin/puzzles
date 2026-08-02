@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Sixteen</title>
+<link rel="stylesheet" href="/doc/doc.css?v=df51a7b6">
+<link rel="previous" href="fifteen.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="twiddle.html">
+<script>
+;(function () {
+  // Open at the top of the page, not a screenful into it.
+  //
+  // Halibut writes every cross-reference as file plus fragment — the contents
+  // page links Net as `net.html#net` — because in its world one file may hold
+  // several chapters. Here one never does: `-Chtml-template-filename:%k.html`
+  // against `-Chtml-template-fragment:%k` puts each chapter in a file named
+  // after it, so that fragment names the h1 rather than picking one chapter out
+  // of many, and following it scrolls off the two things standing above the
+  // h1 — halibut's own Previous | Contents | Index | Next row, and the
+  // chapter's list of its own sections. Arriving with both gone reads as a page
+  // that opened halfway through, which is what it is.
+  //
+  // Only the page's own name is dropped, and only from the address it was
+  // loaded with; `#net-controls` is a real jump into the chapter and every
+  // index entry is one too, so they are left exactly as they are. Rewriting
+  // before the parser reaches <body> is enough on its own: the browser takes
+  // the scroll from the URL once the document is parsed, and by then there is
+  // nothing there to scroll to. Measured on net.html at a phone's width: this
+  // opens at 0, and without it the page arrives 191px down.
+  var self = location.pathname.replace(/.*\//, '').replace(/\.html$/, '')
+  if (self && location.hash === '#' + self) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
+  var root = document.documentElement
+  var bar = document.querySelector('meta[name="theme-color"]')
+  function paint(dark) {
+    root.dataset.theme = dark ? 'dark' : 'light'
+    bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  }
+  var system = matchMedia('(prefers-color-scheme: dark)')
+  // Stored light or dark wins; anything else — including nothing stored, which
+  // is the common case — means whatever the machine is set to. useTheme's
+  // `read` and `resolve`, in the form a page with no React can use.
+  function stored() {
+    try {
+      var value = localStorage.getItem('puzzles.theme')
+      if (value === 'light' || value === 'dark') return value === 'dark'
+    } catch (e) {}
+    return system.matches
+  }
+  paint(stored())
+  // The app is a tab of its own — this page was opened from it — and the two
+  // share one setting, so a change made over there has to arrive here. Fires
+  // in every other document of the origin and never in the one that wrote.
+  addEventListener('storage', function (event) {
+    if (event.key === null || event.key === 'puzzles.theme') paint(stored())
+  })
+  // And the machine changing its mind, which reaches this page only while the
+  // reader has left the setting to it — `stored` ignores it otherwise.
+  system.addEventListener('change', function () {
+    paint(stored())
+  })
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+  // One press, committing to a side: it writes light or dark, so a page left on
+  // the machine's answer stops following it from here on. "System" is a third
+  // state and stays where a third state can be shown, which is the app's
+  // settings — and this is the only press of its kind left, the puzzle screen
+  // having given its one up. A page of prose has nowhere else to put one.
+  //
+  // Reads the painted attribute rather than the stored value, so the side it
+  // commits to is the opposite of what is on the screen, whether that came
+  // from a choice or from the machine.
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('.doc-theme')
+    if (!button) return
+    var dark = root.dataset.theme !== 'dark'
+    try {
+      localStorage.setItem('puzzles.theme', dark ? 'dark' : 'light')
+    } catch (e) {}
+    paint(dark)
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<span class="doc-top-title">Puzzles</span>
+<span class="segmented doc-lang"><a href="/doc/en/sixteen.html" data-lang="en" hreflang="en" aria-current="true">EN</a><a href="/doc/zh/sixteen.html" data-lang="zh" hreflang="zh-Hans">中文</a></span>
+<button type="button" class="doc-theme" aria-label="Light or dark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/><path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/><path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/><path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/></svg></button>
+</header>
+<main class="doc-main">
+<p><a href="fifteen.html">Previous</a> | <a href="index.html">Contents</a> | <a href="indexpage.html">Index</a> | <a href="twiddle.html">Next</a></p>
+<h1><a name="sixteen"></a>Chapter 6: <a name="i0"></a>Sixteen</h1>
+<p>
+Another sliding tile puzzle, visually similar to Fifteen (see <a href="fifteen.html#fifteen">chapter 5</a>) but with a different type of move. This time, there is no hole: all 16 squares on the grid contain numbered squares. Your move is to shift an entire row left or right, or shift an entire column up or down; every time you do that, the tile you shift off the grid re-appears at the other end of the same row, in the space you just vacated. To win, arrange the tiles into numerical order (1,2,3,4 on the top row, 13,14,15,16 on the bottom). When you've done that, try playing on different sizes of grid.
+</p>
+<p>
+I <em>might</em> have invented this game myself, though only by accident if so (and I'm sure other people have independently invented it). I thought I was imitating a screensaver I'd seen, but I have a feeling that the screensaver might actually have been a Fifteen-type puzzle rather than this slightly different kind. So this might be the one thing in my puzzle collection which represents creativity on my part rather than just engineering.
+</p>
+<h2><a name="sixteen-controls"></a>6.1 <a name="i1"></a>Sixteen controls</h2>
+<p>
+Left-clicking on an arrow will move the appropriate row or column in the direction indicated. Right-clicking will move it in the opposite direction.
+</p>
+<p>
+Alternatively, use the cursor keys to move the position indicator around the edge of the grid, and use the return key to move the row/column in the direction indicated.
+</p>
+<p>
+You can also move the tiles directly. Move the cursor onto a tile, hold Control and press an arrow key to move the tile under the cursor and move the cursor along with the tile. Or, hold Shift to move only the tile. Pressing Enter simulates holding down Control (press Enter again to release), while pressing Space simulates holding down shift.
+</p>
+<p>
+(All the actions described in <a href="common.html#common-actions">section 2.1</a> are also available.)
+</p>
+<h2><a name="sixteen-params"></a>6.2 <a name="i2"></a>Sixteen parameters</h2>
+<p>
+The parameters available from the &#8216;Custom...&#8217; option on the &#8216;Type&#8217; menu are:
+</p>
+<ul><li>
+<em>Width</em> and <em>Height</em>, which are self-explanatory.
+</li>
+<li>
+You can ask for a limited shuffling operation to be performed on the grid. By default, Sixteen will shuffle the grid in such a way that any arrangement is about as probable as any other. You can override this by requesting a precise number of shuffling moves to be performed. Typically your aim is then to determine the precise set of shuffling moves and invert them exactly, so that you answer (say) a four-move shuffle with a four-move solution. Note that the more moves you ask for, the more likely it is that solutions shorter than the target length will turn out to be possible.
+</li>
+</ul>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham's Portable Puzzle Collection, distributed under the <a href="licence.html#licence">MIT licence</a>.</p></footer>
+</body>
+</html>

@@ -103,11 +103,11 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 
 | 文件 | 由谁生成 |
 | --- | --- |
-| `public/engine/**`、`public/doc/**` | `scripts/build-games.sh` |
+| `public/engine/**`、`public/doc/**`(手册,每种语言一个目录:`doc/en/`、`doc/zh/`) | `scripts/build-games.sh` |
 | `src/games.json`、`public/help.json` | `scripts/extract-games.mjs`(读上游 CMakeLists.txt 和 html/) |
 | `public/icons/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
 | `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/icons/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
-| `public/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
+| `public/doc/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
 
 手写的对应物只有翻译:`src/games.zh.json`、`public/help.zh.json`、`doc-zh/`。
 `extract-games.mjs` 会在它们与英文版脱节时告警,`verify-doc.mjs` 逐页比对标签序列、

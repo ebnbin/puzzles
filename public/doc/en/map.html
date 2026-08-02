@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Map</title>
+<link rel="stylesheet" href="/doc/doc.css?v=df51a7b6">
+<link rel="previous" href="lightup.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="loopy.html">
+<script>
+;(function () {
+  // Open at the top of the page, not a screenful into it.
+  //
+  // Halibut writes every cross-reference as file plus fragment — the contents
+  // page links Net as `net.html#net` — because in its world one file may hold
+  // several chapters. Here one never does: `-Chtml-template-filename:%k.html`
+  // against `-Chtml-template-fragment:%k` puts each chapter in a file named
+  // after it, so that fragment names the h1 rather than picking one chapter out
+  // of many, and following it scrolls off the two things standing above the
+  // h1 — halibut's own Previous | Contents | Index | Next row, and the
+  // chapter's list of its own sections. Arriving with both gone reads as a page
+  // that opened halfway through, which is what it is.
+  //
+  // Only the page's own name is dropped, and only from the address it was
+  // loaded with; `#net-controls` is a real jump into the chapter and every
+  // index entry is one too, so they are left exactly as they are. Rewriting
+  // before the parser reaches <body> is enough on its own: the browser takes
+  // the scroll from the URL once the document is parsed, and by then there is
+  // nothing there to scroll to. Measured on net.html at a phone's width: this
+  // opens at 0, and without it the page arrives 191px down.
+  var self = location.pathname.replace(/.*\//, '').replace(/\.html$/, '')
+  if (self && location.hash === '#' + self) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
+  var root = document.documentElement
+  var bar = document.querySelector('meta[name="theme-color"]')
+  function paint(dark) {
+    root.dataset.theme = dark ? 'dark' : 'light'
+    bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  }
+  var system = matchMedia('(prefers-color-scheme: dark)')
+  // Stored light or dark wins; anything else — including nothing stored, which
+  // is the common case — means whatever the machine is set to. useTheme's
+  // `read` and `resolve`, in the form a page with no React can use.
+  function stored() {
+    try {
+      var value = localStorage.getItem('puzzles.theme')
+      if (value === 'light' || value === 'dark') return value === 'dark'
+    } catch (e) {}
+    return system.matches
+  }
+  paint(stored())
+  // The app is a tab of its own — this page was opened from it — and the two
+  // share one setting, so a change made over there has to arrive here. Fires
+  // in every other document of the origin and never in the one that wrote.
+  addEventListener('storage', function (event) {
+    if (event.key === null || event.key === 'puzzles.theme') paint(stored())
+  })
+  // And the machine changing its mind, which reaches this page only while the
+  // reader has left the setting to it — `stored` ignores it otherwise.
+  system.addEventListener('change', function () {
+    paint(stored())
+  })
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+  // One press, committing to a side: it writes light or dark, so a page left on
+  // the machine's answer stops following it from here on. "System" is a third
+  // state and stays where a third state can be shown, which is the app's
+  // settings — and this is the only press of its kind left, the puzzle screen
+  // having given its one up. A page of prose has nowhere else to put one.
+  //
+  // Reads the painted attribute rather than the stored value, so the side it
+  // commits to is the opposite of what is on the screen, whether that came
+  // from a choice or from the machine.
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('.doc-theme')
+    if (!button) return
+    var dark = root.dataset.theme !== 'dark'
+    try {
+      localStorage.setItem('puzzles.theme', dark ? 'dark' : 'light')
+    } catch (e) {}
+    paint(dark)
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<span class="doc-top-title">Puzzles</span>
+<span class="segmented doc-lang"><a href="/doc/en/map.html" data-lang="en" hreflang="en" aria-current="true">EN</a><a href="/doc/zh/map.html" data-lang="zh" hreflang="zh-Hans">中文</a></span>
+<button type="button" class="doc-theme" aria-label="Light or dark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/><path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/><path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/><path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/></svg></button>
+</header>
+<main class="doc-main">
+<p><a href="lightup.html">Previous</a> | <a href="index.html">Contents</a> | <a href="indexpage.html">Index</a> | <a href="loopy.html">Next</a></p>
+
+<ul>
+<li><a href="#map">Chapter 22: Map</a>
+<ul>
+<li><a href="#map-controls">22.1 Map controls</a></li>
+<li><a href="#map-parameters">22.2 Map parameters</a></li>
+<li><a href="#map-prefs">22.3 Map user preferences</a></li>
+</ul></li>
+</ul>
+<h1><a name="map"></a>Chapter 22: <a name="i0"></a>Map</h1>
+<p>
+You are given a map consisting of a number of regions. Your task is to colour each region with one of four colours, in such a way that no two regions sharing a boundary have the same colour. You are provided with some regions already coloured, sufficient to make the remainder of the solution unique, and these cannot be changed.
+</p>
+<p>
+Only regions which share a length of border are required to be different colours. Two regions which meet at only one <em>point</em> (i.e. are diagonally separated) may be the same colour.
+</p>
+<p>
+I believe this puzzle is original; I've never seen an implementation of it anywhere else. The concept of a <a name="i1"></a>four-colouring puzzle was suggested by Alexandra Lanes; credit must also go to Nikoli and to Verity Allan for inspiring the train of thought that led to me realising Alex's suggestion was a viable puzzle. Thanks also to Gareth Taylor for many detailed suggestions.
+</p>
+<h2><a name="map-controls"></a>22.1 <a name="i2"></a>Map controls</h2>
+<p>
+To colour a region, click the left mouse button on an existing region of the desired colour and drag that colour into the new region.
+</p>
+<p>
+(The program will always ensure the starting puzzle has at least one region of each colour, so that this is always possible!)
+</p>
+<p>
+If you need to clear a region, you can drag from an empty region, or from the puzzle boundary if there are no empty regions left.
+</p>
+<p>
+Dragging a colour using the <em>right</em> mouse button will stipple the region in that colour, which you can use as a note to yourself that you think the region <em>might</em> be that colour. A region can contain stipples in multiple colours at once. (This is often useful at the harder difficulty levels.)
+</p>
+<p>
+You can also use the cursor keys to move around the map: the colour of the cursor indicates the position of the colour you would drag (which is not obvious if you're on a region's boundary, since it depends on the direction from which you approached the boundary). Pressing the return key starts a drag of that colour, as above, which you control with the cursor keys; pressing the return key again finishes the drag. The space bar can be used similarly to create a stippled region. Double-pressing the return key (without moving the cursor) will clear the region, as a drag from an empty region does: this is useful with the cursor mode if you have filled the entire map in but need to correct the layout.
+</p>
+<p>
+If you press L during play, the game will toggle display of a number in each region of the map. This is useful if you want to discuss a particular puzzle instance with a friend &#8211; having an unambiguous name for each region is much easier than trying to refer to them all by names such as &#8216;the one down and right of the brown one on the top border&#8217;.
+</p>
+<p>
+(All the actions described in <a href="common.html#common-actions">section 2.1</a> are also available.)
+</p>
+<h2><a name="map-parameters"></a>22.2 <a name="i3"></a>Map parameters</h2>
+<p>
+These parameters are available from the &#8216;Custom...&#8217; option on the &#8216;Type&#8217; menu.
+</p>
+<dl><dt>
+<em>Width</em>, <em>Height</em>
+</dt>
+<dd>
+Size of grid in squares.
+</dd>
+<dt>
+<em>Regions</em>
+</dt>
+<dd>
+Number of regions in the generated map.
+</dd>
+<dt>
+<em>Difficulty</em>
+</dt>
+<dd>
+In &#8216;Easy&#8217; mode, there should always be at least one region whose colour can be determined trivially. In &#8216;Normal&#8217; and &#8216;Hard&#8217; modes, you will have to use increasingly complex logic to deduce the colour of some regions. However, it will always be possible without having to guess or backtrack.
+<p>
+In &#8216;Unreasonable&#8217; mode, the program will feel free to generate puzzles which are as hard as it can possibly make them: the only constraint is that they should still have a unique solution. Solving Unreasonable puzzles may require guessing and backtracking.
+</p>
+
+</dd>
+</dl>
+<h2><a name="map-prefs"></a>22.3 <a name="i4"></a>Map user preferences</h2>
+<p>
+On platforms that support user preferences, the &#8216;Preferences&#8217; option on the &#8216;Game&#8217; menu will let you configure the style of the victory flash and also whether the regions start out labelled with numbers.
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham's Portable Puzzle Collection, distributed under the <a href="licence.html#licence">MIT licence</a>.</p></footer>
+</body>
+</html>

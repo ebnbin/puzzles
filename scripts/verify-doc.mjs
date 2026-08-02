@@ -18,6 +18,9 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DOC = join(ROOT, 'public/doc')
+/** One directory per language, neither of them the default. See build-doc.mjs. */
+const EN = join(DOC, 'en')
+const ZH = join(DOC, 'zh')
 
 let failures = 0
 const ok = (m) => console.log(`  ok  ${m}`)
@@ -56,10 +59,10 @@ try {
   )
 
   const fresh = readdirSync(scratch).filter((f) => f.endsWith('.html'))
-  const published = readdirSync(DOC).filter((f) => f.endsWith('.html'))
+  const published = readdirSync(EN).filter((f) => f.endsWith('.html'))
   fresh.length === published.length && fresh.length === 45
     ? ok(`${fresh.length} pages, same set as halibut just produced`)
-    : bad(`halibut wrote ${fresh.length}, public/doc has ${published.length}`)
+    : bad(`halibut wrote ${fresh.length}, public/doc/en has ${published.length}`)
 
   let differing = 0
   for (const file of fresh) {
@@ -69,7 +72,7 @@ try {
       open + '\n<body>\n'.length,
       raw.length - '\n<hr><address></address></body>\n</html>\n'.length,
     )
-    if (body(readFileSync(join(DOC, file), 'utf8')) !== inner) {
+    if (body(readFileSync(join(EN, file), 'utf8')) !== inner) {
       if (differing < 3) console.log(`      ${file}`)
       differing++
     }
@@ -84,8 +87,8 @@ try {
 // --- the head every page needed and never had ----------------------------
 {
   const trees = [
-    ['en', DOC, 'en'],
-    ['zh', join(DOC, 'zh'), 'zh-Hans'],
+    ['en', EN, 'en'],
+    ['zh', ZH, 'zh-Hans'],
   ]
   for (const [label, dir, htmlLang] of trees) {
     const files = readdirSync(dir).filter((f) => f.endsWith('.html'))
@@ -94,7 +97,7 @@ try {
       return !(
         html.includes('<meta name="viewport" content="width=device-width') &&
         // Versioned, so the worker cannot pin an old one. See build-doc.mjs.
-        /<link rel="stylesheet" href="\/doc\.css\?v=[0-9a-f]{8}">/.test(html) &&
+        /<link rel="stylesheet" href="\/doc\/doc\.css\?v=[0-9a-f]{8}">/.test(html) &&
         html.includes('<meta charset="utf-8">') &&
         html.includes("localStorage.getItem('puzzles.theme')") &&
         // Every page opens at its top, never a screenful down at its own
@@ -112,15 +115,35 @@ try {
   }
 }
 
+/* --- the bar says what this is a tab of, in either language ---------------
+ * The app's name, untranslated, in both trees — see BRAND in build-doc.mjs.
+ * A tree that translated it would be saying the collection is called something
+ * else here, which is the one thing this bar is not free to do.
+ */
+{
+  const wrong = []
+  for (const [label, dir] of [['en', EN], ['zh', ZH]])
+    for (const file of readdirSync(dir).filter((f) => f.endsWith('.html')))
+      if (
+        !readFileSync(join(dir, file), 'utf8').includes(
+          '<span class="doc-top-title">Puzzles</span>',
+        )
+      )
+        wrong.push(`${label}/${file}`)
+  wrong.length === 0
+    ? ok('every page names the collection, in English, at the head of the bar')
+    : bad(`${wrong.length} pages do not, e.g. ${wrong[0]}`)
+}
+
 // --- the translation is the same document --------------------------------
 {
-  const files = readdirSync(DOC).filter((f) => f.endsWith('.html'))
+  const files = readdirSync(EN).filter((f) => f.endsWith('.html'))
   const problems = []
   for (const file of files) {
-    const en = body(readFileSync(join(DOC, file), 'utf8'))
+    const en = body(readFileSync(join(EN, file), 'utf8'))
     let zh
     try {
-      zh = body(readFileSync(join(DOC, 'zh', file), 'utf8'))
+      zh = body(readFileSync(join(ZH, file), 'utf8'))
     } catch {
       problems.push(`${file}: no Chinese page`)
       continue
@@ -147,7 +170,7 @@ try {
   const games = JSON.parse(readFileSync(join(ROOT, 'src/games.json'), 'utf8'))
   const dead = []
   for (const { name } of games)
-    for (const dir of [DOC, join(DOC, 'zh')]) {
+    for (const dir of [EN, ZH]) {
       let html
       try {
         html = readFileSync(join(dir, `${name}.html`), 'utf8')

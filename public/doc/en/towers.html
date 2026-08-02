@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Towers</title>
+<link rel="stylesheet" href="/doc/doc.css?v=df51a7b6">
+<link rel="previous" href="keen.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="singles.html">
+<script>
+;(function () {
+  // Open at the top of the page, not a screenful into it.
+  //
+  // Halibut writes every cross-reference as file plus fragment — the contents
+  // page links Net as `net.html#net` — because in its world one file may hold
+  // several chapters. Here one never does: `-Chtml-template-filename:%k.html`
+  // against `-Chtml-template-fragment:%k` puts each chapter in a file named
+  // after it, so that fragment names the h1 rather than picking one chapter out
+  // of many, and following it scrolls off the two things standing above the
+  // h1 — halibut's own Previous | Contents | Index | Next row, and the
+  // chapter's list of its own sections. Arriving with both gone reads as a page
+  // that opened halfway through, which is what it is.
+  //
+  // Only the page's own name is dropped, and only from the address it was
+  // loaded with; `#net-controls` is a real jump into the chapter and every
+  // index entry is one too, so they are left exactly as they are. Rewriting
+  // before the parser reaches <body> is enough on its own: the browser takes
+  // the scroll from the URL once the document is parsed, and by then there is
+  // nothing there to scroll to. Measured on net.html at a phone's width: this
+  // opens at 0, and without it the page arrives 191px down.
+  var self = location.pathname.replace(/.*\//, '').replace(/\.html$/, '')
+  if (self && location.hash === '#' + self) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
+  var root = document.documentElement
+  var bar = document.querySelector('meta[name="theme-color"]')
+  function paint(dark) {
+    root.dataset.theme = dark ? 'dark' : 'light'
+    bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  }
+  var system = matchMedia('(prefers-color-scheme: dark)')
+  // Stored light or dark wins; anything else — including nothing stored, which
+  // is the common case — means whatever the machine is set to. useTheme's
+  // `read` and `resolve`, in the form a page with no React can use.
+  function stored() {
+    try {
+      var value = localStorage.getItem('puzzles.theme')
+      if (value === 'light' || value === 'dark') return value === 'dark'
+    } catch (e) {}
+    return system.matches
+  }
+  paint(stored())
+  // The app is a tab of its own — this page was opened from it — and the two
+  // share one setting, so a change made over there has to arrive here. Fires
+  // in every other document of the origin and never in the one that wrote.
+  addEventListener('storage', function (event) {
+    if (event.key === null || event.key === 'puzzles.theme') paint(stored())
+  })
+  // And the machine changing its mind, which reaches this page only while the
+  // reader has left the setting to it — `stored` ignores it otherwise.
+  system.addEventListener('change', function () {
+    paint(stored())
+  })
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+  // One press, committing to a side: it writes light or dark, so a page left on
+  // the machine's answer stops following it from here on. "System" is a third
+  // state and stays where a third state can be shown, which is the app's
+  // settings — and this is the only press of its kind left, the puzzle screen
+  // having given its one up. A page of prose has nowhere else to put one.
+  //
+  // Reads the painted attribute rather than the stored value, so the side it
+  // commits to is the opposite of what is on the screen, whether that came
+  // from a choice or from the machine.
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('.doc-theme')
+    if (!button) return
+    var dark = root.dataset.theme !== 'dark'
+    try {
+      localStorage.setItem('puzzles.theme', dark ? 'dark' : 'light')
+    } catch (e) {}
+    paint(dark)
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<span class="doc-top-title">Puzzles</span>
+<span class="segmented doc-lang"><a href="/doc/en/towers.html" data-lang="en" hreflang="en" aria-current="true">EN</a><a href="/doc/zh/towers.html" data-lang="zh" hreflang="zh-Hans">中文</a></span>
+<button type="button" class="doc-theme" aria-label="Light or dark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/><path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/><path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/><path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/></svg></button>
+</header>
+<main class="doc-main">
+<p><a href="keen.html">Previous</a> | <a href="index.html">Contents</a> | <a href="indexpage.html">Index</a> | <a href="singles.html">Next</a></p>
+
+<ul>
+<li><a href="#towers">Chapter 31: Towers</a>
+<ul>
+<li><a href="#towers-controls">31.1 Towers controls</a></li>
+<li><a href="#towers-parameters">31.2 Towers parameters</a></li>
+<li><a href="#towers-prefs">31.3 Towers user preferences</a></li>
+</ul></li>
+</ul>
+<h1><a name="towers"></a>Chapter 31: <a name="i0"></a>Towers</h1>
+<p>
+You have a square grid. On each square of the grid you can build a tower, with its height ranging from 1 to the size of the grid. Around the edge of the grid are some numeric clues.
+</p>
+<p>
+Your task is to build a tower on every square, in such a way that:
+</p>
+<ul><li>
+Each row contains every possible height of tower once
+</li>
+<li>
+Each column contains every possible height of tower once
+</li>
+<li>
+Each numeric clue describes the number of towers that can be seen if you look into the square from that direction, assuming that shorter towers are hidden behind taller ones. For example, in a 5&#215;5 grid, a clue marked &#8216;5&#8217; indicates that the five tower heights must appear in increasing order (otherwise you would not be able to see all five towers), whereas a clue marked &#8216;1&#8217; indicates that the tallest tower (the one marked 5) must come first.
+</li>
+</ul>
+<p>
+In harder or larger puzzles, some towers will be specified for you as well as the clues round the edge, and some edge clues may be missing.
+</p>
+<p>
+This puzzle appears on the web under various names, particularly &#8216;<a name="i1"></a>Skyscrapers&#8217;, but I don't know who first invented it.
+</p>
+<h2><a name="towers-controls"></a>31.1 <a name="i2"></a>Towers controls</h2>
+<p>
+Towers shares much of its control system with Solo, Unequal and Keen.
+</p>
+<p>
+To play Towers, simply click the mouse in any empty square and then type a digit on the keyboard to fill that square with a tower of the given height. If you make a mistake, click the mouse in the incorrect square and press Space to clear it again (or use the Undo feature).
+</p>
+<p>
+If you <em>right</em>-click in a square and then type a number, that number will be entered in the square as a &#8216;pencil mark&#8217;. You can have pencil marks for multiple numbers in the same square. A square containing a tower cannot also contain pencil marks.
+</p>
+<p>
+The game pays no attention to pencil marks, so exactly what you use them for is up to you: you can use them as reminders that a particular square needs to be re-examined once you know more about a particular number, or you can use them as lists of the possible numbers in a given square, or anything else you feel like.
+</p>
+<p>
+To erase a single pencil mark, right-click in the square and type the same number again.
+</p>
+<p>
+All pencil marks in a square are erased when you left-click and type a number, or when you left-click and press space. Right-clicking and pressing space will also erase pencil marks.
+</p>
+<p>
+As for Solo, the cursor keys can be used in conjunction with the digit keys to set numbers or pencil marks. Use the cursor keys to move a highlight around the grid, and type a digit to enter it in the highlighted square. Pressing return toggles the highlight into a mode in which you can enter or remove pencil marks.
+</p>
+<p>
+Pressing M will fill in a full set of pencil marks in every square that does not have a main digit in it.
+</p>
+<p>
+Left-clicking a clue will mark it as done (grey it out), or unmark it if it is already marked. Holding Control or Shift and pressing an arrow key likewise marks any clue in the given direction.
+</p>
+<p>
+(All the actions described in <a href="common.html#common-actions">section 2.1</a> are also available.)
+</p>
+<h2><a name="towers-parameters"></a>31.2 <a name="i3"></a>Towers parameters</h2>
+<p>
+These parameters are available from the &#8216;Custom...&#8217; option on the &#8216;Type&#8217; menu.
+</p>
+<dl><dt>
+<em>Grid size</em>
+</dt>
+<dd>
+Specifies the size of the grid. Lower limit is 3; upper limit is 9 (because the user interface would become more difficult with &#8216;digits&#8217; bigger than 9!).
+</dd>
+<dt>
+<em>Difficulty</em>
+</dt>
+<dd>
+Controls the difficulty of the generated puzzle. At Unreasonable level, some backtracking will be required, but the solution should still be unique. The remaining levels require increasingly complex reasoning to avoid having to backtrack.
+</dd>
+</dl>
+<h2><a name="towers-prefs"></a>31.3 <a name="i4"></a>Towers user preferences</h2>
+<p>
+On platforms that support user preferences, the &#8216;Preferences&#8217; option on the &#8216;Game&#8217; menu will let you configure the style of the game display. If you don't like the three-dimensional mode, selecting &#8216;2D&#8217; will switch to a simpler display style in which towers are shown by just writing their height in the square.
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham's Portable Puzzle Collection, distributed under the <a href="licence.html#licence">MIT licence</a>.</p></footer>
+</body>
+</html>

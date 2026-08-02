@@ -7,13 +7,20 @@
  *
  * This script does three things and stops:
  *
- *   1. runs halibut over vendor's puzzles.but with upstream's own flags, so
- *      the anchors the game pages link to (../doc/<game>.html#<game>) resolve
- *      exactly as they always have;
+ *   1. runs halibut over vendor's puzzles.but with upstream's own flags, into
+ *      public/doc/en/;
  *   2. lays the Simplified Chinese translation of that same output, kept in
  *      doc-zh/, alongside it as a second tree under public/doc/zh/;
  *   3. gives every page a head worth having and wraps its body in the app's
  *      chrome.
+ *
+ * One directory per language, neither of them the default. English used to sit
+ * at the root of public/doc/ with the translation hanging off it, which said
+ * that the manual was English and also had a Chinese version — a shape
+ * upstream's own gallery pages once required, linking in as
+ * ../doc/<game>.html. Those pages are not published here. Halibut's
+ * cross-references are relative and stay within one tree, so the move costs
+ * them nothing.
  *
  * The body markup itself is not touched. What comes out between <main> and
  * </main> is byte-for-byte what halibut wrote (or, for the second tree, what
@@ -42,9 +49,7 @@ const ZH_SRC = join(ROOT, 'doc-zh')
  */
 const CHROME = {
   en: {
-    dir: '',
     htmlLang: 'en',
-    section: 'Manual',
     /* One label for both states, because there is no React here to rewrite it
        on the way past and a stale one is worse than a general one. */
     theme: 'Light or dark',
@@ -53,9 +58,7 @@ const CHROME = {
       '<a href="licence.html#licence">MIT licence</a>.',
   },
   zh: {
-    dir: 'zh/',
     htmlLang: 'zh-Hans',
-    section: '手册',
     theme: '浅色或深色',
     footer:
       'Simon Tatham’s Portable Puzzle Collection，以 ' +
@@ -63,6 +66,19 @@ const CHROME = {
       '本手册为英文原版的简体中文译本。',
   },
 }
+
+/*
+ * What stands at the head of the bar, in either language.
+ *
+ * The app's name rather than the word "Manual", which is what it used to say —
+ * and which said the smaller of the two true things. A reader arrives here from
+ * a puzzle, in a tab of its own with no way back (see topBar), so the question
+ * the bar answers is not "which part of the app is this" but "what is this a
+ * tab of". The name answers that; "Manual" left the app itself unnamed.
+ *
+ * Untranslated, like i18n's `brand`: it is what the collection is called.
+ */
+const BRAND = 'Puzzles'
 
 const LANGS = /** @type {const} */ (['en', 'zh'])
 const LABEL = { en: 'EN', zh: '中文' }
@@ -220,7 +236,7 @@ function topBar(lang, file) {
   const choices = LANGS.map((code) => {
     const current = code === lang ? ' aria-current="true"' : ''
     return (
-      `<a href="/doc/${CHROME[code].dir}${file}" data-lang="${code}" ` +
+      `<a href="/doc/${code}/${file}" data-lang="${code}" ` +
       `hreflang="${CHROME[code].htmlLang}"${current}>${LABEL[code]}</a>`
     )
   }).join('')
@@ -229,7 +245,7 @@ function topBar(lang, file) {
   // script in the head listens on to keep the app's idea of the language in
   // step when it is changed from here.
   return `<header class="doc-top">
-<span class="doc-top-title">${c.section}</span>
+<span class="doc-top-title">${BRAND}</span>
 <span class="segmented doc-lang">${choices}</span>
 <button type="button" class="doc-theme" aria-label="${c.theme}">${SUN_ICON}${MOON_ICON}</button>
 </header>`
@@ -280,7 +296,7 @@ function styleTree(dir, lang) {
 
 // --- 1. generate ---------------------------------------------------------
 rmSync(OUT, { recursive: true, force: true })
-mkdirSync(OUT, { recursive: true })
+mkdirSync(join(OUT, 'en'), { recursive: true })
 execFileSync(
   'halibut',
   [
@@ -291,11 +307,11 @@ execFileSync(
     '-Chtml-template-fragment:%k',
     join(VENDOR, 'puzzles.but'),
   ],
-  { cwd: OUT, stdio: 'inherit' },
+  { cwd: join(OUT, 'en'), stdio: 'inherit' },
 )
 
 // --- 2. lay the translation alongside ------------------------------------
-const english = readdirSync(OUT).filter((f) => f.endsWith('.html'))
+const english = readdirSync(join(OUT, 'en')).filter((f) => f.endsWith('.html'))
 if (existsSync(ZH_SRC)) {
   const zh = readdirSync(ZH_SRC).filter((f) => f.endsWith('.html'))
   const missing = english.filter((f) => !zh.includes(f))
@@ -313,14 +329,17 @@ if (existsSync(ZH_SRC)) {
  * rules. segmented.css is here rather than copied into doc.css because a
  * control described twice is a control that drifts, and this one had.
  *
+ * Inside public/doc/, beside the two trees that are the only thing that ever
+ * asks for it, rather than at the root of public/ where it used to sit.
+ *
  * Stamped with the digest of what came out. The app's own stylesheet is
  * hashed by Vite and so is a different address every time it changes; this one
- * was `/doc.css` for ever, and the service worker — which serves an asset from
- * its cache — took that literally. A reader who had opened the manual once
- * kept its first stylesheet through every deploy after, so pages arrived with
- * rules five versions old and the light-and-dark button drew both of its
- * faces. A query is enough: the worker keys on the whole URL, and this one
- * changes exactly when the contents do.
+ * is one address regenerated in place, and the service worker — which serves an
+ * asset from its cache — took that literally. A reader who had opened the
+ * manual once kept its first stylesheet through every deploy after, so pages
+ * arrived with rules five versions old and the light-and-dark button drew both
+ * of its faces. A query is enough: the worker keys on the whole URL, and this
+ * one changes exactly when the contents do.
  */
 const css =
   '/* Generated by scripts/build-doc.mjs from src/tokens.css,\n' +
@@ -329,11 +348,11 @@ const css =
     .map((f) => readFileSync(join(ROOT, f), 'utf8'))
     .join('\n')
 
-writeFileSync(join(ROOT, 'public/doc.css'), css)
-const STYLESHEET = `/doc.css?v=${createHash('sha256').update(css).digest('hex').slice(0, 8)}`
+writeFileSync(join(OUT, 'doc.css'), css)
+const STYLESHEET = `/doc/doc.css?v=${createHash('sha256').update(css).digest('hex').slice(0, 8)}`
 
 // --- 4. dress ------------------------------------------------------------
-const styledEn = styleTree(OUT, 'en')
+const styledEn = styleTree(join(OUT, 'en'), 'en')
 const styledZh = existsSync(join(OUT, 'zh')) ? styleTree(join(OUT, 'zh'), 'zh') : 0
 
 console.log(`manual: ${styledEn} pages en, ${styledZh} pages zh, ${STYLESHEET}`)

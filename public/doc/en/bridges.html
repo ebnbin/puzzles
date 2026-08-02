@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafaf9">
+<title>Bridges</title>
+<link rel="stylesheet" href="/doc/doc.css?v=df51a7b6">
+<link rel="previous" href="tents.html">
+<link rel="ToC" href="index.html">
+<link rel="up" href="index.html">
+<link rel="index" href="indexpage.html">
+<link rel="next" href="unequal.html">
+<script>
+;(function () {
+  // Open at the top of the page, not a screenful into it.
+  //
+  // Halibut writes every cross-reference as file plus fragment — the contents
+  // page links Net as `net.html#net` — because in its world one file may hold
+  // several chapters. Here one never does: `-Chtml-template-filename:%k.html`
+  // against `-Chtml-template-fragment:%k` puts each chapter in a file named
+  // after it, so that fragment names the h1 rather than picking one chapter out
+  // of many, and following it scrolls off the two things standing above the
+  // h1 — halibut's own Previous | Contents | Index | Next row, and the
+  // chapter's list of its own sections. Arriving with both gone reads as a page
+  // that opened halfway through, which is what it is.
+  //
+  // Only the page's own name is dropped, and only from the address it was
+  // loaded with; `#net-controls` is a real jump into the chapter and every
+  // index entry is one too, so they are left exactly as they are. Rewriting
+  // before the parser reaches <body> is enough on its own: the browser takes
+  // the scroll from the URL once the document is parsed, and by then there is
+  // nothing there to scroll to. Measured on net.html at a phone's width: this
+  // opens at 0, and without it the page arrives 191px down.
+  var self = location.pathname.replace(/.*\//, '').replace(/\.html$/, '')
+  if (self && location.hash === '#' + self) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
+  var root = document.documentElement
+  var bar = document.querySelector('meta[name="theme-color"]')
+  function paint(dark) {
+    root.dataset.theme = dark ? 'dark' : 'light'
+    bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  }
+  var system = matchMedia('(prefers-color-scheme: dark)')
+  // Stored light or dark wins; anything else — including nothing stored, which
+  // is the common case — means whatever the machine is set to. useTheme's
+  // `read` and `resolve`, in the form a page with no React can use.
+  function stored() {
+    try {
+      var value = localStorage.getItem('puzzles.theme')
+      if (value === 'light' || value === 'dark') return value === 'dark'
+    } catch (e) {}
+    return system.matches
+  }
+  paint(stored())
+  // The app is a tab of its own — this page was opened from it — and the two
+  // share one setting, so a change made over there has to arrive here. Fires
+  // in every other document of the origin and never in the one that wrote.
+  addEventListener('storage', function (event) {
+    if (event.key === null || event.key === 'puzzles.theme') paint(stored())
+  })
+  // And the machine changing its mind, which reaches this page only while the
+  // reader has left the setting to it — `stored` ignores it otherwise.
+  system.addEventListener('change', function () {
+    paint(stored())
+  })
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('.doc-lang a')
+    if (!link) return
+    try {
+      localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
+    } catch (e) {}
+  })
+  // One press, committing to a side: it writes light or dark, so a page left on
+  // the machine's answer stops following it from here on. "System" is a third
+  // state and stays where a third state can be shown, which is the app's
+  // settings — and this is the only press of its kind left, the puzzle screen
+  // having given its one up. A page of prose has nowhere else to put one.
+  //
+  // Reads the painted attribute rather than the stored value, so the side it
+  // commits to is the opposite of what is on the screen, whether that came
+  // from a choice or from the machine.
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('.doc-theme')
+    if (!button) return
+    var dark = root.dataset.theme !== 'dark'
+    try {
+      localStorage.setItem('puzzles.theme', dark ? 'dark' : 'light')
+    } catch (e) {}
+    paint(dark)
+  })
+})()
+</script>
+</head>
+<body>
+<header class="doc-top">
+<span class="doc-top-title">Puzzles</span>
+<span class="segmented doc-lang"><a href="/doc/en/bridges.html" data-lang="en" hreflang="en" aria-current="true">EN</a><a href="/doc/zh/bridges.html" data-lang="zh" hreflang="zh-Hans">中文</a></span>
+<button type="button" class="doc-theme" aria-label="Light or dark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/><path d="M12 19.2v2.2"/><path d="M2.6 12h2.2"/><path d="M19.2 12h2.2"/><path d="m5.3 5.3 1.6 1.6"/><path d="m17.1 17.1 1.6 1.6"/><path d="m18.7 5.3-1.6 1.6"/><path d="m6.9 17.1-1.6 1.6"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/></svg></button>
+</header>
+<main class="doc-main">
+<p><a href="tents.html">Previous</a> | <a href="index.html">Contents</a> | <a href="indexpage.html">Index</a> | <a href="unequal.html">Next</a></p>
+
+<ul>
+<li><a href="#bridges">Chapter 26: Bridges</a>
+<ul>
+<li><a href="#bridges-controls">26.1 Bridges controls</a></li>
+<li><a href="#bridges-parameters">26.2 Bridges parameters</a></li>
+<li><a href="#bridges-prefs">26.3 Bridges user preferences</a></li>
+</ul></li>
+</ul>
+<h1><a name="bridges"></a>Chapter 26: <a name="i0"></a>Bridges</h1>
+<p>
+You have a set of islands distributed across the playing area. Each island contains a number. Your aim is to connect the islands together with bridges, in such a way that:
+</p>
+<ul><li>
+Bridges run horizontally or vertically.
+</li>
+<li>
+The number of bridges terminating at any island is equal to the number written in that island.
+</li>
+<li>
+Two bridges may run in parallel between the same two islands, but no more than two may do so.
+</li>
+<li>
+No bridge crosses another bridge.
+</li>
+<li>
+All the islands are connected together.
+</li>
+</ul>
+<p>
+There are some configurable alternative modes, which involve changing the parallel-bridge limit to something other than 2, and introducing the additional constraint that no sequence of bridges may form a loop from one island back to the same island. The rules stated above are the default ones.
+</p>
+<p>
+Credit for this puzzle goes to <a name="i1"></a>Nikoli <a href="#p0">[12]</a>.
+</p>
+<p>
+Bridges was contributed to this collection by James Harvey.
+</p>
+<p><a name="p0"></a>
+[12] <a href="https://www.nikoli.co.jp/en/puzzles/Hashiwokakero/"><code>https://www.nikoli.co.jp/en/puzzles/Hashiwokakero/</code></a>
+</p>
+<h2><a name="bridges-controls"></a>26.1 <a name="i2"></a>Bridges controls</h2>
+<p>
+To place a bridge between two islands, click the mouse down on one island and drag it towards the other. You do not need to drag all the way to the other island; you only need to move the mouse far enough for the intended bridge direction to be unambiguous. (So you can keep the mouse near the starting island and conveniently throw bridges out from it in many directions.)
+</p>
+<p>
+Doing this again when a bridge is already present will add another parallel bridge. If there are already as many bridges between the two islands as permitted by the current game rules (i.e. two by default), the same dragging action will remove all of them.
+</p>
+<p>
+If you want to remind yourself that two islands definitely <em>do not</em> have a bridge between them, you can right-drag between them in the same way to draw a &#8216;non-bridge&#8217; marker.
+</p>
+<p>
+If you think you have finished with an island (i.e. you have placed all its bridges and are confident that they are in the right places), you can mark the island as finished by left-clicking on it. This will highlight it and all the bridges connected to it, and you will be prevented from accidentally modifying any of those bridges in future. Left-clicking again on a highlighted island will unmark it and restore your ability to modify it.
+</p>
+<p>
+You can also use the cursor keys to move around the grid: if possible the cursor will always move orthogonally, otherwise it will move towards the nearest island to the indicated direction. Holding Control and pressing a cursor key will lay a bridge in that direction (if available); Shift and a cursor key will lay a &#8216;non-bridge&#8217; marker. Pressing the return key followed by a cursor key will also lay a bridge in that direction.
+</p>
+<p>
+You can mark an island as finished by pressing the space bar or by pressing the return key twice.
+</p>
+<p>
+By pressing a number key, you can jump to the nearest island with that number. Letters &#8216;a&#8217;, ..., &#8216;f&#8217; count as 10, ..., 15 and &#8216;0&#8217; as 16.
+</p>
+<p>
+The &#8216;G&#8217; key will draw a grey line between each pair of islands that could be connected with a bridge or non-bridge but are currently not.
+</p>
+<p>
+Violations of the puzzle rules will be marked in red:
+</p>
+<ul><li>
+An island with too many bridges will be highlighted in red.
+</li>
+<li>
+An island with too few bridges will be highlighted in red if it is definitely an error (as opposed to merely not being finished yet): if adding enough bridges would involve having to cross another bridge or remove a non-bridge marker, or if the island has been highlighted as complete.
+</li>
+<li>
+A group of islands and bridges may be highlighted in red if it is a closed subset of the puzzle with no way to connect it to the rest of the islands. For example, if you directly connect two 1s together with a bridge and they are not the only two islands on the grid, they will light up red to indicate that such a group cannot be contained in any valid solution.
+</li>
+<li>
+If you have selected the (non-default) option to disallow loops in the solution, a group of bridges which forms a loop will be highlighted.
+</li>
+</ul>
+<p>
+(All the actions described in <a href="common.html#common-actions">section 2.1</a> are also available.)
+</p>
+<h2><a name="bridges-parameters"></a>26.2 <a name="i3"></a>Bridges parameters</h2>
+<p>
+These parameters are available from the &#8216;Custom...&#8217; option on the &#8216;Type&#8217; menu.
+</p>
+<dl><dt>
+<em>Width</em>, <em>Height</em>
+</dt>
+<dd>
+Size of grid in squares.
+</dd>
+<dt>
+<em>Difficulty</em>
+</dt>
+<dd>
+Difficulty level of puzzle.
+</dd>
+<dt>
+<em>Allow loops</em>
+</dt>
+<dd>
+This is set by default. If cleared, puzzles will be generated in such a way that they are always soluble without creating a loop, and solutions which do involve a loop will be disallowed.
+</dd>
+<dt>
+<em>Max. bridges per direction</em>
+</dt>
+<dd>
+Maximum number of bridges in any particular direction. The default is 2, but you can change it to 1, 3 or 4. In general, fewer is easier.
+</dd>
+<dt>
+<em>%age of island squares</em>
+</dt>
+<dd>
+Gives a rough percentage of islands the generator will try and lay before finishing the puzzle. Certain layouts will not manage to lay enough islands; this is an upper bound.
+</dd>
+<dt>
+<em>Expansion factor (%age)</em>
+</dt>
+<dd>
+The grid generator works by picking an existing island at random (after first creating an initial island somewhere). It then decides on a direction (at random), and then works out how far it could extend before creating another island. This parameter determines how likely it is to extend as far as it can, rather than choosing somewhere closer.
+<p>
+High expansion factors usually mean easier puzzles with fewer possible islands; low expansion factors can create lots of tightly-packed islands.
+</p>
+
+</dd>
+</dl>
+<h2><a name="bridges-prefs"></a>26.3 <a name="i4"></a>Bridges user preferences</h2>
+<p>
+On platforms that support user preferences, the &#8216;Preferences&#8217; option on the &#8216;Game&#8217; menu will let you configure whether possible bridge locations are shown. Unlike the &#8216;G&#8217; key, this will persist between games.
+</p>
+
+</main>
+<footer class="doc-foot"><p>Simon Tatham's Portable Puzzle Collection, distributed under the <a href="licence.html#licence">MIT licence</a>.</p></footer>
+</body>
+</html>
