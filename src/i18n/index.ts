@@ -92,7 +92,16 @@ export function useStrings(): Strings {
  * `/doc/` with the translation hanging off it — an asymmetry upstream's own
  * gallery pages once required, linking in as `../doc/<game>.html` with paths
  * that were not ours to rewrite. Those pages are not published here.
+ *
+ * Asked for no page in particular, it names the contents page rather than the
+ * directory holding it. Both reach it, and `/doc/en/` is the prettier of the
+ * two, but it would be the only address of that page anywhere: halibut writes
+ * the Contents link at the head of all 45 chapters as `index.html`, and the
+ * language switch on the contents page itself names it in full. Two addresses
+ * for one document is two entries in the service worker's cache, which keys on
+ * the whole URL — so the link from the settings joins the ones already there
+ * rather than minting a second one.
  */
-export function docHref(lang: Lang, page = ''): string {
+export function docHref(lang: Lang, page = 'index.html'): string {
   return `/doc/${lang}/${page}`
 }
