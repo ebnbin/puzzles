@@ -135,10 +135,12 @@ const CEILING = 0.82
  *
  * The two are one dial and this is a reading of it, not a solved value. 0.62
  * was tried and taken back: #3d3dff and #ff3d3d hold more of their colour, at
- * 2.11:1 and with 28 slots on the ceiling. Below that it stops being a trade —
- * at 0.58 Mines' #000080 arrives at #0000fa and is back under 2:1 against its
- * own board, which is the "in effect, not drawn" this whole lifting half exists
- * to prevent.
+ * 2.11:1 and with 28 slots on the ceiling. Below that it stops being a trade:
+ * Mines' #000080 walks 0.61 → #3838ff at 2.41:1, 0.58 → #2929ff at 2.16, 0.55 →
+ * #1919ff at 1.99, and 0.49 → #0000fa at 1.80 — back to the "in effect, not
+ * drawn" this whole lifting half exists to prevent. (An earlier draft of this
+ * paragraph hung #0000fa on 0.58; that is 0.49's value, and 0.58 still clears
+ * 2:1.)
  *
  * So: the point past which a hue stops being worth the contrast. The lift takes
  * what it can get below it and stops, even where the board is owed more. Only
@@ -416,13 +418,22 @@ export const FIGURE: Record<string, readonly number[]> = {
  * it is paper, dimmed as far as paper can be dimmed while the ink on it stays
  * ink.
  *
+ * Which of the three needs the reading contrast is worth naming, because it is
+ * not the one this comment used to name. Singles writes its clue in COL_BLACK
+ * straight onto the board (`tcol = COL_BLACK` on `bg = COL_BACKGROUND`), and
+ * Range aliases COL_TEXT to the same black. Those are the numbers that pin the
+ * height. Light Up does not: its clue sits on a wall, in COL_LIGHT, and reads
+ * against the wall at 12.55:1 no matter where this number goes. On Light Up
+ * alone the wall is a filled square rather than text, 3:1 would serve, and 0.42
+ * would do — recovering the bulb from 2.70 to 3.49.
+ *
  * Two heights lived here for a while — 0.26 for a board that is a third surface
  * between a game's two tones, 0.49 for a board that *is* the white tone — and
  * the split did not survive being looked at. Light Up was the one game on the
  * lower shelf, and it is the case the shelf was supposed to fit: its walls are
  * painted black and the board is the unlit square between them. But 0.26 is
- * measured for a black you can *locate*, and Light Up writes clue numbers on
- * those walls, so it needed the reading contrast too. Measured against upstream
+ * measured for a black you can *locate*, and a wall you can only locate is not
+ * what upstream draws. Measured against upstream
  * rather than against itself, every ratio that matters moves toward the original
  * at 0.49 and away from it at 0.26: the wall 16.83 upstream, 1.91 at 0.26, 4.66
  * here; the bulb 1.25 / 6.58 / 2.70; a lit square 1.16 / 4.14 / 1.70. The lower
