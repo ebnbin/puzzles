@@ -3,9 +3,25 @@
  *
  * Two of the forty tiles that public/icons/ already holds — Net's above the
  * line, Cube's below it, both in the light theme — with a black seam running
- * from the top-right corner to the bottom-left one, and the corner radius
- * the icon has always used. What it says is what this app is: not one
- * puzzle, and not a picture of a puzzle, but the collection.
+ * from the top-right corner to the bottom-left one. What it says is what this
+ * app is: not one puzzle, and not a picture of a puzzle, but the collection.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY IT IS A SQUARE
+ * ---------------------------------------------------------------------------
+ *
+ * It was drawn with a 112 corner, which is what the SVG it replaced had. Every
+ * platform that shows this rounds it again on its own: iOS masks the
+ * apple-touch-icon to its squircle whatever shape arrives, and Android masks a
+ * maskable icon to whatever the launcher's theme uses. A rounded icon inside
+ * that is rounded twice — the app's arc showing inside the system's as a ring
+ * of background, which is the one thing a home-screen icon must not look like.
+ *
+ * So it is a full square, and the shape is the system's to choose. That is what
+ * `purpose: "any maskable"` in the manifest says: crop it. The composition
+ * survives being cropped because it has no margin to lose — no wordmark, no
+ * centred glyph, just two boards and the line between them, and any shape cut
+ * out of the middle of that is still two boards and the line between them.
  *
  * ---------------------------------------------------------------------------
  * WHY THIS ONE DOES NOT NEED THE APP RUNNING
@@ -50,9 +66,6 @@ const BELOW = 'cube-light.png'
 /** The seam. Black, not the dark background — this is a line, not a surface. */
 const SEAM = '#000000'
 
-/** On 512, which is the radius this icon has had since there was one. */
-const RADIUS = 112
-
 /** The seam's thickness, on 512. Four is where it survives being shrunk. */
 const WIDTH = 4
 
@@ -78,7 +91,7 @@ const page = await browser.newPage()
 await page.goto('about:blank')
 
 const drawn = await page.evaluate(
-  async ({ above, below, seam, radius, width, canvasSize, sizes }) => {
+  async ({ above, below, seam, width, canvasSize, sizes }) => {
     const load = async (src) => {
       const image = new Image()
       image.src = src
@@ -134,15 +147,8 @@ const drawn = await page.evaluate(
     ctx.lineTo(0, n)
     ctx.stroke()
 
-    // The corner, taken out last so the seam is cut by it too.
-    const rounded = document.createElement('canvas')
-    rounded.width = rounded.height = n
-    const rctx = rounded.getContext('2d')
-    rctx.beginPath()
-    rctx.roundRect(0, 0, n, n, radius * scale)
-    rctx.clip()
-    rctx.drawImage(big, 0, 0)
-
+    // No corner cut here: see the note at the top. It goes out square and every
+    // platform that shows it rounds it its own way.
     const out = {}
     for (const { file, size } of sizes) {
       const small = document.createElement('canvas')
@@ -150,7 +156,7 @@ const drawn = await page.evaluate(
       const sctx = small.getContext('2d')
       sctx.imageSmoothingEnabled = true
       sctx.imageSmoothingQuality = 'high'
-      sctx.drawImage(rounded, 0, 0, size, size)
+      sctx.drawImage(big, 0, 0, size, size)
       out[file] = small.toDataURL('image/png')
     }
     return out
@@ -159,7 +165,6 @@ const drawn = await page.evaluate(
     above: dataUrl(ABOVE),
     below: dataUrl(BELOW),
     seam: SEAM,
-    radius: RADIUS,
     width: WIDTH,
     canvasSize: CANVAS,
     sizes: SIZES,
@@ -173,4 +178,4 @@ for (const { file } of SIZES) {
 }
 
 await browser.close()
-console.log(`app icon: ${ABOVE} over ${BELOW}, ${WIDTH}px seam in ${SEAM}, r${RADIUS}`)
+console.log(`app icon: ${ABOVE} over ${BELOW}, ${WIDTH}px seam in ${SEAM}, square`)
