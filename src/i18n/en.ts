@@ -60,6 +60,30 @@ export const en = {
     language: 'Language',
     manual: 'Manual',
     manualHint: 'Rules and controls for every puzzle',
+
+    /*
+     * The one destructive thing in the app, worded for someone who has never
+     * heard of a browser store.
+     *
+     * "Clear saved data" and not "clear storage" or "reset": storage is a place
+     * a reader has no reason to know about, and reset is what a game does to a
+     * board. What is offered is the deletion of things they can name — the
+     * puzzles they have going, the settings on each one, the ones they put
+     * away, how it looks and what language it is in.
+     *
+     * The list in the confirmation is those five and stops there. It could go
+     * on — where the gallery was scrolled to, which puzzles have introduced
+     * themselves — but nobody weighing this decision is weighing a scroll
+     * position, and a list long enough to skim is a list nobody reads. The last
+     * sentence covers the rest and is the one that has to be true.
+     */
+    clear: 'Clear saved data',
+    clearHint: 'Progress, preferences and everything set here',
+    clearTitle: 'Clear saved data?',
+    clearBody:
+      'Every puzzle you have in progress will be lost, along with the preferences you have set on each one, which puzzles you have put away, and your choice of appearance and language. The app will start again as if it had just been installed.',
+    clearWarning: 'This cannot be undone.',
+    clearConfirm: 'Clear all',
   },
 
   play: {

@@ -28,6 +28,13 @@ export const zh: Strings = {
     language: '语言',
     manual: '手册',
     manualHint: '每个谜题的规则与操作',
+    clear: '清除已保存的数据',
+    clearHint: '进度、偏好，以及这里设置的一切',
+    clearTitle: '清除已保存的数据？',
+    clearBody:
+      '所有正在进行中的谜题都会丢失，连同你为每个谜题设置的偏好、你收起来的那些谜题，以及你选择的外观和语言。应用会像刚装好一样重新开始。',
+    clearWarning: '此操作无法撤销。',
+    clearConfirm: '全部清除',
   },
 
   play: {
