@@ -97,6 +97,9 @@ try {
         /<link rel="stylesheet" href="\/doc\.css\?v=[0-9a-f]{8}">/.test(html) &&
         html.includes('<meta charset="utf-8">') &&
         html.includes("localStorage.getItem('puzzles.theme')") &&
+        // Every page opens at its top, never a screenful down at its own
+        // chapter anchor. See the head script in build-doc.mjs.
+        html.includes("location.hash === '#' + self") &&
         html.includes(`<html lang="${htmlLang}">`) &&
         // Both classes: the app's shared control, and the hook the head
         // script listens on. See topBar in build-doc.mjs.
@@ -104,7 +107,7 @@ try {
       )
     })
     missing.length === 0
-      ? ok(`${label}: all ${files.length} pages carry viewport, stylesheet, UTF-8, theme and the language switch`)
+      ? ok(`${label}: all ${files.length} pages carry viewport, stylesheet, UTF-8, theme, top-of-page and the language switch`)
       : bad(`${label}: ${missing.length} incomplete, e.g. ${missing[0]}`)
   }
 }

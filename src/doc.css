@@ -80,41 +80,31 @@ body {
 }
 
 /*
- * The way out, set as `.play-title` is: the product's name at the size the
- * app gives it, on a target a thumb can find, with the fill arriving only
- * when it is touched. There it carries a caret because it opens something;
- * here an arrow because it goes back.
+ * Which of the app's two things you are looking at, said once and offered as a
+ * way nowhere.
+ *
+ * It is set as `.play-title` is — the size, weight and tracking the puzzle
+ * screen gives its own name — and it is not a control: no target, no radius,
+ * no fill under a pointer, nothing to press. The app's name behind a back
+ * arrow stood here until it turned out to have nowhere to go; the manual is
+ * only reached in a tab of its own, so the way back is the tab that is still
+ * open, and this end of the bar is left saying where you are.
  */
-.doc-home {
-  display: inline-flex;
-  align-items: center;
-  /* Wider than the app's 0.15rem for the same optical gap: its caret is a
-     small mark inside its box, and this arrow spans nearly the whole of one. */
-  gap: 0.35rem;
-  min-height: var(--tap-h);
-  padding: 0 0.4rem;
-  border-radius: var(--r-sm);
+.doc-top-title {
+  /* Takes the bar's slack, so the two controls sit at the right end. */
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  /* On top of the bar's own 0.3rem, which puts this text where `.play-title`'s
+     lands: that one is a control and spends the 0.4 on a thumb's target, this
+     one spends it on the same optical inset. */
+  padding-left: 0.4rem;
   color: var(--text);
   font-size: var(--t-lg);
   font-weight: 600;
   letter-spacing: -0.015em;
-  text-decoration: none;
-  transition: background-color var(--dur) var(--ease);
-}
-
-.doc-home svg {
-  flex: none;
-  color: var(--text-3);
-}
-
-@media (hover: hover) {
-  .doc-home:hover {
-    background-color: var(--surface-2);
-  }
-}
-
-.doc-home:active {
-  background-color: var(--surface-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /*
@@ -132,11 +122,12 @@ body {
   place-items: center;
   /*
    * Standing off the language switch by the gallery's 0.85rem rather than the
-   * bar's own 0.25rem, which is the gap between the things either side of the
-   * title and is far too tight for these two: a filled pill four pixels from a
-   * bare glyph reads as one crowded cluster rather than as two controls. The
-   * gallery is the app screen with this same pair in it, so it is the one to
-   * copy — 0.6 here on top of the bar's 0.25.
+   * bar's own 0.25rem, which is far too tight for these two: a filled pill four
+   * pixels from a bare glyph reads as one crowded cluster rather than as two
+   * controls. The gallery is the app screen with this same pair in it, so it is
+   * the one to copy — 0.6 here on top of the bar's 0.25. Nothing else in this
+   * bar is spaced by that gap any more: the title takes the whole of the slack
+   * between itself and these two.
    */
   margin-left: 0.6rem;
   width: var(--tap-w);
@@ -189,19 +180,6 @@ body {
 .doc-theme:active {
   background-color: var(--surface-3);
   transform: scale(0.92);
-}
-
-/* Where the puzzle screen puts its status. Same size and same tone: what sits
-   between the name and the controls is a quiet word about where you are. */
-.doc-top-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--text-2);
-  font-size: var(--t-xs);
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* --- the page -----------------------------------------------------------

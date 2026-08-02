@@ -44,7 +44,6 @@ const CHROME = {
   en: {
     dir: '',
     htmlLang: 'en',
-    home: 'Puzzles',
     section: 'Manual',
     /* One label for both states, because there is no React here to rewrite it
        on the way past and a stale one is worse than a general one. */
@@ -56,7 +55,6 @@ const CHROME = {
   zh: {
     dir: 'zh/',
     htmlLang: 'zh-Hans',
-    home: 'Puzzles',
     section: '手册',
     theme: '浅色或深色',
     footer:
@@ -74,8 +72,6 @@ const icon = (size, body) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" ` +
   'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" ' +
   `stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`
-
-const BACK_ICON = icon(18, '<path d="M19.5 12H5"/><path d="M11 6l-6 6 6 6"/>')
 
 /*
  * Both of them, always in the markup, with the stylesheet showing whichever
@@ -104,12 +100,37 @@ const MOON_ICON = icon(
  * the system's answer still gets used, and the root still gets an attribute
  * for the stylesheet to read.
  *
- * Then three listeners. The first keeps the app's idea of the language in step
- * when it is changed from here; the second is the bar's own light-and-dark
- * button; the third makes the bar's arrow a real back where there is one.
+ * It also drops the fragment a page arrives at its own name under, for the
+ * reason written at the top of the script itself.
+ *
+ * Then two listeners: one keeps the app's idea of the language in step when it
+ * is changed from here, the other is the bar's own light-and-dark button.
  */
 const HEAD_SCRIPT = `<script>
 ;(function () {
+  // Open at the top of the page, not a screenful into it.
+  //
+  // Halibut writes every cross-reference as file plus fragment — the contents
+  // page links Net as \`net.html#net\` — because in its world one file may hold
+  // several chapters. Here one never does: \`-Chtml-template-filename:%k.html\`
+  // against \`-Chtml-template-fragment:%k\` puts each chapter in a file named
+  // after it, so that fragment names the h1 rather than picking one chapter out
+  // of many, and following it scrolls off the two things standing above the
+  // h1 — halibut's own Previous | Contents | Index | Next row, and the
+  // chapter's list of its own sections. Arriving with both gone reads as a page
+  // that opened halfway through, which is what it is.
+  //
+  // Only the page's own name is dropped, and only from the address it was
+  // loaded with; \`#net-controls\` is a real jump into the chapter and every
+  // index entry is one too, so they are left exactly as they are. Rewriting
+  // before the parser reaches <body> is enough on its own: the browser takes
+  // the scroll from the URL once the document is parsed, and by then there is
+  // nothing there to scroll to. Measured on net.html at a phone's width: this
+  // opens at 0, and without it the page arrives 191px down.
+  var self = location.pathname.replace(/.*\\//, '').replace(/\\.html$/, '')
+  if (self && location.hash === '#' + self) {
+    history.replaceState(null, '', location.pathname + location.search)
+  }
   var root = document.documentElement
   var bar = document.querySelector('meta[name="theme-color"]')
   function paint(dark) {
@@ -150,25 +171,6 @@ const HEAD_SCRIPT = `<script>
     } catch (e) {}
     paint(dark)
   })
-  // The arrow means "back to the app". Where the app really is the page
-  // behind this one, take that step, so the reader lands on the board they
-  // left rather than on a second copy of the app pushed over the manual.
-  // Arriving from elsewhere in the manual, or from nowhere at all, the href
-  // stands: home is then somewhere to go, and the manual carries its own
-  // previous and next for moving within itself.
-  document.addEventListener('click', function (event) {
-    var home = event.target.closest && event.target.closest('.doc-home')
-    if (!home || event.defaultPrevented || event.button !== 0) return
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-    // A tab of its own has nothing behind it; back would be a dead click.
-    if (history.length < 2) return
-    var from = document.referrer
-    var root = location.origin + '/'
-    if (from.lastIndexOf(root, 0) !== 0) return
-    if (from.slice(location.origin.length).lastIndexOf('/doc/', 0) === 0) return
-    event.preventDefault()
-    history.back()
-  })
 })()
 </script>`
 
@@ -188,7 +190,17 @@ ${HEAD_SCRIPT}
 </head>`
 }
 
-/** The bar, which is the app saying where you are. */
+/**
+ * The bar, which is the app saying where you are — and, at this end of it,
+ * nothing more than that.
+ *
+ * It used to open with a back arrow to the app. There was never anywhere for
+ * it to go: the manual is only ever reached in a tab of its own, so the board
+ * it was opened from is still there in the tab behind, and the arrow either
+ * did nothing that the tab strip did not already do or pushed a second copy of
+ * the app over the page. What is left is the label, saying which of the app's
+ * two things you are looking at.
+ */
 function topBar(lang, file) {
   const c = CHROME[lang]
   const choices = LANGS.map((code) => {
@@ -203,7 +215,6 @@ function topBar(lang, file) {
   // script in the head listens on to keep the app's idea of the language in
   // step when it is changed from here.
   return `<header class="doc-top">
-<a class="doc-home" href="/">${BACK_ICON}${c.home}</a>
 <span class="doc-top-title">${c.section}</span>
 <span class="segmented doc-lang">${choices}</span>
 <button type="button" class="doc-theme" aria-label="${c.theme}">${SUN_ICON}${MOON_ICON}</button>
