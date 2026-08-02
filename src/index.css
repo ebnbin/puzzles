@@ -10,14 +10,44 @@
 }
 
 /*
- * While a puzzle is open, a pull-down must not reload the page — it would
- * take the position with it. Only the root element's value reaches the
- * viewport, and only `none` suppresses the refresh; `contain` merely stops
- * scroll chaining. The class is put on by the puzzle screen, so the launcher
- * keeps the gesture.
+ * --- the page behaviours an app does not want ---------------------------
+ *
+ * Four of them, said once at the root because each is either inherited or
+ * resolved by walking up from whatever was touched. Everything below narrows
+ * these further; nothing has to repeat them.
+ *
+ * `touch-action: manipulation` is double-tap-to-zoom, gone. It is the loudest
+ * remaining tell that this is a web page: two quick presses anywhere — on a
+ * tile, on Undo, on a key — and the whole interface jumps to twice the size,
+ * which is never what a second press meant. Pinch is deliberately left alone,
+ * because that one is somebody's eyesight and not a stray gesture. The board
+ * and the keypad ask for less than this (`none` and `pan-y`); a touch takes the
+ * narrowest answer on its way up, so they still get it.
+ *
+ * `overscroll-behavior: none` is pull-to-refresh, gone, and the rubber band
+ * with it. This used to be on a `.playing` class, on the reasoning that the
+ * launcher is a list with nothing to lose. True, and beside the point: a
+ * home-screen app that reloads when a list is dragged past its end is behaving
+ * like a browser tab. It costs the one way of reloading in standalone, where
+ * there is no address bar — a real cost, and the price of the gesture not
+ * firing by accident.
+ *
+ * `-webkit-text-size-adjust` is iOS inflating type when the phone is turned,
+ * which relaid the gallery to a different number of columns than the one the
+ * grid asked for.
+ *
+ * `-webkit-tap-highlight-color` is the grey box Android paints over whatever
+ * was tapped. Every control here already answers a press with its own fill, so
+ * the box is a second, slower, uglier answer to the same press. It was switched
+ * off on seven selectors one at a time and left on for the board, the keypad,
+ * the sheets and the scrim; the property is inherited, so it belongs here.
  */
-html.playing {
+html {
+  touch-action: manipulation;
   overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -25,7 +55,6 @@ body {
   /* Keep clear of a notch in landscape and the home indicator at the bottom. */
   padding: 2rem max(1rem, env(safe-area-inset-left)) 3rem;
   padding-bottom: max(3rem, env(safe-area-inset-bottom));
-  overscroll-behavior-y: contain;
   font-family: var(--font);
   font-size: var(--t-md);
   line-height: 1.5;
@@ -164,7 +193,6 @@ a {
   background: none;
   color: var(--text-2);
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -266,7 +294,6 @@ a {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -375,7 +402,6 @@ a {
   background: var(--scrim);
   color: #fff;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
 @media (hover: hover) {
@@ -674,7 +700,6 @@ footer p {
   color: var(--text);
   cursor: pointer;
   text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -732,7 +757,6 @@ footer p {
   letter-spacing: inherit;
   cursor: pointer;
   overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
   transition: background var(--dur) var(--ease);
 }
 
@@ -897,7 +921,6 @@ p.notice-error.is-floating {
   /* The board handles its own gestures; the page must not also scroll or
      zoom under a finger that is drawing a line. */
   touch-action: none;
-  -webkit-tap-highlight-color: transparent;
   /* A long press on the board is our right click. iOS would otherwise answer
      it with the selection callout, which touch-action does not suppress. */
   -webkit-touch-callout: none;
@@ -949,7 +972,6 @@ p.notice-error.is-floating {
   font-size: var(--t-md);
   font-weight: 500;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
@@ -1707,7 +1729,6 @@ p.notice-error.is-floating {
   background: none;
   color: var(--text-2);
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 

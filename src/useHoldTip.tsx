@@ -66,6 +66,13 @@ export function useHoldTip() {
           onPointerUp: release,
           onPointerCancel: release,
           onPointerLeave: release,
+          // The browser's own long-press menu would race this one. Both rows
+          // were letting it through — measured — so a hold on a key or on Undo
+          // could raise "open in new tab" over the word it was asking for. The
+          // gallery's tiles and the board already refuse it for the same
+          // reason; this is the third place a long press means something, and
+          // the last one that did not say so.
+          onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
         }
 
   /**

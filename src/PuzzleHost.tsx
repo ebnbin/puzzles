@@ -22,7 +22,6 @@ import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
-import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useTheme } from './useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
@@ -157,7 +156,6 @@ export default function PuzzleHost({
   // force at that moment.
   const themeRef = useRef(theme)
   themeRef.current = theme
-  useNoPullToRefresh()
 
   /*
    * Progress, kept as it is made.
