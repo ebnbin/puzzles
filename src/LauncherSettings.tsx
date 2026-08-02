@@ -1,7 +1,5 @@
-import { useState } from 'react'
 import Dialog from './Dialog'
 import Icon from './Icon'
-import { forgetEverything } from './engine/saves'
 import { docHref, useLang, useStrings } from './i18n'
 import { useScrollLock } from './useScrollLock'
 import { useTheme } from './useTheme'
@@ -20,12 +18,6 @@ import type { Theme } from './useTheme'
  * settings that are already set is a button that does what the scrim, the
  * corner cross and Escape all do — which is why it has gone, and the cross the
  * help dialog has had all along is what is left.
- *
- * With one exception, at the bottom and set apart. Clearing what the app has
- * kept is the only thing in here that cannot be undone by doing it again, so it
- * is the only thing that asks first — and it asks in a dialog of its own rather
- * than by turning into its own confirmation, so that the button which does it
- * is not in the place the reader has just pressed.
  */
 export default function LauncherSettings({
   lockAt,
@@ -39,7 +31,6 @@ export default function LauncherSettings({
   // manual's address depends on it.
   const [lang] = useLang()
   const [theme, setTheme] = useTheme()
-  const [confirming, setConfirming] = useState(false)
   // The launcher scrolls; it must not do so under its own settings. The
   // offset is the launcher's, caught before the dialog scrolled it away.
   useScrollLock(lockAt)
@@ -102,44 +93,6 @@ export default function LauncherSettings({
         </span>
         <Icon name="external" size={18} />
       </a>
-
-      {/* A row, not a button in a row of buttons: it belongs to the list of
-          things this dialog is about, and it is the last of them because it is
-          the one that ends the others. Red only on the word, not on a filled
-          bar — a filled red row at the foot of a settings sheet reads as the
-          way out of the sheet. */}
-      <button type="button" className="setting setting-danger" onClick={() => setConfirming(true)}>
-        <span className="setting-text">
-          {t.settings.clear}
-          <em>{t.settings.clearHint}</em>
-        </span>
-        <Icon name="alert" size={18} />
-      </button>
-
-      {confirming && (
-        <Dialog
-          label={t.settings.clearTitle}
-          title={t.settings.clearTitle}
-          onClose={() => setConfirming(false)}
-        >
-          <p>{t.settings.clearBody}</p>
-          <p className="notice notice-error" role="alert">
-            <Icon name="alert" size={16} />
-            <span>{t.settings.clearWarning}</span>
-          </p>
-          {/* Cancel first, as in every other pair here; the difference is that
-              the one that acts is the red one and not the accent one, because
-              here the accepting button is the dangerous one. */}
-          <div className="dialog-buttons">
-            <button type="button" onClick={() => setConfirming(false)}>
-              {t.dialog.cancel}
-            </button>
-            <button type="button" className="is-danger" onClick={forgetEverything}>
-              {t.settings.clearConfirm}
-            </button>
-          </div>
-        </Dialog>
-      )}
     </Dialog>
   )
 }

@@ -25,17 +25,6 @@ import { useStrings } from './i18n'
  * away rather than dismissed, and which one Escape reaches when several are up
  * is a decision the puzzle screen makes for itself — see PuzzleHost.
  */
-/**
- * How many are open, so that Escape reaches only the top one.
- *
- * Each dialog listens on the window, so with two up a press would close both —
- * and the pair that stacks is exactly the pair where that is wrong: a
- * confirmation over the settings, where the answer to "are you sure" is no and
- * the settings should still be there. Counting is enough because they are only
- * ever stacked, never side by side: the last to mount is the top one.
- */
-let depth = 0
-
 export default function Dialog({
   label,
   title,
@@ -58,17 +47,13 @@ export default function Dialog({
   const t = useStrings()
 
   useEffect(() => {
-    const mine = ++depth
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || mine !== depth) return
+      if (e.key !== 'Escape') return
       e.preventDefault()
       onClose()
     }
     window.addEventListener('keydown', onKey)
-    return () => {
-      depth--
-      window.removeEventListener('keydown', onKey)
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
   // A form only when there is something to submit: the settings and the help

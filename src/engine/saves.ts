@@ -45,65 +45,30 @@ const save = (name: string) => `puzzles.save.${name}`
 /** The first bytes of every genuine midend save. */
 const MAGIC = 'SAVEFILE'
 
-/**
- * Nothing more is to be written.
- *
- * Set by `forgetEverything`, which clears the store and then reloads — and the
- * reload is what makes this necessary. Unloading the document fires `pagehide`,
- * the gallery writes its scroll position there (see view.ts), and that write
- * lands *after* the clear: measured, and it put `puzzles.scroll` back into an
- * otherwise empty store every single time. A button that promises everything
- * cannot leave one thing behind because of the way it finishes.
- *
- * A latch rather than unhooking the listener, because the listener is not the
- * point — anything at all writing between the clear and the new document is
- * wrong, and this is the one door all of it goes through. It lives only as long
- * as this document does, which is exactly as long as it is needed.
- */
-let forgotten = false
-
-/**
- * The three ways this file touches the store, so that the guard, the failure
- * and the shrug live in one place each.
- *
- * Every one of these was written out with its own `try`/`catch` and its own
- * comment saying the same thing: a blocked store — private browsing, quota — is
- * survivable, and the app is fine, it just forgets.
- */
-const get = (key: string): string | null => {
+export function readSave(name: string): string | null {
   try {
-    return window.localStorage.getItem(key)
+    const text = window.localStorage.getItem(save(name))
+    return text?.startsWith(MAGIC) ? text : null
   } catch {
     return null
   }
 }
 
-const put = (key: string, value: string): void => {
-  if (forgotten) return
+export function writeSave(name: string, text: string): void {
   try {
-    window.localStorage.setItem(key, value)
+    window.localStorage.setItem(save(name), text)
   } catch {
-    // Full or blocked. Playing on without it is the fallback.
+    // Full or blocked; playing on without a save is the fallback.
   }
 }
 
-const drop = (key: string): void => {
-  if (forgotten) return
+export function clearSave(name: string): void {
   try {
-    window.localStorage.removeItem(key)
+    window.localStorage.removeItem(save(name))
   } catch {
     // Nothing to do about it.
   }
 }
-
-export function readSave(name: string): string | null {
-  const text = get(save(name))
-  return text?.startsWith(MAGIC) ? text : null
-}
-
-export const writeSave = (name: string, text: string): void => put(save(name), text)
-
-export const clearSave = (name: string): void => drop(save(name))
 
 /**
  * Whether the app was left inside a puzzle rather than at the gallery.
@@ -111,11 +76,21 @@ export const clearSave = (name: string): void => drop(save(name))
  * Read as presence, not as a value: anything stored is true. See the note at
  * the top for why there is no "false" to write.
  */
-export const readPlaying = (): boolean => !!get(PLAYING)
+export function readPlaying(): boolean {
+  try {
+    return !!window.localStorage.getItem(PLAYING)
+  } catch {
+    return false
+  }
+}
 
 export function setPlaying(playing: boolean): void {
-  if (playing) put(PLAYING, '1')
-  else drop(PLAYING)
+  try {
+    if (playing) window.localStorage.setItem(PLAYING, '1')
+    else window.localStorage.removeItem(PLAYING)
+  } catch {
+    // See above.
+  }
 }
 
 /**
@@ -126,9 +101,21 @@ export function setPlaying(playing: boolean): void {
  * came off — so nothing deletes it. There is always a most recent puzzle once
  * there has been one, and whether you are still in it is `playing`.
  */
-export const readRecent = (): string | null => get(RECENT)
+export function readRecent(): string | null {
+  try {
+    return window.localStorage.getItem(RECENT)
+  } catch {
+    return null
+  }
+}
 
-export const writeRecent = (name: string): void => put(RECENT, name)
+export function writeRecent(name: string): void {
+  try {
+    window.localStorage.setItem(RECENT, name)
+  } catch {
+    // See above.
+  }
+}
 
 /**
  * Where the gallery was scrolled to, or null if it has never said.
@@ -138,13 +125,23 @@ export const writeRecent = (name: string): void => put(RECENT, name)
  * A remembered zero is the top on purpose.
  */
 export function readScroll(): number | null {
-  const text = get(SCROLL)
-  if (text === null) return null
-  const y = Number(text)
-  return Number.isFinite(y) ? Math.max(0, y) : null
+  try {
+    const text = window.localStorage.getItem(SCROLL)
+    if (text === null) return null
+    const y = Number(text)
+    return Number.isFinite(y) ? Math.max(0, y) : null
+  } catch {
+    return null
+  }
 }
 
-export const writeScroll = (y: number): void => put(SCROLL, String(Math.round(y)))
+export function writeScroll(y: number): void {
+  try {
+    window.localStorage.setItem(SCROLL, String(Math.round(y)))
+  } catch {
+    // See above.
+  }
+}
 
 /*
  * Which puzzles have introduced themselves.
@@ -163,12 +160,11 @@ let introduced: Set<string> | null = null
 
 function read(): Set<string> {
   try {
-    const stored = JSON.parse(get(INTRODUCED) ?? '[]')
+    const stored = JSON.parse(window.localStorage.getItem(INTRODUCED) ?? '[]')
     return new Set(
       Array.isArray(stored) ? stored.filter((n) => typeof n === 'string') : [],
     )
   } catch {
-    // Not JSON, or not a list of names. Nothing has introduced itself.
     return new Set()
   }
 }
@@ -179,42 +175,14 @@ function read(): Set<string> {
  * then forget to write it down, and no window in which a reload gets a second
  * one.
  */
-/**
- * Everything, gone, and the app started again from nothing.
- *
- * `clear()` rather than deleting the nine names above one at a time: this is
- * the app's own origin and nothing else writes to it, so the two are the same
- * set — and where they ever differed, a reader who asked for everything to go
- * meant the stray as well. It is also the only version of this that cannot fall
- * out of step with the list of keys, which is the failure that matters for a
- * button whose whole promise is "everything".
- *
- * The reload is not tidiness. Half of what was just deleted is held in memory
- * as well — the theme, the language, the put-away games, this file's own set of
- * introductions — and every one of those stores is seeded once at start-up.
- * Clearing underneath them would leave the app showing what it no longer has
- * written down, and would write most of it straight back at the next change.
- * Starting the document again is what makes "as if newly installed" true.
- *
- * The offline copy of the app is deliberately left alone. That is not the
- * reader's data, it is this app's own files, and throwing them away would only
- * cost a download.
- */
-export function forgetEverything(): void {
-  forgotten = true
-  try {
-    window.localStorage.clear()
-  } catch {
-    // Blocked or private: there was nothing kept to throw away.
-  }
-  window.location.reload()
-}
-
 export function takeIntroduction(name: string): boolean {
   introduced ??= read()
   if (introduced.has(name)) return false
   introduced.add(name)
-  // Blocked, and the session's own copy above still holds until the tab closes.
-  put(INTRODUCED, JSON.stringify([...introduced]))
+  try {
+    window.localStorage.setItem(INTRODUCED, JSON.stringify([...introduced]))
+  } catch {
+    // Blocked; the session's own copy still holds until the tab is closed.
+  }
   return true
 }

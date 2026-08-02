@@ -251,41 +251,6 @@ a {
   text-decoration: none;
 }
 
-/*
- * The one row that takes something away.
- *
- * A `<button>` among two `<div>`s and an `<a>`, so it has to be told to stop
- * looking like one: full width, left-aligned, no border and no ground. What
- * marks it is the colour on its name and its glyph — the ground stays the
- * dialog's, because a filled red bar across the foot of a settings sheet reads
- * as the way out of the sheet rather than as an item in it.
- *
- * The explanation under it keeps the quiet grey every other row's does. Red on
- * both lines would be shouting the same thing twice, and the second line is
- * where the reader finds out what is actually at stake.
- */
-.setting-danger {
-  width: 100%;
-  border: 0;
-  background: none;
-  color: var(--danger);
-  font: inherit;
-  font-size: var(--t-md);
-  text-align: left;
-  cursor: pointer;
-}
-
-.setting-danger svg {
-  flex: none;
-}
-
-@media (hover: hover) {
-  .setting-danger:hover .setting-text {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-}
-
 .setting-link svg {
   flex: none;
   color: var(--text-3);
@@ -1661,31 +1626,6 @@ p.notice-error.is-floating {
 
 .dialog-buttons button[type='submit']:active {
   background: var(--accent-hover);
-}
-
-/*
- * The accepting button, where accepting is the dangerous half.
- *
- * Filled, like the accent one it stands in for, because it is still the button
- * the row is built around — the eye should land on it and then decide, not hunt
- * for it. `--danger` on white rather than a tint: this one is pressed once,
- * deliberately, and a soft ground would make it look like the safe choice.
- */
-.dialog-buttons button.is-danger {
-  background: var(--danger);
-  color: var(--bg);
-  font-weight: 600;
-}
-
-@media (hover: hover) {
-  .dialog-buttons button.is-danger:hover {
-    background: var(--danger);
-    filter: brightness(1.1);
-  }
-}
-
-.dialog-buttons button.is-danger:active {
-  filter: brightness(1.1);
 }
 
 /* The manual's own prose, on request from the bar. */
