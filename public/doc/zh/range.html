@@ -15,12 +15,24 @@
 ;(function () {
   var root = document.documentElement
   var bar = document.querySelector('meta[name="theme-color"]')
-  var dark = false
-  try {
-    dark = localStorage.getItem('puzzles.theme') === 'dark'
-  } catch (e) {}
-  root.dataset.theme = dark ? 'dark' : 'light'
-  bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  function paint(dark) {
+    root.dataset.theme = dark ? 'dark' : 'light'
+    bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
+  }
+  function stored() {
+    try {
+      return localStorage.getItem('puzzles.theme') === 'dark'
+    } catch (e) {
+      return false
+    }
+  }
+  paint(stored())
+  // The app is a tab of its own — this page was opened from it — and the two
+  // share one setting, so a change made over there has to arrive here. Fires
+  // in every other document of the origin and never in the one that wrote.
+  addEventListener('storage', function (event) {
+    if (event.key === null || event.key === 'puzzles.theme') paint(stored())
+  })
   document.addEventListener('click', function (event) {
     var link = event.target.closest && event.target.closest('.doc-lang a')
     if (!link) return
@@ -35,12 +47,11 @@
   document.addEventListener('click', function (event) {
     var button = event.target.closest && event.target.closest('.doc-theme')
     if (!button) return
-    var next = root.dataset.theme === 'dark' ? 'light' : 'dark'
+    var dark = root.dataset.theme !== 'dark'
     try {
-      localStorage.setItem('puzzles.theme', next)
+      localStorage.setItem('puzzles.theme', dark ? 'dark' : 'light')
     } catch (e) {}
-    root.dataset.theme = next
-    bar.setAttribute('content', next === 'dark' ? '#101013' : '#fafaf9')
+    paint(dark)
   })
   // The arrow means "back to the app". Where the app really is the page
   // behind this one, take that step, so the reader lands on the board they

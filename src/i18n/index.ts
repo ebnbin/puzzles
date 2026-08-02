@@ -46,6 +46,17 @@ apply(current)
 
 const listeners = new Set<() => void>()
 
+/* The manual writes this key too, from its own tab. See the same listener in
+   useTheme, and the reason for both of them there. */
+window.addEventListener('storage', (event) => {
+  if (event.key !== null && event.key !== KEY) return
+  const next = read()
+  if (next === current) return
+  current = next
+  apply(next)
+  for (const listener of listeners) listener()
+})
+
 export function setLang(next: Lang) {
   if (next === current) return
   current = next

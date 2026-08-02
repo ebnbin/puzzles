@@ -192,6 +192,24 @@ export default function PuzzleHost({
     armed.current = true
     setError(null)
   }, [])
+
+  /*
+   * And it leaves on its own if nothing else moves it.
+   *
+   * The rule above — gone at the next press — is the right one and is not
+   * enough by itself: a reader who reads the sentence, understands it and then
+   * sits still has a red bar over their board until they touch something. This
+   * is a remark, not a state; four seconds is long enough to read fifty
+   * characters and short enough not to become furniture. Keyed on the text, so
+   * a second refusal of the same kind restarts the count rather than inheriting
+   * what was left of the first one's.
+   */
+  useEffect(() => {
+    if (!error) return
+    const timer = window.setTimeout(() => setError(null), 4000)
+    return () => window.clearTimeout(timer)
+  }, [error])
+
   const queueSave = useCallback(() => {
     if (!armed.current || savePending.current) return
     savePending.current = true
@@ -649,11 +667,18 @@ export default function PuzzleHost({
         </button>
       </header>
 
-      {error && (
-        <ErrorNote text={error === START_FAILED ? t.play.error : error} />
-      )}
-
       <div className="play-board" ref={areaRef}>
+        {/* Over the board rather than above it: a row of its own would take
+            that row off the board for as long as the message stood, and this
+            one stands for four seconds. Positioned from the top of this area,
+            so the gap it keeps from the bar is a gap and not an arithmetic of
+            the bar's height and the notch. */}
+        {error && (
+          <ErrorNote
+            floating
+            text={error === START_FAILED ? t.play.error : error}
+          />
+        )}
         <canvas
           ref={canvasRef}
           onPointerDownCapture={acted}

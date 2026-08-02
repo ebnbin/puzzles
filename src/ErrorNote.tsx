@@ -28,16 +28,33 @@ import Icon from './Icon'
  * the field it is about is at the top. A message you cannot see is not a
  * quieter message, it is no message, and the reader is left thinking the
  * press did nothing. `nearest` so a note already on screen does not move.
+ *
+ * `floating` is the one on the puzzle screen, and it differs because what it
+ * is about differs. The three in the sheets are answers to a field and belong
+ * against that field until it is fixed; this one is about a press — Solve on a
+ * board that cannot be solved — with nothing on screen it belongs beside. So
+ * it floats clear of the bar rather than taking a row from the board, and it
+ * leaves on its own, because there is nothing for it to wait for.
  */
-export default function ErrorNote({ text }: { text: string }) {
+export default function ErrorNote({
+  text,
+  floating = false,
+}: {
+  text: string
+  floating?: boolean
+}) {
   const ref = useRef<HTMLParagraphElement>(null)
 
   useEffect(() => {
-    ref.current?.scrollIntoView({ block: 'nearest' })
-  }, [])
+    if (!floating) ref.current?.scrollIntoView({ block: 'nearest' })
+  }, [floating])
 
   return (
-    <p className="notice-error" role="alert" ref={ref}>
+    <p
+      className={floating ? 'notice-error is-floating' : 'notice-error'}
+      role="alert"
+      ref={ref}
+    >
       <Icon name="alert" size={16} />
       <span>{text}</span>
     </p>

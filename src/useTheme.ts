@@ -48,6 +48,25 @@ apply(current)
 
 const listeners = new Set<() => void>()
 
+/*
+ * The manual is a second tab now — the gallery's footer opens it in one — and
+ * two tabs sharing one setting have to agree about it. Turn the lights off in
+ * the manual, come back to the app, and without this the app is still light
+ * and its button is offering to do what the reader has just done.
+ *
+ * `storage` fires in every other document of the origin and never in the one
+ * that wrote, which is exactly the shape of the problem. The manual has the
+ * same listener, in its own three lines, in build-doc.mjs.
+ */
+window.addEventListener('storage', (event) => {
+  if (event.key !== null && event.key !== KEY) return
+  const next = read()
+  if (next === current) return
+  current = next
+  apply(next)
+  for (const listener of listeners) listener()
+})
+
 export function setTheme(next: Theme) {
   if (next === current) return
   current = next
