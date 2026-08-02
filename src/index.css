@@ -1590,6 +1590,209 @@ p.notice-error svg {
   color: var(--text);
 }
 
+/* --- the palette's constants, on sliders --- */
+
+/*
+ * Temporary. Six rows, one per constant in engine/palette.ts, over a board
+ * that repaints as you drag. Meant to come out once the values are judged;
+ * everything it needs is either a token or an existing dialog class, so
+ * removing it is removing this block and two files.
+ */
+.dialog-tuning {
+  max-width: 32rem;
+}
+
+.tuning-lede,
+.tuning-warn {
+  margin: 0 0 1rem;
+  color: var(--text-2);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+
+.tuning-warn {
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--r-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.tuning-list {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.knob-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.knob-name {
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.knob-key {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: var(--t-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tabular figures: the readout changes on every step of the drag, and
+   proportional digits make it jitter sideways while you are trying to read it. */
+.knob-value {
+  color: var(--text-2);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.knob-value[data-off='true'] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.knob-reset {
+  padding: 0.1rem 0.4rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--t-2xs);
+  cursor: pointer;
+}
+
+.knob-reset:disabled {
+  color: transparent;
+  cursor: default;
+}
+
+.knob-what {
+  margin: 0.25rem 0 0;
+  color: var(--text-2);
+  font-size: var(--t-sm);
+  line-height: 1.45;
+}
+
+/*
+ * The band and the default are painted on the track rather than written beside
+ * it: the question a slider raises is "am I still inside it", and a mark
+ * answers that without being read.
+ *
+ * Which is why the track is drawn here and the input's own is thrown away —
+ * the native one is opaque and would cover both marks. The input keeps
+ * everything else it does: focus, arrow keys, the drag.
+ */
+.knob-track {
+  position: relative;
+  margin-top: 0.6rem;
+  padding: 0.55rem 0;
+}
+
+.knob-track::before,
+.knob-band,
+.knob-default {
+  position: absolute;
+  top: 50%;
+  height: 0.5rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.knob-track::before {
+  content: '';
+  left: 0;
+  right: 0;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+}
+
+.knob-band {
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+}
+
+.knob-default {
+  width: 2px;
+  margin-left: -1px;
+  background: var(--edge-strong);
+}
+
+.knob-track input {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1.1rem;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--r-full);
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.knob-track input::-webkit-slider-runnable-track {
+  height: 1.1rem;
+  background: none;
+}
+
+.knob-track input::-moz-range-track {
+  height: 1.1rem;
+  background: none;
+}
+
+/* A ring in the surface colour, so the thumb reads as sitting on the track
+   rather than being a bead threaded through it — the band it stands on is
+   pale, and without the gap the two merge. */
+.knob-track input::-webkit-slider-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.knob-track input::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.knob-track input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.knob-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.15rem 0 0;
+  color: var(--text-3);
+  font-size: var(--t-2xs);
+  line-height: 1.4;
+}
+
+.knob-ends span {
+  max-width: 46%;
+}
+
+.knob-ends b {
+  color: var(--text-2);
+}
+
 /* The way to the chapter, as the last line of the blurb. The glyph sits on the
    text rather than beside it, which is what makes it part of the sentence and
    not a button that happens to be underlined. */

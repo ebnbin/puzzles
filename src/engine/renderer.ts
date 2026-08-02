@@ -81,6 +81,16 @@ export class CanvasRenderer {
   }
 
   /**
+   * Run the rules again without the board having changed sides. `setDark` is
+   * the wrong door for that — it reports "nothing to do" when the theme it is
+   * handed is the one already in force, which is exactly the case here. The
+   * tuning panel edits what the rules read, not which way up the board is.
+   */
+  recolour(): void {
+    this.repalette = true
+  }
+
+  /**
    * The back end offers to take its background colour from the page. Only an
    * opaque sRGB colour will do; anything else — including the transparent
    * default — leaves it to pick its own, which is what upstream's pages get.

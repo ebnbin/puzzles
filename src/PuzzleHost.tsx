@@ -5,6 +5,7 @@ import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
+import TuningPanel from './TuningPanel'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor } from './engine/keys'
 import { clearSave, readSave, writeCurrent, writeLast, writeSave } from './engine/saves'
@@ -104,6 +105,7 @@ export default function PuzzleHost({
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [tuningOpen, setTuningOpen] = useState(false)
 
   /*
    * A configuration laid out inside a sheet rather than put in a dialog of
@@ -374,6 +376,17 @@ export default function PuzzleHost({
     apiRef.current?.rescale()
   }, [theme, ready])
 
+  /**
+   * Same two steps, for the tuning panel: it edits the constants the rules
+   * read, which changes the answer for a board that has not moved. `setDark`
+   * would decline — the theme it would be handed is the one already in force —
+   * so the renderer is told to run the rules again outright.
+   */
+  const applyTuning = useCallback(() => {
+    rendererRef.current?.recolour()
+    apiRef.current?.rescale()
+  }, [])
+
   /** A dialog is modal to the game; the C side is waiting for its answer. */
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
@@ -494,7 +507,8 @@ export default function PuzzleHost({
       // Escape dismisses whatever is on top, wherever focus is — including a
       // control inside the sheet, which is where it will be after a preset.
       if (e.key === 'Escape') {
-        if (helpOpen) setHelpOpen(false)
+        if (tuningOpen) setTuningOpen(false)
+        else if (helpOpen) setHelpOpen(false)
         // Not a layer of its own: the parameters are part of the sheet, so
         // the sheet is what closes, and closing it answers the config box.
         else if (typesOpen) closeTypes()
@@ -503,7 +517,7 @@ export default function PuzzleHost({
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen || typesOpen) return
+      if (dialog || helpOpen || typesOpen || tuningOpen) return
       /*
        * The board had it first and spent it. Undo, redo and new game are the
        * back end's own one-key shortcuts, so with the board focused the press
@@ -539,6 +553,7 @@ export default function PuzzleHost({
     closeTypes,
     closeMenu,
     helpOpen,
+    tuningOpen,
     acted,
   ])
 
@@ -594,6 +609,19 @@ export default function PuzzleHost({
           onClick={() => setTheme(dark ? 'light' : 'dark')}
         >
           <Icon name={dark ? 'sun' : 'moon'} />
+        </button>
+        {/* Temporary, and deliberately in the way: the palette constants are
+            easier to judge by moving them over a live board than by reading
+            what they measure to. Meant to come out once they are judged. */}
+        <button
+          type="button"
+          className="play-icon"
+          aria-label={t.tuning.open}
+          aria-haspopup="dialog"
+          aria-expanded={tuningOpen}
+          onClick={() => setTuningOpen(true)}
+        >
+          <Icon name="prefs" />
         </button>
         <button
           type="button"
@@ -685,6 +713,14 @@ export default function PuzzleHost({
           <Icon name="menu" />
         </button>
       </nav>
+
+      {tuningOpen && (
+        <TuningPanel
+          onApply={applyTuning}
+          dark={dark}
+          onClose={() => setTuningOpen(false)}
+        />
+      )}
 
       {helpOpen && (
         <div className="dialog-dimmer" onClick={() => setHelpOpen(false)}>
