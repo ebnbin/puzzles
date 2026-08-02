@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
 import { clearLast, readCurrent } from './engine/saves'
@@ -243,15 +243,10 @@ export default function Launcher() {
 
   const settingsOpen = settingsAt !== null
   const openSettings = () => setSettingsAt(window.scrollY)
-  const closeSettings = () => setSettingsAt(null)
-  useEffect(() => {
-    if (!settingsOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeSettings()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [settingsOpen])
+  // Stable, because Dialog listens for Escape on it. There is no key handler
+  // here any more: dismissing is a dialog's own business, and this screen had
+  // its own copy of it.
+  const closeSettings = useCallback(() => setSettingsAt(null), [])
 
   const tile = (game: GameText, stashed: boolean) => {
     const here = game.name === current
@@ -441,6 +436,9 @@ function Tile({
             width={256}
             height={256}
             decoding="async"
+            // The face of a button, not a file. See the `img` rule in
+            // index.css for the half of this the other browsers read.
+            draggable={false}
           />
         </span>
         <strong>{game.displayName}</strong>

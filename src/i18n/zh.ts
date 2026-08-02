@@ -24,7 +24,6 @@ export const zh: Strings = {
     language: '语言',
     manual: '手册',
     manualHint: '每个谜题的规则与操作',
-    done: '完成',
   },
 
   play: {

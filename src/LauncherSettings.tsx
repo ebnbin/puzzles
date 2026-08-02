@@ -1,3 +1,4 @@
+import Dialog from './Dialog'
 import Icon from './Icon'
 import { docHref, useLang, useStrings } from './i18n'
 import { useScrollLock } from './useScrollLock'
@@ -11,6 +12,12 @@ import type { Theme } from './useTheme'
  * They were a card at the top of the launcher, which put a quarter of the first
  * screen between the reader and the puzzles for two switches most people touch
  * once.
+ *
+ * Nothing in here is confirmed, so there is nothing to confirm with: the theme
+ * lands as it is chosen and the manual is a link. A Done button under two
+ * settings that are already set is a button that does what the scrim, the
+ * corner cross and Escape all do — which is why it has gone, and the cross the
+ * help dialog has had all along is what is left.
  */
 export default function LauncherSettings({
   lockAt,
@@ -37,64 +44,53 @@ export default function LauncherSettings({
   ]
 
   return (
-    <div className="dialog-dimmer" onClick={onClose}>
-      <div
-        className="dialog dialog-settings"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t.settings.title}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2>{t.settings.title}</h2>
-
-        <div className="setting">
-          <span className="setting-text">{t.settings.appearance}</span>
-          <div
-            className="segmented"
-            role="radiogroup"
-            aria-label={t.settings.appearance}
-          >
-            {themes.map((option) => (
-              <label key={option.value} data-selected={theme === option.value}>
-                <input
-                  type="radio"
-                  name="theme"
-                  value={option.value}
-                  checked={theme === option.value}
-                  onChange={() => setTheme(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* A tab of its own, which it was before and is again for a reason
-            that has changed. The objection was that a new tab put the manual
-            outside the app's history; the app has no history now, so there is
-            nothing for it to be outside of — and a same-tab visit would unload
-            the one page this app has, taking the open sheet and the scroll with
-            it. In standalone the same visit would replace the app inside its
-            own window, with no tab to come back from. */}
-        <a
-          className="setting setting-link"
-          href={docHref(lang)}
-          target="_blank"
-          rel="noreferrer"
+    <Dialog
+      label={t.settings.title}
+      title={t.settings.title}
+      onClose={onClose}
+      className="dialog-settings"
+    >
+      <div className="setting">
+        <span className="setting-text">{t.settings.appearance}</span>
+        <div
+          className="segmented"
+          role="radiogroup"
+          aria-label={t.settings.appearance}
         >
-          <span className="setting-text">
-            {t.settings.manual}
-            <em>{t.settings.manualHint}</em>
-          </span>
-          <Icon name="external" size={18} />
-        </a>
-
-        <div className="dialog-buttons">
-          <button type="button" onClick={onClose}>
-            {t.settings.done}
-          </button>
+          {themes.map((option) => (
+            <label key={option.value} data-selected={theme === option.value}>
+              <input
+                type="radio"
+                name="theme"
+                value={option.value}
+                checked={theme === option.value}
+                onChange={() => setTheme(option.value)}
+              />
+              {option.label}
+            </label>
+          ))}
         </div>
       </div>
-    </div>
+
+      {/* A tab of its own, which it was before and is again for a reason
+          that has changed. The objection was that a new tab put the manual
+          outside the app's history; the app has no history now, so there is
+          nothing for it to be outside of — and a same-tab visit would unload
+          the one page this app has, taking the open sheet and the scroll with
+          it. In standalone the same visit would replace the app inside its
+          own window, with no tab to come back from. */}
+      <a
+        className="setting setting-link"
+        href={docHref(lang)}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span className="setting-text">
+          {t.settings.manual}
+          <em>{t.settings.manualHint}</em>
+        </span>
+        <Icon name="external" size={18} />
+      </a>
+    </Dialog>
   )
 }

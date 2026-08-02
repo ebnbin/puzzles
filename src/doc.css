@@ -66,6 +66,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  /* The one part of a page of prose that is not prose. Where the app says this
+     of itself and exempts the few places that are text (see index.css), a
+     manual is the other way round: it is text, and this row of controls is the
+     exception. A long press here should not offer to copy "手册". */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   /* `.play-bar`'s own numbers, with the screen's edges honoured — this bar
      runs to the edge of the window where that one sits inside a padded
      column. Symmetrical again now that this one also ends in an icon button:

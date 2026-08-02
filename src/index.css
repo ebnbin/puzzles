@@ -44,6 +44,62 @@ body {
   margin: 0 auto;
 }
 
+/*
+ * --- what can be selected, and what is a control ------------------------
+ *
+ * Almost none of this app is text. A tile's name is the face of a button, the
+ * segmented control's EN is a radio, "Hidden (3)" is a disclosure — and on a
+ * phone every one of them answers a long press by putting up a selection
+ * handle and a Copy bubble over the thing the press was actually for. The
+ * gallery had it worst: a long press means "put this away", and it raised the
+ * browser's own text selection at the same time.
+ *
+ * The puzzle screen has said this for as long as it has existed, on four of its
+ * own selectors. It is not a property of the puzzle screen. It is a property of
+ * being an interface rather than a document, so it is said here, once, and the
+ * places that really are text ask for it back below.
+ *
+ * `-webkit-touch-callout` is the other half on iOS: without it a long press on
+ * an image offers to save or copy it whatever selection says.
+ */
+body {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/*
+ * And the exceptions, which are every part of the app a reader might genuinely
+ * want in the clipboard.
+ *
+ * The fields are the game id and the random seed — an address you hand out or
+ * paste one over is the whole point of that row — plus whatever the back end
+ * puts in a config box. The prose is the help dialog's blurb, which is a
+ * paragraph out of the manual. The credit names a licence and a URL.
+ *
+ * The manual itself is not here: it is three thousand words a page and has its
+ * own stylesheet, where the default stands and only the bar is exempted.
+ */
+input,
+textarea,
+.dialog-prose,
+footer p {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/*
+ * Pictures are not files here. The thumbnails are the faces of buttons, the
+ * monsters are the faces of keys, and the finished board in the help dialog is
+ * an illustration — dragging one out or holding it to save is never what was
+ * meant. The elements carry `draggable={false}` as well, which is what Firefox
+ * reads; this is what the rest read.
+ */
+img {
+  -webkit-user-drag: none;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -211,8 +267,6 @@ a {
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* A tile is a control, not a picture to save. */
-  -webkit-touch-callout: none;
   transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -555,14 +609,15 @@ footer p {
  * by accident. The scrollable parts, the sheet and the landscape keypad, say
  * otherwise for themselves.
  */
+/* Gestures, not scrolling: a drag on the board is a move, and a pinch over the
+   keys is not a zoom. The selection and callout half of this rule went to
+   `body`, which is where "this is an interface" belongs — see the top of the
+   file. What is left is the part that really is about these four. */
 .play-bar,
 .play-board,
 .play-actions,
 .keypad {
   touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 /* One line: back, which puzzle, how it is going, how it is played.
@@ -984,9 +1039,13 @@ p.notice-error.is-floating {
   height: 1.5rem;
 }
 
-/* Held rather than pressed: what the key would have said, if a key were big
-   enough to say it. Fixed, so the keypad's own scrolling does not clip it. */
-.keypad-tip {
+/* Held rather than pressed: what the button would have said, if it were big
+   enough to say it. Both rows along the foot of the board raise one — the keys
+   and the four fixed buttons — so it is named for the gesture and not for
+   either of them. Fixed, so the keypad's own scrolling does not clip it, and
+   so the four buttons, which are not in a scroller at all, can place it the
+   same way. */
+.hold-tip {
   position: fixed;
   z-index: 15;
   max-width: 10rem;
@@ -1163,7 +1222,18 @@ p.notice-error.is-floating {
   margin-top: 1.4rem;
 }
 
-.sheet h2 {
+/*
+ * What a section of the sheet is called. One rule, because there is one kind
+ * of thing being named: Type, Preferences, Game ID, Random seed. The two id
+ * rows are labels rather than headings — each one names its own field, and a
+ * heading would be lying about what it is attached to — but they sit at the
+ * same level of the sheet as the other two, and they were set as field
+ * captions: sentence case, `text-2`, two sizes larger. Two ways of writing the
+ * same thing, one under the other.
+ */
+.sheet h2,
+.sheet-id label {
+  display: block;
   margin: 0 0 0.5rem;
   color: var(--text-3);
   font-size: var(--t-2xs);
@@ -1364,13 +1434,6 @@ p.notice-error.is-floating {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-}
-
-.sheet-id label {
-  display: block;
-  margin-bottom: 0.3rem;
-  color: var(--text-2);
-  font-size: var(--t-sm);
 }
 
 .sheet-id input {

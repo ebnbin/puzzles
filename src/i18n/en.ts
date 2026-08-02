@@ -45,7 +45,6 @@ export const en = {
     language: 'Language',
     manual: 'Manual',
     manualHint: 'Rules and controls for every puzzle',
-    done: 'Done',
   },
 
   play: {

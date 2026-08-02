@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import type { KeyArt, KeyGlyph, KeyIcon } from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
+import { HoldTip, useHoldTip } from './useHoldTip'
 
 /**
  * The keys the puzzle asked for, as buttons.
@@ -18,9 +18,6 @@ import { useStrings } from './i18n'
  *
  * See engine/keys.ts for which puzzle gets which.
  */
-
-/** A press has to be still for this long before it is asking what a key is. */
-const HOLD_MS = 400
 
 /**
  * Undead's three monsters are pictures rather than glyphs — the board's own
@@ -40,7 +37,14 @@ const ART: Record<KeyArt, string> = {
 
 const art = (icon: KeyIcon) =>
   icon in ART ? (
-    <img className="key-art" src={ART[icon as KeyArt]} alt="" width={24} height={24} />
+    <img
+      className="key-art"
+      src={ART[icon as KeyArt]}
+      alt=""
+      width={24}
+      height={24}
+      draggable={false}
+    />
   ) : (
     <Icon name={icon as KeyGlyph} />
   )
@@ -66,36 +70,10 @@ export default function PuzzleKeypad({
   /*
    * Hold a key to be told what it is, rather than press it. The word is what
    * used to be written on the key, before the key became small enough to fit
-   * a row of them on a phone.
+   * a row of them on a phone. Shared with the four fixed buttons below the
+   * keypad, which are glyphs for a different reason and just as unlabelled.
    */
-  const [tip, setTip] = useState<{ text: string; left: number; top: number } | null>(
-    null,
-  )
-  const timer = useRef(0)
-  const held = useRef(false)
-  useEffect(() => () => window.clearTimeout(timer.current), [])
-
-  const hold = (e: React.PointerEvent<HTMLButtonElement>, text?: string) => {
-    if (!text) return
-    const el = e.currentTarget
-    held.current = false
-    window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => {
-      held.current = true
-      const box = el.getBoundingClientRect()
-      setTip({
-        text,
-        // Kept clear of both edges: a key in the corner of a phone would
-        // otherwise hang its label off the screen.
-        left: Math.min(Math.max(box.left + box.width / 2, 84), window.innerWidth - 84),
-        top: box.top,
-      })
-    }, HOLD_MS)
-  }
-  const release = () => {
-    window.clearTimeout(timer.current)
-    setTip(null)
-  }
+  const { tip, holdToAsk, wasHeld } = useHoldTip()
 
   if (keys.length === 0) return null
 
@@ -113,17 +91,9 @@ export default function PuzzleKeypad({
             // Keep focus on the board: the puzzle reads the keyboard from
             // it, and a focused button would swallow arrow keys.
             onMouseDown={(e) => e.preventDefault()}
-            onPointerDown={(e) => hold(e, said)}
-            onPointerUp={release}
-            onPointerCancel={release}
-            onPointerLeave={release}
+            {...holdToAsk(said)}
             onClick={() => {
-              // The press that ended a hold was a question, not an
-              // instruction.
-              if (held.current) {
-                held.current = false
-                return
-              }
+              if (wasHeld()) return
               onPress(key)
             }}
           >
@@ -132,11 +102,7 @@ export default function PuzzleKeypad({
         )
       })}
 
-      {tip && (
-        <div className="keypad-tip" role="status" style={{ left: tip.left, top: tip.top }}>
-          {tip.text}
-        </div>
-      )}
+      <HoldTip tip={tip} />
     </div>
   )
 }

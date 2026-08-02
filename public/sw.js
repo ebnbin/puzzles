@@ -30,8 +30,10 @@
  * should have been there.
  */
 
-/* Bumped to v2 to throw away the entries pinned under the old rule. */
-const CACHE = 'puzzles-v2'
+/* Bumped when a rule here changes, so the entries stored under the old one go:
+   v2 threw away what the cache-first rule had pinned, v3 the pictures this
+   worker no longer answers for. */
+const CACHE = 'puzzles-v3'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -59,6 +61,31 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+
+  /*
+   * The pictures are the browser's business, not ours.
+   *
+   * Answering a request here means calling `respondWith`, and a request
+   * answered here is one the browser did not answer from its own memory cache
+   * — every `<img>` load in a controlled page comes to this worker instead,
+   * and a worker's answer arrives a task later than the frame that wanted it.
+   * The gallery is where that shows: going into a puzzle destroys forty `<img>`
+   * elements, and coming back builds forty new ones that all have to ask. All
+   * forty asked; none was ready for the first frame; the grid painted its grey
+   * plates and filled in around 200ms later.
+   *
+   * Measured with this worker taken out of the way: no requests at all, all
+   * forty ready on the first frame, no flash. Measured with the worker in and
+   * every cache header tried — a year and `immutable`, a day, `no-cache`, and
+   * with the images held open by a live `Image` apiece — forty requests every
+   * time. The header is not the variable; the interception is.
+   *
+   * So these three directories are left to the browser, which caches them under
+   * the `Cache-Control` vercel.json gives them and can serve them off its own
+   * disk with no network — which is the offline story they had here, kept, and
+   * a first frame with pictures in it, which they did not.
+   */
+  if (/^\/(icons|solved|monsters)\//.test(url.pathname)) return
 
   if (request.mode === 'navigate') {
     event.respondWith(

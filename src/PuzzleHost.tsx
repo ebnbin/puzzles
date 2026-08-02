@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Dialog from './Dialog'
 import ErrorNote from './ErrorNote'
 import Icon from './Icon'
 import PuzzleDialog from './PuzzleDialog'
@@ -21,6 +22,7 @@ import type { DialogSpec, KeyLabel, Preset, PuzzleApi } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useHelp } from './useHelp'
+import { HoldTip, useHoldTip } from './useHoldTip'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
 import { useTheme } from './useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
@@ -538,6 +540,13 @@ export default function PuzzleHost({
     setMenuOpen(false)
   }, [])
 
+  // Stable, because Dialog listens for Escape on it and a fresh function every
+  // render would mean tearing that listener down and putting it back up again.
+  const closeHelp = useCallback(() => setHelpOpen(false), [])
+
+  // What the four glyphs along the foot of the board are called, on a hold.
+  const { tip, holdToAsk, wasHeld } = useHoldTip()
+
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
@@ -554,11 +563,12 @@ export default function PuzzleHost({
       if (e.metaKey || e.ctrlKey || e.altKey) return
       // Escape dismisses whatever is on top, wherever focus is — including a
       // control inside the sheet, which is where it will be after a preset.
+      // The dialogs answer it themselves (see Dialog); these are the sheets,
+      // which are not dialogs and have no such component to inherit it from.
       if (e.key === 'Escape') {
-        if (helpOpen) setHelpOpen(false)
         // Not a layer of its own: the parameters are part of the sheet, so
         // the sheet is what closes, and closing it answers the config box.
-        else if (typesOpen) closeTypes()
+        if (typesOpen) closeTypes()
         else if (menuOpen) closeMenu()
         else return
         e.preventDefault()
@@ -697,13 +707,18 @@ export default function PuzzleHost({
           everything else in the world uses for the same thing; the grid and
           the three lines say the rest. Words here would only push them apart
           and make where each one sits depend on how long they are in the
-          reader's language. */}
+          reader's language — so the words come on a long press instead, the
+          same way the keys above answer the same question. */}
       <nav className="play-actions">
         <button
           type="button"
           aria-label={t.play.undo}
           disabled={!undoRedo.undo}
-          onClick={() => act((a) => a.undo())}
+          {...holdToAsk(t.play.undo)}
+          onClick={() => {
+            if (wasHeld()) return
+            act((a) => a.undo())
+          }}
         >
           <Icon name="undo" />
         </button>
@@ -711,7 +726,11 @@ export default function PuzzleHost({
           type="button"
           aria-label={t.play.redo}
           disabled={!undoRedo.redo}
-          onClick={() => act((a) => a.redo())}
+          {...holdToAsk(t.play.redo)}
+          onClick={() => {
+            if (wasHeld()) return
+            act((a) => a.redo())
+          }}
         >
           <Icon name="redo" />
         </button>
@@ -725,7 +744,9 @@ export default function PuzzleHost({
             aria-label={t.types.title}
             aria-haspopup="dialog"
             aria-expanded={typesOpen}
+            {...holdToAsk(t.types.title)}
             onClick={() => {
+              if (wasHeld()) return
               closeMenu()
               setTypesOpen(true)
             }}
@@ -742,7 +763,9 @@ export default function PuzzleHost({
           aria-label={t.play.menu}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}
+          {...holdToAsk(t.play.menu)}
           onClick={() => {
+            if (wasHeld()) return
             closeTypes()
             // Whatever the back end said about a typed id was said to a sheet
             // that is no longer up. Opening a fresh one starts clean.
@@ -752,6 +775,7 @@ export default function PuzzleHost({
         >
           <Icon name="menu" />
         </button>
+        <HoldTip tip={tip} />
       </nav>
 
       {/* Temporary, and deliberately always there: judging a palette constant
@@ -762,86 +786,72 @@ export default function PuzzleHost({
       <TuningPanel onApply={applyTuning} dark={dark} />
 
       {helpOpen && (
-        <div className="dialog-dimmer" onClick={() => setHelpOpen(false)}>
-          <div
-            className="dialog dialog-help"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${t.play.help} — ${title}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* The title and the way out, on one line and staying on it: the
-                blurb scrolls under them rather than taking them with it. A
-                corner cross rather than a button in a row of buttons, because
-                closing is not one of the things this dialog is for — it is how
-                you leave, and this dialog has nothing else to press. */}
-            <div className="dialog-head">
-              <h2>{t.play.help}</h2>
-              <button
-                type="button"
-                className="dialog-close"
-                aria-label={t.play.close}
-                onClick={() => setHelpOpen(false)}
+        /* A corner cross rather than a button in a row of buttons, because
+           closing is not one of the things this dialog is for — it is how you
+           leave, and this dialog has nothing else to press. Passing `title` is
+           what asks Dialog for that pair. */
+        <Dialog
+          label={`${t.play.help} — ${title}`}
+          title={t.play.help}
+          onClose={closeHelp}
+          className="dialog-help"
+        >
+          {/*
+            What the puzzle looks like when it is done, before a word of it is
+            read. Whoever opens this is looking at a board they do not yet
+            understand, and a finished one answers "what am I aiming at" in
+            the time it takes to glance — which no paragraph can, and which is
+            the whole reason the covers are crops of a real position rather
+            than drawings.
+
+            Not lazy and not preloaded: the dialog is only rendered while it
+            is open, so the fetch happens when it is asked for, and the worker
+            keeps it afterwards — a puzzle whose help you have read once is
+            still illustrated on a plane.
+          */}
+          <img
+            className="help-art"
+            src={`/solved/${name}.png`}
+            alt={t.play.picture(title)}
+            draggable={false}
+          />
+          <div className="dialog-prose">
+            {/* Upstream's own words. Fetched when the puzzle loads, so this
+                is all but always the full blurb by the time it is asked for;
+                the one-liner covers the case where it is not. */}
+            {help ? (
+              <div dangerouslySetInnerHTML={{ __html: help }} />
+            ) : (
+              <p>{objective}</p>
+            )}
+            {/* The blurb is a paragraph; the manual is the chapter. So the
+                way to the chapter is the last line of the paragraph — a link
+                in the prose, where a reader who has read to the end already
+                is, rather than a button in a row, which is a thing to be
+                pressed and made this dialog look like it wanted something.
+
+                No fragment. The page is this puzzle's chapter entire, so
+                `#name` could only aim at its own first heading — which
+                bought nothing and cost the top of the page: the contents,
+                the index, and the way to the neighbouring chapters, all
+                scrolled off before the reader arrived.
+
+                A tab of its own: this app is one page, and leaving it would
+                unload the board, the sheet this link is in, and everything
+                else held in memory. The glyph says so, which inside a
+                sentence is worth the room it takes. */}
+            <p className="prose-more">
+              <a
+                href={docHref(lang, `${name}.html`)}
+                target="_blank"
+                rel="noreferrer"
               >
-                <Icon name="close" size={20} />
-              </button>
-            </div>
-            {/*
-              What the puzzle looks like when it is done, before a word of it is
-              read. Whoever opens this is looking at a board they do not yet
-              understand, and a finished one answers "what am I aiming at" in
-              the time it takes to glance — which no paragraph can, and which is
-              the whole reason the covers are crops of a real position rather
-              than drawings.
-
-              Not lazy and not preloaded: the dialog is only rendered while it
-              is open, so the fetch happens when it is asked for, and the worker
-              keeps it afterwards — a puzzle whose help you have read once is
-              still illustrated on a plane.
-            */}
-            <img
-              className="help-art"
-              src={`/solved/${name}.png`}
-              alt={t.play.picture(title)}
-            />
-            <div className="dialog-prose">
-              {/* Upstream's own words. Fetched when the puzzle loads, so this
-                  is all but always the full blurb by the time it is asked for;
-                  the one-liner covers the case where it is not. */}
-              {help ? (
-                <div dangerouslySetInnerHTML={{ __html: help }} />
-              ) : (
-                <p>{objective}</p>
-              )}
-              {/* The blurb is a paragraph; the manual is the chapter. So the
-                  way to the chapter is the last line of the paragraph — a link
-                  in the prose, where a reader who has read to the end already
-                  is, rather than a button in a row, which is a thing to be
-                  pressed and made this dialog look like it wanted something.
-
-                  No fragment. The page is this puzzle's chapter entire, so
-                  `#name` could only aim at its own first heading — which
-                  bought nothing and cost the top of the page: the contents,
-                  the index, and the way to the neighbouring chapters, all
-                  scrolled off before the reader arrived.
-
-                  A tab of its own: this app is one page, and leaving it would
-                  unload the board, the sheet this link is in, and everything
-                  else held in memory. The glyph says so, which inside a
-                  sentence is worth the room it takes. */}
-              <p className="prose-more">
-                <a
-                  href={docHref(lang, `${name}.html`)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {t.play.fullInstructions}
-                  <Icon name="external" size={14} />
-                </a>
-              </p>
-            </div>
+                {t.play.fullInstructions}
+                <Icon name="external" size={14} />
+              </a>
+            </p>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {typesOpen && presets && (

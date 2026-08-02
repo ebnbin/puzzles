@@ -1,4 +1,5 @@
 import ConfigFields from './ConfigFields'
+import Dialog from './Dialog'
 import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
 
@@ -24,31 +25,22 @@ export default function PuzzleDialog({
   const t = useStrings()
 
   return (
-    <div className="dialog-dimmer" onClick={onCancel}>
-      <form
-        className="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label={spec.title}
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
-          e.preventDefault()
-          onOk()
-        }}
-      >
-        <h2>{spec.title}</h2>
+    /* No corner cross: this one has a Cancel, and it is not the same act — the
+       cross elsewhere means "I have read this", while leaving here is an answer
+       the back end is waiting on. One way out, said in a word. */
+    <Dialog label={spec.title} onClose={onCancel} onSubmit={onOk}>
+      <h2>{spec.title}</h2>
 
-        <ConfigFields controls={spec.controls} autoFocus />
+      <ConfigFields controls={spec.controls} autoFocus />
 
-        {/* Cancel first, accept last: the accepting button is the one that
-            should sit where a thumb lands, and where the eye stops reading. */}
-        <div className="dialog-buttons">
-          <button type="button" onClick={onCancel}>
-            {t.dialog.cancel}
-          </button>
-          <button type="submit">{t.dialog.ok}</button>
-        </div>
-      </form>
-    </div>
+      {/* Cancel first, accept last: the accepting button is the one that
+          should sit where a thumb lands, and where the eye stops reading. */}
+      <div className="dialog-buttons">
+        <button type="button" onClick={onCancel}>
+          {t.dialog.cancel}
+        </button>
+        <button type="submit">{t.dialog.ok}</button>
+      </div>
+    </Dialog>
   )
 }

@@ -37,27 +37,20 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
       console.warn('service worker registration failed', error)
     })
 
-    // The gallery's forty thumbnails, put into the worker's cache before they
-    // are asked for. The worker only keeps what has been fetched at least
-    // once, and the server answers with no-cache — so without this, every
-    // thumbnail the lazy gallery never reached costs a visible round trip
-    // the first time it appears. Only what is missing is fetched, at idle,
-    // so a warm start costs nothing.
-    const warm = async () => {
-      if (!('caches' in window)) return
-      try {
-        const cache = await caches.open('puzzles-v1')
-        await Promise.all(
-          games.map(async ({ name }) => {
-            const url = `/icons/${name}.png`
-            if (!(await cache.match(url))) await cache.add(url)
-          }),
-        )
-      } catch {
-        // Same standing as the worker itself: a faster gallery is a bonus.
-      }
-    }
-    if ('requestIdleCallback' in window) requestIdleCallback(() => void warm())
-    else setTimeout(() => void warm(), 2000)
+    /*
+     * The forty thumbnails used to be fetched at idle into a cache called
+     * `puzzles-v1`, so the gallery would not pay a round trip apiece the first
+     * time it drew them.
+     *
+     * It had stopped working. The worker's cache was renamed to `puzzles-v2`
+     * and this name was left behind, so the warm-up filled a cache nothing
+     * read — and the worker's `activate`, which deletes every cache but its
+     * own, threw it away on each start, whereupon this put it back. Forty
+     * fetches a visit, into a bucket with a hole in it, for a year.
+     *
+     * There is nothing to replace it with. The worker no longer answers for
+     * pictures at all (see sw.js): they are the browser's now, and the browser
+     * fetches and keeps them without being asked.
+     */
   })
 }
