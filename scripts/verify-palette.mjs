@@ -77,6 +77,28 @@ for (const [game, map] of Object.entries(P.RIM)) {
 }
 
 /*
+ * `FIGURE` admits a drawing, not a slot, and it admits it for one reason: the
+ * drawing's paper is the background itself, so the table has no second cell to
+ * give. Both halves of that are checkable here — the paper must be BACKGROUND,
+ * or the entry is resting on some other reason that has not been written down;
+ * and there must be ink alongside it, because paper served alone leaves the
+ * outlines flipped over the paper at 1.22:1 and the drawing loses its lines.
+ */
+for (const [game, slots] of Object.entries(P.FIGURE)) {
+  check(
+    `FIGURE ${game} includes the background`,
+    slots.includes(P.BACKGROUND),
+    `the entry criterion is that the drawing's paper is the ground; without slot ` +
+      `${P.BACKGROUND} this entry is here for some other reason, and that reason is not stated`,
+  )
+  check(
+    `FIGURE ${game} carries ink as well as paper`,
+    slots.length >= 2,
+    `paper alone is half a negative: the ink flips over it and the drawing loses its lines`,
+  )
+}
+
+/*
  * The other direction of the same claim: `SEMANTIC` is the list of slots that
  * must not be turned over, so none of them may come out as its own flip.
  */

@@ -355,6 +355,28 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  * inside `draw_monster`), so nothing forces their hand and they take the veil
  * like every other hue in the collection.
  *
+ * Which makes the entry criterion a thing you can sweep for: *a drawing whose
+ * paper is BACKGROUND itself*. Every `draw_circle` / `draw_polygon` in the
+ * collection that fills with COL_BACKGROUND was checked — Cube, Black Box,
+ * Slant, Map, Undead — and only Undead's is not the ground showing through.
+ * The other four lay the ground with a `draw_rect` in the same drawing path
+ * and mean "nothing here": Black Box's inner circle exists to leave a red
+ * *ring*, Map's is a region with no colour yet. Those would break if they were
+ * served a second value, which is what the `rect` exclusion below is for as
+ * much as for Undead's own ground. `draw_monster` has no `draw_rect` at all,
+ * and all seven of its COL_BACKGROUND fills sit on a skin.
+ *
+ * The ink follows the paper because half a negative is worse than a whole one:
+ * with COL_BACKGROUND served alone the ink flips to #d1d1d1 over #bebebe paper,
+ * 1.22:1, and the pupils, the hairline and every outline disappear. The unit
+ * this table admits is a drawing, not a slot.
+ *
+ * Guess's COL_FRAME and Map's COL_GRID are the deliberate other side of that
+ * line. They are double-duty too, and they get nothing, because their paper is
+ * a peg and a region — ordinary slots whose cell is negotiable, and the
+ * negotiation happened in favour of one colour per slot at a cost of 1.58:1
+ * and 1.90:1. Only where the paper is the ground is there no cell to negotiate.
+ *
  * What separates the two jobs is not the slot but the call, so that is where
  * the rule is drawn and `Renderer.ink` is what applies it. Three exclusions,
  * each holding down one thing: `draw_text` is the clue numbers, a `draw_rect`
