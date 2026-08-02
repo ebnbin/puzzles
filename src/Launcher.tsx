@@ -439,7 +439,7 @@ function Tile({
               into view — and again on every return from a game. Forty small
               PNGs are cheaper than the blank. */}
           <img
-            src={`/icons/${game.name}-${theme}.png`}
+            src={`/tiles/${game.name}-${theme}.png`}
             alt=""
             width={256}
             height={256}

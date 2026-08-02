@@ -1,12 +1,16 @@
 /**
  * Render a thumbnail for every puzzle, in both themes.
  *
- * Upstream ships the ingredients rather than the pictures: icons/<game>.sav is
- * a position Simon picked as representative, and icons/icons.cmake gives the
- * corner of the board worth showing — the icons are close crops, not whole
- * boards. Its own build renders these through a purpose-built GTK binary; we
- * already have the puzzles running in a browser, so they are rendered through
- * the same engine the site uses.
+ * Upstream ships the ingredients rather than the pictures: its own
+ * icons/<game>.sav is a position Simon picked as representative, and
+ * icons/icons.cmake gives the corner of the board worth showing — these are
+ * close crops, not whole boards. Its own build renders them through a
+ * purpose-built GTK binary; we already have the puzzles running in a browser,
+ * so they are rendered through the same engine the site uses.
+ *
+ * They land in public/tiles/ and not public/icons/, which is the app's own icon
+ * and one file rather than forty. Upstream's directory keeps its name because
+ * it is upstream's; ours says what the gallery calls them.
  *
  * The crop is applied proportionally rather than in pixels. icons.cmake states
  * the size it expects the board to be, so the rectangle can be scaled to
@@ -19,7 +23,7 @@
  *
  * Run through scripts/build-games.sh, or on its own against a preview server:
  *   npx vite preview --port 4173 &
- *   node scripts/build-icons.mjs
+ *   node scripts/build-tiles.mjs
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -41,8 +45,8 @@ import {
   THEMES,
 } from './lib/pictures.mjs'
 
-const outDir = path.join(root, 'public/icons')
-/** Every icon comes out this square, whatever the crop it was taken from. */
+const outDir = path.join(root, 'public/tiles')
+/** Every tile comes out this square, whatever the crop it was taken from. */
 const SIZE = 256
 
 const list = games()
@@ -120,7 +124,7 @@ for (const game of list) {
 
 await browser.close()
 
-console.log(`\nwrote ${wrote} icons to public/icons`)
+console.log(`\nwrote ${wrote} tiles to public/tiles`)
 if (failed) {
   console.error(`${failed} failed`)
   process.exit(1)

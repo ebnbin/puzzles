@@ -24,7 +24,7 @@
       ]
     },
     {
-      "source": "/(icons|howto|art)/(.*)",
+      "source": "/(tiles|howto|art)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

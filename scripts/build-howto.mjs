@@ -3,7 +3,7 @@
  * themes.
  *
  * The launcher's thumbnail is a close crop of a position upstream picked
- * (icons/<game>.sav, see build-icons.mjs). This is the other picture of that
+ * (icons/<game>.sav, see build-tiles.mjs). This is the other picture of that
  * same puzzle: the whole board, and — wherever the puzzle can be finished —
  * finished. That is what the reader is being asked to arrive at, which is what
  * instructions want to show and what a crop of a half-played grid cannot.

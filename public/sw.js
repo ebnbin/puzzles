@@ -102,7 +102,7 @@ self.addEventListener('fetch', (event) => {
    * pair was left behind — so the help picture and the key art went back to
    * being answered here, silently, with nothing to fail.
    */
-  if (/^\/(icons|howto|art)\//.test(url.pathname)) return
+  if (/^\/(tiles|howto|art)\//.test(url.pathname)) return
 
   if (request.mode === 'navigate') {
     event.respondWith(

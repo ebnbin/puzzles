@@ -16,7 +16,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
-export const iconsDir = path.join(root, 'vendor/sgtpuzzles/icons')
+export const upstreamIcons = path.join(root, 'vendor/sgtpuzzles/icons')
 export const BASE = process.env.PUZZLES_BASE ?? 'http://localhost:4173'
 export const CHROMIUM =
   process.env.PLAYWRIGHT_CHROMIUM ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
@@ -28,7 +28,7 @@ export const games = () =>
 
 /** `set(net_crop 193x193 113x113+0+80)` → the reference size and the rectangle. */
 export function readCrops() {
-  const text = fs.readFileSync(path.join(iconsDir, 'icons.cmake'), 'utf8')
+  const text = fs.readFileSync(path.join(upstreamIcons, 'icons.cmake'), 'utf8')
   const crops = new Map()
   for (const [, name, rw, rh, cw, ch, cx, cy] of text.matchAll(
     /set\((\w+)_crop (\d+)x(\d+) (\d+)x(\d+)\+(\d+)\+(\d+)\)/g,
@@ -43,13 +43,13 @@ export function readCrops() {
  * freezes the animation this far through it.
  */
 export function readRedos() {
-  const text = fs.readFileSync(path.join(iconsDir, 'icons.cmake'), 'utf8')
+  const text = fs.readFileSync(path.join(upstreamIcons, 'icons.cmake'), 'utf8')
   return new Map(
     [...text.matchAll(/set\((\w+)_redo ([\d.]+)\)/g)].map(([, n, p]) => [n, +p]),
   )
 }
 
-export const savePath = (game) => path.join(iconsDir, `${game}.sav`)
+export const savePath = (game) => path.join(upstreamIcons, `${game}.sav`)
 
 /**
  * The app, open on one puzzle in one theme, with a board that has been drawn.

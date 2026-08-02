@@ -1,7 +1,7 @@
 /**
  * The app's own icon: Net and Cube, cut apart by a diagonal.
  *
- * Two of the forty tiles that public/icons/ already holds — Net's above the
+ * Two of the forty tiles that public/tiles/ already holds — Net's above the
  * line, Cube's below it, both in the light theme — with a black seam running
  * from the top-right corner to the bottom-left one. What it says is what this
  * app is: not one puzzle, and not a picture of a puzzle, but the collection.
@@ -57,7 +57,7 @@ import { chromium } from 'playwright'
 import { root, CHROMIUM } from './lib/pictures.mjs'
 
 const OUT = path.join(root, 'public')
-const TILES = path.join(OUT, 'icons')
+const TILES = path.join(OUT, 'tiles')
 
 /** Above the line and below it. Both light: the icon is one theme, cut. */
 const ABOVE = 'net-light.png'

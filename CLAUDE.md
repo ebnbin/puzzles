@@ -48,7 +48,7 @@ npm run doc             # 重新生成 public/doc/(需要 halibut)
 
 ```bash
 ./scripts/build-games.sh          # 重编译 wasm + 手册(需要 emsdk/cmake/ninja/halibut)
-node scripts/build-icons.mjs      # 画廊缩略图,需要先起 vite preview,需要 playwright
+node scripts/build-tiles.mjs      # 画廊缩略图,需要先起 vite preview,需要 playwright
 node scripts/build-howto.mjs      # 玩法弹窗里的完成图,同上;可只跑几个:… net solo mines
 node scripts/build-art.mjs        # Undead 键盘上的三个怪物 PNG
 node scripts/build-appicon.mjs    # app icon,四个尺寸;不需要起 preview
@@ -110,8 +110,8 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 | `src/games.json`、`public/help/en.json` | `scripts/extract-games.mjs`(读上游 CMakeLists.txt 和 html/) |
 | `public/sitemap.txt` | `scripts/build-doc.mjs`(`/` 加两棵手册树;app 是纯 JS 渲染的单页,爬虫在 `/` 上找不到任何链接,这个文件是手册唯一的入口) |
 | `public/og.png` | `scripts/build-shot.mjs`(1200×630,分享卡片;和 README 那张同一个脚本) |
-| `public/icons/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
-| `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/icons/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
+| `public/tiles/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
+| `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/tiles/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
 | `public/doc/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
 | `docs/gallery.png` | `scripts/build-shot.mjs`(README 用的首页截图,亮暗并排);放 `docs/` 不放 `public/`,它不该跟着 app 部署出去 |
 
@@ -146,7 +146,7 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
   设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验 `SAVEFILE` 开头、
   主题只认 light/dark 其余当 system、集合类过滤非字符串),所以**加**东西是安全的,**改**
   和**删**不是。
-- **`public/` 里的 URL**:`/engine/**`、`/doc/**`、`/help/**`、`/icons|howto|art/**`、
+- **`public/` 里的 URL**:`/engine/**`、`/doc/**`、`/help/**`、`/tiles|howto|art/**`、
   `/og.png`、`/manifest.webmanifest`、`/sw.js`。改路径不会让谁崩掉(service worker 按整条
   URL 存,老条目只是变成垃圾),但 `/og.png` 例外——Slack、Discord 这些按 URL 缓存分享卡片,
   换地址等于换一张卡片,老链接还是老图。
