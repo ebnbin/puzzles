@@ -543,15 +543,6 @@ const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
 /** Every game names its background first. */
 export const BACKGROUND = 0
 
-/**
- * How far to nudge a colour that would otherwise duplicate another.
- *
- * Downwards first, and never outside [FLOOR, CEILING]. A nudge upwards from
- * the top of the range is how Pattern's text ended up at #e8e8e8 — brighter
- * than the ceiling exists to allow — after the white cells had already
- * claimed #d1d1d1.
- */
-const NUDGES = [-0.09, 0.09, -0.17, 0.17, -0.25, 0.25, -0.33, 0.33]
 
 /**
  * How opaque the veil over a hue gets at its brightest.
@@ -860,58 +851,48 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * lowlight, chosen precisely because the tile is the highlight's colour —
    * gets the contrast upstream was reaching for rather than the remains of it.
    */
-  for (const index of BEVEL[game]?.flat() ?? [])
-    light.forEach((css, other) => {
-      if (other !== index && css === light[index]) flipped[other] = flipped[index]
-    })
-
-  // Two indices the game drew differently must still be drawn differently.
-  // Semantic slots claim their value first: if a bevel and a black pearl land
-  // on the same grey, it is the bevel that should move.
-  const taken = new Map<string, number>()
-  for (const index of semantic ?? []) taken.set(flipped[index], index)
-
   /*
-   * And where one has to move, the slots that shared its colour move with it.
+   * The last pass, and the only invariant left that is about two slots rather
+   * than one: two slots the game drew in the same colour are drawn in the same
+   * colour here too.
    *
-   * A slot that is nudged aside no longer holds the value its twin holds, and
-   * the twin will be nudged by a different step or not at all, so the two come
-   * apart. Guess draws its frame and its cursor in the same black; both wanted
-   * the light grey the white peg had already claimed, and they landed two steps
-   * apart from each other for no reason either of them states. Following the
-   * first one's destination keeps them together and costs nothing — the value
-   * is already reserved, by the twin.
+   * Every rule above maps a colour to a colour, so equal inputs already give
+   * equal outputs. The bevel exchange is the one thing in this file that can
+   * break that, because moving a value between two slots does not care what a
+   * third slot holds — so the pairs it touched are seeded first, and the slots
+   * that shared their light colour follow them rather than the other way round.
+   *
+   * Samegame is the case. `game_mkhighlight` saturates its highlight to white,
+   * and Samegame independently paints a selected tile white too, so the two
+   * arrive here identical; without this the exchange separates them and the
+   * outline drawn round a selected tile — the lowlight, chosen precisely
+   * because the tile is the highlight's colour — loses most of its step.
    *
    * `SEMANTIC` slots are exempt, and that exemption is the whole point of the
-   * table: Pattern's two blacks *are* meant to come apart, one being a rule
-   * and one being a line.
+   * table: Pattern's two blacks *are* meant to come apart, one being a rule and
+   * one being a line.
+   *
+   * A collision pass used to live here as well: where two slots the game drew
+   * *differently* landed on the same value, it pushed one aside by a step from
+   * a `NUDGES` table. It is gone, and what it was patching is worth naming,
+   * because both causes are still here. Six of its seven slots were a flipped
+   * black meeting a compressed white — `flip` and `compress` share `FLOOR` and
+   * `CEILING` and run opposite ways, so the ends coincide exactly, and any game
+   * holding both lands them on one value. The seventh was two blues that both
+   * ran out of room at `LIFT_CEILING`. Removing the pass lets those meet:
+   * Mines draws its 1 and its 4 in one blue, Pattern writes its clues in the
+   * colour of an empty square, Pearl flashes in the colour of a black pearl.
+   * That was measured and rendered before it was taken out.
    */
   const settled = new Map<string, string>()
+  for (const index of BEVEL[game]?.flat() ?? [])
+    if (!semantic?.includes(index)) settled.set(light[index], flipped[index])
 
   return flipped.map((css, index) => {
     if (semantic?.includes(index)) return css
     const twin = settled.get(light[index])
     if (twin !== undefined) return twin
-
-    const keep = (value: string) => {
-      settled.set(light[index], value)
-      return value
-    }
-    const held = taken.get(css)
-    if (held === undefined || light[held] === light[index]) {
-      taken.set(css, index)
-      return keep(css)
-    }
-    const hsl = parse(css)
-    for (const nudge of hsl ? NUDGES : []) {
-      const l = hsl!.l + nudge
-      if (l < FLOOR || l > CEILING) continue
-      const moved = format({ ...hsl!, l })
-      if (!taken.has(moved)) {
-        taken.set(moved, index)
-        return keep(moved)
-      }
-    }
-    return keep(css)
+    settled.set(light[index], css)
+    return css
   })
 }
