@@ -36,11 +36,18 @@
    under their new names. */
 const CACHE = 'puzzles-v4'
 
+/*
+ * `addAll` is all or nothing: one entry that 404s rejects the whole promise,
+ * `install` fails, and the worker never activates — so this list is exactly
+ * three things that certainly exist, and anything renamed has to be renamed
+ * here too. `/icon.svg` sat here after it was replaced by the PNGs, which would
+ * have taken offline support down with it.
+ */
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(['/', '/icon.svg', '/manifest.webmanifest']))
+      .then((cache) => cache.addAll(['/', '/icon-192.png', '/manifest.webmanifest']))
       .then(() => self.skipWaiting()),
   )
 })

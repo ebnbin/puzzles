@@ -51,9 +51,11 @@ npm run doc             # 重新生成 public/doc/(需要 halibut)
 node scripts/build-icons.mjs      # 画廊缩略图,需要先起 vite preview,需要 playwright
 node scripts/build-howto.mjs      # 玩法弹窗里的完成图,同上;可只跑几个:… net solo mines
 node scripts/build-art.mjs        # Undead 键盘上的三个怪物 PNG
+node scripts/build-appicon.mjs    # app icon,四个尺寸;不需要起 preview
 ```
 
-playwright 不在 `package.json` 里,这三个脚本要用时自行安装。只有升级
+playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`build-appicon.mjs`
+只拼两张已经生成好的缩略图,所以不需要 vite preview,但同样要 playwright。只有升级
 `vendor/sgtpuzzles`(见 `vendor/UPSTREAM`)或改构建参数时才需要 `build-games.sh`。
 
 ## 架构
@@ -104,6 +106,7 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 | `public/engine/**`、`public/doc/**` | `scripts/build-games.sh` |
 | `src/games.json`、`public/help.json` | `scripts/extract-games.mjs`(读上游 CMakeLists.txt 和 html/) |
 | `public/icons/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
+| `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/icons/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
 | `public/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
 
 手写的对应物只有翻译:`src/games.zh.json`、`public/help.zh.json`、`doc-zh/`。

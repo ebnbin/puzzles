@@ -15,9 +15,17 @@
     <meta name="apple-mobile-web-app-title" content="Puzzles" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <!-- A PNG, because iOS does not take an SVG here and falls back to a
-         screenshot of the page as the home-screen icon. -->
+    <!-- All four are the same drawing at four sizes, built by
+         scripts/build-appicon.mjs out of two of the gallery's own tiles. A PNG
+         and not an SVG since it became a photograph of two boards; the one it
+         replaced was a drawing of a Net-shaped tree, which was a picture of one
+         puzzle standing in for forty. Sized here rather than left to the
+         browser, because a tab strip shrinking 512 pixels of two boards down to
+         sixteen gets mush. -->
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+    <!-- iOS reads only this one, and only a PNG: given an SVG it falls back to
+         a screenshot of the page as the home-screen icon. -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Puzzles</title>
     <!--
