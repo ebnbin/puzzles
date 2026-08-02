@@ -534,12 +534,23 @@ const BOARD_IS_PAPER: ReadonlySet<string> = new Set(['lightup', 'singles', 'rang
  * tint a selected cell is no bevel at all — in four of those it is *darker*
  * than the board it sits on.
  *
- * Two of the eleven pairs listed need nothing done to them, and they are here
- * to be checked rather than changed: Twiddle's cursor pair is a red, so it is
- * veiled rather than flipped and keeps its order, and Unruly's two pairs are
- * already spared by `SEMANTIC`. A rule that names the pairs and states what
- * must be true of them covers those for free; a rule that just swapped them
- * would have broken both.
+ * Thirteen pairs, of which eleven are actually turned over. The two that are
+ * not are Unruly's, spared by `SEMANTIC`: compression keeps a colour's
+ * direction, so the lit side is still the lighter one and the swap declines.
+ * They are here to be checked rather than changed — deleting them today would
+ * not move a pixel, but the day `SEMANTIC` stops holding Unruly, this table is
+ * what catches the pair. That is the shape of the rule: it names the pairs and
+ * states what must be true of them, rather than swapping unconditionally.
+ *
+ * Twiddle's cursor pair used to be listed here as a third that needed nothing,
+ * on the grounds that a red is veiled rather than flipped and so keeps its
+ * order. That was true of the veil alone and is not true now: the lift is a
+ * per-slot search against the board, it fires on the dark side (#804040) and
+ * not on the light one, and it pushes the shade past the lit side —
+ * 0.365 → 0.659 against 0.571. The swap is what puts them back. The same
+ * arithmetic reorders a pair in Signpost that no rule catches, so this is not
+ * a curiosity: a rule that reads one colour at a time can invert a pair, and
+ * this table is the only place that notices.
  *
  * No game is in both this table and `BOARD_IS_PAPER`, and
  * `scripts/verify-palette.mjs` holds that. A pass used to live here for the
@@ -557,7 +568,7 @@ const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
   fifteen: [[2, 3]],
   sixteen: [[2, 3]],
   /* ...the tile, the gentler pair the rotating block is shaded with, and the
-     cursor's, which is a red and comes out right on its own */
+     cursor's, which is a red the lift reorders — see above */
   twiddle: [
     [2, 4],
     [3, 5],
