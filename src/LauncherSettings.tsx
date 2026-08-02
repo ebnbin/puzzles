@@ -35,10 +35,12 @@ export default function LauncherSettings({
   // offset is the launcher's, caught before the dialog scrolled it away.
   useScrollLock(lockAt)
 
-  // Two, since "system" went: a third state needs somewhere able to show one,
-  // and this is that somewhere, but the setting itself is now two-valued
-  // everywhere — light unless the reader has said otherwise.
+  // Three, and this is the only control in the app that can show three: a
+  // press commits to a side, and the side it commits to is what the other two
+  // presses in this app are for. System leads because it is the default and
+  // because it is the one a reader picks by not deciding.
   const themes: { value: Theme; label: string }[] = [
+    { value: 'system', label: t.settings.themeSystem },
     { value: 'light', label: t.settings.themeLight },
     { value: 'dark', label: t.settings.themeDark },
   ]

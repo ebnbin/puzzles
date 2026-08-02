@@ -3,8 +3,8 @@ import type { KeyArt, KeyGlyph, KeyIcon } from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
 import { HoldTip, useHoldTip } from './useHoldTip'
-import { useTheme } from './useTheme'
-import type { Theme } from './useTheme'
+import { useResolvedTheme } from './useTheme'
+import type { Resolved } from './useTheme'
 
 /**
  * The keys the puzzle asked for, as buttons.
@@ -38,7 +38,7 @@ import type { Theme } from './useTheme'
  */
 const ART: readonly KeyArt[] = ['ghost', 'vampire', 'zombie']
 
-const art = (icon: KeyIcon, theme: Theme) =>
+const art = (icon: KeyIcon, theme: Resolved) =>
   (ART as readonly string[]).includes(icon) ? (
     <img
       className="key-art"
@@ -60,7 +60,7 @@ export default function PuzzleKeypad({
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
-  const [theme] = useTheme()
+  const theme = useResolvedTheme()
 
   /*
    * What a key does, said in words. Only the ones that are a picture need it:

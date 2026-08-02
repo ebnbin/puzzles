@@ -19,6 +19,7 @@ export const zh: Strings = {
   settings: {
     title: '设置',
     appearance: '外观',
+    themeSystem: '跟随系统',
     themeLight: '浅色',
     themeDark: '深色',
     language: '语言',
@@ -36,8 +37,6 @@ export const zh: Strings = {
     redo: '重做',
     menu: '菜单',
     switcher: '全部谜题',
-    toDark: '切换到深色',
-    toLight: '切换到浅色',
     keypad: '谜题按键',
     error: '启动这个谜题时出错。',
   },

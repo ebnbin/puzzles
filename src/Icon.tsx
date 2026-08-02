@@ -47,8 +47,6 @@ export type IconName =
   | 'close'
   | 'help'
   | 'alert'
-  | 'sun'
-  | 'moon'
   | 'caret'
 
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -198,22 +196,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="12" cy="16.6" r="1.05" fill="currentColor" stroke="none" />
     </>
   ),
-  /* The two of these name what you get, not what you are on: the sun is shown
-     while the board is dark, because pressing it turns the lights on. */
-  sun: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2.6v2.2" />
-      <path d="M12 19.2v2.2" />
-      <path d="M2.6 12h2.2" />
-      <path d="M19.2 12h2.2" />
-      <path d="m5.3 5.3 1.6 1.6" />
-      <path d="m17.1 17.1 1.6 1.6" />
-      <path d="m18.7 5.3-1.6 1.6" />
-      <path d="m6.9 17.1-1.6 1.6" />
-    </>
-  ),
-  moon: <path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z" />,
   /* Small, and drawn shallow: it sits beside a word rather than in a button
      of its own, and a steep chevron there reads as a second glyph. */
   caret: <path d="m7.5 10 4.5 4.5 4.5-4.5" />,

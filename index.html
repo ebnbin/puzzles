@@ -36,9 +36,13 @@
     -->
     <script>
       ;(function () {
-        var dark = false
+        // Stored light or dark wins; anything else — including nothing stored,
+        // which is the common case — means whatever the machine is set to. The
+        // same three lines are useTheme's `read` and `resolve`.
+        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches
         try {
-          dark = localStorage.getItem('puzzles.theme') === 'dark'
+          var stored = localStorage.getItem('puzzles.theme')
+          if (stored === 'light' || stored === 'dark') dark = stored === 'dark'
         } catch (e) {}
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
         document

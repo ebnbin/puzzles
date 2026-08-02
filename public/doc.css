@@ -64,8 +64,15 @@
      (5.73:1) — the tint says what it is without costing legibility. */
   --danger-soft: #fbeae8;
 
-  /* The grey the thumbnails are rendered on. Constant across themes: the
-     icons are built once, in light, and sit on a plate that matches them.
+  /* The grey the thumbnails are rendered on, so the plate under one matches
+     it while it loads. There is a pair of icons per puzzle now, one per theme,
+     so this follows the theme too — see the dark block below.
+
+     One value cannot match all forty: twenty-four boards are #e6e6e6 and
+     sixteen the dimmed #d5d5d5. It matches the majority and is only ever seen
+     in the moment before a picture arrives, because each picture is padded out
+     to its square with its own edge colour and covers the plate exactly.
+
      Never applied to the canvas itself — see the note above. What a board
      becomes on dark is decided in engine/palette.ts, not here. */
   --board: #e6e6e6;
@@ -163,6 +170,10 @@
   --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.14),
     0 10px 28px -8px rgb(0 0 0 / 0.8);
   --scrim: rgb(0 0 0 / 0.6);
+
+  /* What `flip` makes of #e6e6e6, which is what the majority of the dark
+     thumbnails are drawn on. */
+  --board: #1f1f1f;
 }
 
 /*

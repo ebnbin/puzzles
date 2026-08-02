@@ -34,12 +34,15 @@ export const en = {
 
   /**
    * The dialog behind the gallery's one settings button. Two things to decide
-   * and one place to read more — the appearance, which the puzzle screen and
-   * the manual also offer as a single press, and the way to the manual.
+   * and one place to read more. The appearance is here and only here, now that
+   * the puzzle screen's press has gone: three states, and this is the one
+   * control in the app able to show three. The manual keeps a press of its own,
+   * which commits to a side.
    */
   settings: {
     title: 'Settings',
     appearance: 'Appearance',
+    themeSystem: 'System',
     themeLight: 'Light',
     themeDark: 'Dark',
     language: 'Language',
@@ -65,9 +68,6 @@ export const en = {
     /** The name in the bar is the way to the gallery, so it says where it
      *  goes rather than what it closes. */
     switcher: 'All puzzles',
-    /* Named for what the press does, not for where you are. */
-    toDark: 'Switch to dark',
-    toLight: 'Switch to light',
     keypad: 'Puzzle keys',
     error: 'Something went wrong starting this puzzle.',
   },

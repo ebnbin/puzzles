@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#fafaf9">
 <title>Net</title>
-<link rel="stylesheet" href="/doc.css?v=02716f2e">
+<link rel="stylesheet" href="/doc.css?v=df51a7b6">
 <link rel="previous" href="common.html">
 <link rel="ToC" href="index.html">
 <link rel="up" href="index.html">
@@ -42,12 +42,16 @@
     root.dataset.theme = dark ? 'dark' : 'light'
     bar.setAttribute('content', dark ? '#101013' : '#fafaf9')
   }
+  var system = matchMedia('(prefers-color-scheme: dark)')
+  // Stored light or dark wins; anything else — including nothing stored, which
+  // is the common case — means whatever the machine is set to. useTheme's
+  // `read` and `resolve`, in the form a page with no React can use.
   function stored() {
     try {
-      return localStorage.getItem('puzzles.theme') === 'dark'
-    } catch (e) {
-      return false
-    }
+      var value = localStorage.getItem('puzzles.theme')
+      if (value === 'light' || value === 'dark') return value === 'dark'
+    } catch (e) {}
+    return system.matches
   }
   paint(stored())
   // The app is a tab of its own — this page was opened from it — and the two
@@ -56,6 +60,11 @@
   addEventListener('storage', function (event) {
     if (event.key === null || event.key === 'puzzles.theme') paint(stored())
   })
+  // And the machine changing its mind, which reaches this page only while the
+  // reader has left the setting to it — `stored` ignores it otherwise.
+  system.addEventListener('change', function () {
+    paint(stored())
+  })
   document.addEventListener('click', function (event) {
     var link = event.target.closest && event.target.closest('.doc-lang a')
     if (!link) return
@@ -63,10 +72,15 @@
       localStorage.setItem('puzzles.lang', link.getAttribute('data-lang'))
     } catch (e) {}
   })
-  // The same one press the app has, doing the same thing to the same key:
-  // commit to a side, write it down, and turn this page over on the spot.
-  // "System" is a third state and stays where a third state can be shown,
-  // which is the app's settings.
+  // One press, committing to a side: it writes light or dark, so a page left on
+  // the machine's answer stops following it from here on. "System" is a third
+  // state and stays where a third state can be shown, which is the app's
+  // settings — and this is the only press of its kind left, the puzzle screen
+  // having given its one up. A page of prose has nowhere else to put one.
+  //
+  // Reads the painted attribute rather than the stored value, so the side it
+  // commits to is the opposite of what is on the screen, whether that came
+  // from a choice or from the machine.
   document.addEventListener('click', function (event) {
     var button = event.target.closest && event.target.closest('.doc-theme')
     if (!button) return

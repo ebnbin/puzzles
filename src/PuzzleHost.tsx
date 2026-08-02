@@ -22,7 +22,7 @@ import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
-import { useTheme } from './useTheme'
+import { useResolvedTheme } from './useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
@@ -147,8 +147,7 @@ export default function PuzzleHost({
   const [textError, setTextError] = useState<{ kind: TextKind; message: string } | null>(null)
 
   const help = useHelp(name)
-  const [theme, setTheme] = useTheme()
-  const dark = theme === 'dark'
+  const theme = useResolvedTheme()
   const t = useStrings()
   const [lang] = useLang()
   // Read inside the start-up effect without making it a dependency: the puzzle
@@ -696,18 +695,13 @@ export default function PuzzleHost({
         >
           {status}
         </span>
-        {/* The board turns over with the page, and this is the shortest way
-            to see it do so — one press, no dialog. It commits to a side
-            rather than toggling within "system": having asked for a specific
-            appearance, a reader should get it until they say otherwise. */}
-        <button
-          type="button"
-          className="play-icon"
-          aria-label={dark ? t.play.toLight : t.play.toDark}
-          onClick={() => setTheme(dark ? 'light' : 'dark')}
-        >
-          <Icon name={dark ? 'sun' : 'moon'} />
-        </button>
+        {/* No light-and-dark button here. It was the shortest way to turn the
+            board over, and the board is the last place that needs one: this
+            screen is a puzzle and two controls, and a third that changes how
+            the app looks rather than what the game does was the odd one out.
+            The setting is in the settings, where all three of its states can
+            be shown at once, and the manual keeps its own press because it is
+            a page of prose with nowhere else to put one. */}
         <button
           type="button"
           className="play-icon"
