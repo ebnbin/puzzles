@@ -124,6 +124,55 @@ a {
   transform: scale(0.92);
 }
 
+/* --- the two things there are to decide, in their own dialog -------------- */
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.85rem 0;
+  color: var(--text);
+  font-size: var(--t-md);
+  user-select: none;
+}
+
+.setting + .setting {
+  border-top: 1px solid var(--edge);
+}
+
+.setting-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.setting-link svg {
+  flex: none;
+  color: var(--text-3);
+}
+
+@media (hover: hover) {
+  .setting-link:hover .setting-text {
+    color: var(--accent);
+  }
+}
+
+.setting-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-md);
+  font-weight: 500;
+}
+
+.setting-text em {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-style: normal;
+  font-weight: 400;
+}
+
 /*
  * Three across on a phone, seven once there is a desktop's worth of room.
  * The thumbnail still leads, just at a size that puts a screenful of the
@@ -373,14 +422,6 @@ footer {
 
 footer p {
   margin: 0;
-}
-
-/* The way to the manual, and the one thing down here that is a control rather
-   than a credit — so it leads, at the size of the app's own text rather than
-   the footer's small print, with a line of air before the credit below it. */
-.footer-manual {
-  margin-bottom: 0.9rem;
-  font-size: var(--t-md);
 }
 
 /* --- playing a puzzle ---------------------------------------------------
@@ -1423,8 +1464,12 @@ p.notice-error.is-floating {
   background: var(--surface-2);
 }
 
-/* Long enough to be worth reading in, on a screen that has the room. */
-.dialog-help {
+/* Long enough to be worth reading in, on a screen that has the room. Two
+   selectors and one block — taking a selector out once left the other one
+   dangling above the next rule, which sized the help dialog as though it were
+   the picture inside it. */
+.dialog-help,
+.dialog-settings {
   max-width: 30rem;
 }
 

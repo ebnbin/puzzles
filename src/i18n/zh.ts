@@ -6,8 +6,7 @@ export const zh: Strings = {
   brand: 'Puzzles',
 
   launcher: {
-    language: '语言',
-    manual: '手册',
+    settings: '设置',
     hide: (game: string) => `隐藏${game}`,
     show: (game: string) => `显示${game}`,
     hidden: (count: number) => `已隐藏（${count}）`,
@@ -15,6 +14,17 @@ export const zh: Strings = {
     nowShown: (game: string) => `已显示 ${game}`,
     credit: 'Puzzles 由 Simon Tatham 及众多贡献者开发，基于 MIT 许可证发布。',
     source: '源码：',
+  },
+
+  settings: {
+    title: '设置',
+    appearance: '外观',
+    themeLight: '浅色',
+    themeDark: '深色',
+    language: '语言',
+    manual: '手册',
+    manualHint: '每个谜题的规则与操作',
+    done: '完成',
   },
 
   play: {
