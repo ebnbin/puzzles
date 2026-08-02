@@ -1,13 +1,16 @@
 {
+  "id": "/",
   "name": "Puzzles",
   "short_name": "Puzzles",
-  "description": "Forty logic puzzles, playable offline.",
+  "description": "Forty logic puzzles, playable offline. Think between vibes.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#fafaf9",
-  "theme_color": "#101013",
+  "theme_color": "#fafaf9",
   "icons": [
     {
       "src": "/icon-192.png",

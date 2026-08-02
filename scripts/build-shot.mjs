@@ -31,6 +31,22 @@ const OUT = path.join(root, 'docs')
 const FILE = 'gallery.png'
 
 /**
+ * And the card a link to the app unfurls into, which is a second picture of the
+ * same thing and so belongs to the same script.
+ *
+ * 1200x630 is what every unfurler asks for, and the gallery at that size is
+ * already the card: the name and the line under it at the top left, two rows of
+ * boards below. Nothing is composed, captioned or mocked up — what is shared is
+ * a photograph of what arrives when the link is followed, which is the only
+ * promise a share card should make.
+ *
+ * This one goes to public/, unlike the README's: it has to be served.
+ */
+const CARD = { theme: 'light', lang: 'en', width: 1200, height: 630 }
+const CARD_OUT = path.join(root, 'public')
+const CARD_FILE = 'og.png'
+
+/**
  * A desktop window and a phone, sharing a height so neither has to be resized
  * to stand beside the other.
  */
@@ -112,6 +128,7 @@ const composed = await page.evaluate(
     scale: SCALE,
   },
 )
+const card = await shot(browser, CARD)
 await browser.close()
 
 fs.mkdirSync(OUT, { recursive: true })
@@ -120,4 +137,10 @@ fs.writeFileSync(path.join(OUT, FILE), bytes)
 console.log(
   `docs/${FILE}  ${bytes.length} bytes  ` +
     SHOTS.map((s) => `${s.width}x${s.height} ${s.theme} ${s.lang}`).join(' + '),
+)
+
+fs.writeFileSync(path.join(CARD_OUT, CARD_FILE), card)
+console.log(
+  `public/${CARD_FILE}  ${card.length} bytes  ` +
+    `${CARD.width}x${CARD.height} ${CARD.theme} ${CARD.lang}`,
 )

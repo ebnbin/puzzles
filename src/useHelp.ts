@@ -19,9 +19,10 @@ import type { Lang } from './i18n'
  * first time.
  */
 
+/** One directory, one file per language, the way the manual is laid out. */
 const FILE: Record<Lang, string> = {
-  en: '/help.json',
-  zh: '/help.zh.json',
+  en: '/help/en.json',
+  zh: '/help/zh.json',
 }
 
 const pending: Partial<Record<Lang, Promise<Record<string, string>>>> = {}

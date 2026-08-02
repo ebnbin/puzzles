@@ -97,6 +97,13 @@ function show(name: string | null) {
  * The address is normalised on the way past, so an old `/solo` link or a typo
  * does not sit in the bar over a screen that has nothing to do with it. This is
  * the only history call in the app.
+ *
+ * Which needs the server to agree: it can only tidy an address that reached the
+ * app, and `/solo` is not a file. vercel.json rewrites everything that is not
+ * one to `/`, so a wrong address arrives here and is corrected rather than
+ * ending at the host's own 404 — the manual and the engine are real files and
+ * are matched before the rewrite is consulted. `vite preview` does the same by
+ * default, which is why this was never noticed as an assumption.
  */
 export function start(name: string | null) {
   view = name

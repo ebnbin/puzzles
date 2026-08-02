@@ -86,7 +86,6 @@ export default function PuzzleTypes({
   open.current = onOpenCustom
   useEffect(() => {
     if (selected < 0) open.current()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   /*

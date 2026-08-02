@@ -43,6 +43,12 @@ const VENDOR = join(ROOT, 'vendor/sgtpuzzles')
 const OUT = join(ROOT, 'public/doc')
 const ZH_SRC = join(ROOT, 'doc-zh')
 
+/**
+ * Where this is served from, for the sitemap, which is the one file here that
+ * has to name it: a sitemap of relative paths is not a sitemap.
+ */
+const ORIGIN = 'https://puzzles.ebnbin.dev'
+
 /* --- the chrome ---------------------------------------------------------
  * The only words this script contributes. Everything else on the page is
  * upstream's, or a translation of upstream's.
@@ -354,5 +360,34 @@ const STYLESHEET = `/doc/doc.css?v=${createHash('sha256').update(css).digest('he
 // --- 4. dress ------------------------------------------------------------
 const styledEn = styleTree(join(OUT, 'en'), 'en')
 const styledZh = existsSync(join(OUT, 'zh')) ? styleTree(join(OUT, 'zh'), 'zh') : 0
+
+/* --- 5. the sitemap, which is the only way any of this is found -----------
+ *
+ * The app is one address rendering itself in JavaScript, and its link into the
+ * manual sits inside a dialog nobody clicks but a reader. So a crawler that
+ * arrives at `/` finds no links at all, and the ninety pages below are
+ * reachable only by being listed. That is what this file is for; without it
+ * the manual is published and undiscoverable.
+ *
+ * Plain text rather than XML: one URL per line is a format the search engines
+ * document as equivalent, and it is a format a person can read.
+ *
+ * Both trees, English included. It duplicates upstream's own manual, which is
+ * older and authoritative and will rightly win any contest for those words —
+ * that is deduplication working, not a reason to hide from it. And the other
+ * half is a translation that exists nowhere else.
+ */
+writeFileSync(
+  join(ROOT, 'public/sitemap.txt'),
+  [
+    `${ORIGIN}/`,
+    ...LANGS.flatMap((lang) =>
+      readdirSync(join(OUT, lang))
+        .filter((f) => f.endsWith('.html'))
+        .sort()
+        .map((f) => `${ORIGIN}/doc/${lang}/${f}`),
+    ),
+  ].join('\n') + '\n',
+)
 
 console.log(`manual: ${styledEn} pages en, ${styledZh} pages zh, ${STYLESHEET}`)

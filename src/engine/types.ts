@@ -43,6 +43,13 @@ export interface PuzzleApi {
     ctrl: number,
   ): boolean
 
+  /**
+   * Upstream's own entry point for "the room has changed", and the one thing
+   * here nothing calls: its guard compares device pixels against logical ones
+   * and is wrong exactly where this app asks the question. `rescale` reaches
+   * the same midend_size without it. The reasoning, and the symptom it caused,
+   * are at the call site in usePuzzleFit.
+   */
   resize(w: number, h: number): void
   restoreSize(): void
   rescale(): void

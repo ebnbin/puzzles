@@ -129,9 +129,10 @@ console.log(`wrote src/games.json (${games.length} games)`)
 // Prose, read by whoever opens the help dialog and nobody else, so it is
 // fetched on demand rather than carried in the bundle.
 const help = Object.fromEntries(games.map((g) => [g.name, helpFor(g.name)]))
-const helpPath = path.join(root, 'public/help.json')
+const helpPath = path.join(root, 'public/help/en.json')
+fs.mkdirSync(path.dirname(helpPath), { recursive: true })
 fs.writeFileSync(helpPath, JSON.stringify(help) + '\n')
-console.log(`wrote public/help.json (${Math.round(fs.statSync(helpPath).size / 1024)} KB)`)
+console.log(`wrote public/help/en.json (${Math.round(fs.statSync(helpPath).size / 1024)} KB)`)
 
 /*
  * Both files have a translated companion that is written by hand and cannot
@@ -141,7 +142,7 @@ console.log(`wrote public/help.json (${Math.round(fs.statSync(helpPath).size / 1
  */
 for (const [source, companion] of [
   ['src/games.json', 'src/games.zh.json'],
-  ['public/help.json', 'public/help.zh.json'],
+  ['public/help/en.json', 'public/help/zh.json'],
 ]) {
   const translated = JSON.parse(fs.readFileSync(path.join(root, companion), 'utf8'))
   const missing = games.map((g) => g.name).filter((name) => !(name in translated))

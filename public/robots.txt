@@ -1,0 +1,7 @@
+# Everything here is meant to be found, including the manual: its Simplified
+# Chinese half is a translation that exists nowhere else, and the English half
+# is upstream's own text, credited and linked back to on every page.
+User-agent: *
+Allow: /
+
+Sitemap: https://puzzles.ebnbin.dev/sitemap.txt

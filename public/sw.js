@@ -10,31 +10,34 @@
  * That used to be all: a cache hit was returned and nothing was fetched. It
  * rested on a claim in this comment — that every file here changes its URL
  * when it changes its contents — and the claim was false. Vite hashes the
- * bundles, and the wasm is rebuilt rarely and deliberately, but /doc/doc.css
- * is one file at one address regenerated on every change to the manual's
- * styling. So a reader who had once opened the manual kept that stylesheet
- * for good: new pages, and the rules that were supposed to lay them out from
- * five deploys ago. The light-and-dark button showed both of its faces
- * because the markup carrying two of them arrived to a stylesheet that had
- * never heard of hiding one.
+ * bundles and the manual's stylesheet carries the digest of itself in a query
+ * (build-doc.mjs), but /engine/ does not: `net.wasm` is one address whose
+ * contents change whenever the collection is rebuilt against a newer upstream.
  *
  * So the hit is still returned at once — nothing gets slower, and offline is
  * unaffected — and a fetch goes out behind it to refresh the entry for next
- * time. Hashed URLs cost nothing extra: the request is answered by the
- * browser's own HTTP cache, /engine/ being served `immutable` for a year.
- * Bounded staleness, one visit deep, rather than none.
+ * time. Bounded staleness, one visit deep, rather than none.
  *
- * The manual's stylesheet is versioned as well now — build-doc.mjs stamps the
- * digest of its contents into the link — so that page is right on the first
- * visit and not the second. Belt and braces, and the belt is the one that
- * should have been there.
+ * That fetch is only as fresh as the browser's own HTTP cache lets it be, which
+ * is why nothing this worker holds is served `immutable` unless its URL really
+ * does change with its contents. vercel.json gives /engine/ a day, so a rebuild
+ * reaches a returning reader on the visit after the one that finds it. An
+ * `immutable` year there would have meant a year: the background fetch would
+ * have been answered from the browser's cache with the same bytes the worker
+ * already had, for as long as the header said, and there is no way to reach
+ * back and tell it otherwise.
  */
 
-/* Bumped when a rule here changes, so the entries stored under the old one go:
-   v2 threw away what the cache-first rule had pinned, v3 the pictures this
-   worker no longer answers for, v4 the ones it went on answering for anyway
-   under their new names. */
-const CACHE = 'puzzles-v4'
+/*
+ * Bumped when a rule here changes, so the entries stored under the old one go.
+ *
+ * Reset to v1 for the first release: the versions before it were this worker
+ * being written, and no reader ever held one. From here on the number only goes
+ * up, and it has to go up whenever what is stored under it would be wrong to
+ * keep — a rule change, a rename in public/ — because a cache entry outlives
+ * every deploy that does not name it.
+ */
+const CACHE = 'puzzles-v1'
 
 /*
  * `addAll` is all or nothing: one entry that 404s rejects the whole promise,
@@ -105,8 +108,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE).then((cache) => cache.put(request, copy))
+          // Only what is worth having offline. An unguarded put stored the
+          // failures too, so a 404 taken once — a mistyped address, a deploy
+          // caught mid-flight — became the answer that address gave from the
+          // cache ever after, including to a reader who was online.
+          if (response.ok) {
+            const copy = response.clone()
+            caches.open(CACHE).then((cache) => cache.put(request, copy))
+          }
           return response
         })
         // Offline: the page itself, or failing that the launcher, which is

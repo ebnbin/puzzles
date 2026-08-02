@@ -36,6 +36,34 @@
          explain it — and stays a plain account of what this is. -->
     <meta name="description" content="Think between vibes." />
     <!--
+      What a link to this becomes when it is pasted somewhere.
+
+      Absolute, because an unfurler is not on this page and has no base to
+      resolve against — the one place in the app that has to name where it is
+      served from, alongside the sitemap build-doc.mjs writes.
+
+      The picture is the gallery at exactly the size a card is shown at, taken
+      by scripts/build-shot.mjs: what is shared is a photograph of what arrives
+      when the link is followed, which is the only promise a card should make.
+      It is also the one image here whose address must not change — Slack,
+      Discord and the rest cache a card by its URL and will go on showing what
+      they fetched the first time.
+    -->
+    <link rel="canonical" href="https://puzzles.ebnbin.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Puzzles" />
+    <meta property="og:url" content="https://puzzles.ebnbin.dev/" />
+    <meta property="og:title" content="Puzzles" />
+    <meta property="og:description" content="Think between vibes." />
+    <meta property="og:image" content="https://puzzles.ebnbin.dev/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The gallery: forty puzzle boards as thumbnails, under the name Puzzles."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!--
       Resolve the theme and the language before anything is painted. useTheme
       and i18n do exactly this once React is up; without it here, a reader who
       has chosen dark — or whose system has — gets a white page for a frame
@@ -66,6 +94,25 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      The whole app is script, so without script this is a blank page — and a
+      blank page is the one answer that tells a visitor nothing at all. There is
+      no fallback to build: forty puzzles are forty compiled programs. But the
+      manual is plain HTML that needs none of this, so the page that cannot run
+      says what it is and points at the part that still works.
+
+      Unstyled on purpose: index.css arrives with the bundle, and a stylesheet
+      link here would be a second request made by every visitor who will never
+      see what it paints.
+    -->
+    <noscript>
+      <p style="margin: 2rem; font-family: system-ui, sans-serif; line-height: 1.6">
+        <strong>Puzzles</strong> — forty logic puzzles by Simon Tatham, compiled
+        to WebAssembly. Playing them needs JavaScript, which this browser has
+        turned off. The <a href="/doc/en/index.html">manual</a> does not
+        (<a href="/doc/zh/index.html">中文</a>).
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

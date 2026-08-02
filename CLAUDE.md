@@ -107,15 +107,22 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 | 文件 | 由谁生成 |
 | --- | --- |
 | `public/engine/**`、`public/doc/**`(手册,每种语言一个目录:`doc/en/`、`doc/zh/`) | `scripts/build-games.sh` |
-| `src/games.json`、`public/help.json` | `scripts/extract-games.mjs`(读上游 CMakeLists.txt 和 html/) |
+| `src/games.json`、`public/help/en.json` | `scripts/extract-games.mjs`(读上游 CMakeLists.txt 和 html/) |
+| `public/sitemap.txt` | `scripts/build-doc.mjs`(`/` 加两棵手册树;app 是纯 JS 渲染的单页,爬虫在 `/` 上找不到任何链接,这个文件是手册唯一的入口) |
+| `public/og.png` | `scripts/build-shot.mjs`(1200×630,分享卡片;和 README 那张同一个脚本) |
 | `public/icons/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
 | `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/icons/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
 | `public/doc/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
 | `docs/gallery.png` | `scripts/build-shot.mjs`(README 用的首页截图,亮暗并排);放 `docs/` 不放 `public/`,它不该跟着 app 部署出去 |
 
-手写的对应物只有翻译:`src/games.zh.json`、`public/help.zh.json`、`doc-zh/`。
+手写的对应物只有翻译:`src/games.zh.json`、`public/help/zh.json`、`doc-zh/`。
 `extract-games.mjs` 会在它们与英文版脱节时告警,`verify-doc.mjs` 逐页比对标签序列、
 锚点和链接。
+
+双语文件的命名有一条规则,两种形状各有理由:**`public/` 里(也就是有 URL 的)一律
+`<东西>/<语言>`**——`doc/en/`、`doc/zh/`、`help/en.json`、`help/zh.json`,谁都不是默认;
+**`src/` 里(打进 bundle,没有 URL)保留 `.zh.` 后缀**——`games.json` / `games.zh.json`,
+后缀本身就说明了「英文是从上游抽的、中文是我们写的」。URL 改起来贵,源码文件不要钱。
 
 ### 前端约定
 
@@ -128,6 +135,32 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。
 - TS 是 strict + `noUnusedLocals`/`noUnusedParameters`/`verbatimModuleSyntax`,类型
   导入要写 `import type`。
+
+### 已经发布了,这几样改起来不再免费
+
+app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人用过就带着历史包袱,
+改之前先想清楚代价:
+
+- **localStorage 的 key**(`src/engine/saves.ts` 列全了,外加 `puzzles.theme`、
+  `puzzles.lang`、`puzzles.hidden`、`puzzles.prefs.<name>`)。改名字 = 用户的存档、
+  设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验 `SAVEFILE` 开头、
+  主题只认 light/dark 其余当 system、集合类过滤非字符串),所以**加**东西是安全的,**改**
+  和**删**不是。
+- **`public/` 里的 URL**:`/engine/**`、`/doc/**`、`/help/**`、`/icons|howto|art/**`、
+  `/og.png`、`/manifest.webmanifest`、`/sw.js`。改路径不会让谁崩掉(service worker 按整条
+  URL 存,老条目只是变成垃圾),但 `/og.png` 例外——Slack、Discord 这些按 URL 缓存分享卡片,
+  换地址等于换一张卡片,老链接还是老图。
+- **`sw.js` 的 `CACHE` 常量**:改了缓存规则、或者 `public/` 里有东西改名,就必须把版本号
+  往上加一,否则老条目会一直被端出来。缓存条目比任何一次没点名它的部署活得都久。
+- **`manifest.webmanifest` 的 `id`**:装到主屏幕的那个 app 的身份。改了它 = 变成另一个 app,
+  用户桌面上会多出一个图标。`start_url` 同理(没有 `id` 时身份就是 `start_url`,所以才要写
+  死一个 `id`)。
+- **`vercel.json` 里 `/engine/` 的 `Cache-Control`**:曾经是 `immutable` + 一年,而
+  `/engine/net.wasm` 这种地址的内容是会变的(重新编译上游),等于把旧引擎钉死一年。现在是
+  一天。**任何非内容寻址的 URL 都不许写 `immutable`**;`/doc/doc.css` 可以,因为它带内容
+  摘要的 query。
+
+反过来,下面这些随便改:`src/` 里的一切、`docs/`、构建脚本、注释。
 
 ### 注释和提交信息的调子
 
