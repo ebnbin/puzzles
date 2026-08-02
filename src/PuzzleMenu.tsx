@@ -5,7 +5,6 @@ import Icon from './Icon'
 import type { IconName } from './Icon'
 import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
-import { useShare } from './useShare'
 import { useSheetDrag } from './useSheetDrag'
 
 type Action = 'newGame' | 'restart' | 'solve'
@@ -194,8 +193,6 @@ function TextRow({
   error: string | null
   onSubmit: (kind: TextKind, text: string) => void
 }) {
-  const t = useStrings()
-  const { share, copied } = useShare()
   const id = useId()
   const [text, setText] = useState(() => plain(value))
 
@@ -216,51 +213,34 @@ function TextRow({
     onSubmit(kind, text)
   }
 
-  // The address of what is on the board, which is not necessarily what is in
-  // the field. Sharing hands out the game you are looking at.
-  const href = `#${value}`
-
   return (
     <div className="sheet-id">
       <label htmlFor={id}>{label}</label>
-      <div className="sheet-id-row">
-        <input
-          id={id}
-          type="text"
-          value={text}
-          spellCheck={false}
-          autoComplete="off"
-          autoCapitalize="off"
-          autoCorrect="off"
-          onChange={(e) => setText(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key !== 'Enter') return
-            // Nothing to submit it to; the field is the form.
-            e.preventDefault()
-            commit()
-          }}
-        />
-        {/*
-         * Still an anchor, so the address is real: it can be opened, and the
-         * browser's own copy-link is there for anyone who reaches for it. If
-         * there is no share sheet and no clipboard — an insecure origin — the
-         * click is left alone and the browser puts it in the address bar.
-         */}
-        <a
-          className="sheet-id-share"
-          href={href}
-          aria-label={t.menu.share(label)}
-          data-copied={copied}
-          onClick={(e) => {
-            if (!navigator.share && !navigator.clipboard) return
-            e.preventDefault()
-            share(new URL(href, window.location.href).href, label)
-          }}
-        >
-          <Icon name={copied ? 'check' : 'share'} size={18} />
-        </a>
-      </div>
+      {/*
+       * The field, and nothing beside it. There was a share button here, which
+       * handed the address to the device's own share sheet or, failing that,
+       * to the clipboard. Handing out a link is not the hard part of sharing a
+       * puzzle — the page that link opens is, and there isn't one — so it is
+       * gone until there is something worth arriving at. The address itself is
+       * still here, readable and selectable, and still takes one typed in.
+       */}
+      <input
+        id={id}
+        type="text"
+        value={text}
+        spellCheck={false}
+        autoComplete="off"
+        autoCapitalize="off"
+        autoCorrect="off"
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter') return
+          // Nothing to submit it to; the field is the form.
+          e.preventDefault()
+          commit()
+        }}
+      />
       {error && <ErrorNote text={error} />}
     </div>
   )

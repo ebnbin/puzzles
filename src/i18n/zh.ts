@@ -61,7 +61,6 @@ export const zh: Strings = {
     restart: '重新开始',
     solve: '求解',
     preferences: '偏好设置',
-    share: (what: string) => `分享${what}`,
     gameId: 'Game ID',
     seed: '随机种子',
   },

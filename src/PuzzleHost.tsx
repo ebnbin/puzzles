@@ -228,11 +228,11 @@ export default function PuzzleHost({
     if (!canvas || !area) return
 
     /*
-     * Nothing in the address names a position any more. The hash is the view's
-     * own mirror — `#solo` is which puzzle is open, not which board — so
-     * reading it here would hand the midend the puzzle's name as an id. A
-     * position worth opening from outside is the share link's job, and it is a
-     * separate thing; see view.ts.
+     * Nothing in the address names a position, and nothing here reads one out
+     * of it: there is one address and it is `/`, so anything found there would
+     * be a leftover rather than an instruction. Opening a position from
+     * outside would be its own piece of work — an address that means a board,
+     * and a screen to arrive on — and none of it exists; see view.ts.
      */
     const saved = readSave(name)
 

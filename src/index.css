@@ -1272,14 +1272,9 @@ p.notice-error svg {
   font-size: var(--t-sm);
 }
 
-.sheet-id-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.sheet-id-row input {
-  flex: 1;
+.sheet-id input {
+  display: block;
+  width: 100%;
   /* Or it refuses to go narrower than the id it is holding. */
   min-width: 0;
   min-height: var(--tap-h);
@@ -1295,33 +1290,6 @@ p.notice-error svg {
 }
 
 /* Square, and the same height as the field it belongs to. */
-.sheet-id-share {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--tap-w);
-  height: var(--tap-h);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-2);
-  text-decoration: none;
-  transition: background var(--dur) var(--ease);
-}
-
-@media (hover: hover) {
-  .sheet-id-share:hover {
-    background: var(--surface-3);
-  }
-}
-
-.sheet-id-share:active {
-  background: var(--surface-3);
-}
-
-.sheet-id-share[data-copied='true'] {
-  color: var(--accent);
-}
-
 /* Against the field it is about, not a paragraph's worth of space below it. */
 .sheet-id p.notice-error {
   margin-top: 0.35rem;

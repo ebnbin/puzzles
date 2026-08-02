@@ -92,8 +92,6 @@ export const en = {
     restart: 'Restart',
     solve: 'Solve',
     preferences: 'Preferences',
-    /** Names the icon beside a field, which has only the field for context. */
-    share: (what: string) => `Share ${what}`,
     gameId: 'Game ID',
     seed: 'Random seed',
   },

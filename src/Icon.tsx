@@ -44,11 +44,9 @@ export type IconName =
   | 'external'
   | 'eye'
   | 'eyeOff'
-  | 'check'
   | 'close'
   | 'help'
   | 'alert'
-  | 'share'
   | 'sun'
   | 'moon'
   | 'caret'
@@ -176,7 +174,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" />
     </>
   ),
-  check: <path d="M5 12.5l4.5 4.5L19 8" />,
   /* Two quarter turns of the same line, which is all a cross is. */
   close: (
     <>
@@ -234,17 +231,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M8.6 6.5A8.5 8.5 0 0 1 12 5.8c5.8 0 9.2 6.2 9.2 6.2a16.4 16.4 0 0 1-2.9 3.6" />
       <path d="M9.9 9.9a2.85 2.85 0 1 0 4.2 4.2" />
       <path d="m4 4 16 16" />
-    </>
-  ),
-  /* Three nodes and the lines between them — a network, like half the
-     collection. */
-  share: (
-    <>
-      <circle cx="17.5" cy="5.5" r="2.75" />
-      <circle cx="6.5" cy="12" r="2.75" />
-      <circle cx="17.5" cy="18.5" r="2.75" />
-      <path d="m9 10.7 6-3.4" />
-      <path d="m9 13.3 6 3.4" />
     </>
   ),
 }
