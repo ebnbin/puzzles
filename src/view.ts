@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
-import { flushSync } from 'react-dom'
 import { readScroll, writeScroll } from './engine/saves'
+import { withViewTransition } from './transition'
 
 /*
  * What the app is showing, held in memory.
@@ -77,15 +77,9 @@ function announce() {
   for (const listener of listeners) listener()
 }
 
-type WithViewTransition = Document & {
-  startViewTransition?: (callback: () => void) => unknown
-}
-
 /**
- * Swap the screen, through a view transition where the browser has one and the
- * reader has not asked for less movement. `flushSync` puts the render inside
- * the captured frame rather than in React's own time, so the transition has a
- * real before and after to cross-fade.
+ * Swap the screen, through a view transition where there is one to be had —
+ * see transition.ts, which the gallery's own moves also go through.
  */
 function show(name: string | null) {
   if (view === name) return
@@ -93,13 +87,7 @@ function show(name: string | null) {
   // real; a moment later it is gone and the position is clamped away.
   if (view === null && name !== null) rememberGalleryScroll(window.scrollY)
   view = name
-
-  const start = (document as WithViewTransition).startViewTransition
-  if (!start || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    announce()
-    return
-  }
-  start.call(document, () => flushSync(announce))
+  withViewTransition(announce)
 }
 
 /**

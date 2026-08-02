@@ -6,6 +6,7 @@ import { useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
+import { canTransition, withViewTransition } from './transition'
 import { openGame, rememberGalleryScroll, takeGalleryScroll } from './view'
 import { toggleHidden, useHidden } from './useHidden'
 
@@ -66,7 +67,11 @@ export default function Launcher() {
    * so a second toggle restarts the animation instead of extending the old
    * toast's stay.
    */
-  const [toast, setToast] = useState<{ text: string; key: number } | null>(null)
+  const [toast, setToast] = useState<{
+    text: string
+    hidden: boolean
+    key: number
+  } | null>(null)
   const toastKey = useRef(0)
   useEffect(() => {
     if (!toast) return
@@ -74,13 +79,83 @@ export default function Launcher() {
     return () => window.clearTimeout(timer)
   }, [toast])
 
+  /*
+   * --- watching a tile move -------------------------------------------------
+   *
+   * A tile put away leaves the grid and joins the stash at the foot of the
+   * page; brought back, it returns to the fixed place the collection's order
+   * gives it. Both are real moves, and a browser will animate them for us — but
+   * only between two pictures it has actually taken, and only for elements it
+   * was told to follow across the two. So `moving` is the name of the tile in
+   * flight, and it has to be on the page for a beat *before* the change: the
+   * old picture is taken from what is already there.
+   *
+   * Hence a render, then a layout effect, then the change. The click writes
+   * down what to do and names the tile; the effect finds that note and spends
+   * it inside the transition. The name comes off again when the transition
+   * finishes, so forty tiles carry it for a quarter of a second rather than for
+   * the life of the page — it makes each one its own layer, which is worth
+   * paying for while they are moving and not otherwise.
+   */
+  const [moving, setMoving] = useState<string | null>(null)
+  const pending = useRef<(() => void) | null>(null)
+  /** Which flight is the live one; see the same counter in transition.ts. */
+  const flight = useRef(0)
+
   const toggle = (game: GameText) => {
-    const text = hidden.has(game.name)
-      ? t.launcher.nowShown(game.displayName)
-      : t.launcher.nowHidden(game.displayName)
-    toggleHidden(game.name)
-    setToast({ text, key: ++toastKey.current })
+    const wasHidden = hidden.has(game.name)
+    const change = () => {
+      toggleHidden(game.name)
+      setToast({
+        text: wasHidden
+          ? t.launcher.nowShown(game.displayName)
+          : t.launcher.nowHidden(game.displayName),
+        hidden: !wasHidden,
+        key: ++toastKey.current,
+      })
+    }
+    // Nothing to watch means nothing to prepare: the whole point of the extra
+    // render is to have the tiles named in the picture taken before the change.
+    if (!canTransition()) {
+      change()
+      return
+    }
+    pending.current = change
+    setMoving(game.name)
   }
+
+  useLayoutEffect(() => {
+    const change = pending.current
+    if (!change) return
+    pending.current = null
+    const mine = ++flight.current
+    const transition = withViewTransition(change, 'tiles')
+    // A second press abandons this one, and its `finished` settles just after
+    // the next has begun — by which time taking the names off would strand the
+    // tiles the new flight is following.
+    const land = () => {
+      if (flight.current === mine) setMoving(null)
+    }
+    if (transition) transition.finished.then(land, land)
+    else land()
+  }, [moving])
+
+  /*
+   * Where the tile in flight is going, when there is nowhere to go.
+   *
+   * Every case but one has a tile at both ends: put away with the stash open,
+   * or brought back — which can only be done from an open stash — and the
+   * browser has an old rectangle and a new one for the same name. Put away with
+   * the stash folded up, the tile simply stops being rendered, and a name with
+   * nothing to arrive at fades out where it stood, saying nothing about where
+   * the game went.
+   *
+   * So the stash's own line takes the name for that one case. It is a different
+   * element, which the browser does not mind — it pairs the two pictures by
+   * name, not by identity — and the tile flies down and lands on the row that
+   * now counts it. Which is, exactly, where it went.
+   */
+  const flyingToStash = moving !== null && hidden.has(moving) && !hiddenOpen
 
   /*
    * Back where the reader left off. Layout-effect, not effect: inside the
@@ -151,6 +226,10 @@ export default function Launcher() {
         here={here}
         tileRef={here ? currentRef : undefined}
         onToggle={toggle}
+        // All of them, not only the one pressed: the tiles that close the gap
+        // it left, or open one for it to come back to, are half of what makes
+        // the move legible. Named only while something is in flight.
+        moving={moving !== null}
       />
     )
   }
@@ -200,6 +279,9 @@ export default function Launcher() {
             type="button"
             className="stash-toggle"
             aria-expanded={hiddenOpen}
+            style={
+              flyingToStash ? { viewTransitionName: `tile-${moving}` } : undefined
+            }
             onClick={() => setHiddenOpen((open) => !open)}
           >
             <Icon name="eyeOff" size={16} />
@@ -231,10 +313,15 @@ export default function Launcher() {
         <LauncherSettings lockAt={settingsAt} onClose={closeSettings} />
       )}
 
+      {/* Named for what just happened, with the same two glyphs the tile's own
+          corner button carries — so the picture says which way it went and the
+          sentence only has to say which game. `status` and not `alert`: this
+          confirms a press, it does not interrupt for one. */}
       {toast && (
-        <div key={toast.key} className="toast" role="status">
-          {toast.text}
-        </div>
+        <p key={toast.key} className="notice notice-toast" role="status">
+          <Icon name={toast.hidden ? 'eyeOff' : 'eye'} size={16} />
+          <span>{toast.text}</span>
+        </p>
       )}
     </div>
   )
@@ -259,6 +346,7 @@ function Tile({
   here,
   tileRef,
   onToggle,
+  moving,
 }: {
   game: GameText
   hidden: boolean
@@ -266,6 +354,8 @@ function Tile({
   here?: boolean
   tileRef?: React.Ref<HTMLButtonElement>
   onToggle: (game: GameText) => void
+  /** Something is in flight: take a name, so the browser can follow you. */
+  moving: boolean
 }) {
   const t = useStrings()
   const label = hidden ? t.launcher.show(game.displayName) : t.launcher.hide(game.displayName)
@@ -294,6 +384,10 @@ function Tile({
         data-game={game.name}
         ref={tileRef}
         aria-current={here ? 'true' : undefined}
+        // A tile is in one grid or the other, never both, so its name is
+        // unique at the moment the pictures are taken — which is all the
+        // browser asks of it.
+        style={moving ? { viewTransitionName: `tile-${game.name}` } : undefined}
         onPointerDown={down}
         onPointerUp={up}
         onPointerCancel={up}

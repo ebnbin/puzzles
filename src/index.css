@@ -379,21 +379,76 @@ a {
 }
 
 /*
- * A word of confirmation, said and gone. Same voice as the keypad's
- * long-press label: the page's own ink, inverted.
+ * A tile moving is one thing crossing a page that is otherwise standing still,
+ * so the page has to stand still.
+ *
+ * Left to itself the root cross-fades under every transition, which is right
+ * for the other one in the app — a screen swap replaces the whole page, and
+ * that fade is the whole of the effect. Here it washes the masthead, the stash
+ * line and the footer out and back in around a tile that is merely moving, and
+ * reads as the page having been replaced rather than as a tile having gone
+ * somewhere. Both snapshots unanimated is a cut, since the new one is painted
+ * over the old; what is left moving is the tiles, which are the point.
+ *
+ * Scoped on an attribute the transition puts on the root for its own duration
+ * — see transition.ts — because these pseudo-elements are one per document and
+ * there is nothing else to tell the two kinds of transition apart by.
  */
-.toast {
+/*
+ * The flight itself, on the app's own motion rather than the browser's.
+ *
+ * `--dur-slow` and not `--dur`: this is the longest journey anything in the app
+ * makes — a tile crossing most of a screen to reach the stash — and the whole
+ * point of animating it is that the reader can follow where it went. 170ms is
+ * the app's number for a control answering a press, which is a different thing.
+ *
+ * While it runs, the gallery does not answer presses: the snapshots are a layer
+ * over the page and Chromium routes every hit to the document element, whatever
+ * `pointer-events` says on the pseudo-elements — measured, and there is nothing
+ * to be done about it from here. The window is this duration plus about 160ms
+ * of taking and putting away the pictures: 436ms measured here, against 352 at
+ * `--dur` and 175 with the animation switched off altogether, so most of what
+ * could be bought back would be bought from the legibility this is for. A press
+ * lost in it costs a second press, and the window is shorter than the 450ms
+ * hold that starts a move in the first place.
+ */
+:root[data-transition='tiles']::view-transition-group(*),
+:root[data-transition='tiles']::view-transition-old(*),
+:root[data-transition='tiles']::view-transition-new(*) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease);
+}
+
+/* After the rule above, which would otherwise give the root a duration it has
+   no animation to spend it on. */
+:root[data-transition='tiles']::view-transition-old(root),
+:root[data-transition='tiles']::view-transition-new(root) {
+  animation: none;
+}
+
+/*
+ * A word of confirmation, said and gone.
+ *
+ * The same box a refusal comes in — see `p.notice` — in the accent rather than
+ * in red, because a tile going into the stash is not a thing that went wrong.
+ * It used to be the page's own ink inverted, in a bare pill, which read as
+ * quieter than what it was carrying: the long press gives no sign until the
+ * tile has already gone, so this line is the only thing that says where.
+ *
+ * Still at the foot of the window, where it does not cover the grid it is
+ * about, and still `pointer-events: none` — the tile it names is a tap target
+ * and stays one.
+ */
+p.notice-toast {
   position: fixed;
   bottom: max(1.25rem, env(safe-area-inset-bottom));
   left: 50%;
   z-index: 50;
   max-width: min(85vw, 22rem);
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--r-full);
-  background: var(--text);
-  color: var(--bg);
-  font-size: var(--t-sm);
-  text-align: center;
+  margin: 0;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+  box-shadow: var(--shadow-2);
   pointer-events: none;
   transform: translateX(-50%);
   animation: toast-in var(--dur) var(--ease);
@@ -407,7 +462,7 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast {
+  p.notice-toast {
     animation: none;
   }
 }
@@ -646,37 +701,50 @@ footer p {
 }
 
 /*
- * A refusal, wherever it is said. See ErrorNote.tsx for why there is one of
- * these rather than the two treatments there used to be.
+ * --- a word the app says on its own -------------------------------------
  *
- * Selected as `p.notice-error` and not `.notice-error`: three of the four sit
- * inside a sheet, where `.sheet p` claims the colour at (0,1,1). Matching that
- * specificity and coming later is what lets the red through — an override
+ * Two kinds of them: the back end refusing to do something, wherever that is
+ * said (see ErrorNote.tsx for why there is one of those rather than the two
+ * treatments there used to be), and the gallery confirming that a tile has been
+ * put away or brought back. One shape for both — a glyph naming what happened,
+ * then the sentence — because they are the same event seen twice: a press, and
+ * a word about it in a place the reader was not looking.
+ *
+ * What differs is the colour, and only the colour. Red is a refusal in this
+ * app and nothing else, so the confirmation takes the accent's own matched
+ * pair; both pairs are in tokens.css with the contrast they were measured at.
+ *
+ * Selected as `p.notice…` and not `.notice…`: three of the refusals sit inside
+ * a sheet, where `.sheet p` claims the colour at (0,1,1). Matching that
+ * specificity and coming later is what lets the colour through — an override
  * without an `!important`, and the tag in the selector is true, since every
  * one of these is a paragraph.
  */
-p.notice-error {
+p.notice {
   flex: none;
   display: flex;
   align-items: flex-start;
   gap: 0.4rem;
-  margin: 0.75rem 0 0;
   padding: 0.5rem 0.7rem;
   border-radius: var(--r-sm);
+  font-size: var(--t-sm);
+}
+
+/* The glyph sits on the first line of a sentence that may take three. */
+p.notice svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+p.notice-error {
+  margin: 0.75rem 0 0;
   background: var(--danger-soft);
   color: var(--danger);
-  font-size: var(--t-sm);
   /* Room for ErrorNote's own scroll to leave, so the sentence it just brought
      up is above the edge of the sheet rather than flush against it —
      `nearest` otherwise lands it on the boundary, and the sheet's bottom
      padding takes the last few pixels of it. */
   scroll-margin: 0.75rem;
-}
-
-/* The glyph sits on the first line of a sentence that may take three. */
-p.notice-error svg {
-  flex: none;
-  margin-top: 0.15rem;
 }
 
 /*

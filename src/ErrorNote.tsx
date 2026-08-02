@@ -51,7 +51,9 @@ export default function ErrorNote({
 
   return (
     <p
-      className={floating ? 'notice-error is-floating' : 'notice-error'}
+      className={
+        floating ? 'notice notice-error is-floating' : 'notice notice-error'
+      }
       role="alert"
       ref={ref}
     >
