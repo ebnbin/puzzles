@@ -7,9 +7,10 @@
  * has never had — upstream ships the manual unstyled, so a browser's own
  * defaults are what a reader has been getting.
  *
- * It is concatenated onto tokens.css by scripts/style-doc.mjs to produce
- * public/doc.css, so the manual and the app are working from one set of
- * values: change a token and both move together.
+ * It is concatenated onto tokens.css and segmented.css by
+ * scripts/build-doc.mjs to produce public/doc.css, so the manual and the app
+ * work from one set of values and — for the one control they both have — one
+ * set of rules: change either and both move together.
  *
  * The vocabulary is small and fixed — a p em li dt dd h1 h2 h3 code ul dl br
  * pre — because that is all halibut emits. There are no wrapper classes to
@@ -46,9 +47,16 @@ body {
 }
 
 /* --- the bar ------------------------------------------------------------
- * Sticky, because the way out of a chapter should not be at the top of a
- * three-thousand-word page. Everything else about the manual is upstream's;
- * this row is the app saying where you are.
+ * The puzzle screen's bar, as far as it can be. Same height, same gap, same
+ * side padding, the same treatment on the name at the left end and the same
+ * segmented control at the right — that one is not a copy but the same file,
+ * segmented.css, which both stylesheets include.
+ *
+ * Two things are deliberately not the same, and both follow from this being a
+ * document. It is sticky and it carries a hairline: the manual is three
+ * thousand words that scroll under it, so it has to stay and it has to have an
+ * edge. The app's screens do not scroll, and its board is a lit plate with an
+ * edge of its own, which is why the bar there sits on nothing.
  */
 
 .doc-top {
@@ -57,29 +65,49 @@ body {
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem max(0.75rem, env(safe-area-inset-left));
-  padding-right: max(0.75rem, env(safe-area-inset-right));
+  gap: 0.25rem;
+  min-height: 3rem;
+  /*
+   * `.play-bar`'s 3rem, and its 0.3rem on the left, where both bars begin with
+   * the same bare text button. The right is wider because the two bars end
+   * differently: that one ends in an icon button, whose glyph sits 8px inside
+   * its own box, and this one ends in a filled pill with no such slack. Equal
+   * numbers would put the pill against the glass. These land the two on the
+   * same optical edge, which is what being the same bar means here.
+   */
+  padding: 0 max(0.75rem, env(safe-area-inset-right)) 0
+    max(0.3rem, env(safe-area-inset-left));
   background-color: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--edge);
 }
 
+/*
+ * The way out, set as `.play-title` is: the product's name at the size the
+ * app gives it, on a target a thumb can find, with the fill arriving only
+ * when it is touched. There it carries a caret because it opens something;
+ * here an arrow because it goes back.
+ */
 .doc-home {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  min-height: 2.25rem;
-  padding: 0 0.625rem 0 0.5rem;
-  border-radius: var(--r-full);
+  /* Wider than the app's 0.15rem for the same optical gap: its caret is a
+     small mark inside its box, and this arrow spans nearly the whole of one. */
+  gap: 0.35rem;
+  min-height: var(--tap-h);
+  padding: 0 0.4rem;
+  border-radius: var(--r-sm);
   color: var(--text);
-  font-size: var(--t-sm);
-  font-weight: 550;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   text-decoration: none;
+  transition: background-color var(--dur) var(--ease);
 }
 
 .doc-home svg {
   flex: none;
+  color: var(--text-3);
 }
 
 @media (hover: hover) {
@@ -88,54 +116,21 @@ body {
   }
 }
 
+.doc-home:active {
+  background-color: var(--surface-3);
+}
+
+/* Where the puzzle screen puts its status. Same size and same tone: what sits
+   between the name and the controls is a quiet word about where you are. */
 .doc-top-title {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--text-3);
+  color: var(--text-2);
   font-size: var(--t-xs);
-  font-weight: 500;
-  letter-spacing: 0.02em;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* The same segmented control the settings dialog uses, rebuilt out of
-   anchors — there is no React here, so the two languages are two links and
-   the current one is simply the one that is not a link to anywhere else. */
-.doc-lang {
-  display: flex;
-  flex: none;
-  gap: 2px;
-  padding: 2px;
-  background-color: var(--surface-2);
-  border-radius: var(--r-full);
-}
-
-.doc-lang a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.875rem;
-  padding: 0 0.6875rem;
-  border-radius: var(--r-full);
-  color: var(--text-2);
-  font-size: var(--t-xs);
-  font-weight: 550;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.doc-lang a[aria-current='true'] {
-  color: var(--text);
-  background-color: var(--raised);
-  box-shadow: var(--shadow-1);
-}
-
-@media (hover: hover) {
-  .doc-lang a:not([aria-current='true']):hover {
-    color: var(--text);
-  }
 }
 
 /* --- the page -----------------------------------------------------------
@@ -332,7 +327,7 @@ body {
 
 @media (min-width: 48em) {
   .doc-top {
-    padding: 0.625rem 1.5rem;
+    padding: 0 1.5rem;
   }
 
   .doc-main {

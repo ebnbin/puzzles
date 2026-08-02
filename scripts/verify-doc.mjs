@@ -97,7 +97,9 @@ try {
         html.includes('<meta charset="utf-8">') &&
         html.includes("localStorage.getItem('puzzles.theme')") &&
         html.includes(`<html lang="${htmlLang}">`) &&
-        html.includes('class="doc-lang"')
+        // Both classes: the app's shared control, and the hook the head
+        // script listens on. See topBar in build-doc.mjs.
+        html.includes('class="segmented doc-lang"')
       )
     })
     missing.length === 0
