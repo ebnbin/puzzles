@@ -56,8 +56,8 @@
  * comments. They are the knowledge here that no amount of arithmetic could
  * have recovered.
  *
- * Five constants are tuned: `ACHROMATIC`, `FLOOR`, `CEILING`, `VEIL`,
- * `PAPER_BOARD`. Each carries the measurement that fixed it.
+ * Six constants are tuned: `ACHROMATIC`, `FLOOR`, `CEILING`, `LIFT_CEILING`,
+ * `VEIL`, `PAPER_BOARD`. Each carries the measurement that fixed it.
  *
  * ---------------------------------------------------------------------------
  * WHAT HOLDS AFTERWARDS
@@ -103,12 +103,12 @@ const ACHROMATIC = 0.15
  * more light than anything else on a dark board — twice the worst hue even
  * after that hue had been veiled — because it is the ink, the lines and the
  * text that were black to begin with, and all of them landed at the top of
- * the scale together. At 0.82 the same ink comes out #d1d1d1: a quarter less
- * light, still 9.8:1 against the board, and still unmistakably the light
+ * the scale together. At 0.80 the same ink comes out #cccccc: a third less
+ * light, still 10.3:1 against the board, and still unmistakably the light
  * thing drawn on it.
  */
-const FLOOR = 0.06
-const CEILING = 0.82
+const FLOOR = 0.05
+const CEILING = 0.8
 
 /**
  * How far the veil's lifting half may climb.
@@ -118,36 +118,45 @@ const CEILING = 0.82
  * saturation held walks the other two channels up towards the first, so what a
  * hue loses on the way up is the gap between its channels — the only thing that
  * makes it that hue rather than a grey. Measured as max channel minus min, pure
- * blue keeps 0.37 of that gap at `CEILING`, 0.60 at 0.70, 0.68 here, 0.76 at
+ * blue keeps 0.40 of that gap at `CEILING`, 0.60 at 0.70, 0.72 here, 0.76 at
  * 0.62.
  *
- * 0.66 is where it sits, and 0.70 is where it sat. #6666ff was described here
- * as "still plainly blue" and it is not: at 0.60 of the gap, two fifths of the
- * way to grey, it reads as lavender, and the same arithmetic had #800000
- * arriving as a pink #ff6666 rather than a dark red. #5252ff and #ff5252 are
- * the same colours the game chose, dimmer. That is what this constant is for.
+ * 0.64 is where it sits, and 0.70 is where it sat before 0.66. #6666ff was
+ * described here as "still plainly blue" and it is not: at 0.60 of the gap, two
+ * fifths of the way to grey, it reads as lavender, and the same arithmetic had
+ * #800000 arriving as a pink #ff6666 rather than a dark red. #4747ff and
+ * #ff4747 are the same colours the game chose, dimmer. That is what this
+ * constant is for.
  *
  * The price is paid against the board and it is real: that blue goes from
- * 3.13:1 to 2.56:1 on a #2f2f2f board, the whole lifted set from 3.69 to 3.42
- * on average, and two more slots come to rest on the ceiling instead of on
- * their target — 24 rather than 22 — so a little more of the collapse this
- * ceiling causes.
+ * 3.85:1 at 0.70 to 2.84:1 here, on the #1f1f1f board most of the collection
+ * gets. The count of slots that come to rest on this ceiling instead of on
+ * their target went the other way — 36, against 40 before — and that is not
+ * this number's doing: lowering `FLOOR` darkened every board by three levels,
+ * which lowers the contrast each hue is trying to reach, so fewer of them reach
+ * for more than the ceiling allows. Held alone, dropping 0.66 → 0.64 moves the
+ * count by one.
  *
  * The two are one dial and this is a reading of it, not a solved value. 0.62
  * was tried and taken back: #3d3dff and #ff3d3d hold more of their colour, at
- * 2.11:1 and with 28 slots on the ceiling. Below that it stops being a trade:
- * Mines' #000080 walks 0.61 → #3838ff at 2.41:1, 0.58 → #2929ff at 2.16, 0.55 →
- * #1919ff at 1.99, and 0.49 → #0000fa at 1.80 — back to the "in effect, not
- * drawn" this whole lifting half exists to prevent. (An earlier draft of this
- * paragraph hung #0000fa on 0.58; that is 0.49's value, and 0.58 still clears
- * 2:1.)
+ * 2.60:1 and with 37 slots on the ceiling. Below that it stops being a trade:
+ * Mines' #000080 walks 0.61 → #3838ff at 2.49:1, 0.58 → #2929ff at 2.24, 0.55 →
+ * #1919ff at 2.06, and 0.49 → #0000fa at 1.87 — back to the "in effect, not
+ * drawn" this whole lifting half exists to prevent.
+ *
+ * 0.60 was measured across all forty games and rejected: it takes the blue to
+ * #3333ff at 2.40:1 and drags eighteen games with it, because pure blue is the
+ * one hue in the collection that depends on this ceiling for all of its
+ * contrast. The cliff is between 0.63 and 0.64 — above it a batch of dark inks
+ * stops being clipped at all, which is also why 0.66, 0.68 and 0.70 give
+ * byte-identical results.
  *
  * So: the point past which a hue stops being worth the contrast. The lift takes
  * what it can get below it and stops, even where the board is owed more. Only
  * slots that would have overshot are touched — anything that reaches its target
  * below this height lands on the target and does not read this number at all.
  */
-const LIFT_CEILING = 0.66
+const LIFT_CEILING = 0.64
 
 /**
  * Everything that has to be read against a tone the rules name.
@@ -157,7 +166,7 @@ const LIFT_CEILING = 0.66
  * black, and the chapter that tells you what a white circle means would be
  * describing a board you cannot see. So these are not flipped. They keep
  * their order — black stays the dark one — and are compressed into the same
- * range instead, which leaves black at #0f0f0f and white at #d1d1d1.
+ * range instead, which leaves black at #0d0d0d and white at #cccccc.
  *
  * A hue is never at risk here. `veil` composites pure black, which scales the
  * channels and leaves hue and saturation exactly where they were; blue comes
@@ -189,7 +198,7 @@ const LIFT_CEILING = 0.66
  * and flipping it while the tones stay put *mirrors* that. Pattern's grid is
  * 2.48:1 from its black and 8.45:1 from its white, so black regions read as
  * solid blocks and the grid shows between white ones; flipped it becomes
- * 6.56:1 and 1.91:1 and the picture inverts. Kept, 2.16:1 and 5.80:1 — the
+ * 6.25:1 and 1.94:1 and the picture inverts. Kept, 2.06:1 and 5.88:1 — the
  * arrangement upstream drew.
  *
  * Out, uniformly: cursors, error highlights and victory flashes. They are
@@ -216,7 +225,7 @@ const LIFT_CEILING = 0.66
  * a square either holds one or does not, and the thing a ball is told apart
  * from is the red of a missed one. Held dark it came to 1.91:1 at the reveal,
  * which is the one moment the game asks you to look at the balls rather than
- * deduce them; flipped it is 8.77:1, the negative of the 14.31:1 upstream
+ * deduce them; flipped it is 8.70:1, the negative of the 14.31:1 upstream
  * draws. The board it was holding up came down with it: see `BOARD_IS_PAPER`.
  *
  * Flip was in that sentence for a while, and it did not belong there: its
@@ -253,7 +262,7 @@ const LIFT_CEILING = 0.66
  * aside, and came to rest a twelfth of a step from the fill it exists to
  * divide. The marks you make were the one thing you could not see. Flipped
  * instead, the claimed square goes dark by the same 0.125 everything else
- * moves by and the edges land at #d1d1d1 against it.
+ * moves by and the edges land at #cccccc against it.
  */
 const SEMANTIC: Record<string, readonly number[]> = {
   /* (1) COL_EMPTY, COL_FULL  (2) COL_UNKNOWN  (3) COL_GRID, between the two */
@@ -288,8 +297,8 @@ const SEMANTIC: Record<string, readonly number[]> = {
  * rim is always COL_BLACK. A black clue is therefore its own rim. On upstream's
  * near-white board that costs nothing: the disc is 14.31:1 against the board and
  * needs no outline. Here COL_BLACK is one of the tones the chapter names, so
- * `SEMANTIC` holds it down at #0f0f0f, and against a #2f2f2f board the disc
- * comes to 1.43:1 with nothing to outline it.
+ * `SEMANTIC` holds it down at #0d0d0d, and against a #2c2c2c board the disc
+ * comes to 1.39:1 with nothing to outline it.
  *
  * Three things have to be true together, and it is the third that is easy to
  * miss:
@@ -303,7 +312,7 @@ const SEMANTIC: Record<string, readonly number[]> = {
  * `draw_circle(..., dotval == 1 ? COL_WHITEDOT : COL_BLACKDOT, COL_BLACKDOT)`.
  * Same structure, same #000000, same shape outlining itself. But nothing pins
  * Galaxies' dots — its chapter never says a colour — so COL_BLACKDOT takes the
- * flip, arrives at #d1d1d1, and stands 8.77:1 off the board on its own. No rim
+ * flip, arrives at #cccccc, and stands 8.70:1 off the board on its own. No rim
  * needed. Guess's empty peg (2.21 → 2.26), Tents' grass (1.04 → 6.56) and
  * Twiddle's rotating faces (1.47 → 1.61) are the same story: fill meets rim,
  * and nothing collapses, because none of them is held.
@@ -369,7 +378,7 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  * and all seven of its COL_BACKGROUND fills sit on a skin.
  *
  * The ink follows the paper because half a negative is worse than a whole one:
- * with COL_BACKGROUND served alone the ink flips to #d1d1d1 over #bebebe paper,
+ * with COL_BACKGROUND served alone the ink flips to #cccccc over #b9b9b9 paper,
  * 1.22:1, and the pupils, the hairline and every outline disappear. The unit
  * this table admits is a drawing, not a slot.
  *
@@ -377,7 +386,7 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  * line. They are double-duty too, and they get nothing, because their paper is
  * a peg and a region — ordinary slots whose cell is negotiable, and the
  * negotiation happened in favour of one colour per slot at a cost of 1.58:1
- * and 1.90:1. Only where the paper is the ground is there no cell to negotiate.
+ * and 1.91:1. Only where the paper is the ground is there no cell to negotiate.
  *
  * What separates the two jobs is not the slot but the call, so that is where
  * the rule is drawn and `Renderer.ink` is what applies it. Three exclusions,
@@ -391,9 +400,9 @@ export const RIM: Record<string, Readonly<Record<number, number>>> = {
  * redrawn in the dark theme's range rather than pasted out of the light one.
  * That matters beyond tidiness — the light values sit outside the range every
  * other colour in the collection lands in (#e6e6e6 at 0.90, #000000 at 0.00,
- * against a floor of 0.06 and a ceiling of 0.82), so pasting them made this the
+ * against a floor of 0.05 and a ceiling of 0.80), so pasting them made this the
  * one place on 426 slots that put an out-of-range colour on screen. Compressed
- * they come to #bebebe and #0f0f0f, both inside, and the second is a value the
+ * they come to #b9b9b9 and #0d0d0d, both inside, and the second is a value the
  * palette already holds.
  */
 export const FIGURE: Record<string, readonly number[]> = {
@@ -409,34 +418,43 @@ export const FIGURE: Record<string, readonly number[]> = {
  * otherwise be darker than the surface it is read against — so what the move
  * has to buy is always the same thing: room under the board for that black.
  * Leaving the background where the flip puts it (0.13) leaves none, there being
- * no room below the bottom of the scale; a kept black on it comes to 1.20:1,
+ * no room below the bottom of the scale; a kept black on it comes to 1.18:1,
  * which is a shape you can find if you look for it rather than one you read.
  *
- * This is where black ink clears 4.5:1 against it, which is what a number has to
- * clear to be read: #0f0f0f on #7d7d7d is 4.66:1, where 0.48 would be 4.47 and
- * miss. It is no longer a dark board, and saying otherwise would be a fiction —
- * it is paper, dimmed as far as paper can be dimmed while the ink on it stays
- * ink.
+ * Black ink has to clear 4.5:1 against it, which is what a number has to clear
+ * to be read: #0d0d0d on #808080 is 4.92:1. It is no longer a dark board, and
+ * saying otherwise would be a fiction — it is paper, dimmed as far as paper can
+ * be dimmed while the ink on it stays ink.
+ *
+ * That test no longer pins the number, and the comment should say so rather
+ * than keep quoting a boundary it has moved off. It did when the floor was 0.06
+ * and the kept black came out #0f0f0f: 0.49 gave 4.66:1 and 0.48 gave 4.47 and
+ * missed. At a floor of 0.05 the black is #0d0d0d, darker, and the height that
+ * just clears 4.5:1 has dropped to 0.48 (4.53:1). So 0.50 now sits above what
+ * the test asks for, and what it costs is Light Up's: its bulb reads 2.46:1
+ * against the paper here and 2.56 at 0.49, its lit square 1.41 against 1.47.
+ * The number is round and the margin is deliberate; that is the whole of its
+ * defence.
  *
  * Which of the three needs the reading contrast is worth naming, because it is
  * not the one this comment used to name. Singles writes its clue in COL_BLACK
  * straight onto the board (`tcol = COL_BLACK` on `bg = COL_BACKGROUND`), and
  * Range aliases COL_TEXT to the same black. Those are the numbers that pin the
  * height. Light Up does not: its clue sits on a wall, in COL_LIGHT, and reads
- * against the wall at 12.55:1 no matter where this number goes. On Light Up
+ * against the wall at 12.10:1 no matter where this number goes. On Light Up
  * alone the wall is a filled square rather than text, 3:1 would serve, and 0.42
- * would do — recovering the bulb from 2.70 to 3.49.
+ * would do — recovering the bulb from 2.46 to 3.32.
  *
  * Two heights lived here for a while — 0.26 for a board that is a third surface
- * between a game's two tones, 0.49 for a board that *is* the white tone — and
- * the split did not survive being looked at. Light Up was the one game on the
- * lower shelf, and it is the case the shelf was supposed to fit: its walls are
- * painted black and the board is the unlit square between them. But 0.26 is
+ * between a game's two tones, and this one for a board that *is* the white tone
+ * — and the split did not survive being looked at. Light Up was the one game on
+ * the lower shelf, and it is the case the shelf was supposed to fit: its walls
+ * are painted black and the board is the unlit square between them. But 0.26 is
  * measured for a black you can *locate*, and a wall you can only locate is not
  * what upstream draws. Measured against upstream
  * rather than against itself, every ratio that matters moves toward the original
- * at 0.49 and away from it at 0.26: the wall 16.83 upstream, 1.91 at 0.26, 4.66
- * here; the bulb 1.25 / 6.58 / 2.70; a lit square 1.16 / 4.14 / 1.70. The lower
+ * here and away from it at 0.26: the wall 16.83 upstream, 1.93 at 0.26, 4.92
+ * here; the bulb 1.25 / 6.26 / 2.46; a lit square 1.16 / 3.60 / 1.41. The lower
  * shelf was not a gentler version of this one, it was an overshoot in the other
  * direction — the board had gone so dark that white-on-board was louder than
  * upstream by as much as black-on-board was quieter.
@@ -445,7 +463,7 @@ export const FIGURE: Record<string, readonly number[]> = {
  * with two stops on it, and it is paid for honestly either way: these three
  * boards are a lighter grey than the other thirty-seven.
  */
-const PAPER_BOARD = 0.49
+const PAPER_BOARD = 0.5
 
 /**
  * The games whose board has to move at all.
@@ -472,14 +490,14 @@ const PAPER_BOARD = 0.49
  * The three below fail that test:
  *
  *   - Light Up. An unlit square *is* COL_BACKGROUND, so a wall is black on the
- *     board. Unraised it comes to 1.20:1, and the clue numbers are written on
+ *     board. Unraised it comes to 1.18:1, and the clue numbers are written on
  *     the walls, so they go with it.
  *   - Singles, and Range. Their white half is the board: Singles paints a white
  *     square by painting nothing, and its COL_WHITE is set in `game_colours`
  *     and never used by any draw call; Range has no white slot at all. Both
  *     chapters say it in those words — "colour some of the squares black", "the
  *     remaining white squares". Unraised, both boards go almost entirely to
- *     1.20:1 and stop being legible at all.
+ *     1.18:1 and stop being legible at all.
  *
  * All three go to the same place, because all three are asking for the same
  * thing. Their light boards happen to be the same #e6e6e6 as well, so the three
@@ -488,7 +506,7 @@ const PAPER_BOARD = 0.49
  * their originals were.
  *
  * Black Box was here, and the way it left is worth keeping. Its arena is
- * COL_COVER for the whole game and its balls sit on that at #9d9d9d — but
+ * COL_COVER for the whole game and its balls stand off that by only 2.60:1 — but
  * `bg = (gs->reveal ? COL_BACKGROUND : ... COL_COVER)`, so at the reveal the
  * arena is repainted in the board and every ball is drawn straight onto it. A
  * black ball there was 1.43:1 unraised, so the board went up to give it
@@ -608,24 +626,28 @@ export const BACKGROUND = 0
  * Not a flat percentage. A single opacity for every colour has to be chosen
  * for the worst offender, and by the time it tames Guess's yellow it has also
  * taken Mines' navy — already the darkest thing on the board — down with it.
- * Measured over all 200 hues: a flat 35% pushes 33 of them under 1.5:1
- * against their own background, where scaling by brightness reaches the same
- * peak with 10.
+ * Measured over all 200 hues: a flat 40% pushes 35 of them under 1.5:1
+ * against their own background, where scaling by brightness leaves 4 — and
+ * three of those four were already under it with no veil at all.
  *
  * So the opacity is the colour's own luminance times this. Yellow ends up
- * under a 32% veil, cyan 28%, pure red 7%, pure blue 3%: the ones that glare
+ * under a 37% veil, cyan 31%, pure red 9%, pure blue 3%: the ones that glare
  * are pressed down, and the ones that were never the problem are left where
  * upstream put them.
  *
  * The value is where the two measurements cross. Raising it stops buying much
- * — the brightest hue in the collection falls from 0.93 to 0.39 by here and
- * only to 0.30 by 0.45 — while the cost keeps accruing, because a veil scaled
+ * — the brightest hue in the collection falls from 0.93 to 0.33 by here and
+ * only to 0.28 by 0.45 — while the cost keeps accruing, because a veil scaled
  * by brightness pulls a bright colour further than a dark one and so closes
- * the gap between them. Past this point that gap starts to matter: at 0.45,
- * five games have two hues within a just-noticeable distance of each other,
- * against three both here and before any of this.
+ * the gap between them. That cost is real at this value and is paid: counting
+ * pairs upstream drew at least 40 apart in weighted RGB and that come within
+ * 35 of each other here, 0.35 gives 41 and this gives 56. All of the extra
+ * fifteen are Signpost's, whose sixty arrow colours are a generated gradient
+ * and were the closest thing in the collection to begin with. Past here it
+ * stops being one game's problem: at 0.45 Map's COL_0 and COL_3 join them, and
+ * Map's regions are its whole vocabulary.
  */
-const VEIL = 0.35
+const VEIL = 0.4
 
 
 /**
@@ -802,7 +824,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * you read, and that was the case the exception was first written for. It
    * has a rim now, and a rim is something to see it against — the very thing
    * this test is asking after. So a slot `RIM` covers does not ask for room,
-   * and Pearl's board came back down to #2f2f2f — where the flip puts a
+   * and Pearl's board came back down to #2c2c2c — where the flip puts a
    * #d5d5d5 board, which is what fourteen other games have.
    */
   const board = parse(light[BACKGROUND])
@@ -872,7 +894,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * the brightest thing on a dark one. That is true of a bright hue and exactly
    * backwards for a dark one: `#000080` is ink chosen to be dark on white
    * paper, and multiplying it by anything at most 1 cannot do to it what the
-   * dark board needs. Mines' 4 came out at 1.01:1 against its own board — three
+   * dark board needs. Mines' 4 came out at 1.03:1 against its own board — three
    * of that puzzle's numerals were, in effect, not drawn.
    *
    * So the rule is said in full: a hue stands off the dark board by what it
@@ -883,7 +905,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    *
    * Which is why the condition is a comparison and not a threshold: a hue that
    * already stands off the dark board as far as it did off the light one is
-   * left exactly where the veil put it. Mines' 3 is 3.20:1 upstream and 3.46:1
+   * left exactly where the veil put it. Mines' 3 is 3.20:1 upstream and 3.50:1
    * here, and does not move.
    */
   for (let index = 0; index < light.length; index++) {
