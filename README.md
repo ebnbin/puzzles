@@ -2,6 +2,8 @@
 
 Simon Tatham 的四十个谜题，做成了一个网页应用。手机上可以装到主屏幕，断网也能玩。
 
+**<https://puzzles.ebnbin.dev/>**
+
 > Think between vibes.
 
 ## 能做什么
@@ -50,8 +52,10 @@ npm run preview    # 预览 dist/
 wasm、手册、缩略图这些产物都已经提交进仓库，日常开发不用重新生成。真要重新生成，步骤
 和依赖在 [CLAUDE.md](CLAUDE.md)。
 
-## 致谢
+## 许可与致谢
 
 谜题本身是 Simon Tatham 和众多贡献者的作品，以 MIT 许可证发布，见
 [`vendor/sgtpuzzles/LICENCE`](vendor/sgtpuzzles/LICENCE)。上游主页：
 <https://www.chiark.greenend.org.uk/~sgtatham/puzzles/>
+
+外面这层界面同样是 MIT，见 [`LICENCE`](LICENCE)。
