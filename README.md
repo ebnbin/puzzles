@@ -6,6 +6,8 @@ Simon Tatham 的四十个谜题，做成了一个网页应用。手机上可以�
 
 > Think between vibes.
 
+![首页，浅色与深色](docs/gallery.png)
+
 ## 能做什么
 
 - 四十个逻辑谜题：Net、Solo、Mines、Bridges、Loopy……

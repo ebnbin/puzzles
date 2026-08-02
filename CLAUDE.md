@@ -52,6 +52,7 @@ node scripts/build-icons.mjs      # 画廊缩略图,需要先起 vite preview,�
 node scripts/build-howto.mjs      # 玩法弹窗里的完成图,同上;可只跑几个:… net solo mines
 node scripts/build-art.mjs        # Undead 键盘上的三个怪物 PNG
 node scripts/build-appicon.mjs    # app icon,四个尺寸;不需要起 preview
+node scripts/build-shot.mjs       # README 里的首页截图,需要先起 vite preview
 ```
 
 playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`build-appicon.mjs`
@@ -110,6 +111,7 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 | `public/icons/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
 | `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/icons/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
 | `public/doc/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
+| `docs/gallery.png` | `scripts/build-shot.mjs`(README 用的首页截图,亮暗并排);放 `docs/` 不放 `public/`,它不该跟着 app 部署出去 |
 
 手写的对应物只有翻译:`src/games.zh.json`、`public/help.zh.json`、`doc-zh/`。
 `extract-games.mjs` 会在它们与英文版脱节时告警,`verify-doc.mjs` 逐页比对标签序列、
