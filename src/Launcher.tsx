@@ -270,7 +270,13 @@ export default function Launcher() {
   return (
     <div className="launcher">
       <header className="masthead">
-        <h1>{t.brand}</h1>
+        {/* The name and the line under it are one block, so that the two
+            controls beside them sit against the pair rather than beside the
+            name with the line pushed under all three. */}
+        <div className="masthead-name">
+          <h1>{t.brand}</h1>
+          <p>{t.tagline}</p>
+        </div>
         {/* First-level, beside the settings: of everything there is to set,
             the language is the one a reader may need before they can read
             anything else. */}

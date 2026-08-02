@@ -18,6 +18,18 @@ export const en = {
   /** The collection's name. Not translated — it is what it is called. */
   brand: 'Puzzles',
 
+  /**
+   * Under the name, and in the page's description.
+   *
+   * Not translated either, though for a different reason than the name. It
+   * turns on "vibes" in the sense the phrase has picked up from vibe coding —
+   * an interval spent waiting on a model — which the people it is addressed to
+   * say in English whatever else they are speaking. Rendered in Chinese it
+   * would be a loanword translated back into the language that borrowed it,
+   * and the joke, which is the whole line, would not survive the trip.
+   */
+  tagline: 'Think between vibes.',
+
   launcher: {
     settings: 'Settings',
     /** Named for the game, since the button is in its corner. */

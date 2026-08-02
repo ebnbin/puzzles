@@ -171,14 +171,35 @@ a {
   margin-bottom: 1.25rem;
 }
 
-.masthead h1 {
+.masthead-name {
   flex: 1;
   min-width: 0;
+}
+
+.masthead h1 {
   margin: 0;
   font-size: var(--t-2xl);
   font-weight: 650;
   letter-spacing: -0.025em;
   line-height: 1.15;
+}
+
+/*
+ * The line under the name.
+ *
+ * Quiet on purpose: it is read once and then never again, so it is the
+ * secondary ink at the smallest size the page uses anywhere. The gap is
+ * 0.15rem rather than nothing because the two lines are set at very different
+ * sizes, and their baselines otherwise crowd.
+ */
+.masthead-name p {
+  margin: 0.15rem 0 0;
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Bare, like the puzzle screen's bar buttons: no fill until touched. */

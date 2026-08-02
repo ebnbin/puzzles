@@ -5,6 +5,9 @@ export const zh: Strings = {
   /** The collection's name. Not translated — it is what it is called. */
   brand: 'Puzzles',
 
+  /** In English here too, deliberately; see the note beside it in en.ts. */
+  tagline: 'Think between vibes.',
+
   launcher: {
     settings: '设置',
     hide: (game: string) => `隐藏${game}`,
