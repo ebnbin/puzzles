@@ -47,10 +47,10 @@
  * either: it exchanges two values a rule already produced. Nor does either
  * search — both aim at a contrast upstream itself drew, and stop there.
  *
- * Which rule a slot takes is computed too — from its saturation — for 392 of
- * them. Another 26 come from `SEMANTIC` and 8 from `DERIVED`, tables, because
- * the fact that *this* black is a rule and *that* black is a line is not in
- * the colour: it is in the game. `BEVEL` is a table for the same reason, and
+ * Which rule a slot takes is computed too — from its saturation — for 396 of
+ * them. The other 30 come from `SEMANTIC`, a table, because the fact that
+ * *this* black is a rule and *that* black is a line is not in the colour: it
+ * is in the game. `BEVEL` is a table for the same reason, and
  * all of them were assembled from evidence rather than taste — see their
  * comments. They are the knowledge here that no amount of arithmetic could
  * have recovered.
@@ -469,48 +469,6 @@ const PAPER_BOARD = 0.49
  */
 const BOARD_IS_PAPER: ReadonlySet<string> = new Set(['lightup', 'singles', 'range'])
 
-/**
- * Slots a game measures out from its own background rather than choosing.
- *
- * `ret[COL_GRID] = ret[COL_BACKGROUND] * 0.9F` is not a grey the game picked. It
- * is a statement — this line is a tenth of a step off the board it is drawn on —
- * and Loopy says it in words where it does the same thing: "we want
- * COL_LINEUNKNOWN to be a yellow which is a bit darker than the background".
- * A bit darker is the whole of what that colour means.
- *
- * So these keep their distance from the board rather than their own value: the
- * contrast upstream gave them, the other way round, because a dark board is the
- * negative of a light one. Every other rule in this file decides what a colour
- * *is*; this one decides what it is *next to*, which for a shade of the board is
- * all it was ever about.
- *
- * Two ways it had gone wrong, and they are the same way wrong:
- *
- * - Blackbox's border of laser squares is drawn straight on the board with a
- *   COL_GRID line between each pair, and where `needsRoom` lifts the board that
- *   line was left at the height the board used to be: 1.03:1 against the very
- *   surface it divides, so you could not see where one laser square ended and
- *   the next began.
- * - Palisade's and Loopy's yellow is every border you have not decided about,
- *   and it has a hue, so it took the veil — kept its own luminance while the
- *   board went out from under it. A whisper at 1.34:1 on upstream's board became
- *   a shout at 6.05:1 on ours, and the wall you had drawn, black and the loudest
- *   thing on a light board, came out white at 1.72:1 from the yellow it has to be
- *   told apart from. Which of those two a line is *is* the state of the game.
- *
- * Not a guess: every entry is a line in that game's `game_colours` that
- * multiplies or divides `ret[COL_BACKGROUND]`.
- */
-const DERIVED: Record<string, readonly number[]> = {
-  /* COL_COVER, COL_LOCK, COL_GRID — background times 0.5, 0.7 and 0.9 */
-  blackbox: [1, 2, 7],
-  /* COL_GRID, COL_CURSOR — background over 1.5 and over 2 */
-  lightup: [1, 6],
-  /* COL_LINEUNKNOWN — background times 0.9, with the blue taken out */
-  loopy: [2],
-  /* COL_LINE_MAYBE the same, and COL_LINE_NO the same without the tint */
-  palisade: [3, 4],
-}
 
 /**
  * The pairs of slots a game draws relief with: the lit side, then the shaded.
@@ -788,10 +746,16 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
   }
 
   /*
-   * The shades measured out from the background stand off it by what they
-   * always stood off it — see `DERIVED`. Upstream drew each of these darker
-   * than its board; a dark board is the negative of a light one, so each comes
-   * out lighter than ours by the same contrast.
+   * The board the veil's lifting half measures against: not the flip of the
+   * light board but whatever this game's board actually became, so a board that
+   * turned to paper is what its hues are held up against.
+   */
+  const darkBoard = parse(flipped[BACKGROUND])
+
+  /**
+   * The lightness at which `colour` stands `want` off `ground`, searched
+   * between `from` and `ceiling`. Hue and saturation are held, so this only
+   * ever returns a paler version of the colour it was given.
    *
    * Bisected rather than solved: with the hue and the saturation held, contrast
    * against a fixed board rises monotonically with lightness above it, so twenty
@@ -799,15 +763,8 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    * sRGB transfer function through the luminance of three channels, which is a
    * page of algebra for a number a loop finds exactly.
    */
-  const darkBoard = parse(flipped[BACKGROUND])
-
-  /**
-   * The lightness at which `colour` stands `want` off `ground`, searched
-   * between `from` and the ceiling. Hue and saturation are held, so this only
-   * ever returns a paler version of the colour it was given.
-   */
   const standOff = (
-    colour: Colour, ground: number, want: number, from: number, ceiling = CEILING,
+    colour: Colour, ground: number, want: number, from: number, ceiling: number,
   ) => {
     let lo = from
     let hi = ceiling
@@ -818,44 +775,6 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
       else hi = mid
     }
     return format({ ...colour, l: (lo + hi) / 2 })
-  }
-
-  for (const index of DERIVED[game] ?? []) {
-    const was = parse(light[index])
-    const now = parse(flipped[index])
-    if (!was || !now || !board || !darkBoard) continue
-    /*
-     * The search starts a step above the board rather than flush with it.
-     *
-     * Upstream says "a bit darker than the background" and the mirror of that
-     * is "a bit lighter", so the bit has to be worth something. Searching from
-     * the board's own lightness allowed nothing: Palisade's undecided border
-     * came out #444400, whose lightness is 0.133 — the dark board's exactly —
-     * and a line the same lightness as the surface it is drawn on is held up by
-     * its hue alone. It read as an unlit edge rather than an undecided one,
-     * which in a game whose state *is* which of two lines you are looking at is
-     * the wrong thing to say.
-     *
-     * That it landed there at all is the tell: the contrast it was aiming for
-     * was unreachable and it stopped at the wall. Yellow is why — #cfcf00 is
-     * light enough to throw 0.579 against a board throwing 0.791, so 1.34:1 is
-     * most of the way explained by yellow being a bright hue rather than by the
-     * colour sitting close to the board. Asking for that ratio on a dark board
-     * asks the yellow to give up being yellow.
-     *
-     * The step is `NUDGES[1]`, which is already this file's unit of "far enough
-     * apart to see" — the smallest move the collision pass will make. Nothing
-     * new is chosen. It binds only where the aim was already unreachable: five
-     * of the eight slots move by less than 0.05, and the two yellows go to
-     * #727200, which is 3.1:1 against the board and still four stops clear of
-     * the wall they have to be told from.
-     */
-    flipped[index] = standOff(
-      now,
-      luminance(darkBoard),
-      ratio(luminance(board), luminance(was)),
-      Math.min(darkBoard.l + NUDGES[1], CEILING),
-    )
   }
 
   /*
@@ -882,7 +801,7 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
    */
   for (let index = 0; index < light.length; index++) {
     if (index === BACKGROUND) continue
-    if (semantic?.includes(index) || DERIVED[game]?.includes(index)) continue
+    if (semantic?.includes(index)) continue
     const was = parse(light[index])
     const now = parse(flipped[index])
     if (!was || !now || !board || !darkBoard) continue
