@@ -105,7 +105,6 @@ export default function PuzzleHost({
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const [tuningOpen, setTuningOpen] = useState(false)
 
   /*
    * A configuration laid out inside a sheet rather than put in a dialog of
@@ -507,8 +506,7 @@ export default function PuzzleHost({
       // Escape dismisses whatever is on top, wherever focus is — including a
       // control inside the sheet, which is where it will be after a preset.
       if (e.key === 'Escape') {
-        if (tuningOpen) setTuningOpen(false)
-        else if (helpOpen) setHelpOpen(false)
+        if (helpOpen) setHelpOpen(false)
         // Not a layer of its own: the parameters are part of the sheet, so
         // the sheet is what closes, and closing it answers the config box.
         else if (typesOpen) closeTypes()
@@ -517,7 +515,7 @@ export default function PuzzleHost({
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen || typesOpen || tuningOpen) return
+      if (dialog || helpOpen || typesOpen) return
       /*
        * The board had it first and spent it. Undo, redo and new game are the
        * back end's own one-key shortcuts, so with the board focused the press
@@ -553,7 +551,6 @@ export default function PuzzleHost({
     closeTypes,
     closeMenu,
     helpOpen,
-    tuningOpen,
     acted,
   ])
 
@@ -609,19 +606,6 @@ export default function PuzzleHost({
           onClick={() => setTheme(dark ? 'light' : 'dark')}
         >
           <Icon name={dark ? 'sun' : 'moon'} />
-        </button>
-        {/* Temporary, and deliberately in the way: the palette constants are
-            easier to judge by moving them over a live board than by reading
-            what they measure to. Meant to come out once they are judged. */}
-        <button
-          type="button"
-          className="play-icon"
-          aria-label={t.tuning.open}
-          aria-haspopup="dialog"
-          aria-expanded={tuningOpen}
-          onClick={() => setTuningOpen(true)}
-        >
-          <Icon name="prefs" />
         </button>
         <button
           type="button"
@@ -714,13 +698,12 @@ export default function PuzzleHost({
         </button>
       </nav>
 
-      {tuningOpen && (
-        <TuningPanel
-          onApply={applyTuning}
-          dark={dark}
-          onClose={() => setTuningOpen(false)}
-        />
-      )}
+      {/* Temporary, and deliberately always there: judging a palette constant
+          means moving it back and forth over a live board, and a dialog
+          charges for every trip. The stylesheet gives it a rail of its own
+          past 64em and nothing below that. Meant to come out once the values
+          are judged. */}
+      <TuningPanel onApply={applyTuning} dark={dark} />
 
       {helpOpen && (
         <div className="dialog-dimmer" onClick={() => setHelpOpen(false)}>

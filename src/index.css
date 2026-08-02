@@ -1595,11 +1595,75 @@ p.notice-error svg {
 /*
  * Temporary. Six rows, one per constant in engine/palette.ts, over a board
  * that repaints as you drag. Meant to come out once the values are judged;
- * everything it needs is either a token or an existing dialog class, so
- * removing it is removing this block and two files.
+ * everything it needs is a token or lives in this block, so removing it is
+ * this block and two files.
+ *
+ * A rail rather than a dialog: judging one of these means going back and
+ * forth, and a dialog charges for every trip. It takes its width out of the
+ * board's, which is the whole reason for the 64em floor — below that the
+ * board is the scarce thing and this is worth nothing.
  */
-.dialog-tuning {
-  max-width: 32rem;
+.tuning-rail {
+  display: none;
+}
+
+@media (min-width: 64em) {
+  .play {
+    right: 24rem;
+  }
+
+  .tuning-rail {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: block;
+    width: 24rem;
+    padding: 1.1rem 1.25rem 2rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-left: 1px solid var(--edge);
+    background: var(--surface);
+  }
+}
+
+/* Sticks so "全部恢复" is reachable from the bottom of the list, where the
+   value you regret is most likely to be. */
+.tuning-head {
+  position: sticky;
+  top: -1.1rem;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: -1.1rem -1.25rem 0.75rem;
+  padding: 1.1rem 1.25rem 0.6rem;
+  background: var(--surface);
+}
+
+.tuning-head h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.tuning-reset-all {
+  padding: 0.2rem 0.5rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--t-xs);
+  cursor: pointer;
+}
+
+.tuning-reset-all:disabled {
+  color: var(--text-3);
+  cursor: default;
 }
 
 .tuning-lede,
