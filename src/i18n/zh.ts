@@ -6,7 +6,7 @@ export const zh: Strings = {
   brand: 'Puzzles',
 
   launcher: {
-    language: '语言',
+    switchLang: '切换到 English',
     manual: '手册',
     hide: (game: string) => `隐藏${game}`,
     show: (game: string) => `显示${game}`,

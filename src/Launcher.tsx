@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import { clearLast, readCurrent } from './engine/saves'
 import { docHref, useLang, useStrings } from './i18n'
-import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
 import { openGame, rememberGalleryScroll, takeGalleryScroll } from './view'
@@ -40,14 +39,6 @@ export default function Launcher() {
   const dark = theme === 'dark'
   const games = useGames()
   const hidden = useHidden()
-
-  // The one control that must be readable in the language you are stuck in,
-  // so its labels never translate: your own language, named in itself or in
-  // the code everyone is shown, is the thing you can always find.
-  const langs: { value: Lang; label: string }[] = [
-    { value: 'en', label: 'EN' },
-    { value: 'zh', label: '中文' },
-  ]
 
   const shown = games.filter((g) => !hidden.has(g.name))
   const away = games.filter((g) => hidden.has(g.name))
@@ -141,27 +132,19 @@ export default function Launcher() {
     <div className="launcher">
       <header className="masthead">
         <h1>{t.brand}</h1>
-        {/* First-level, beside the settings: of everything there is to set,
-            the language is the one a reader may need before they can read
-            anything else. */}
-        <div
-          className="segmented"
-          role="radiogroup"
-          aria-label={t.launcher.language}
+        {/* One press, like the button beside it, and the label is the language
+            you would get rather than the one you are in. `lang` on the element
+            because its text is not in the page's language and a screen reader
+            should not read 中文 as though it were English. */}
+        <button
+          type="button"
+          className="masthead-icon lang-switch"
+          lang={lang === 'zh' ? 'en' : 'zh-Hans'}
+          aria-label={t.launcher.switchLang}
+          onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
         >
-          {langs.map((option) => (
-            <label key={option.value} data-selected={lang === option.value}>
-              <input
-                type="radio"
-                name="lang"
-                value={option.value}
-                checked={lang === option.value}
-                onChange={() => setLang(option.value)}
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
+          {lang === 'zh' ? 'EN' : '中文'}
+        </button>
         {/* The same one press the puzzle screen and the manual have. There is
             no third state to cycle through and no dialog behind it: light and
             dark are the whole of what there is to decide here, and one press

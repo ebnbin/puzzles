@@ -7,7 +7,7 @@
  * has never had — upstream ships the manual unstyled, so a browser's own
  * defaults are what a reader has been getting.
  *
- * It is concatenated onto tokens.css and segmented.css by
+ * It is concatenated onto tokens.css and lang-switch.css by
  * scripts/build-doc.mjs to produce public/doc.css, so the manual and the app
  * work from one set of values and — for the one control they both have — one
  * set of rules: change either and both move together.
@@ -49,8 +49,8 @@ body {
 /* --- the bar ------------------------------------------------------------
  * The puzzle screen's bar, as far as it can be. Same height, same gap, same
  * side padding, the same treatment on the name at the left end and the same
- * segmented control at the right — that one is not a copy but the same file,
- * segmented.css, which both stylesheets include.
+ * two controls at the right — the language one is not a copy but the same
+ * file, lang-switch.css, which both stylesheets include.
  *
  * Two things are deliberately not the same, and both follow from this being a
  * document. It is sticky and it carries a hairline: the manual is three
@@ -118,27 +118,27 @@ body {
 }
 
 /*
- * The bar's own button, set as `.play-icon` is: bare until it is touched, so
- * nothing up here competes with the page for the eye.
+ * The bar's two controls, set as `.play-icon` is: bare until they are touched,
+ * so nothing up here competes with the page for the eye. One is a button and
+ * one is a link to this page in the other language, which is a difference in
+ * what they do and not in what they are.
  *
  * Both glyphs are in the markup and the stylesheet picks one, because there is
  * no script here to swap them and `data-theme` is on the root before the first
  * paint anyway. The one shown is what a press would give you — the sun while
  * the page is dark — which is the rule the app's own button follows.
  */
-.doc-theme {
+.doc-theme,
+.doc-lang {
   display: grid;
   flex: none;
   place-items: center;
   /*
-   * Standing off the language switch by the gallery's 0.85rem rather than the
-   * bar's own 0.25rem, which is the gap between the things either side of the
-   * title and is far too tight for these two: a filled pill four pixels from a
-   * bare glyph reads as one crowded cluster rather than as two controls. The
-   * gallery is the app screen with this same pair in it, so it is the one to
-   * copy — 0.6 here on top of the bar's 0.25.
+   * Back on the bar's own 0.25rem gap, which is what the puzzle screen puts
+   * between its two bar buttons. The extra room these needed was for a filled
+   * pill sitting four pixels from a bare glyph; the language control is a bare
+   * one now too, and two of those want the same gap as any other two.
    */
-  margin-left: 0.6rem;
   width: var(--tap-w);
   height: var(--tap-h);
   padding: 0;
@@ -180,15 +180,22 @@ body {
 }
 
 @media (hover: hover) {
-  .doc-theme:hover {
+  .doc-theme:hover,
+  .doc-lang:hover {
     background-color: var(--surface-2);
     color: var(--text);
   }
 }
 
-.doc-theme:active {
+.doc-theme:active,
+.doc-lang:active {
   background-color: var(--surface-3);
   transform: scale(0.92);
+}
+
+/* A link, so it would otherwise take the accent and an underline. */
+.doc-lang {
+  text-decoration: none;
 }
 
 /* Where the puzzle screen puts its status. Same size and same tone: what sits

@@ -1,0 +1,35 @@
+/*
+ * The language control: one press, and the label names the language you would
+ * get rather than the one you are in.
+ *
+ * It was a segmented switch — both languages side by side, the current one
+ * raised — which is the honest shape for a setting with two states and was
+ * 88px of bar for a control pressed about twice in a lifetime. The theme
+ * button beside it says the same amount in a fortieth of the pixels, by
+ * showing what a press would do instead of showing both states and marking
+ * one; the sun appears on a dark page for exactly that reason. This does the
+ * same. In English it reads 中文, in Chinese it reads EN, and either way it
+ * is a word the reader who needs it can read — which is what the switch was
+ * really for, since a reader stranded in the wrong language cannot follow a
+ * label written in it.
+ *
+ * Shared by the app and the manual, as the switch was: index.css imports this
+ * and build-doc.mjs concatenates it into public/doc.css. What it does not set
+ * is the box — each side already has a rule for a bare control in its own bar,
+ * 40x40 in the gallery and 40x36 in the manual's, and those match the buttons
+ * they sit beside. This is only what makes that box carry two characters
+ * instead of a glyph.
+ */
+
+.lang-switch {
+  /* Wider than a glyph needs, since 中文 is 26px of text before its padding,
+     and never narrower than the button next to it. */
+  width: auto;
+  min-width: var(--tap-w);
+  padding: 0 0.45rem;
+  font-family: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}

@@ -1,7 +1,7 @@
 @import './tokens.css';
 /* The one control the manual has too, described once and included by both.
-   See segmented.css; build-doc.mjs does the same for public/doc.css. */
-@import './segmented.css';
+   See lang-switch.css; build-doc.mjs does the same for public/doc.css. */
+@import './lang-switch.css';
 
 *,
 *::before,
@@ -1301,9 +1301,8 @@ p.notice-error.is-floating {
 }
 
 /* The back end's own control rows, each of which carries its kind as a class.
-   A bare `.dialog label` would also catch the labels inside the settings rows
-   and the segmented control nested in one of them — which is exactly what it
-   was doing. */
+   A bare `.dialog label` would catch more than these — it once caught the
+   labels inside the settings rows, which is what this was written for. */
 .dialog-string,
 .dialog-choices,
 .dialog-boolean {
