@@ -199,14 +199,15 @@ export default function PuzzleHost({
    * The rule above — gone at the next press — is the right one and is not
    * enough by itself: a reader who reads the sentence, understands it and then
    * sits still has a red bar over their board until they touch something. This
-   * is a remark, not a state; four seconds is long enough to read fifty
-   * characters and short enough not to become furniture. Keyed on the text, so
-   * a second refusal of the same kind restarts the count rather than inheriting
-   * what was left of the first one's.
+   * is a remark, not a state, and three seconds is what it gets: long enough
+   * for the longest of them — "Multiple solutions exist for this puzzle" — and
+   * short enough not to become furniture. Keyed on the text, so a second
+   * refusal of the same kind restarts the count rather than inheriting what was
+   * left of the first one's.
    */
   useEffect(() => {
     if (!error) return
-    const timer = window.setTimeout(() => setError(null), 4000)
+    const timer = window.setTimeout(() => setError(null), 3000)
     return () => window.clearTimeout(timer)
   }, [error])
 

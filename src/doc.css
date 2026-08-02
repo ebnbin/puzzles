@@ -130,6 +130,15 @@ body {
   display: grid;
   flex: none;
   place-items: center;
+  /*
+   * Standing off the language switch by the gallery's 0.85rem rather than the
+   * bar's own 0.25rem, which is the gap between the things either side of the
+   * title and is far too tight for these two: a filled pill four pixels from a
+   * bare glyph reads as one crowded cluster rather than as two controls. The
+   * gallery is the app screen with this same pair in it, so it is the one to
+   * copy — 0.6 here on top of the bar's 0.25.
+   */
+  margin-left: 0.6rem;
   width: var(--tap-w);
   height: var(--tap-h);
   padding: 0;
