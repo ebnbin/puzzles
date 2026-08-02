@@ -19,7 +19,9 @@ export const en = {
   brand: 'Puzzles',
 
   launcher: {
-    settings: 'Settings',
+    language: 'Language',
+    /** The way to the manual, at the foot of the gallery. */
+    manual: 'Manual',
     /** Named for the game, since the button is in its corner. */
     hide: (game: string) => `Hide ${game}`,
     show: (game: string) => `Show ${game}`,
@@ -30,18 +32,6 @@ export const en = {
     credit:
       'Puzzles are the work of Simon Tatham and contributors, distributed under the MIT licence.',
     source: 'Source:',
-  },
-
-  settings: {
-    title: 'Settings',
-    appearance: 'Appearance',
-    themeSystem: 'System',
-    themeLight: 'Light',
-    themeDark: 'Dark',
-    language: 'Language',
-    manual: 'Manual',
-    manualHint: 'Rules and controls for every puzzle',
-    done: 'Done',
   },
 
   play: {

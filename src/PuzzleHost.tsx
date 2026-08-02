@@ -22,8 +22,7 @@ import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useHelp } from './useHelp'
 import { useNoPullToRefresh } from './useNoPullToRefresh'
-import { useResolvedTheme } from './useResolvedTheme'
-import { setTheme } from './useTheme'
+import { useTheme } from './useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
@@ -144,7 +143,7 @@ export default function PuzzleHost({
   const [textError, setTextError] = useState<{ kind: TextKind; message: string } | null>(null)
 
   const help = useHelp(name)
-  const theme = useResolvedTheme()
+  const [theme, setTheme] = useTheme()
   const dark = theme === 'dark'
   const t = useStrings()
   const [lang] = useLang()

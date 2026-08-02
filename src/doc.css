@@ -146,7 +146,26 @@ body {
   grid-area: 1 / 1;
 }
 
-:root[data-theme='light'] .doc-theme svg:first-child,
+/*
+ * The moon by default and the sun only on a dark page — stated that way round
+ * rather than as one rule per theme, so that a root with no `data-theme` at
+ * all still shows exactly one glyph.
+ *
+ * It used to be a pair of rules keyed on `light` and on `dark`, which is fine
+ * while something has set the attribute and wrong the moment nothing has: with
+ * neither selector matching, both glyphs were shown, stacked in the one grid
+ * cell. Reachable with scripting off, where the button is dead anyway but was
+ * also drawn as a sun inside a moon. Light is the default now, so the default
+ * face is the one that offers dark.
+ */
+.doc-theme svg:first-child {
+  display: none;
+}
+
+:root[data-theme='dark'] .doc-theme svg:first-child {
+  display: revert;
+}
+
 :root[data-theme='dark'] .doc-theme svg:last-child {
   display: none;
 }

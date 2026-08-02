@@ -1,57 +1,52 @@
 import { useSyncExternalStore } from 'react'
 
 /**
- * Light, dark, or whatever the system says.
+ * Light or dark. Two states, and light unless the reader has said otherwise.
  *
- * The choice is resolved to a concrete value here and written to the root as
- * `data-theme`, so the stylesheet never has to ask the system anything: one set
- * of tokens, one attribute, no duplicated dark block. The same six lines run
- * inline in the document head before first paint, which is what stops a dark
- * reader being shown a white page for a frame.
+ * There used to be a third, "system", and it was the default. It is gone with
+ * the settings dialog that was the only place able to show three states: what
+ * is left is one press, on the gallery, on the puzzle screen and in the
+ * manual, and one press cannot mean three things. A reader who wants the
+ * system's answer can give it in a tap, and will then keep it.
  *
- * The browser's own chrome is told too. A page that forces dark while the
- * system is light would otherwise keep a white address bar.
+ * The choice is written to the root as `data-theme`, so the stylesheet never
+ * has to ask the system anything: one set of tokens, one attribute, no
+ * duplicated dark block. The same three lines run inline in the document head
+ * before first paint, which is what stops a dark reader being shown a white
+ * page for a frame — and the manual, which has no React, has them too.
+ *
+ * The browser's own chrome is told as well, or a page holding dark would keep
+ * a white address bar around it.
  *
  * Held in a module rather than in a component, the way the language is: the
  * setting outlives every screen, and two screens asking for it must get the
- * same answer. The system is followed for as long as the app is running, so a
- * change made while a puzzle is open is noticed wherever the switch happens to
- * live.
+ * same answer.
  */
 
-export type Theme = 'system' | 'light' | 'dark'
+export type Theme = 'light' | 'dark'
 
 const KEY = 'puzzles.theme'
-const DARK = '(prefers-color-scheme: dark)'
 const BAR = { light: '#fafaf9', dark: '#101013' }
 
 function read(): Theme {
   try {
-    const stored = window.localStorage.getItem(KEY)
-    return stored === 'light' || stored === 'dark' ? stored : 'system'
+    return window.localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light'
   } catch {
-    return 'system'
+    return 'light'
   }
 }
 
 function apply(theme: Theme) {
-  const dark =
-    theme === 'dark' || (theme !== 'light' && window.matchMedia(DARK).matches)
-  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  document.documentElement.dataset.theme = theme
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', dark ? BAR.dark : BAR.light)
+    ?.setAttribute('content', BAR[theme])
 }
 
 let current = read()
 apply(current)
 
 const listeners = new Set<() => void>()
-
-window.matchMedia(DARK).addEventListener('change', () => {
-  // Only worth acting on while it is being followed.
-  if (current === 'system') apply(current)
-})
 
 export function setTheme(next: Theme) {
   if (next === current) return

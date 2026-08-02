@@ -1,15 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Icon from './Icon'
-import LauncherSettings from './LauncherSettings'
 import { clearLast, readCurrent } from './engine/saves'
-import { useLang, useStrings } from './i18n'
+import { docHref, useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
 import { openGame, rememberGalleryScroll, takeGalleryScroll } from './view'
 import { toggleHidden, useHidden } from './useHidden'
-import { useResolvedTheme } from './useResolvedTheme'
-import { setTheme } from './useTheme'
+import { useTheme } from './useTheme'
 
 /** A press has to be still for this long before it means hide, not open. */
 const HOLD_MS = 450
@@ -35,14 +33,11 @@ const HOLD_MS = 450
  * after the session that scrolled it is gone.
  */
 export default function Launcher() {
-  // Where the page was when the settings opened: opening the dialog scrolls
-  // the document to the top on its own, so it has to be caught on the click,
-  // before that happens, and handed to the lock.
-  const [settingsAt, setSettingsAt] = useState<number | null>(null)
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const t = useStrings()
   const [lang, setLang] = useLang()
-  const dark = useResolvedTheme() === 'dark'
+  const [theme, setTheme] = useTheme()
+  const dark = theme === 'dark'
   const games = useGames()
   const hidden = useHidden()
 
@@ -104,13 +99,9 @@ export default function Launcher() {
    * The position is written on the way into a puzzle (see view.ts), which is
    * every way out of here but one: the tab being reloaded, hidden or closed from
    * this screen. That leaves this as the last moment to write it.
-   *
-   * `settingsAt` rather than the live position when the settings are up: the
-   * dialog pins the document at the top, so `scrollY` reads zero, and the offset
-   * caught at the click that opened it is the real one.
    */
   useEffect(() => {
-    const record = () => rememberGalleryScroll(settingsAt ?? window.scrollY)
+    const record = () => rememberGalleryScroll(window.scrollY)
     const onHidden = () => {
       if (document.visibilityState === 'hidden') record()
     }
@@ -120,7 +111,7 @@ export default function Launcher() {
       document.removeEventListener('visibilitychange', onHidden)
       window.removeEventListener('pagehide', record)
     }
-  }, [settingsAt])
+  }, [])
 
   /*
    * Being here is the choice to be here: a cold start would have been taken
@@ -146,18 +137,6 @@ export default function Launcher() {
     )
   }
 
-  const settingsOpen = settingsAt !== null
-  const openSettings = () => setSettingsAt(window.scrollY)
-  const closeSettings = () => setSettingsAt(null)
-  useEffect(() => {
-    if (!settingsOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeSettings()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [settingsOpen])
-
   return (
     <div className="launcher">
       <header className="masthead">
@@ -168,7 +147,7 @@ export default function Launcher() {
         <div
           className="segmented"
           role="radiogroup"
-          aria-label={t.settings.language}
+          aria-label={t.launcher.language}
         >
           {langs.map((option) => (
             <label key={option.value} data-selected={lang === option.value}>
@@ -183,12 +162,10 @@ export default function Launcher() {
             </label>
           ))}
         </div>
-        {/* The same one press the puzzle screen has had all along, now here
-            and in the manual too, so the shortest way to turn the lights off
-            is the same wherever you are. It commits to a side rather than
-            cycling through "system": having asked for an appearance, a reader
-            should get it until they say otherwise. The three-way choice —
-            including following the system — is still in the settings. */}
+        {/* The same one press the puzzle screen and the manual have. There is
+            no third state to cycle through and no dialog behind it: light and
+            dark are the whole of what there is to decide here, and one press
+            is the whole of how to decide it. */}
         <button
           type="button"
           className="masthead-icon"
@@ -196,16 +173,6 @@ export default function Launcher() {
           onClick={() => setTheme(dark ? 'light' : 'dark')}
         >
           <Icon name={dark ? 'sun' : 'moon'} />
-        </button>
-        <button
-          type="button"
-          className="masthead-icon"
-          aria-label={t.launcher.settings}
-          aria-haspopup="dialog"
-          aria-expanded={settingsOpen}
-          onClick={openSettings}
-        >
-          <Icon name="prefs" />
         </button>
       </header>
 
@@ -232,6 +199,24 @@ export default function Launcher() {
       )}
 
       <footer>
+        {/*
+         * The way to the manual, which used to be a line inside the settings
+         * and is now the foot of the gallery — where a reader who has scrolled
+         * past forty puzzles without finding what they wanted has arrived, and
+         * where the credit that names the same collection already sits.
+         *
+         * A tab of its own. This app is one page: a same-tab visit would
+         * unload it, taking the open stash and the scroll position with it,
+         * and in standalone it would replace the app inside its own window
+         * with no tab to come back from.
+         */}
+        <p className="footer-manual">
+          <a className="textlink" href={docHref(lang)} target="_blank" rel="noreferrer">
+            <Icon name="book" size={16} />
+            {t.launcher.manual}
+            <Icon name="external" size={14} />
+          </a>
+        </p>
         <p>
           {t.launcher.credit} {t.launcher.source}{' '}
           <a
@@ -243,10 +228,6 @@ export default function Launcher() {
           </a>
         </p>
       </footer>
-
-      {settingsAt !== null && (
-        <LauncherSettings lockAt={settingsAt} onClose={closeSettings} />
-      )}
 
       {toast && (
         <div key={toast.key} className="toast" role="status">

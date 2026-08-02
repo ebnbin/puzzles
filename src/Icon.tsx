@@ -44,6 +44,7 @@ export type IconName =
   | 'external'
   | 'eye'
   | 'eyeOff'
+  | 'book'
   | 'close'
   | 'help'
   | 'alert'
@@ -172,6 +173,15 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M14 4h6v6" />
       <path d="M20 4l-9 9" />
       <path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" />
+    </>
+  ),
+  /* An open book: a spine, and a leaf falling away either side of it. The one
+     glyph in the set that stands for a document rather than an action. */
+  book: (
+    <>
+      <path d="M12 6.6v13" />
+      <path d="M12 6.6C10.4 5.2 8.4 4.5 5.8 4.5H3.4v13h2.4c2.6 0 4.6.7 6.2 2.1" />
+      <path d="M12 6.6c1.6-1.4 3.6-2.1 6.2-2.1h2.4v13h-2.4c-2.6 0-4.6.7-6.2 2.1" />
     </>
   ),
   /* Two quarter turns of the same line, which is all a cross is. */
