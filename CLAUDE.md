@@ -47,16 +47,23 @@ npm run doc             # 重新生成 public/doc/(需要 halibut)
 重量级的构建脚本平时**不需要跑**,产物已经提交进仓库:
 
 ```bash
-./scripts/build-games.sh          # 重编译 wasm + 手册(需要 emsdk/cmake/ninja/halibut)
+./scripts/build-games.sh          # 全套:wasm + 手册 + games.json + 三套图
 node scripts/build-tiles.mjs      # 画廊缩略图,需要先起 vite preview,需要 playwright
 node scripts/build-howto.mjs      # 玩法弹窗里的完成图,同上;可只跑几个:… net solo mines
 node scripts/build-art.mjs        # Undead 键盘上的三个怪物 PNG
 node scripts/build-appicon.mjs    # app icon,四个尺寸;不需要起 preview
-node scripts/build-shot.mjs       # README 里的首页截图,需要先起 vite preview
+node scripts/build-shot.mjs       # README 首页截图 + public/og.png,需要先起 vite preview
 ```
 
-playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`build-appicon.mjs`
-只拼两张已经生成好的缩略图,所以不需要 vite preview,但同样要 playwright。只有升级
+`build-games.sh` 是全套:编两遍 wasm、跑 `build-doc.mjs` 和 `extract-games.mjs`,然后自己
+起一个 vite preview 把 tiles/howto/art 重画一遍——三套图是引擎和 `palette.ts` 的照片,升级
+上游或改调色板会同时让它们过期,只跑其中一个就是让它们互相漂开。所以它要的不只是
+emsdk/cmake/ninja/halibut,还有 playwright。上面单列那几行是改一套图时单独跑用的,不必把
+wasm 一起编。
+
+playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`build-appicon.mjs` 只拼两张
+已经生成好的缩略图,所以不需要 vite preview,但同样要 playwright;它和 `build-shot.mjs` 都
+不在 `build-games.sh` 里,net/cube 的缩略图或画廊的样子变了要自己补跑。只有升级
 `vendor/sgtpuzzles`(见 `vendor/UPSTREAM`)或改构建参数时才需要 `build-games.sh`。
 
 ## 架构
@@ -87,8 +94,9 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 进度和位置存在 localStorage(`src/engine/saves.ts`):`puzzles.save.<name>` 是 midend
 自己的存档格式,每步棋后写;`puzzles.recent` 是「最近玩的是哪个」(画廊拿它画圈),
 `puzzles.playing` 是「离开时在不在游戏里」的一个 bit(有值即真,回画廊就删掉,没有
-「false」这个写法),`puzzles.scroll` 是「画廊滚到哪」——三件不同的事,别合并。发布前
-改 key 名字很便宜,发布后就不便宜了,所以改之前先想清楚。
+「false」这个写法),`puzzles.scroll` 是「画廊滚到哪」,`puzzles.introduced` 是「哪些谜题
+已经自报过家门」的一个集合(`Introduction` 那句话,读者按了关才算数,光是显示过不算)
+——四件不同的事,别合并。发布前改 key 名字很便宜,发布后就不便宜了,所以改之前先想清楚。
 
 ### 深色棋盘 = 重写调色板
 
@@ -131,6 +139,15 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 - 主题和语言在 `index.html` 的内联脚本里先解析一次,避免首帧闪白/闪英文;改了那段就要
   同步改 `useTheme` / `i18n`(以及 `build-doc.mjs` 里给手册用的同一段)。
 - 设计 token 全在 `src/tokens.css`,`data-theme` 属性切换,样式表里没有 media query。
+- **dialog 和 sheet 不是一回事**。`Dialog.tsx` 是三个真 dialog(设置、玩法、后端的 config
+  box)共用的壳:scrim、卡片、那三个 aria 属性、Escape——它存在的理由就是这四样以前各写了
+  一遍,于是 aria 标签有三种拼法而只有两个认 Escape。从底部拉上来的 sheet 不是 dialog:它
+  能被拖走(`useSheetDrag`),而且几层叠着时 Escape 该关哪一层是 `PuzzleHost` 自己排的。
+- 换屏幕(`view.ts`)和画廊里收起一张卡都走 `transition.ts`——feature test、reduced-motion、
+  把 React 的渲染塞进被捕获那一帧的 `flushSync`。这三样写第二遍就会开始漂。
+- `src/i18n/en.ts` 是文案的源,`zh.ts` 按它的类型写,所以漏一条翻译是编译错误而不是界面上
+  的空白。后端说的话(preset 名、状态栏、参数对话框的标签)不在这里也翻不了——它们是编进
+  wasm 的字符串,而这个 build 的全部意义就是不动那份 C。
 - `src/engine/keys.ts` 重新实现了上游 `request_keys()` 的结果(emcc.c 不调用它),按
   game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。
 - TS 是 strict + `noUnusedLocals`/`noUnusedParameters`/`verbatimModuleSyntax`,类型
