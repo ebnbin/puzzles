@@ -87,7 +87,8 @@ export default function PuzzleKeypad({
         const said = describe(key)
         return (
           <button
-            key={key.button}
+            // A key this side answers has no button value to be told apart by.
+            key={key.action ?? key.button}
             type="button"
             data-aid={key.aid ? 'true' : undefined}
             aria-label={key.icon ? said : undefined}
