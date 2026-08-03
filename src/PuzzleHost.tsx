@@ -9,7 +9,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
-import { clearMarks, fillMarks, placeSingles } from './engine/marks'
+import { clearMarks, fillMarks, pending, placeSingles } from './engine/marks'
 import {
   clearSave,
   isPlayed,
@@ -711,6 +711,11 @@ export default function PuzzleHost({
    * says why a refusal is silent: it means either that there was nothing to do,
    * or that the board was not one we could read with enough confidence to write
    * to, and there is nothing the reader could do about either.
+   *
+   * The last move is held back and pressed home with redo(), which is what makes
+   * a board finished by a key flash like one finished by hand — see `pending`.
+   * Both calls are in this one handler, so the position between them is never
+   * rendered and never written down.
    */
   const markAction = useCallback(
     (action: KeyAction) => {
@@ -719,7 +724,11 @@ export default function PuzzleHost({
       const next = ACTIONS[action](api.saveGame())
       if (!next) return
       acted()
-      api.loadGame(next)
+      // If the save we just wrote cannot be read back for this, apply it whole:
+      // the flash is worth a great deal less than the moves are.
+      const held = pending(next)
+      api.loadGame(held ?? next)
+      if (held) api.redo()
     },
     [acted],
   )

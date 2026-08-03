@@ -143,6 +143,46 @@ export function replay(moves: Field[], board: Board): Position | null {
  * and forty marked squares are forty steps — a move string does one thing
  * there, and `M` is the only bulk operation those four have.
  */
+/**
+ * The same save with its last move left in the redo list, to be pressed home
+ * with redo(). Null if there is no move to hold back.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY A MOVE HAS TO ARRIVE THIS WAY
+ * ---------------------------------------------------------------------------
+ *
+ * Because a board finished through the save file does not flash otherwise, and
+ * the flash is how these puzzles say you have won.
+ *
+ * The midend works out a flash in exactly one place: `midend_finish_move`,
+ * which asks the game for `flash_length` over the two states either side of the
+ * move just made. Every path that reaches it comes through
+ * `midend_process_key` — a gesture, an undo, a redo. `midend_deserialise` is
+ * not one of them: it rebuilds the state list, redraws, and returns. So the
+ * door this whole module goes through is also the one door that arrives in
+ * silence, and the last digit of a puzzle put in by a key would finish it
+ * without a word.
+ *
+ * `midend_redo` is the way back in. It advances the position by one, sets
+ * `dir` to +1, and falls into the same tail as a gesture, `midend_finish_move`
+ * included. So the moves go in with the last one still undone, and redo() plays
+ * it — which is a real move, made forwards, over the two states that straddle
+ * the win.
+ *
+ * Nothing else about the board differs: measured, the save the back end writes
+ * after the redo is byte for byte the save it writes when every move was
+ * already played. This buys the flash and changes nothing else.
+ */
+export function pending(save: string): string | null {
+  const lines = fields(save)
+  if (!lines) return null
+  const states = Number(find(lines, 'NSTATES'))
+  if (!Number.isInteger(states) || states < 2) return null
+  return lines
+    .map((f) => (f.key === 'STATEPOS' ? line(f.key, String(states - 1)) : line(f.key, f.value)))
+    .join('')
+}
+
 export function extend(
   lines: Field[],
   kept: Field[],

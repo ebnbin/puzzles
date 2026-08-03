@@ -81,6 +81,8 @@ import { readUnequal } from './unequal'
 import type { Field } from './save'
 import { done, extend, fields, find, replay } from './save'
 
+export { pending } from './save'
+
 /** Keyed by what the save calls the game, which is `thegame.name` in the C. */
 const READERS: Record<string, (lines: Field[]) => Board | null> = {
   Solo: readSolo,
