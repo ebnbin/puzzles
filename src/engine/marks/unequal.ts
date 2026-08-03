@@ -107,6 +107,17 @@ export function readUnequal(lines: Field[]): Board | null {
         for (const n of [...candidates[cell]]) if (!keep(n)) candidates[cell].delete(n)
       }
 
+      /*
+       * A square with nothing left it could be says nothing about its
+       * neighbours. That only happens on a board the reader has contradicted,
+       * and without this guard the emptiness spreads: a square with no
+       * candidates has no smallest one, so the sign below would read its floor
+       * as impossible and empty the square across from it, and that one the
+       * next. One square saying "nothing fits here" is a fact about that
+       * square; a row of them is this rule talking to itself.
+       */
+      const open = (cell: number) => digits[cell] || candidates[cell].size > 0
+
       if (adjacent) {
         for (const [a, b] of neighbours) {
           const near = both(a, b)
@@ -116,8 +127,8 @@ export function readUnequal(lines: Field[]): Board | null {
             value
               ? near === (Math.abs(mine - value) === 1)
               : [...other].some((n) => near === (Math.abs(mine - n) === 1))
-          allow(a, (n) => ok(n, candidates[b], digits[b]))
-          allow(b, (n) => ok(n, candidates[a], digits[a]))
+          if (open(b)) allow(a, (n) => ok(n, candidates[b], digits[b]))
+          if (open(a)) allow(b, (n) => ok(n, candidates[a], digits[a]))
         }
         return
       }
@@ -127,10 +138,14 @@ export function readUnequal(lines: Field[]): Board | null {
         // hard bound; with it still open, the best the sign can say is that
         // the greater cannot be the smallest thing the other could be, or
         // below it.
-        const floor = digits[to] ? digits[to] : Math.min(...candidates[to], size + 1)
-        const ceiling = digits[from] ? digits[from] : Math.max(...candidates[from], 0)
-        allow(from, (n) => n > floor)
-        allow(to, (n) => n < ceiling)
+        if (open(to)) {
+          const floor = digits[to] ? digits[to] : Math.min(...candidates[to])
+          allow(from, (n) => n > floor)
+        }
+        if (open(from)) {
+          const ceiling = digits[from] ? digits[from] : Math.max(...candidates[from])
+          allow(to, (n) => n < ceiling)
+        }
       }
     },
   }
