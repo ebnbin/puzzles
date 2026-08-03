@@ -168,6 +168,12 @@ Solo 2x2 Trivial 和 Undead 4x4/5x5 Easy 全解开,Solo 3x3 Trivial 五局中两
 清掉,Undead 的 `G`/`V`/`Z` 不会(只有 `E` 清),而且屏幕上看不出来——放了怪物的格子根本
 不画标记。所以 `Step` 的 set 自带 `clears`,各游戏各自声明。
 
+另一条:**从这扇门进去的走子不会闪。** flash 只在 `midend_finish_move()` 里算,而只有
+`midend_process_key` 那条路(手势、undo、redo)会走到它;`midend_deserialise` 不会。所以
+最后一格由按钮填上时,棋盘会静悄悄地完成。修法是把最后一步留在 redo 列表里
+(`pending()`),`loadGame` 之后按一下 `redo()`——`midend_redo` 落进同一条尾巴。实测 redo
+之后后端写出的存档和「全部走子都已应用」那份逐字节相同,契约检查对每份存档都验这一条。
+
 ### 两块屏幕,没有路由
 
 `src/view.ts`:一个模块级变量决定显示画廊还是某个谜题,地址永远是 `/`,全app只有一次
