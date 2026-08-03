@@ -114,10 +114,12 @@ function weigh(walk: number[]): Map<number, Record<number, number>> {
 /**
  * Undead's moves.
  *
- * `G n`, `V n` and `Z n` put a monster in square n and `E n` empties it, all
- * clearing its marks; the same letters in lower case turn one mark over. `D`
- * crosses a clue off and touches neither. Several may be joined with `;`, which
- * is what makes a whole board's marks one state.
+ * `G n`, `V n` and `Z n` put a monster in square n and `E n` empties it; the
+ * same letters in lower case turn one mark over. `D` crosses a clue off and
+ * touches neither. Several may be joined with `;`, which is what makes a whole
+ * board's marks one state.
+ *
+ * Only `E` clears the marks under a square — see the note on `Step`.
  */
 const moves: MoveLanguage = {
   read(text) {
@@ -136,9 +138,12 @@ const moves: MoveLanguage = {
       if (!parsed) return null
       const [, kind, index] = parsed
       const square = Number(index)
-      if (kind === 'E') steps.push({ kind: 'set', square, value: 0 })
+      // Only `E` clears what is written under a square. `G`, `V` and `Z` leave
+      // the marks where they are — undead.c's `execute_move` says so, and the
+      // board simply stops drawing them once a monster is on top.
+      if (kind === 'E') steps.push({ kind: 'set', square, value: 0, clears: true })
       else if (kind === kind.toUpperCase())
-        steps.push({ kind: 'set', square, value: FROM_LETTER[kind] })
+        steps.push({ kind: 'set', square, value: FROM_LETTER[kind], clears: false })
       else
         steps.push({ kind: 'toggle', square, value: FROM_LETTER[kind.toUpperCase()] })
     }

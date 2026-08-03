@@ -13,8 +13,17 @@
 
 /** One thing a move does. A move string may carry several — see `read`. */
 export type Step =
-  /** A value put in a square, or 0 for emptied. Clears that square's marks. */
-  | { kind: 'set'; square: number; value: number }
+  /**
+   * A value put in a square, or 0 for emptied.
+   *
+   * Whether the marks under it go with it is the game's own answer and not the
+   * same one everywhere: the four grid games clear them on the way past, and
+   * Undead does not — only its `E` clears, while `G`, `V` and `Z` leave what is
+   * written under the monster they place. Invisible on screen, since a square
+   * holding a monster draws no marks, but this has to model the state the
+   * engine actually keeps rather than the one it shows.
+   */
+  | { kind: 'set'; square: number; value: number; clears: boolean }
   /** One mark turned on if it was off, off if it was on. */
   | { kind: 'toggle'; square: number; value: number }
   /** Every mark in every empty square, which is upstream's `M`. */
@@ -96,7 +105,7 @@ export function gridMoves(size: number, spare?: RegExp): MoveLanguage {
       const square = y * size + x
       return parsed[1] === 'P' && value > 0
         ? [{ kind: 'toggle', square, value }]
-        : [{ kind: 'set', square, value }]
+        : [{ kind: 'set', square, value, clears: true }]
     },
     toggle: (square, value) => `P${at(square)},${value}`,
     wipe: (square) => `R${at(square)},0`,
