@@ -123,7 +123,7 @@ export function replay(moves: Field[], board: Board): Position | null {
         if (!marks[step.square].delete(step.value)) marks[step.square].add(step.value)
       } else {
         values[step.square] = step.value
-        marks[step.square].clear()
+        if (step.clears) marks[step.square].clear()
       }
     }
   }
