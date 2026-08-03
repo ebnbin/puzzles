@@ -16,7 +16,7 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyGlyph = 'clear' | 'hint' | 'possible' | 'blank' | 'jumble'
+export type KeyGlyph = 'clear' | 'hint' | 'possible' | 'single' | 'blank' | 'jumble'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -144,14 +144,15 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M11.2 4.6h2.4" />
     </>
   ),
-  /* --- the two keys this side answers -----------------------------------
+  /* --- the three keys this side answers -----------------------------------
    *
-   * Both are a square, because both are about what goes in one. They were
-   * drawn to share nothing with upstream's four-dot `marks`, which at the time
-   * was still on Undead's keypad; Undead has these two now and that glyph is
-   * gone, so the reason has outlived itself. They are kept as they are because
-   * they read well on their own and because a key that changes its face is a
-   * key the reader has to learn twice.
+   * All three are a square, because all three are about what goes in one, and
+   * they are told apart by what is inside it. They were drawn to share nothing
+   * with upstream's four-dot `marks`, which at the time was still on Undead's
+   * keypad; Undead has these three now and that glyph is gone, so the reason
+   * has outlived itself. They are kept as they are because they read well on
+   * their own and because a key that changes its face is a key the reader has
+   * to learn twice.
    */
 
   /* A tick: the digits that check out. */
@@ -159,6 +160,16 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
       <path d="m7.9 12.3 2.9 2.9 5.3-6.4" />
+    </>
+  ),
+  /* An arrow down into the square: the one thing left, written in. The other
+     two of these three only ever change what is pencilled; this is the one
+     that puts something in a square, so it is the one that points inwards. */
+  single: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M12 7.2v6.4" />
+      <path d="m9 10.8 3 3 3-3" />
     </>
   ),
   /* And the same square struck through, which is what an empty one looks

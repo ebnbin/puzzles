@@ -9,7 +9,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
-import { clearMarks, fillMarks } from './engine/marks'
+import { clearMarks, fillMarks, placeSingles } from './engine/marks'
 import {
   clearSave,
   isPlayed,
@@ -56,6 +56,20 @@ const CUSTOM_PRESET = -1
  * give. This list exists only to say which keys are worth asking it about.
  */
 const SHORTCUT_KEYS = /^[urn]$/i
+
+/**
+ * The keys the page answers instead of forwarding, by the action they carry.
+ *
+ * Each takes the save file and gives back one with the moves appended, or null
+ * for "nothing to do". They point in three directions on purpose — `possible`
+ * writes marks from the values, `single` writes values from the marks, `blank`
+ * takes the marks off — so no one of them can feed itself. See engine/marks.
+ */
+const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
+  possible: fillMarks,
+  single: placeSingles,
+  blank: clearMarks,
+}
 
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
@@ -689,7 +703,7 @@ export default function PuzzleHost({
   ])
 
   /*
-   * The two keys the back end is not asked about.
+   * The three keys the back end is not asked about.
    *
    * What a square can still hold is worked out here, and applied by handing the
    * back end a save file with the moves already in it — the only way to give it
@@ -702,7 +716,7 @@ export default function PuzzleHost({
     (action: KeyAction) => {
       const api = apiRef.current
       if (!api) return
-      const next = (action === 'blank' ? clearMarks : fillMarks)(api.saveGame())
+      const next = ACTIONS[action](api.saveGame())
       if (!next) return
       acted()
       api.loadGame(next)

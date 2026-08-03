@@ -82,10 +82,11 @@ export interface PuzzleApi {
 
 /**
  * The keys the interface answers itself, because the back end has none to be
- * given: the marks a square can still take, and taking them all off again. See
- * engine/marks for why that arithmetic cannot be asked of the C.
+ * given: the marks a square can still take, the value where only one is left,
+ * and taking every mark off again. See engine/marks for why that arithmetic
+ * cannot be asked of the C — and why the first two point opposite ways.
  */
-export type KeyAction = 'possible' | 'blank'
+export type KeyAction = 'possible' | 'single' | 'blank'
 
 export interface KeyLabel {
   /**

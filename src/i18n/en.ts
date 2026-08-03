@@ -92,12 +92,14 @@ export const en = {
   keys: {
     clear: 'Clear',
     /*
-     * The pair that replaced upstream's `M` on every keypad that had it. The
-     * first leaves out everything the board has already ruled out; the second
-     * takes the lot off so the first can start again, which is the only thing
-     * that makes it fill rather than subtract.
+     * The three that replaced upstream's `M` on every keypad that had it. The
+     * first leaves out everything the board has already ruled out. The second
+     * goes the other way, reading the marks rather than writing them. The third
+     * takes the lot off, which is the only thing that makes the first fill
+     * again rather than subtract.
      */
     possible: 'Fill in the possible pencil marks',
+    single: 'Fill in squares with one mark left',
     blank: 'Clear all pencil marks',
     hint: 'Hint',
     jumble: 'Shuffle',
