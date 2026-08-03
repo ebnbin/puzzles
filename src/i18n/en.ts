@@ -91,14 +91,18 @@ export const en = {
    */
   keys: {
     clear: 'Clear',
-    /*
-     * The pair. The first is upstream's own `M` and fills every square with
-     * every digit; the second leaves out everything the board has already
-     * ruled out — what the filled-in squares have spent, and what the cages,
-     * the signs or the clues along the edge forbid.
+    /**
+     * Upstream's own `M`, and the only puzzle still offering it is Undead —
+     * the other four have the two below instead, which do its job and more.
      */
     marks: 'Fill in all pencil marks',
+    /*
+     * The pair those four get. The first leaves out everything the board has
+     * already ruled out; the second takes the lot off so the first can start
+     * again, which is the only thing that makes it fill rather than subtract.
+     */
     possible: 'Fill in the possible pencil marks',
+    blank: 'Clear all pencil marks',
     hint: 'Hint',
     jumble: 'Shuffle',
     ghost: 'Ghost',
