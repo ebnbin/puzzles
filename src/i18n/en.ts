@@ -91,13 +91,15 @@ export const en = {
    */
   keys: {
     clear: 'Clear',
-    marks: 'Fill in all pencil marks',
-    /**
-     * The one above fills every square with every digit; this one leaves out
-     * the digits the row, the column and the block have already spent. Worded
-     * against it, since the two keys sit side by side.
+    /*
+     * Three keys in a row, each filling in fewer marks than the last, so each
+     * is worded against the one before it. The first is upstream's own `M`.
      */
-    possible: 'Fill in the possible pencil marks',
+    marks: 'Fill in all pencil marks',
+    /** Leaving out what the squares already filled in have spent. */
+    possible: 'Fill in the marks the squares allow',
+    /** And what the cages, the signs or the clues along the edge rule out. */
+    clued: 'Fill in the marks the clues allow',
     hint: 'Hint',
     jumble: 'Shuffle',
     ghost: 'Ghost',

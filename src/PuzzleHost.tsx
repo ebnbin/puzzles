@@ -9,7 +9,8 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
-import { fillPossible } from './engine/solo'
+import { fillMarks } from './engine/marks'
+import type { MarkLevel } from './engine/marks'
 import {
   clearSave,
   isPlayed,
@@ -682,29 +683,32 @@ export default function PuzzleHost({
   ])
 
   /*
-   * The one key the back end is not asked about.
+   * The two keys the back end is not asked about.
    *
-   * Solo's marks-that-are-still-possible is worked out here and applied by
-   * handing the back end a save file with the moves already in it — the only
-   * way to give it a move it could not have been gestured into. See
-   * engine/solo.ts, which also says why a refusal is silent: it means the
-   * board was not one we could read with enough confidence to write to, and
-   * there is nothing the reader could do about that.
+   * What a square can still hold is worked out here and applied by handing the
+   * back end a save file with the moves already in it — the only way to give
+   * it a move it could not have been gestured into. See engine/marks, which
+   * also says why a refusal is silent: it means the board was not one we could
+   * read with enough confidence to write to, and there is nothing the reader
+   * could do about that.
    */
-  const fillPossibleMarks = useCallback(() => {
-    const api = apiRef.current
-    if (!api) return
-    const next = fillPossible(api.saveGame())
-    if (!next) return
-    acted()
-    api.loadGame(next)
-  }, [acted])
+  const fillMarksAt = useCallback(
+    (level: MarkLevel) => {
+      const api = apiRef.current
+      if (!api) return
+      const next = fillMarks(api.saveGame(), level)
+      if (!next) return
+      acted()
+      api.loadGame(next)
+    },
+    [acted],
+  )
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
     if (!api) return
-    if (key.action === 'possible') {
-      fillPossibleMarks()
+    if (key.action) {
+      fillMarksAt(key.action === 'clued' ? 'clues' : 'squares')
       canvasRef.current?.focus()
       return
     }
@@ -714,7 +718,7 @@ export default function PuzzleHost({
     // itself, and the midend folds 8 and 127 together into backspace.
     api.key(0, String.fromCharCode(key.button), '', 0, 0, 0)
     canvasRef.current?.focus()
-  }, [acted, fillPossibleMarks])
+  }, [acted, fillMarksAt])
 
   return (
     <div className="play" data-ready={ready}>

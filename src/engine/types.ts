@@ -82,10 +82,11 @@ export interface PuzzleApi {
 
 /**
  * A key the interface answers itself, because the back end has no such key to
- * be given. There is one: the marks Solo could still take — see engine/solo.ts
- * for why that arithmetic cannot be asked of the C.
+ * be given. There are two, and they are the same key at two heights: the marks
+ * the filled-in squares leave, and the marks the puzzle's own clues leave as
+ * well. See engine/marks for why that arithmetic cannot be asked of the C.
  */
-export type KeyAction = 'possible'
+export type KeyAction = 'possible' | 'clued'
 
 export interface KeyLabel {
   /**
