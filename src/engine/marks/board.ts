@@ -1,39 +1,104 @@
 /**
- * What one of these four boards comes down to, once its description has been
- * read: how big it is, what was dealt, which squares may not repeat each other,
- * and what its own clues forbid on top of that.
+ * What a board with pencil marks comes down to, once its description has been
+ * read — and, separately, how to talk to it.
  *
- * The last two are the two halves of the same answer. `groups` is what the
- * squares already filled in rule out — the same rule everywhere, and the only
- * one that needs no knowledge of the puzzle beyond its shape. `narrow` is what
- * the puzzle's own clues rule out: a cage that cannot add up, a sign that
- * cannot point that way, a row that cannot be seen from there.
- *
- * Both stop at the same place. Neither looks at where a digit could go
- * *elsewhere* — that a digit fits only one square of its row is a deduction,
- * and deductions are the reader's. What these do is copy out what the board
- * already says.
+ * Those are two different things, and keeping them apart is what lets Undead in
+ * beside the other four. The first four are a square grid of digits addressed
+ * by x and y; Undead is a flat run of the squares that are not mirrors, holding
+ * one of three monsters, addressed by how far along that run they are. Nothing
+ * about a row, a cage or a sight line cares which of those it is, so `Board`
+ * counts squares and numbers values and says no more; `MoveLanguage` is where
+ * the spelling lives.
  */
+
+/** One thing a move does. A move string may carry several — see `read`. */
+export type Step =
+  /** A value put in a square, or 0 for emptied. Clears that square's marks. */
+  | { kind: 'set'; square: number; value: number }
+  /** One mark turned on if it was off, off if it was on. */
+  | { kind: 'toggle'; square: number; value: number }
+  /** Every mark in every empty square, which is upstream's `M`. */
+  | { kind: 'fill' }
+  /** A move that touches neither the values nor the marks. */
+  | { kind: 'ignore' }
+
+/**
+ * How a game spells the moves this side needs to read and to write.
+ *
+ * Reading has to cover every move the game can make, not only ours: a move
+ * nobody here recognises means a board we would be guessing at, so `read`
+ * returns null and the whole thing is refused.
+ */
+export type MoveLanguage = {
+  /** What this move does, or null if it is not one we can follow. */
+  read(text: string): Step[] | null
+  /** Turn one mark over. */
+  toggle(square: number, value: number): string
+  /** Take every mark out of one square. */
+  wipe(square: number): string
+  /**
+   * What joins two moves into one, where the game allows it — Undead's
+   * `execute_move` loops until the string runs out, so a whole board's worth of
+   * marks is one move and one step back out. The other four do one thing per
+   * move string, and leave this unset.
+   */
+  chain?: string
+}
+
 export type Board = {
-  /** The side of the grid. Digits run 1 to this. */
-  size: number
-  /** What was dealt, in reading order; 0 for a square left empty. */
+  /** How many squares there are. They are numbered 0 to this. */
+  squares: number
+  /** The values a square may hold, as the game itself numbers them. */
+  values: number[]
+  /** What was dealt: the value in each square, or 0 where it was left empty. */
   clues: number[]
-  /** Sets of squares that must all differ: rows, columns, blocks, diagonals. */
+  /**
+   * Sets of squares that must all differ. Rows, columns, blocks, diagonals —
+   * and nothing at all for Undead, whose squares are under no such rule.
+   */
   groups: number[][]
   /**
    * What the puzzle's own clues forbid, applied to the squares those clues
    * name. Called after the groups have had their say, and free to use the
-   * digits already placed. Absent for a board whose clues are all in `groups`
+   * values already placed. Absent for a board whose clues are all in `groups`
    * to begin with — an ordinary Solo, where the blocks and the diagonals are
    * the whole of what it has to say.
+   *
+   * Neither this nor `groups` looks at where a value could go *elsewhere*: that
+   * a value fits only one square of its row is a deduction, and deductions are
+   * the reader's. What they do is copy out what the board already says.
    */
-  narrow?: (candidates: Set<number>[], digits: number[]) => void
-  /**
-   * Moves this game makes that change neither the digits nor the marks —
-   * Towers crossing a clue off, Unequal spending a sign. They have to be
-   * recognised to be skipped, because an unrecognised move means a board we
-   * would be guessing at.
-   */
-  passthrough: RegExp
+  narrow?: (candidates: Set<number>[], values: number[]) => void
+  moves: MoveLanguage
+}
+
+/**
+ * The language the four digit grids share.
+ *
+ * `R x,y,n` puts a digit in a square and clears its marks on the way past;
+ * `P x,y,n` turns one mark over; `M` fills them all in. Solo, Keen, Towers and
+ * Unequal all speak it, because three of them were written from the fourth.
+ * Each has at most one move of its own besides — Towers crossing a clue off,
+ * Unequal spending a sign — which is what `spare` is for.
+ */
+export function gridMoves(size: number, spare?: RegExp): MoveLanguage {
+  const at = (square: number) => `${square % size},${Math.floor(square / size)}`
+  return {
+    read(text) {
+      if (text === 'M') return [{ kind: 'fill' }]
+      if (spare?.test(text)) return [{ kind: 'ignore' }]
+      const parsed = /^([PR])(\d+),(\d+),(\d+)$/.exec(text)
+      if (!parsed) return null
+      const x = Number(parsed[2])
+      const y = Number(parsed[3])
+      const value = Number(parsed[4])
+      if (x >= size || y >= size || value > size) return null
+      const square = y * size + x
+      return parsed[1] === 'P' && value > 0
+        ? [{ kind: 'toggle', square, value }]
+        : [{ kind: 'set', square, value }]
+    },
+    toggle: (square, value) => `P${at(square)},${value}`,
+    wipe: (square) => `R${at(square)},0`,
+  }
 }

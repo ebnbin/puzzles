@@ -2,6 +2,7 @@ import { latinGroups, leadingNumber, runLengthGrid } from './desc'
 import type { Field } from './save'
 import { find } from './save'
 import type { Board } from './board'
+import { gridMoves } from './board'
 
 /**
  * Towers: a Latin square of building heights, seen from outside.
@@ -67,7 +68,8 @@ export function readTowers(lines: Field[]): Board | null {
   }
 
   return {
-    size,
+    squares: area,
+    values: Array.from({ length: size }, (_, i) => i + 1),
     clues: grid,
     groups: latinGroups(size),
     /*
@@ -80,21 +82,21 @@ export function readTowers(lines: Field[]): Board | null {
      * read makes it refuse the whole board — so the keypad would go quiet, for
      * good, with nothing said.
      */
-    passthrough: /^D-?\d+,-?\d+$/,
-    narrow: (candidates, digits) => {
+    moves: gridMoves(size, /^D-?\d+,-?\d+$/),
+    narrow: (candidates, values) => {
       for (let index = 0; index < clues.length; index++) {
         const clue = clues[index]
         if (!clue) continue
         const { start, step } = line(index, size)
         for (let i = 0; i < size; i++) {
           const cell = start + i * step
-          if (digits[cell]) continue
+          if (values[cell]) continue
           const most = size - clue + 1 + i
           for (const n of [...candidates[cell]]) if (n > most) candidates[cell].delete(n)
         }
         // Seeing exactly one means the nearest is the tallest, which the bound
         // above cannot say: at k = 1 it allows everything.
-        if (clue === 1 && !digits[start]) {
+        if (clue === 1 && !values[start]) {
           for (const n of [...candidates[start]]) if (n !== size) candidates[start].delete(n)
         }
       }

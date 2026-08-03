@@ -43,28 +43,24 @@ function digits(count: number, startAtZero = false): KeyLabel[] {
 const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
 
 /*
- * The keys no puzzle asks for.
+ * The keys no puzzle asks for. H plays one deduction for you; J deals the same
+ * network again, shuffled — its own source asks "should we have some mouse
+ * control for this?" and the answer, here, is this key.
  *
- * M fills every empty square with every pencil mark, which is how a whole
- * school of solvers likes to start. H plays one deduction for you. J deals
- * the same network again, shuffled — its own source asks "should we have
- * some mouse control for this?" and the answer, here, is this key.
+ * Upstream's `M` used to be among them, filling every empty square with every
+ * pencil mark. It is on none of these keypads now: the two below replace it
+ * wherever marks are kept, because the first of them *is* `M` when there is
+ * nothing to rule out, and a keypad offering both would be offering one key
+ * twice. Nothing else in the collection has marks to fill, so nothing else lost
+ * anything.
  */
-const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: true }
 
 /**
- * And the two keys here that no puzzle reads, because they are not the
- * puzzle's: work out what each square can still take, and take every mark off
- * again. No back end has a button for either — their solvers cannot be asked
- * what is still possible, only told to finish — so these carry an action rather
- * than a button and are answered on this side. See engine/marks.
- *
- * They replace `M` on the four keypads that get them, rather than joining it.
- * `M` fills every square with every digit, which is what the first of these
- * does when there is nothing to rule out, so a keypad showing both would be
- * showing one key twice. `M` stays where nothing here can do its job: Undead
- * keeps marks too, but its rule is a path past a row of mirrors, not a row of
- * digits, so there is nothing for this side to work out.
+ * The two keys no puzzle reads, because they are not the puzzle's: work out
+ * what each square can still take, and take every mark off again. No back end
+ * has a button for either — their solvers cannot be asked what is still
+ * possible, only told to finish — so these carry an action rather than a button
+ * and are answered on this side. See engine/marks.
  */
 const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: true }
 const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: true }
@@ -191,7 +187,8 @@ const RULES: Record<
         ...(letters ? { label: letter } : { icon }),
       })),
       CLEAR,
-      MARKS,
+      POSSIBLE,
+      BLANK,
     ]
   },
 

@@ -46,7 +46,6 @@ export const zh: Strings = {
 
   keys: {
     clear: '清除',
-    marks: '填满所有铅笔标记',
     possible: '只填可能的铅笔标记',
     blank: '清空所有铅笔标记',
     hint: '提示',

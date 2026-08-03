@@ -1,16 +1,17 @@
 /**
  * The marks a square can still take, worked out on this side.
  *
- * Four puzzles in the collection keep pencil marks, and upstream gives them one
- * key for it: `M`, which fills every square with every digit, for people who
+ * Five puzzles in the collection keep pencil marks, and upstream gives them one
+ * key for it: `M`, which fills every square with every mark, for people who
  * play by starting from all of them and crossing out. Here they get two, and
  * `M` is not among them.
  *
- *   fillMarks    the crossing out. Each empty square keeps only the digits
- *                nothing on the board has ruled out — not the ones its row,
- *                column, block or diagonal have already spent, and not the ones
- *                its own clues forbid: a cage that cannot add up, a sign that
- *                cannot point that way, a row that cannot be seen from there.
+ *   fillMarks    the crossing out. Each empty square keeps only what nothing on
+ *                the board has ruled out — not what its row, column, block or
+ *                diagonal have already spent, and not what its own clues
+ *                forbid: a cage that cannot add up, a sign that cannot point
+ *                that way, a row that cannot be seen from there, a monster
+ *                whose last copy is already on the board.
  *
  *   clearMarks   every mark taken off, so the first can start over.
  *
@@ -37,7 +38,7 @@
  * WHY THE ARITHMETIC IS HERE AND NOT IN THE C
  * ---------------------------------------------------------------------------
  *
- * All four have a far better solver than this inside them, and not one can be
+ * All five have a far better solver than this inside them, and not one can be
  * asked a question. The only exit any of them offers is `solve_game`, which
  * runs to the end and hands back the whole answer. There is no call that means
  * "what is still possible here", so the elimination is written again rather
@@ -67,6 +68,7 @@ import type { Board } from './board'
 import { readKeen } from './keen'
 import { readSolo } from './solo'
 import { readTowers } from './towers'
+import { readUndead } from './undead'
 import { readUnequal } from './unequal'
 import type { Field } from './save'
 import { done, extend, fields, find, replay } from './save'
@@ -77,6 +79,7 @@ const READERS: Record<string, (lines: Field[]) => Board | null> = {
   Keen: readKeen,
   Towers: readTowers,
   Unequal: readUnequal,
+  Undead: readUndead,
 }
 
 /**
@@ -87,21 +90,17 @@ const READERS: Record<string, (lines: Field[]) => Board | null> = {
  * A square already filled in holds nothing — marks under a digit are not a
  * state the back end will keep.
  */
-function candidates(board: Board, digits: number[]): Set<number>[] {
-  const sets = digits.map((digit) => {
-    const set = new Set<number>()
-    if (!digit) for (let n = 1; n <= board.size; n++) set.add(n)
-    return set
-  })
+function candidates(board: Board, values: number[]): Set<number>[] {
+  const sets = values.map((value) => (value ? new Set<number>() : new Set(board.values)))
 
   for (const group of board.groups) {
     const taken = new Set<number>()
-    for (const cell of group) if (digits[cell]) taken.add(digits[cell])
-    for (const cell of group)
-      if (!digits[cell]) for (const n of taken) sets[cell].delete(n)
+    for (const square of group) if (values[square]) taken.add(values[square])
+    for (const square of group)
+      if (!values[square]) for (const v of taken) sets[square].delete(v)
   }
 
-  board.narrow?.(sets, digits)
+  board.narrow?.(sets, values)
   return sets
 }
 
@@ -115,7 +114,7 @@ function readBoard(save: string) {
   if (!board) return null
   const kept = done(lines)
   if (!kept) return null
-  const position = replay(kept, board.clues, board.size, board.passthrough)
+  const position = replay(kept, board)
   if (!position) return null
   return { lines, board, kept, position }
 }
@@ -165,36 +164,34 @@ export function fillMarks(save: string): string | null {
   if (!state) return null
   const { lines, board, kept, position } = state
 
-  const should = candidates(board, position.digits)
+  const should = candidates(board, position.values)
   const bare = position.marks.every((set) => set.size === 0)
 
   const wanted: string[] = []
-  for (let cell = 0; cell < board.clues.length; cell++) {
-    if (position.digits[cell]) continue
-    const has = position.marks[cell]
-    const x = cell % board.size
-    const y = (cell - x) / board.size
+  for (let square = 0; square < board.squares; square++) {
+    if (position.values[square]) continue
+    const has = position.marks[square]
     // A toggle apiece, and only where the two disagree — which is both the
-    // least that can be sent and the only way to say it, since `P` toggles.
-    for (let n = 1; n <= board.size; n++) {
-      const want = bare ? should[cell].has(n) : has.has(n) && should[cell].has(n)
-      if (want !== has.has(n)) wanted.push(`P${x},${y},${n}`)
+    // least that can be sent and the only way to say it, since marks turn over
+    // rather than being set.
+    for (const value of board.values) {
+      const want = bare ? should[square].has(value) : has.has(value) && should[square].has(value)
+      if (want !== has.has(value)) wanted.push(board.moves.toggle(square, value))
     }
   }
-  if (wanted.length === 0) return null
 
-  return extend(lines, kept, wanted)
+  return extend(lines, kept, wanted, board.moves.chain)
 }
 
 /**
  * Every mark on the board taken off, or null if there were none.
  *
- * One move per square rather than one per mark: `R x,y,0` puts a digit in a
- * square and clears its marks on the way past, and putting 0 in a square that
- * is already empty leaves only the clearing. All four spell it the same way.
+ * One move per square rather than one per mark: every one of these games has a
+ * move that puts something in a square and clears its marks on the way past,
+ * and aiming it at a square that is already empty leaves only the clearing.
  *
- * Squares with a digit in them are left alone, and must be: the same move on
- * one of those would rub the digit out.
+ * Squares with something in them are left alone, and must be: the same move on
+ * one of those would rub that out too.
  */
 export function clearMarks(save: string): string | null {
   const state = readBoard(save)
@@ -202,13 +199,10 @@ export function clearMarks(save: string): string | null {
   const { lines, board, kept, position } = state
 
   const wanted: string[] = []
-  for (let cell = 0; cell < board.clues.length; cell++) {
-    if (position.digits[cell] || position.marks[cell].size === 0) continue
-    const x = cell % board.size
-    const y = (cell - x) / board.size
-    wanted.push(`R${x},${y},0`)
+  for (let square = 0; square < board.squares; square++) {
+    if (position.values[square] || position.marks[square].size === 0) continue
+    wanted.push(board.moves.wipe(square))
   }
-  if (wanted.length === 0) return null
 
-  return extend(lines, kept, wanted)
+  return extend(lines, kept, wanted, board.moves.chain)
 }

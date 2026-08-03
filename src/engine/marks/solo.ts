@@ -2,6 +2,7 @@ import { blockCells, dividerBlocks, latinGroups, runLengthGrid } from './desc'
 import type { Field } from './save'
 import { find } from './save'
 import type { Board } from './board'
+import { gridMoves } from './board'
 import { cageDigits } from './cage'
 
 /**
@@ -126,11 +127,12 @@ export function readSolo(lines: Field[]): Board | null {
   }
 
   const board: Board = {
-    size,
+    squares: area,
+    values: Array.from({ length: size }, (_, i) => i + 1),
     clues: described.grid,
     groups,
-    // Solo has no move of its own beyond the three every one of these speaks.
-    passthrough: /^$/,
+    // Solo has no move of its own beyond the three the grid games share.
+    moves: gridMoves(size),
   }
 
   if (!killer) return board
@@ -158,7 +160,7 @@ export function readSolo(lines: Field[]): Board | null {
     total: cells.map((i) => totals.grid[i]).find((n) => n > 0) ?? 0,
   }))
 
-  board.narrow = (candidates, digits) => {
+  board.narrow = (candidates, values) => {
     for (const { cells, total } of cages) {
       if (!total) continue
       // A cage's squares are all in one block often enough, but never
@@ -166,10 +168,10 @@ export function readSolo(lines: Field[]): Board | null {
       // is only what the groups already say. Killer's own rule is that a cage
       // holds no digit twice, which solo.c's solver uses and which is stated
       // here rather than derived.
-      const allowed = cageDigits(cells, total, 'a', size, candidates, digits, true)
+      const allowed = cageDigits(cells, total, 'a', size, candidates, values, true)
       if (!allowed) continue
       cells.forEach((cell, i) => {
-        if (digits[cell]) return
+        if (values[cell]) return
         for (const n of [...candidates[cell]]) if (!allowed[i].has(n)) candidates[cell].delete(n)
       })
     }

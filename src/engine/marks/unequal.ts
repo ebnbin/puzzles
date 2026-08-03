@@ -2,6 +2,7 @@ import { latinGroups, leadingNumber } from './desc'
 import type { Field } from './save'
 import { find } from './save'
 import type { Board } from './board'
+import { gridMoves } from './board'
 
 /**
  * Unequal: a Latin square, plus what the marks between the squares say.
@@ -97,13 +98,14 @@ export function readUnequal(lines: Field[]): Board | null {
   }
 
   return {
-    size,
+    squares: area,
+    values: Array.from({ length: size }, (_, i) => i + 1),
     clues,
     groups: latinGroups(size),
-    passthrough: /^F\d+,\d+,\d+$/,
-    narrow: (candidates, digits) => {
+    moves: gridMoves(size, /^F\d+,\d+,\d+$/),
+    narrow: (candidates, values) => {
       const allow = (cell: number, keep: (n: number) => boolean) => {
-        if (digits[cell]) return
+        if (values[cell]) return
         for (const n of [...candidates[cell]]) if (!keep(n)) candidates[cell].delete(n)
       }
 
@@ -116,7 +118,7 @@ export function readUnequal(lines: Field[]): Board | null {
        * next. One square saying "nothing fits here" is a fact about that
        * square; a row of them is this rule talking to itself.
        */
-      const open = (cell: number) => digits[cell] || candidates[cell].size > 0
+      const open = (cell: number) => values[cell] || candidates[cell].size > 0
 
       if (adjacent) {
         for (const [a, b] of neighbours) {
@@ -127,8 +129,8 @@ export function readUnequal(lines: Field[]): Board | null {
             value
               ? near === (Math.abs(mine - value) === 1)
               : [...other].some((n) => near === (Math.abs(mine - n) === 1))
-          if (open(b)) allow(a, (n) => ok(n, candidates[b], digits[b]))
-          if (open(a)) allow(b, (n) => ok(n, candidates[a], digits[a]))
+          if (open(b)) allow(a, (n) => ok(n, candidates[b], values[b]))
+          if (open(a)) allow(b, (n) => ok(n, candidates[a], values[a]))
         }
         return
       }
@@ -139,11 +141,11 @@ export function readUnequal(lines: Field[]): Board | null {
         // the greater cannot be the smallest thing the other could be, or
         // below it.
         if (open(to)) {
-          const floor = digits[to] ? digits[to] : Math.min(...candidates[to])
+          const floor = values[to] ? values[to] : Math.min(...candidates[to])
           allow(from, (n) => n > floor)
         }
         if (open(from)) {
-          const ceiling = digits[from] ? digits[from] : Math.max(...candidates[from])
+          const ceiling = values[from] ? values[from] : Math.max(...candidates[from])
           allow(to, (n) => n < ceiling)
         }
       }
