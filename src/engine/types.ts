@@ -82,11 +82,10 @@ export interface PuzzleApi {
 
 /**
  * A key the interface answers itself, because the back end has no such key to
- * be given. There are two, and they are the same key at two heights: the marks
- * the filled-in squares leave, and the marks the puzzle's own clues leave as
- * well. See engine/marks for why that arithmetic cannot be asked of the C.
+ * be given. There is one: the marks a square can still take. See engine/marks
+ * for why that arithmetic cannot be asked of the C.
  */
-export type KeyAction = 'possible' | 'clued'
+export type KeyAction = 'possible'
 
 export interface KeyLabel {
   /**

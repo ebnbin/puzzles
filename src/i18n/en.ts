@@ -92,14 +92,13 @@ export const en = {
   keys: {
     clear: 'Clear',
     /*
-     * Three keys in a row, each filling in fewer marks than the last, so each
-     * is worded against the one before it. The first is upstream's own `M`.
+     * The pair. The first is upstream's own `M` and fills every square with
+     * every digit; the second leaves out everything the board has already
+     * ruled out — what the filled-in squares have spent, and what the cages,
+     * the signs or the clues along the edge forbid.
      */
     marks: 'Fill in all pencil marks',
-    /** Leaving out what the squares already filled in have spent. */
-    possible: 'Fill in the marks the squares allow',
-    /** And what the cages, the signs or the clues along the edge rule out. */
-    clued: 'Fill in the marks the clues allow',
+    possible: 'Fill in the possible pencil marks',
     hint: 'Hint',
     jumble: 'Shuffle',
     ghost: 'Ghost',
