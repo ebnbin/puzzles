@@ -16,7 +16,7 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'possible' | 'jumble'
+export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'possible' | 'blank' | 'jumble'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -119,7 +119,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   ),
   /* --- the keys a puzzle asks for ---------------------------------------
    *
-   * All four stand in for a character a touch device has no way to type. Undead's
+   * These stand in for a character a touch device has no way to type. Undead's
    * three monsters used to be here as well, drawn in this vocabulary; they are
    * pictures now — see `KeyArt` above and `PuzzleKeypad`.
    */
@@ -155,17 +155,31 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M11.2 4.6h2.4" />
     </>
   ),
-  /* The same square as `marks`, with two of its four dots left out. The pair
-     sit beside each other on the keypad and that is the whole of how this one
-     reads: same square, fewer marks, which is the difference between filling
-     in every digit and filling in the ones that can still go there. Crossing
-     the missing two out instead would be truer and does not survive the size
-     — 1.8 of stroke through 2.3 of dot is a blot, not a cross. */
+  /* --- the two keys this side answers -----------------------------------
+   *
+   * Both are a square, because both are about what goes in one, and neither
+   * carries dots. They could have: `possible` began as `marks` with two of its
+   * four dots left out, which said "fewer marks" exactly. But `marks` is still
+   * on Undead's keypad, and a glyph that reads as a worse copy of another
+   * glyph is worse than one that shares nothing with it — the four puzzles
+   * these two belong to never show `marks`, but the reader who plays Undead as
+   * well sees all three. So the dots stayed with `M`, and these say what they
+   * do a different way.
+   */
+
+  /* A tick: the digits that check out. */
   possible: (
     <>
       <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
-      <circle cx="8.4" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="15.6" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
+      <path d="m7.9 12.3 2.9 2.9 5.3-6.4" />
+    </>
+  ),
+  /* And the same square struck through, which is what an empty one looks
+     like everywhere else it is drawn. */
+  blank: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M7.4 16.6 16.6 7.4" />
     </>
   ),
   /* Two paths crossing: the same pieces, somewhere else. */

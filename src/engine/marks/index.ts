@@ -1,31 +1,37 @@
 /**
  * The marks a square can still take, worked out on this side.
  *
- * Four puzzles in the collection keep pencil marks and offer one key for them:
- * upstream's `M`, which fills every square with every digit, for people who
- * play by starting from all of them and crossing out. This does the crossing
- * out: each empty square keeps only the digits nothing on the board has ruled
- * out — not the ones its row, column, block or diagonal have already spent, and
- * not the ones its own clues forbid, a cage that cannot add up, a sign that
- * cannot point that way, a row that cannot be seen from there.
+ * Four puzzles in the collection keep pencil marks, and upstream gives them one
+ * key for it: `M`, which fills every square with every digit, for people who
+ * play by starting from all of them and crossing out. Here they get two, and
+ * `M` is not among them.
  *
- * It stops there, and that is the important line. It never asks where a digit
- * could go *elsewhere*: that a digit fits only one square of its row is a
- * deduction, and deductions are the reader's — Unequal already has a key that
- * makes one for you, and it is not this one. What this does is copy out what
- * the board has already said, which is bookkeeping, and bookkeeping is what a
- * machine is for.
+ *   fillMarks    the crossing out. Each empty square keeps only the digits
+ *                nothing on the board has ruled out — not the ones its row,
+ *                column, block or diagonal have already spent, and not the ones
+ *                its own clues forbid: a cage that cannot add up, a sign that
+ *                cannot point that way, a row that cannot be seen from there.
  *
- * It was two keys for a while, the second adding the clues to the first. The
- * split read well and did not survive being measured. On fifteen of Solo's
+ *   clearMarks   every mark taken off, so the first can start over.
+ *
+ * `M` is gone because the first of these is what `M` does when there is nothing
+ * to rule out. It is not a smaller offer than upstream's; it is the same offer
+ * with the tedium removed, and a keypad carrying both would be carrying one key
+ * twice.
+ *
+ * fillMarks stops in one place, and it is the important line. It never asks
+ * where a digit could go *elsewhere*: that a digit fits only one square of its
+ * row is a deduction, and deductions are the reader's — Unequal already has a
+ * key that makes one for you, and it is not this one. What this does is copy
+ * out what the board has already said, which is bookkeeping, and bookkeeping is
+ * what a machine is for.
+ *
+ * It was briefly two keys of its own, the second adding the clues to the first.
+ * The split read well and did not survive being measured. On fifteen of Solo's
  * sixteen presets the two were not merely alike but the same code — the
  * diagonals of an X board and the blocks of a jigsaw are groups, so only a
  * Killer board has anything the groups do not already cover — and pressing the
- * second after the first did nothing at all, which reads as a broken key. Where
- * they did differ most, on Keen and on Killer, the weaker of the two did
- * nothing on a fresh deal, because those boards say everything they have
- * through their clues. So the choice was offered exactly where one of its
- * answers was empty, and withheld everywhere it would have meant something.
+ * second after the first did nothing at all, which reads as a broken key.
  *
  * ---------------------------------------------------------------------------
  * WHY THE ARITHMETIC IS HERE AND NOT IN THE C
@@ -99,38 +105,108 @@ function candidates(board: Board, digits: number[]): Set<number>[] {
   return sets
 }
 
-/**
- * A save with every empty square marked with exactly what it can still take,
- * or null if this board could not be read with enough confidence to touch it.
- *
- * Null also when there is nothing to do — every square already says what it can
- * be — so that a second press is not a no-op that still costs a reload and a
- * state on the undo stack.
- */
-export function fillMarks(save: string): string | null {
+/** The board as this side needs it: what it is, and where it stands. */
+function readBoard(save: string) {
   const lines = fields(save)
   if (!lines) return null
-
   const read = READERS[find(lines, 'GAME') ?? '']
   if (!read) return null
   const board = read(lines)
   if (!board) return null
-
   const kept = done(lines)
   if (!kept) return null
   const position = replay(kept, board.clues, board.size, board.passthrough)
   if (!position) return null
+  return { lines, board, kept, position }
+}
+
+/**
+ * Every empty square marked with what it can still take, or null if this board
+ * could not be read with enough confidence to touch it.
+ *
+ * ---------------------------------------------------------------------------
+ * IT ADDS ONLY ONCE, AND ONLY FROM NOTHING
+ * ---------------------------------------------------------------------------
+ *
+ * With a mark anywhere on the board, this only ever takes marks away: each
+ * square keeps what it already had, less whatever has since become impossible.
+ * It puts nothing back. A mark rubbed out by hand stays rubbed out, because
+ * rubbing it out was a decision, and a key that undid the reader's decisions
+ * every time it was pressed would be a key nobody could use halfway through.
+ *
+ * Only when the board carries no marks at all does it fill any in. That is the
+ * whole board and not each square: one square emptied by hand is still a
+ * decision, and the way to say "start these again" is to empty them all, which
+ * is what the key beside this one is for.
+ *
+ * What it being the whole board buys is that a square can be left empty and
+ * stay that way. A square whose marks have all become impossible — usually
+ * because a digit somewhere else is wrong — empties, and the next press leaves
+ * it empty, because the rest of the board still carries marks and the rest of
+ * the board is what decides. That emptiness is the board telling the reader
+ * something true, and refilling it would be this key arguing with a mistake
+ * instead of showing it. Were the test per square it would refill on the very
+ * next press, and the two presses would take turns.
+ *
+ * There is one case where two presses still differ from one, and it is the
+ * shape of the rule rather than an oversight: if the mark that dies is the
+ * *last* one on the board, the board is bare afterwards, so the press after
+ * that fills. Reaching it takes a board whose every mark was impossible, which
+ * in practice means one square marked by hand and nothing else. Pressing twice
+ * there gives a fresh set of marks, which is what pressing twice on a bare
+ * board gives, so it is at least the same answer to the same question.
+ *
+ * From nothing, with nothing to rule out, this fills every square with every
+ * digit — which is exactly upstream's `M`, and why these puzzles no longer show
+ * a separate key for it.
+ */
+export function fillMarks(save: string): string | null {
+  const state = readBoard(save)
+  if (!state) return null
+  const { lines, board, kept, position } = state
 
   const should = candidates(board, position.digits)
+  const bare = position.marks.every((set) => set.size === 0)
+
   const wanted: string[] = []
   for (let cell = 0; cell < board.clues.length; cell++) {
     if (position.digits[cell]) continue
+    const has = position.marks[cell]
     const x = cell % board.size
     const y = (cell - x) / board.size
     // A toggle apiece, and only where the two disagree — which is both the
     // least that can be sent and the only way to say it, since `P` toggles.
-    for (let n = 1; n <= board.size; n++)
-      if (should[cell].has(n) !== position.marks[cell].has(n)) wanted.push(`P${x},${y},${n}`)
+    for (let n = 1; n <= board.size; n++) {
+      const want = bare ? should[cell].has(n) : has.has(n) && should[cell].has(n)
+      if (want !== has.has(n)) wanted.push(`P${x},${y},${n}`)
+    }
+  }
+  if (wanted.length === 0) return null
+
+  return extend(lines, kept, wanted)
+}
+
+/**
+ * Every mark on the board taken off, or null if there were none.
+ *
+ * One move per square rather than one per mark: `R x,y,0` puts a digit in a
+ * square and clears its marks on the way past, and putting 0 in a square that
+ * is already empty leaves only the clearing. All four spell it the same way.
+ *
+ * Squares with a digit in them are left alone, and must be: the same move on
+ * one of those would rub the digit out.
+ */
+export function clearMarks(save: string): string | null {
+  const state = readBoard(save)
+  if (!state) return null
+  const { lines, board, kept, position } = state
+
+  const wanted: string[] = []
+  for (let cell = 0; cell < board.clues.length; cell++) {
+    if (position.digits[cell] || position.marks[cell].size === 0) continue
+    const x = cell % board.size
+    const y = (cell - x) / board.size
+    wanted.push(`R${x},${y},0`)
   }
   if (wanted.length === 0) return null
 
