@@ -53,15 +53,24 @@ const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
 const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: true }
 
 /**
- * And the one key here that no puzzle reads, because it is not the puzzle's.
+ * And the two keys here that no puzzle reads, because they are not the
+ * puzzle's.
  *
- * `M` fills every square with every mark; this fills each with only the ones
- * its row, column and block have not already spent. The back end has no button
- * for that — solo.c's solver cannot be asked what is still possible, only told
- * to finish — so the key carries an action instead of a button and is answered
- * on this side. See engine/solo.ts.
+ * `M` fills every square with every mark. These two cross out: the first what
+ * the squares already filled in have spent, the second what the puzzle's own
+ * clues rule out as well — a cage that cannot add up, a sign that cannot point
+ * that way, a row that cannot be seen from there. No back end has a button for
+ * either; their solvers cannot be asked what is still possible, only told to
+ * finish. So these carry an action rather than a button and are answered on
+ * this side. See engine/marks.
+ *
+ * Both, rather than only the thorough one, because which is wanted depends on
+ * the board. Keen and a Killer Solo say everything through their clues, so the
+ * first does nothing at all there; an ordinary Solo is the other way about, and
+ * a reader working the cages out by hand would not thank us for doing it.
  */
 const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: true }
+const CLUED: KeyLabel = { button: 0, action: 'clued', icon: 'clued', aid: true }
 const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: true }
 const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: true }
 
@@ -140,23 +149,27 @@ const RULES: Record<
     }
     const cr = c * r
     if (cr < 1 || cr > MAX_SYMBOLS) return null
-    return [...digits(cr), CLEAR, MARKS, POSSIBLE]
+    return [...digits(cr), CLEAR, MARKS, POSSIBLE, CLUED]
   },
   // Digits 1..w.
   keen(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, MARKS] : null
+    return w ? [...digits(w), CLEAR, MARKS, POSSIBLE, CLUED] : null
   },
   towers(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, MARKS] : null
+    return w ? [...digits(w), CLEAR, MARKS, POSSIBLE, CLUED] : null
   },
   // Digits 1..order, except that past 9 the puzzle counts from 0 so the
   // labels stay one character wide.
+  //
+  // `HINT` stays where it is, and is a different offer: it plays one deduction
+  // for you. The two beside it never deduce anything — they copy out what the
+  // board has already said. See engine/marks.
   unequal(p) {
     const order = size(p)
     if (!order) return null
-    return [...digits(order, order > 9), CLEAR, MARKS, HINT]
+    return [...digits(order, order > 9), CLEAR, MARKS, POSSIBLE, CLUED, HINT]
   },
   // Always 1-9, whatever the grid.
   filling: () => [...digits(9), CLEAR],
