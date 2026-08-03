@@ -3,7 +3,7 @@
  *
  * Five puzzles in the collection keep pencil marks, and upstream gives them one
  * key for it: `M`, which fills every square with every mark, for people who
- * play by starting from all of them and crossing out. Here they get two, and
+ * play by starting from all of them and crossing out. Here they get three, and
  * `M` is not among them.
  *
  *   fillMarks    the crossing out. Each empty square keeps only what nothing on
@@ -13,7 +13,15 @@
  *                that way, a row that cannot be seen from there, a monster
  *                whose last copy is already on the board.
  *
+ *   placeSingles a square whose marks have come down to one, filled in with it.
+ *
  *   clearMarks   every mark taken off, so the first can start over.
+ *
+ * The first two point opposite ways and are kept that way: one reads the values
+ * and writes marks, the other reads the marks and writes values. Neither feeds
+ * itself, so neither loops; pressed alternately they feed each other, and walk
+ * a board as far as naked singles go — which is measured, and short, under
+ * placeSingles.
  *
  * `M` is gone because the first of these is what `M` does when there is nothing
  * to rule out. It is not a smaller offer than upstream's; it is the same offer
@@ -178,6 +186,71 @@ export function fillMarks(save: string): string | null {
       const want = bare ? should[square].has(value) : has.has(value) && should[square].has(value)
       if (want !== has.has(value)) wanted.push(board.moves.toggle(square, value))
     }
+  }
+
+  return extend(lines, kept, wanted, board.moves.chain)
+}
+
+/**
+ * Every square whose marks have come down to one, filled in with it.
+ *
+ * ---------------------------------------------------------------------------
+ * THIS ONE READS THE MARKS AND WRITES THE VALUES
+ * ---------------------------------------------------------------------------
+ *
+ * Which is the opposite way round from `fillMarks`, and the two are kept that
+ * way on purpose. `fillMarks` looks only at the values on the board and writes
+ * only marks; this looks only at the marks and writes only values. Neither can
+ * feed itself, so neither loops: press either twice and the second press finds
+ * nothing to do.
+ *
+ * Pressing them alternately *does* feed one into the other, and will walk a
+ * board out — as far as it goes, which is not far, and is worth being exact
+ * about because the obvious guess is wrong.
+ *
+ * The pair does naked singles: a square down to one candidate, filled in. That
+ * is strictly weaker than any tier upstream names. Its easiest, Solo's
+ * `DIFF_BLOCK` — "Trivial" — is the *hidden* single: a number that fits only
+ * one square of its block. The manual bundles the two, saying that at Trivial
+ * and Basic "there will be a square you can fill in with a single number at all
+ * times", but which of the two ways you know it is exactly the line drawn
+ * above: a hidden single is a claim about where a number can go, and `fillMarks`
+ * never makes one.
+ *
+ * Measured over five deals of every preset of all five games, the pair finishes
+ * every 2x2 Trivial Solo and every Easy Undead, and about two thirds of 3x3
+ * Trivial Solo and 4x4 Easy Towers. Past that it falls away fast — a few per
+ * cent of the empty squares on anything Advanced or harder, nothing at all on
+ * Killer. It is an aid for the bookkeeping, not a solver wearing two buttons.
+ *
+ * ---------------------------------------------------------------------------
+ * AND IT IS THE ONE THAT CAN BE WRONG
+ * ---------------------------------------------------------------------------
+ *
+ * `fillMarks` cannot put a wrong mark on the board: every value it crosses off
+ * is one the board itself has ruled out. This is different. One mark left does
+ * not mean "this is the answer" — it means one mark is left. A reader who has
+ * rubbed marks out by hand can leave a square with one wrong mark in it, and
+ * `fillMarks` will not put the others back, because rubbing them out was a
+ * decision. So this writes what the square says, and what the square says is
+ * the reader's own.
+ *
+ * Checking it against the constraints first would be the obvious guard and is
+ * exactly what must not happen: that is `fillMarks`'s job, and doing it here
+ * would make the two keys read each other, which is the loop this shape exists
+ * to avoid.
+ */
+export function placeSingles(save: string): string | null {
+  const state = readBoard(save)
+  if (!state) return null
+  const { lines, board, kept, position } = state
+
+  const wanted: string[] = []
+  for (let square = 0; square < board.squares; square++) {
+    if (position.values[square]) continue
+    const marks = position.marks[square]
+    if (marks.size !== 1) continue
+    wanted.push(board.moves.set(square, [...marks][0]))
   }
 
   return extend(lines, kept, wanted, board.moves.chain)

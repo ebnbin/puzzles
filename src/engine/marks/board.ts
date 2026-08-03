@@ -43,6 +43,8 @@ export type MoveLanguage = {
   read(text: string): Step[] | null
   /** Turn one mark over. */
   toggle(square: number, value: number): string
+  /** Put a value in a square. */
+  set(square: number, value: number): string
   /** Take every mark out of one square. */
   wipe(square: number): string
   /**
@@ -108,6 +110,7 @@ export function gridMoves(size: number, spare?: RegExp): MoveLanguage {
         : [{ kind: 'set', square, value, clears: true }]
     },
     toggle: (square, value) => `P${at(square)},${value}`,
+    set: (square, value) => `R${at(square)},${value}`,
     wipe: (square) => `R${at(square)},0`,
   }
 }

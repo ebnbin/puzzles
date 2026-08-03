@@ -150,6 +150,7 @@ const moves: MoveLanguage = {
     return steps
   },
   toggle: (square, value) => `${LETTER[value].toLowerCase()}${square}`,
+  set: (square, value) => `${LETTER[value]}${square}`,
   wipe: (square) => `E${square}`,
   chain: ';',
 }

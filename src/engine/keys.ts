@@ -26,6 +26,18 @@ import type { DialogControl, KeyLabel } from './types'
 const MAX_SYMBOLS = 36
 
 /**
+ * And the keys that are not symbols, at their widest: clear, the three below,
+ * and Unequal's hint. Counted rather than guessed at, because it is only ever
+ * used to tell a misread id from an unusual one, and a number too small there
+ * would take a working keypad away instead — which is what it was on its way
+ * to doing, having been written when there were two of these keys and not four.
+ *
+ * The widest real keypad is Unequal's: solo.c stops at 31 symbols and
+ * unequal.c at 32, so nothing legal comes anywhere near 36 + this.
+ */
+const MAX_AIDS = 5
+
+/**
  * `count` consecutive values, spelled the way the puzzles spell them: as
  * digits while they fit in one, then as letters from `a`.
  */
@@ -56,13 +68,19 @@ const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
  */
 
 /**
- * The two keys no puzzle reads, because they are not the puzzle's: work out
- * what each square can still take, and take every mark off again. No back end
- * has a button for either — their solvers cannot be asked what is still
- * possible, only told to finish — so these carry an action rather than a button
- * and are answered on this side. See engine/marks.
+ * The three keys no puzzle reads, because they are not the puzzle's: work out
+ * what each square can still take, write in the squares that have come down to
+ * one, and take every mark off again. No back end has a button for any of them
+ * — their solvers cannot be asked what is still possible, only told to finish —
+ * so these carry an action rather than a button and are answered on this side.
+ * See engine/marks.
+ *
+ * In that order, because the first two are the pair a reader alternates and the
+ * third is the one they reach for rarely: it is how the first is made to fill
+ * again rather than subtract.
  */
 const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: true }
+const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: true }
 const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: true }
 const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: true }
 const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: true }
@@ -142,16 +160,16 @@ const RULES: Record<
     }
     const cr = c * r
     if (cr < 1 || cr > MAX_SYMBOLS) return null
-    return [...digits(cr), CLEAR, POSSIBLE, BLANK]
+    return [...digits(cr), CLEAR, POSSIBLE, SINGLE, BLANK]
   },
   // Digits 1..w.
   keen(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, POSSIBLE, BLANK] : null
+    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK] : null
   },
   towers(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, POSSIBLE, BLANK] : null
+    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK] : null
   },
   // Digits 1..order, except that past 9 the puzzle counts from 0 so the
   // labels stay one character wide.
@@ -162,7 +180,7 @@ const RULES: Record<
   unequal(p) {
     const order = size(p)
     if (!order) return null
-    return [...digits(order, order > 9), CLEAR, POSSIBLE, BLANK, HINT]
+    return [...digits(order, order > 9), CLEAR, POSSIBLE, SINGLE, BLANK, HINT]
   },
   // Always 1-9, whatever the grid.
   filling: () => [...digits(9), CLEAR],
@@ -188,6 +206,7 @@ const RULES: Record<
       })),
       CLEAR,
       POSSIBLE,
+      SINGLE,
       BLANK,
     ]
   },
@@ -226,6 +245,6 @@ export function keysFor(
   // A misread game id would put a keypad of the wrong length on screen, which
   // is worse than none: better to show nothing than to offer a digit the
   // puzzle will not take, or to leave one out that it needs.
-  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + 3) return []
+  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + MAX_AIDS) return []
   return keys
 }
