@@ -17,9 +17,14 @@ import type { DialogControl, KeyLabel } from './types'
  * reconstructed here instead of reaching into the C.
  *
  * This does duplicate upstream. If a puzzle changes the keys it asks for, or
- * the way it encodes its parameters, nothing here will notice — so the game
- * ids are asserted against in the tests, and an unrecognised one falls back
- * to no keypad rather than to a wrong one.
+ * the way it encodes its parameters, nothing here will notice, and nothing
+ * anywhere will catch it: there are no tests in this repo.
+ *
+ * What holds the line instead is the fallback, and it is worth knowing that it
+ * is the only thing holding it. An id this file cannot read gets no keypad
+ * rather than a wrong one, and a keypad of an impossible length is refused the
+ * same way, so a misreading costs a missing keypad and not a digit the puzzle
+ * will not take.
  */
 
 /** Anything past this and the game id was misread, not merely unusual. */

@@ -9,11 +9,15 @@ vendor/sgtpuzzles/** -diff
 public/engine/** linguist-generated
 public/doc/** linguist-generated
 public/help/en.json linguist-generated
-public/icons/** linguist-generated
+public/tiles/** linguist-generated
 public/howto/** linguist-generated
 public/art/** linguist-generated
 public/sitemap.txt linguist-generated
 public/og.png linguist-generated
+public/icon-512.png linguist-generated
+public/icon-192.png linguist-generated
+public/apple-touch-icon.png linguist-generated
+public/favicon-32.png linguist-generated
 docs/gallery.png linguist-generated
 src/games.json linguist-generated
 
