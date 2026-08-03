@@ -92,6 +92,12 @@ export const en = {
   keys: {
     clear: 'Clear',
     marks: 'Fill in all pencil marks',
+    /**
+     * The one above fills every square with every digit; this one leaves out
+     * the digits the row, the column and the block have already spent. Worded
+     * against it, since the two keys sit side by side.
+     */
+    possible: 'Fill in the possible pencil marks',
     hint: 'Hint',
     jumble: 'Shuffle',
     ghost: 'Ghost',

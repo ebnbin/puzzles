@@ -80,12 +80,28 @@ export interface PuzzleApi {
   stopTimer(): void
 }
 
+/**
+ * A key the interface answers itself, because the back end has no such key to
+ * be given. There is one: the marks Solo could still take — see engine/solo.ts
+ * for why that arithmetic cannot be asked of the C.
+ */
+export type KeyAction = 'possible'
+
 export interface KeyLabel {
   /**
    * Midend button value. Every puzzle that asks for keys asks only for
    * ASCII ones, so this reaches the game as a one-character `key` string.
+   *
+   * Zero for a key that carries an `action` instead: there is no button to
+   * send, and no button value means none is sent by accident.
    */
   button: number
+  /**
+   * Answered here rather than forwarded. The board still ends up changed —
+   * through the save file, which is the only door a move can be put through
+   * without the back end having interpreted a gesture into it.
+   */
+  action?: KeyAction
   /** What to show on the key, for the ones that are a character. */
   label?: string
   /**

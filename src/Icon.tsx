@@ -16,7 +16,7 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'jumble'
+export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'possible' | 'jumble'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -153,6 +153,19 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M18.2 12.8h2.8" />
       <path d="M12.4 3.4v2.4" />
       <path d="M11.2 4.6h2.4" />
+    </>
+  ),
+  /* The same square as `marks`, with two of its four dots left out. The pair
+     sit beside each other on Solo's keypad and that is the whole of how this
+     one reads: same square, fewer marks, which is the difference between
+     filling in every digit and filling in the ones that can still go there.
+     Crossing the two out instead would be truer and does not survive the size
+     — 1.8 of stroke through 2.3 of dot is a blot, not a cross. */
+  possible: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="8.4" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
     </>
   ),
   /* Two paths crossing: the same pieces, somewhere else. */

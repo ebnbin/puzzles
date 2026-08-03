@@ -51,6 +51,17 @@ const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
  * some mouse control for this?" and the answer, here, is this key.
  */
 const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: true }
+
+/**
+ * And the one key here that no puzzle reads, because it is not the puzzle's.
+ *
+ * `M` fills every square with every mark; this fills each with only the ones
+ * its row, column and block have not already spent. The back end has no button
+ * for that — solo.c's solver cannot be asked what is still possible, only told
+ * to finish — so the key carries an action instead of a button and is answered
+ * on this side. See engine/solo.ts.
+ */
+const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: true }
 const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: true }
 const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: true }
 
@@ -129,7 +140,7 @@ const RULES: Record<
     }
     const cr = c * r
     if (cr < 1 || cr > MAX_SYMBOLS) return null
-    return [...digits(cr), CLEAR, MARKS]
+    return [...digits(cr), CLEAR, MARKS, POSSIBLE]
   },
   // Digits 1..w.
   keen(p) {
