@@ -161,4 +161,8 @@ kill $preview 2>/dev/null
 trap - EXIT
 
 echo
-echo "done: $(ls "$OUT_ENGINE"/*.js | wc -l) games, $(ls "$OUT_DOC"/*.html | wc -l) manual pages"
+# One directory per language under public/doc/, so the pages are a level down
+# from where this used to look for them. It counted zero for as long as that has
+# been true, which is the trouble with a summary line nobody checks.
+echo "done: $(ls "$OUT_ENGINE"/*.js | wc -l) games," \
+  "$(ls "$OUT_DOC"/*/*.html | wc -l) manual pages"
