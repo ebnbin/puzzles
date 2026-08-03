@@ -10,7 +10,6 @@ import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
 import { fillMarks } from './engine/marks'
-import type { MarkLevel } from './engine/marks'
 import {
   clearSave,
   isPlayed,
@@ -683,7 +682,7 @@ export default function PuzzleHost({
   ])
 
   /*
-   * The two keys the back end is not asked about.
+   * The one key the back end is not asked about.
    *
    * What a square can still hold is worked out here and applied by handing the
    * back end a save file with the moves already in it — the only way to give
@@ -692,23 +691,20 @@ export default function PuzzleHost({
    * read with enough confidence to write to, and there is nothing the reader
    * could do about that.
    */
-  const fillMarksAt = useCallback(
-    (level: MarkLevel) => {
-      const api = apiRef.current
-      if (!api) return
-      const next = fillMarks(api.saveGame(), level)
-      if (!next) return
-      acted()
-      api.loadGame(next)
-    },
-    [acted],
-  )
+  const fillPossibleMarks = useCallback(() => {
+    const api = apiRef.current
+    if (!api) return
+    const next = fillMarks(api.saveGame())
+    if (!next) return
+    acted()
+    api.loadGame(next)
+  }, [acted])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
     if (!api) return
     if (key.action) {
-      fillMarksAt(key.action === 'clued' ? 'clues' : 'squares')
+      fillPossibleMarks()
       canvasRef.current?.focus()
       return
     }
@@ -718,7 +714,7 @@ export default function PuzzleHost({
     // itself, and the midend folds 8 and 127 together into backspace.
     api.key(0, String.fromCharCode(key.button), '', 0, 0, 0)
     canvasRef.current?.focus()
-  }, [acted, fillMarksAt])
+  }, [acted, fillPossibleMarks])
 
   return (
     <div className="play" data-ready={ready}>

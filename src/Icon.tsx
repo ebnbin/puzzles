@@ -16,7 +16,7 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'possible' | 'clued' | 'jumble'
+export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'possible' | 'jumble'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -155,27 +155,17 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M11.2 4.6h2.4" />
     </>
   ),
-  /* Three keys, one square, and the dots count down: `marks` fills every one,
-     `possible` keeps what the other squares leave, `clued` keeps what the
-     clues leave as well. They sit in that order on the keypad, so what the row
-     says is "fewer marks, each time you go right", which is exactly what the
-     three do. Crossing the missing ones out instead would be truer and does
-     not survive the size — 1.8 of stroke through 2.3 of dot is a blot. */
+  /* The same square as `marks`, with two of its four dots left out. The pair
+     sit beside each other on the keypad and that is the whole of how this one
+     reads: same square, fewer marks, which is the difference between filling
+     in every digit and filling in the ones that can still go there. Crossing
+     the missing two out instead would be truer and does not survive the size
+     — 1.8 of stroke through 2.3 of dot is a blot, not a cross. */
   possible: (
     <>
       <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
       <circle cx="8.4" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
       <circle cx="15.6" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
-    </>
-  ),
-  /* The end of that count: one dot left, and the corner opened to say the
-     square is not answering alone any more — what is outside it, the cage
-     total or the sign or the clue along the edge, has had its say too. */
-  clued: (
-    <>
-      <path d="M14.6 3.4h3.4a2.6 2.6 0 0 1 2.6 2.6v3.4" />
-      <path d="M20.6 14.6v3.4a2.6 2.6 0 0 1-2.6 2.6H6a2.6 2.6 0 0 1-2.6-2.6V6A2.6 2.6 0 0 1 6 3.4h3.4" />
-      <circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none" />
     </>
   ),
   /* Two paths crossing: the same pieces, somewhere else. */

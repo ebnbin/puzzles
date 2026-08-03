@@ -47,8 +47,7 @@ export const zh: Strings = {
   keys: {
     clear: '清除',
     marks: '填满所有铅笔标记',
-    possible: '按已填数字排除后填标记',
-    clued: '连线索一起排除后填标记',
+    possible: '只填可能的铅笔标记',
     hint: '提示',
     jumble: '重新打乱',
     ghost: '幽灵',
