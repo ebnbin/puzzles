@@ -2,6 +2,7 @@ import { blockCells, dividerBlocks, latinGroups, leadingNumber } from './desc'
 import type { Field } from './save'
 import { find } from './save'
 import type { Board } from './board'
+import { gridMoves } from './board'
 import { cageDigits } from './cage'
 import type { CageOp } from './cage'
 
@@ -66,19 +67,20 @@ export function readKeen(lines: Field[]): Board | null {
   if (at !== text.length) return null
 
   return {
-    size,
+    squares: area,
+    values: Array.from({ length: size }, (_, i) => i + 1),
     clues: new Array<number>(area).fill(0),
     groups: latinGroups(size),
-    passthrough: /^$/,
-    narrow: (candidates, digits) => {
-      for (const { cells: group, value, op } of cages) {
+    moves: gridMoves(size),
+    narrow: (candidates, values) => {
+      for (const { cells: group, value: total, op } of cages) {
         // Keen lets a digit repeat inside a cage as long as the Latin square
         // does — two squares of one cage in different rows and columns may
         // match, which Killer forbids outright.
-        const allowed = cageDigits(group, value, op, size, candidates, digits, false)
+        const allowed = cageDigits(group, total, op, size, candidates, values, false)
         if (!allowed) continue
         group.forEach((cell, i) => {
-          if (digits[cell]) return
+          if (values[cell]) return
           for (const n of [...candidates[cell]])
             if (!allowed[i].has(n)) candidates[cell].delete(n)
         })

@@ -16,7 +16,7 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyGlyph = 'clear' | 'marks' | 'hint' | 'possible' | 'blank' | 'jumble'
+export type KeyGlyph = 'clear' | 'hint' | 'possible' | 'blank' | 'jumble'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -132,17 +132,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m17.6 9.6-5.2 4.8" />
     </>
   ),
-  /* A square with every mark in it at once, which is what the key does to
-     every empty square on the board. */
-  marks: (
-    <>
-      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
-      <circle cx="8.4" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="15.6" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="8.4" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
-      <circle cx="15.6" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
-    </>
-  ),
   /* A wand: one move made for you. Not the bulb — that is Solve, which makes
      all of them. */
   hint: (
@@ -157,14 +146,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
   ),
   /* --- the two keys this side answers -----------------------------------
    *
-   * Both are a square, because both are about what goes in one, and neither
-   * carries dots. They could have: `possible` began as `marks` with two of its
-   * four dots left out, which said "fewer marks" exactly. But `marks` is still
-   * on Undead's keypad, and a glyph that reads as a worse copy of another
-   * glyph is worse than one that shares nothing with it — the four puzzles
-   * these two belong to never show `marks`, but the reader who plays Undead as
-   * well sees all three. So the dots stayed with `M`, and these say what they
-   * do a different way.
+   * Both are a square, because both are about what goes in one. They were
+   * drawn to share nothing with upstream's four-dot `marks`, which at the time
+   * was still on Undead's keypad; Undead has these two now and that glyph is
+   * gone, so the reason has outlived itself. They are kept as they are because
+   * they read well on their own and because a key that changes its face is a
+   * key the reader has to learn twice.
    */
 
   /* A tick: the digits that check out. */
