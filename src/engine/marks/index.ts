@@ -13,27 +13,35 @@
  *                that way, a row that cannot be seen from there, a monster
  *                whose last copy is already on the board.
  *
- *   placeSingles a square whose marks have come down to one, filled in with it.
+ *   placeSingles a square the marks have come down to one answer for, filled in
+ *                with it — either because the square has one mark left, or
+ *                because a value has one square left in its row, column, block
+ *                or diagonal.
  *
  *   clearMarks   every mark taken off, so the first can start over.
  *
  * The first two point opposite ways and are kept that way: one reads the values
  * and writes marks, the other reads the marks and writes values. Neither feeds
  * itself, so neither loops; pressed alternately they feed each other, and walk
- * a board as far as naked singles go — which is measured, and short, under
- * placeSingles.
+ * a board as far as singles go — which is measured, under placeSingles.
  *
  * `M` is gone because the first of these is what `M` does when there is nothing
  * to rule out. It is not a smaller offer than upstream's; it is the same offer
  * with the tedium removed, and a keypad carrying both would be carrying one key
  * twice.
  *
- * fillMarks stops in one place, and it is the important line. It never asks
- * where a digit could go *elsewhere*: that a digit fits only one square of its
- * row is a deduction, and deductions are the reader's — Unequal already has a
- * key that makes one for you, and it is not this one. What this does is copy
- * out what the board has already said, which is bookkeeping, and bookkeeping is
- * what a machine is for.
+ * fillMarks stops in one place, and it is still the important line. It never
+ * asks where a digit could go *elsewhere*: what it writes is only what the
+ * board has already said, square by square, which is bookkeeping, and
+ * bookkeeping is what a machine is for. That has not changed and is worth not
+ * changing — it is why a mark this key writes can be trusted without checking.
+ *
+ * placeSingles crosses that line, on purpose and on its own. Asking which
+ * square of a row can still take the 4 is a deduction, and it is upstream's own
+ * easiest tier; the reasoning for doing it there and not here is under
+ * placeSingles. The short of it: the two keys can afford different answers
+ * because they are trusted differently. A wrong mark can be rubbed out. A wrong
+ * digit is a wrong digit.
  *
  * It was briefly two keys of its own, the second adding the clues to the first.
  * The split read well and did not survive being measured. On fifteen of Solo's
@@ -212,7 +220,17 @@ export function fillMarks(save: string): string | null {
 }
 
 /**
- * Every square whose marks have come down to one, filled in with it.
+ * Every square the marks have come down to one answer for, filled in with it.
+ *
+ * Two ways a square can come down to one, and they are the two halves of what
+ * "a single" means:
+ *
+ *   naked   the square's own marks are one value. Nothing else fits here.
+ *
+ *   hidden  a value that appears in the marks of exactly one square of a group
+ *           — a row, a column, a Solo block, a diagonal. Nothing else can hold
+ *           it, so this is where it goes, however many other marks the square
+ *           is carrying.
  *
  * ---------------------------------------------------------------------------
  * THIS ONE READS THE MARKS AND WRITES THE VALUES
@@ -224,24 +242,88 @@ export function fillMarks(save: string): string | null {
  * feed itself, so neither loops: press either twice and the second press finds
  * nothing to do.
  *
- * Pressing them alternately *does* feed one into the other, and will walk a
- * board out — as far as it goes, which is not far, and is worth being exact
- * about because the obvious guess is wrong.
+ * The hidden single is why this reads the marks rather than working the
+ * candidates out again. Recomputing them here is the obvious thing and is
+ * exactly what must not happen: it is `fillMarks`'s job, and doing it here
+ * would give this key everything it needs to run on its own, pressed over and
+ * over, which is the loop this shape exists to avoid.
  *
- * The pair does naked singles: a square down to one candidate, filled in. That
- * is strictly weaker than any tier upstream names. Its easiest, Solo's
- * `DIFF_BLOCK` — "Trivial" — is the *hidden* single: a number that fits only
- * one square of its block. The manual bundles the two, saying that at Trivial
- * and Basic "there will be a square you can fill in with a single number at all
- * times", but which of the two ways you know it is exactly the line drawn
- * above: a hidden single is a claim about where a number can go, and `fillMarks`
- * never makes one.
+ * ---------------------------------------------------------------------------
+ * WHERE THE LINE MOVED, AND WHERE IT DID NOT
+ * ---------------------------------------------------------------------------
  *
- * Measured over five deals of every preset of all five games, the pair finishes
- * every 2x2 Trivial Solo and every Easy Undead, and about two thirds of 3x3
- * Trivial Solo and 4x4 Easy Towers. Past that it falls away fast — a few per
- * cent of the empty squares on anything Advanced or harder, nothing at all on
- * Killer. It is an aid for the bookkeeping, not a solver wearing two buttons.
+ * The hidden single is a deduction. It says where a value can go, which is the
+ * question the rest of this file is careful never to ask — and it is upstream's
+ * own easiest tier, Solo's `DIFF_BLOCK`, the one called "Trivial": a number
+ * that fits only one square of its block.
+ *
+ * So the line moved, deliberately, and only here. `fillMarks` still does not
+ * make a positional claim: the marks it writes are still only what the board
+ * has already said, and a reader who never presses this key sees exactly the
+ * bookkeeping they saw before. What moved is what the *other* key is willing to
+ * conclude from marks that are already on the board.
+ *
+ * ---------------------------------------------------------------------------
+ * THREE THINGS THE HIDDEN SINGLE NEEDS TO BE SOUND
+ * ---------------------------------------------------------------------------
+ *
+ * A group is a set of squares that must all differ, and every one of them here
+ * is exactly as long as there are values — a row, a column, a block, a diagonal
+ * — so each value takes exactly one square in it. That is the premise, and it
+ * is what a Killer cage does not satisfy: a cage holds no digit twice, but a
+ * three-square cage does not hold all nine, so "only one square left for the 4"
+ * concludes nothing there. Cages stay in `narrow`, where they were.
+ *
+ * 1. VALUES ALREADY PLACED IN THE GROUP ARE NOT CANDIDATES. The engine clears a
+ *    square's marks when a value goes in it, and nothing else's — so the marks
+ *    elsewhere in that group still show the value that has just been spent.
+ *    Counting those would place a 1 in the row's last 1-marked square when the
+ *    row already has its 1, and the board would gain a clash this key invented.
+ *
+ * 2. A GROUP WITH AN UNMARKED EMPTY SQUARE IS SKIPPED. A square with no marks
+ *    reads as one that can hold nothing, and that manufactures hidden singles
+ *    out of nowhere: rub every mark off one square by hand and the value it
+ *    could have held now appears to have only one home. There is no way to tell
+ *    "the reader cleared this" from "the board ruled everything out", so neither
+ *    is trusted, and the group is left alone. It is the bargain the rest of this
+ *    module strikes when it cannot read something.
+ *
+ * 3. ONE PRESS RUNS TO A STANDSTILL. Filling a square takes it out of its
+ *    groups' counts, which can bring the next value down to one home, and so on.
+ *    Stopping after one sweep would leave a key that keeps working every time it
+ *    is pressed — the opposite of the promise the pair makes. So it repeats
+ *    until nothing more is found, and the position it stops at is the one the
+ *    next press reads: the model tracks only what the engine will do (set the
+ *    value, clear that square's marks) so that the two agree afterwards.
+ *
+ * ---------------------------------------------------------------------------
+ * HOW FAR THE PAIR GETS NOW
+ * ---------------------------------------------------------------------------
+ *
+ * Far enough to be worth saying exactly, because the hidden single is what
+ * upstream's two easiest tiers are made of and it shows.
+ *
+ * Five deals of every preset of all five games, alternating the two keys to a
+ * standstill and counting the boards that came out finished. Before the hidden
+ * single, 35 of 265; after, 119.
+ *
+ *   Solo    Trivial and Basic go from nothing to every board — 3x3 Trivial 0/5
+ *           to 5/5, 3x3 Basic 0/5 to 5/5, and the same for Basic X, both Jigsaw
+ *           Basics, 3x4 and 4x4. That is the manual's own promise kept: at
+ *           Trivial and Basic "there will be a square you can fill in with a
+ *           single number at all times", and both ways of knowing it are here
+ *           now. Intermediate and up still stop — 3x3 Intermediate walks 32% of
+ *           the empty squares and finishes none — because those want a claim
+ *           about a *set* of squares, which is the next line along and is not
+ *           crossed.
+ *   Keen    every Easy and Normal preset, 5/5. Hard and above, single figures.
+ *   Towers  and Unequal move a long way without arriving: Towers 5 Easy 27% to
+ *           46%, Unequal 6 Easy 1/5 to 4/5. Their own Easy tier is more than
+ *           singles — Towers' is the visibility deduction — so finishing it was
+ *           never on offer.
+ *   Undead  unchanged, and not by luck: it has no groups. Nothing there must
+ *           differ from anything else, so there is no group to be the last home
+ *           in, and this key does naked singles for it exactly as before.
  *
  * ---------------------------------------------------------------------------
  * AND IT IS THE ONE THAT CAN BE WRONG
@@ -252,27 +334,70 @@ export function fillMarks(save: string): string | null {
  * not mean "this is the answer" — it means one mark is left. A reader who has
  * rubbed marks out by hand can leave a square with one wrong mark in it, and
  * `fillMarks` will not put the others back, because rubbing them out was a
- * decision. So this writes what the square says, and what the square says is
- * the reader's own.
+ * decision. So this writes what the marks say, and the marks are the reader's
+ * own.
  *
- * Checking it against the constraints first would be the obvious guard and is
- * exactly what must not happen: that is `fillMarks`'s job, and doing it here
- * would make the two keys read each other, which is the loop this shape exists
- * to avoid.
+ * The hidden single widens that. A naked single can only be wrong in the square
+ * whose marks are wrong; a hidden single reads every square of a group and
+ * writes to one of them, so a mark rubbed out over here can put a digit in the
+ * wrong square over there. Guard 2 covers the case that reaches furthest — a
+ * square with nothing left on it — but a square with the *wrong* marks on it is
+ * still the reader's, and so is what this concludes from them.
+ *
+ * On a board that already contradicts itself two values can both come down to
+ * the same square. The first one found takes it, by group order and then by
+ * value; the second finds the square filled and stops. Which of them wins is
+ * arbitrary, and the board was already wrong before either arrived.
  */
 export function placeSingles(save: string): string | null {
   const state = readBoard(save)
   if (!state) return null
   const { lines, board, kept, position } = state
 
-  const wanted: string[] = []
-  for (let square = 0; square < board.squares; square++) {
-    if (position.values[square]) continue
-    const marks = position.marks[square]
-    if (marks.size !== 1) continue
-    wanted.push(board.moves.set(square, [...marks][0]))
+  // Ours to write on, so that a fill can be seen by the fills after it within
+  // this one press. Only what the engine itself will do to the board, so that
+  // the position this stops at is the position the next press reads.
+  const values = [...position.values]
+  const marks = position.marks.map((set) => new Set(set))
+  const placed = new Map<number, number>()
+
+  const put = (square: number, value: number) => {
+    values[square] = value
+    marks[square].clear()
+    placed.set(square, value)
   }
 
+  for (;;) {
+    let moved = false
+
+    for (let square = 0; square < board.squares; square++) {
+      if (values[square] || marks[square].size !== 1) continue
+      put(square, [...marks[square]][0])
+      moved = true
+    }
+
+    for (const group of board.groups) {
+      // The premise: as many squares as there are values, so each takes one.
+      if (group.length !== board.values.length) continue
+      // Guard 2. An empty square with nothing on it could hold anything, and
+      // reads here as if it could hold nothing.
+      if (group.some((square) => !values[square] && marks[square].size === 0)) continue
+      const spent = new Set(group.map((square) => values[square]).filter(Boolean))
+      for (const value of board.values) {
+        // Guard 1.
+        if (spent.has(value)) continue
+        const homes = group.filter((square) => !values[square] && marks[square].has(value))
+        if (homes.length !== 1) continue
+        put(homes[0], value)
+        moved = true
+      }
+    }
+
+    // Guard 3.
+    if (!moved) break
+  }
+
+  const wanted = [...placed].map(([square, value]) => board.moves.set(square, value))
   return extend(lines, kept, wanted, board.moves.chain)
 }
 

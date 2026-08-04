@@ -80,6 +80,14 @@ export type Board = {
   /**
    * Sets of squares that must all differ. Rows, columns, blocks, diagonals —
    * and nothing at all for Undead, whose squares are under no such rule.
+   *
+   * Every one of them is exactly as long as `values`, so each value takes one
+   * square in it and no square is left over. Two things lean on that: crossing
+   * a placed value off its neighbours, which only needs the "all differ" half,
+   * and `placeSingles` asking which square of a group can still take a value,
+   * which needs the other half as well. A set of squares that merely may not
+   * repeat — a Killer cage, which is shorter than the values it draws from —
+   * does not belong here. It goes in `narrow`.
    */
   groups: number[][]
   /**
@@ -89,9 +97,11 @@ export type Board = {
    * to begin with — an ordinary Solo, where the blocks and the diagonals are
    * the whole of what it has to say.
    *
-   * Neither this nor `groups` looks at where a value could go *elsewhere*: that
-   * a value fits only one square of its row is a deduction, and deductions are
-   * the reader's. What they do is copy out what the board already says.
+   * Neither this nor `groups` looks at where a value could go *elsewhere*.
+   * Working out the candidates is bookkeeping — what the board has already said
+   * about this square — and it is kept that way so that a mark can be trusted
+   * without being checked. The one place that does ask where a value can go is
+   * `placeSingles`, from the marks rather than from here.
    */
   narrow?: (candidates: Set<number>[], values: number[]) => void
   moves: MoveLanguage

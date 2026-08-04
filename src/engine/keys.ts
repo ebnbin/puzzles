@@ -184,9 +184,11 @@ const RULES: Record<
   // Digits 1..order, except that past 9 the puzzle counts from 0 so the
   // labels stay one character wide.
   //
-  // `HINT` stays where it is, and is a different offer: it plays one deduction
-  // for you. The keys beside it never deduce anything — they copy out what the
-  // board has already said, and rub it out again. See engine/marks.
+  // `HINT` stays where it is, and is a different offer: it is upstream's, it
+  // runs upstream's own solver, and it writes over the pencil marks with what
+  // that solver believes. The three beside it are ours and stay inside what the
+  // marks on the board already say — see engine/marks, which is exact about how
+  // far that goes now that one of them draws a conclusion from them.
   unequal(p) {
     const order = size(p)
     if (!order) return null
