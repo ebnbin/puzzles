@@ -85,30 +85,46 @@ export type Position = { values: number[]; marks: Set<number>[] }
  * what to send cannot be worked out without knowing what is marked already, and
  * the save records the moves rather than the board.
  *
- * Two kinds of move are refused rather than followed.
+ * `RESTART` is a state like any other and is followed like one. It puts the
+ * board back to what was dealt — `midend_restart_game` builds it with
+ * `new_game` from the description, and carries that description as its own
+ * move string — so here it is the clues again, with nothing written and nothing
+ * marked. If the description it names is not the one this board was read from
+ * then our clues do not describe the position, and that is refused rather than
+ * guessed at.
  *
- * `RESTART` re-deals from a description, and re-deriving the clues from it is
- * work with nothing to buy: a restarted game gets its marks on the next press
- * instead.
+ * It was refused outright once, on the reasoning that a restarted board would
+ * get its marks back on the next press. That was wrong, and wrong in the worst
+ * direction: the state stays in the history, so every press after a restart was
+ * refused, and the keys were dead for the rest of the deal. Restarting is a
+ * thing readers do when the marks have got away from them, which is exactly
+ * when they want these keys.
  *
- * `S` is the solver's answer, and the five spell it five different ways — Solo
- * separates its digits with commas because a board can want sixteen of them,
- * Keen and Towers write one character each, Unequal writes one character each
- * but counts from zero above nine, Undead writes letters. Decoding all of them
- * would buy one position: the board that has been solved and then had a square
- * rubbed out again. A solved board has no empty square to mark, so every other
- * path through a solve already ends in nothing to do.
+ * `S` is still refused, and this is the one path that stays shut. It is the
+ * solver's answer, and the five spell it five different ways — Solo separates
+ * its digits with commas because a board can want sixteen of them, Keen and
+ * Towers write one character each, Unequal writes one character each but counts
+ * from zero above nine, Undead writes letters. Decoding all five buys one
+ * position: a board that was solved and then had a square rubbed out again. The
+ * keys go dead there too, for the rest of that deal — the same shape of fault
+ * as the restart one, and left standing because reaching it means asking for
+ * the answer and then unasking, where restarting means wanting to play.
  *
  * Anything else unrecognised is refused too: a move we cannot play is a board
  * we would be guessing at.
  */
-export function replay(moves: Field[], board: Board): Position | null {
+export function replay(moves: Field[], board: Board, desc: string): Position | null {
   const values = [...board.clues]
   const marks = board.clues.map(() => new Set<number>())
 
   for (const move of moves) {
-    if (move.key === 'RESTART' || move.key === 'SOLVE' || move.value[0] === 'S')
-      return null
+    if (move.key === 'RESTART') {
+      if (move.value !== desc) return null
+      for (let i = 0; i < values.length; i++) values[i] = board.clues[i]
+      for (const set of marks) set.clear()
+      continue
+    }
+    if (move.key === 'SOLVE' || move.value[0] === 'S') return null
     const steps = board.moves.read(move.value)
     if (!steps) return null
     for (const step of steps) {
