@@ -106,6 +106,18 @@ export interface KeyLabel {
   /** What to show on the key, for the ones that are a character. */
   label?: string
   /**
+   * The value this key puts in a square, as the game numbers it.
+   *
+   * Not the same as the character on the key, which is why it is carried rather
+   * than read off `label`: Unequal draws 1..order as 0..order-1 once order
+   * passes nine, so its `0` key places a 1. Only the puzzle that owns the
+   * encoding can say, and keys.ts is where that lives.
+   *
+   * Absent on a key that puts nothing in a square — every aid, and Dominosa's
+   * digits, which light dominoes up rather than filling anything in.
+   */
+  value?: number
+  /**
    * The glyph to show instead, named as `Icon` knows it. A key whose
    * character means nothing to anyone who has never seen the keyboard —
    * backspace, or M for "fill in the pencil marks" — is a picture, and what

@@ -54,6 +54,7 @@ export const zh: Strings = {
     ghost: '幽灵',
     vampire: '吸血鬼',
     zombie: '僵尸',
+    left: (digit: string, count: number) => `${digit}，还有 ${count} 个没填`,
     highlight: (n: string) => `高亮含 ${n} 的骨牌`,
   },
 

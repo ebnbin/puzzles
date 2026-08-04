@@ -129,6 +129,7 @@ export function readSolo(lines: Field[]): Board | null {
   const board: Board = {
     squares: area,
     values: Array.from({ length: size }, (_, i) => i + 1),
+    each: size,
     clues: described.grid,
     groups,
     // Solo has no move of its own beyond the three the grid games share.

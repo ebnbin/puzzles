@@ -70,6 +70,7 @@ export function readTowers(lines: Field[]): Board | null {
   return {
     squares: area,
     values: Array.from({ length: size }, (_, i) => i + 1),
+    each: size,
     clues: grid,
     groups: latinGroups(size),
     /*

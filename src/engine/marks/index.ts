@@ -285,3 +285,34 @@ export function clearMarks(save: string): string | null {
 
   return extend(lines, kept, wanted, board.moves.chain)
 }
+
+/**
+ * How many of each value are still to be placed, keyed by the value.
+ *
+ * The only thing here that reads the board without writing to it: it is what
+ * the small number in the corner of each digit key is counting. Nothing about
+ * it changes the game — the reader could count the squares themselves, and on
+ * a nearly-finished board they do, which is the tedium this takes off them.
+ *
+ * A number can go negative, and is left that way rather than floored: the same
+ * digit twice in a row is a mistake the boards themselves draw in red and go on
+ * counting, and this counts it too. What to do about a negative is the
+ * keypad's to decide, not this.
+ *
+ * Marks are not counted. A pencilled 9 is not a 9 on the board, which is the
+ * whole distinction the other three keys are built around.
+ *
+ * Null for a board whose reading was refused, and for one whose values do not
+ * come in a fixed number apiece — see `each`.
+ */
+export function remaining(save: string): Map<number, number> | null {
+  const state = readBoard(save)
+  if (!state) return null
+  const { board, position } = state
+  if (board.each === undefined) return null
+
+  const left = new Map(board.values.map((value) => [value, board.each as number]))
+  for (const value of position.values)
+    if (value) left.set(value, (left.get(value) ?? 0) - 1)
+  return left
+}

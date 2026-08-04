@@ -1113,12 +1113,44 @@ p.notice-intro button:active {
 }
 
 .keypad button {
+  position: relative;
   width: var(--tap-w);
   height: var(--tap-w);
   padding: 0;
   border-radius: var(--r-sm);
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * How many of this digit are still to be placed, in the corner of the key that
+ * places it.
+ *
+ * Absolute, so the key stays the 40 square every other key is: this is a second
+ * thing to read on a button already carrying one, and the moment it changed the
+ * size of anything the row would stop being a grid.
+ *
+ * Top right, which is the only corner free of the two things around it — the
+ * digit sits dead centre and the keypad scrolls under the row above. The digit
+ * is 14px across the middle of the key and this is 11px in the top 12, so they
+ * do not meet at any size the label reaches.
+ *
+ * Drawn in --text-2 rather than the accent. The accent means one thing on this
+ * keypad already — "acts on the whole board", which is what tells the three aid
+ * keys from the digits — and a count is not that. Secondary text against
+ * --surface-2 clears 7:1 in both themes, which is more than a number this small
+ * needs and about what it wants.
+ */
+.key-left {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  color: var(--text-2);
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 
 /* The keys that do something to the whole board rather than to one square.

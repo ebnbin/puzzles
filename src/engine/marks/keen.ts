@@ -69,6 +69,7 @@ export function readKeen(lines: Field[]): Board | null {
   return {
     squares: area,
     values: Array.from({ length: size }, (_, i) => i + 1),
+    each: size,
     clues: new Array<number>(area).fill(0),
     groups: latinGroups(size),
     moves: gridMoves(size),

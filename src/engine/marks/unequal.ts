@@ -100,6 +100,7 @@ export function readUnequal(lines: Field[]): Board | null {
   return {
     squares: area,
     values: Array.from({ length: size }, (_, i) => i + 1),
+    each: size,
     clues,
     groups: latinGroups(size),
     moves: gridMoves(size, /^F\d+,\d+,\d+$/),

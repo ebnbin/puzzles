@@ -45,14 +45,19 @@ const MAX_AIDS = 5
 /**
  * `count` consecutive values, spelled the way the puzzles spell them: as
  * digits while they fit in one, then as letters from `a`.
+ *
+ * The character and the value part company when `startAtZero` does it: Unequal
+ * counts from zero above order nine so that every label stays one character
+ * wide, and there its `0` is the value 1. Both are carried, because the key
+ * shows one and the board counts the other.
  */
 function digits(count: number, startAtZero = false): KeyLabel[] {
   const first = startAtZero ? 0 : 1
   return Array.from({ length: count }, (_, i) => {
-    const value = first + i
+    const shown = first + i
     const button =
-      value <= 9 ? '0'.charCodeAt(0) + value : 'a'.charCodeAt(0) + value - 10
-    return { button, label: String.fromCharCode(button) }
+      shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
+    return { button, label: String.fromCharCode(button), value: i + 1 }
   })
 }
 
@@ -225,10 +230,14 @@ const RULES: Record<
   guess: () => [HINT],
   // 0..n lights up every domino carrying that number, two at a time. The
   // parameter is the highest face, so a default board wants 0-6.
+  //
+  // `value` comes off them: these are the only digit keys in the collection
+  // that put nothing in a square, so there is nothing on the board for one to
+  // be counted against.
   dominosa(p) {
     const n = size(p)
     if (n === null) return null
-    return digits(n + 1, true).map((key) => ({ ...key, aid: true }))
+    return digits(n + 1, true).map(({ value: _, ...key }) => ({ ...key, aid: true }))
   },
 }
 
