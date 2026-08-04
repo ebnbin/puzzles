@@ -169,6 +169,18 @@ function readBoard(save: string) {
  * there gives a fresh set of marks, which is what pressing twice on a bare
  * board gives, so it is at least the same answer to the same question.
  *
+ * "The board" is the marks a reader can see and reach, which is why the test
+ * below passes over the squares that hold something. In Undead a monster does
+ * not take the marks under it away — only `E` does, and `E` empties the square
+ * as it goes — so a square with a monster on it can be carrying marks that are
+ * not drawn, cannot be rubbed out, and are gone the moment the monster is. They
+ * are real state and the model keeps them, but they cannot be what decides
+ * whether this key fills or subtracts: counting them meant that placing one
+ * monster, clearing the marks and pressing fill did nothing at all, on the
+ * evidence of marks the reader had no way to see or to remove. The four grid
+ * games cannot reach it — their `R` clears on the way past, so a square with a
+ * digit in it never has any.
+ *
  * From nothing, with nothing to rule out, this fills every square with every
  * digit — which is exactly upstream's `M`, and why these puzzles no longer show
  * a separate key for it.
@@ -179,7 +191,9 @@ export function fillMarks(save: string): string | null {
   const { lines, board, kept, position } = state
 
   const should = candidates(board, position.values)
-  const bare = position.marks.every((set) => set.size === 0)
+  const bare = position.marks.every(
+    (set, square) => position.values[square] !== 0 || set.size === 0,
+  )
 
   const wanted: string[] = []
   for (let square = 0; square < board.squares; square++) {
