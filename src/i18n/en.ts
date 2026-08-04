@@ -97,9 +97,14 @@ export const en = {
      * goes the other way, reading the marks rather than writing them. The third
      * takes the lot off, which is the only thing that makes the first fill
      * again rather than subtract.
+     *
+     * "Only one answer" and not "one mark left", because the second reads two
+     * ways: the square with one mark on it, and the value with one square left
+     * to go in. Both are squares that can only be one thing, which is the whole
+     * of what the key claims and all it is worth saying on a long press.
      */
     possible: 'Fill in the possible pencil marks',
-    single: 'Fill in squares with one mark left',
+    single: 'Fill in the squares with only one answer',
     blank: 'Clear all pencil marks',
     hint: 'Hint',
     jumble: 'Shuffle',
