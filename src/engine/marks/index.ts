@@ -124,7 +124,11 @@ function readBoard(save: string) {
   if (!board) return null
   const kept = done(lines)
   if (!kept) return null
-  const position = replay(kept, board)
+  // The description as well, because a restart replays from one and has to be
+  // checked against the deal this board was read out of.
+  const desc = find(lines, 'DESC')
+  if (desc === undefined) return null
+  const position = replay(kept, board, desc)
   if (!position) return null
   return { lines, board, kept, position }
 }
