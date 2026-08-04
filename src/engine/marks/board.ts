@@ -61,6 +61,20 @@ export type Board = {
   squares: number
   /** The values a square may hold, as the game itself numbers them. */
   values: number[]
+  /**
+   * How many squares a finished board gives to each value.
+   *
+   * One number for all of them, because these are Latin squares: every value
+   * takes exactly one square in every row, so with as many rows as there are
+   * values each is placed `values.length` times. That holds whatever else is
+   * drawn on top — a Killer cage, a jigsaw block, a diagonal, an inequality
+   * sign — since none of those makes the grid any less Latin.
+   *
+   * Absent where a finished board does not fix it the same way. Undead's three
+   * monsters have three different totals, and it prints them above its own
+   * board, so nothing here would be telling the reader anything new.
+   */
+  each?: number
   /** What was dealt: the value in each square, or 0 where it was left empty. */
   clues: number[]
   /**

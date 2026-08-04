@@ -9,7 +9,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
-import { clearMarks, fillMarks, pending, placeSingles } from './engine/marks'
+import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
   isPlayed,
@@ -132,6 +132,15 @@ export default function PuzzleHost({
    * reads them, and only one puzzle's keypad does — see READS_PREFS.
    */
   const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
+  /**
+   * How many of each value are still to be placed, for the keys to say so.
+   *
+   * Worked out from the save, which is the only place the board can be read
+   * from — so it costs a serialise and a replay per move, and is null for every
+   * puzzle whose board this side cannot read, which is most of them. See
+   * engine/marks.
+   */
+  const [left, setLeft] = useState<Map<number, number> | null>(null)
   // A message from the back end, or the sentinel for the one failure that is
   // ours to describe. Kept as a sentinel rather than as the sentence itself so
   // that it is still in the reader's language if they change it afterwards.
@@ -254,6 +263,21 @@ export default function PuzzleHost({
   }, [name])
 
   /*
+   * And what the keys should say, from the same notice.
+   *
+   * Not coalesced the way the save is, and not armed either: this is on screen
+   * rather than on disk, so it has to be right before the reader has touched
+   * anything — a board restored mid-game opens with its counts already made —
+   * and it has to be right after every single change rather than once per
+   * gesture. It is a read of the save either way, so a gesture that moves twice
+   * pays for both.
+   */
+  const countLeft = useCallback(() => {
+    const api = apiRef.current
+    setLeft(api ? remaining(api.saveGame()) : null)
+  }, [])
+
+  /*
    * This is now the game to come back to, from the moment it is opened — and
    * the one the gallery marks, which is the same fact stored once. What the
    * gallery drops on arrival is the flag beside it, not the name.
@@ -365,6 +389,16 @@ export default function PuzzleHost({
           }
           setPresets(list)
           setReady(true)
+          /*
+           * And once, here, because the opening deal's own post_move has
+           * already been and gone: emcc.c's main() calls it at the end of
+           * start-up, which is before this callback runs and therefore before
+           * there is an api to read the board through. Without this a board
+           * opens with no counts on its keys and gains them on the first
+           * press, which is exactly the state a reader would not think to
+           * press their way out of.
+           */
+          countLeft()
         },
         onError: (message) => {
           if (restoring.current) {
@@ -383,7 +417,11 @@ export default function PuzzleHost({
         onUndoRedo: (undo, redo) => {
           setUndoRedo({ undo, redo })
           // post_move: the one notice the midend gives after every change.
+          // emcc.c calls it from the opening deal, every move, undo, redo, new
+          // game and load — so nothing else has to be hooked for either of
+          // these to stay current.
           queueSave()
+          countLeft()
         },
         onKeyLabels: () => {},
         onPermalinks: (desc, seed) => {
@@ -837,7 +875,7 @@ export default function PuzzleHost({
         />
       </div>
 
-      <PuzzleKeypad keys={keys} onPress={pressKey} />
+      <PuzzleKeypad keys={keys} left={left} onPress={pressKey} />
 
       {/* Four, and each of them a glyph. Undo and Redo are the two arrows
           everything else in the world uses for the same thing; the grid and

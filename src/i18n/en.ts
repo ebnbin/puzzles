@@ -106,6 +106,14 @@ export const en = {
     ghost: 'Ghost',
     vampire: 'Vampire',
     zombie: 'Zombie',
+    /**
+     * A digit key that is also saying how many of itself are left to place.
+     *
+     * The key would otherwise need no name at all — a 9 says it is a 9 — so
+     * this exists only because the number in its corner would be read out
+     * beside it as a second digit.
+     */
+    left: (digit: string, count: number) => `${digit}, ${count} left to place`,
     /** Dominosa: light up every domino carrying this number. */
     highlight: (n: string) => `Highlight dominoes with ${n}`,
   },

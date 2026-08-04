@@ -52,11 +52,32 @@ const art = (icon: KeyIcon, theme: Resolved) =>
     <Icon name={icon as KeyGlyph} />
   )
 
+/**
+ * How many of this value are still to be placed, or null for a key that has no
+ * such number — every aid, every puzzle whose board this side cannot read, and
+ * the digits that are done.
+ *
+ * Nothing is shown at zero, and nothing at less than zero either. Zero is worth
+ * more as an empty corner than as a nought: the badges go out one at a time as
+ * the board fills, which is a shrinking list of what is left rather than a row
+ * of noughts to read past at exactly the moment there is most else to look at.
+ * Below zero means the same digit has been put down too many times, which is a
+ * mistake the board is already drawing in red — and a minus sign at this size
+ * would be a smudge.
+ */
+const countOn = (key: KeyLabel, left: Map<number, number> | null) => {
+  if (key.value === undefined || !left) return null
+  const n = left.get(key.value)
+  return n !== undefined && n > 0 ? n : null
+}
+
 export default function PuzzleKeypad({
   keys,
+  left,
   onPress,
 }: {
   keys: KeyLabel[]
+  left: Map<number, number> | null
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
@@ -85,13 +106,19 @@ export default function PuzzleKeypad({
     <div className="keypad" role="group" aria-label={t.play.keypad}>
       {keys.map((key) => {
         const said = describe(key)
+        const count = countOn(key, left)
         return (
           <button
             // A key this side answers has no button value to be told apart by.
             key={key.action ?? key.button}
             type="button"
             data-aid={key.aid ? 'true' : undefined}
-            aria-label={key.icon ? said : undefined}
+            // A digit says what it is, so it needs no name — until it carries a
+            // count, which would otherwise be read out beside it as a second
+            // digit, and "9 1" is not what the key says.
+            aria-label={
+              key.icon ? said : count !== null ? t.keys.left(key.label ?? '', count) : undefined
+            }
             title={said}
             // Keep focus on the board: the puzzle reads the keyboard from
             // it, and a focused button would swallow arrow keys.
@@ -103,6 +130,13 @@ export default function PuzzleKeypad({
             }}
           >
             {key.icon ? art(key.icon, theme) : key.label}
+            {count !== null && (
+              // Said by the button's own name above, so this is a picture of it
+              // and not a second thing to read out.
+              <span className="key-left" aria-hidden="true">
+                {count}
+              </span>
+            )}
           </button>
         )
       })}
