@@ -28,9 +28,8 @@ export const zh: Strings = {
     manualHint: '每个谜题的规则与操作',
     erase: '清除全部数据',
     eraseHint: '存档、设置，以及隐藏的谜题',
-    eraseSure: '确定清除全部数据？',
-    eraseWhat: '所有存档和设置都会被删除，无法恢复。',
-    eraseConfirm: '清除',
+    eraseWhat: '此操作无法撤销',
+    eraseConfirm: '确认清除',
   },
 
   play: {

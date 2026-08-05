@@ -45,11 +45,13 @@ export const en = {
   },
 
   /**
-   * The dialog behind the gallery's one settings button. Two things to decide
-   * and one place to read more. The appearance is here and only here, now that
-   * the puzzle screen's press has gone: three states, and this is the one
-   * control in the app able to show three. The manual keeps a press of its own,
-   * which commits to a side.
+   * The dialog behind the gallery's one settings button: one place to read
+   * more, and the one control in the app that destroys something.
+   *
+   * The appearance used to live in here, because it had three states and this
+   * was the only control able to show three at once. It has two now, so it is
+   * a press in the bar outside — see ThemeToggle — and the names it is called
+   * by are still kept here with the rest of the settings vocabulary.
    */
   settings: {
     title: 'Settings',
@@ -63,15 +65,15 @@ export const en = {
     manual: 'Manual',
     manualHint: 'Rules and controls for every puzzle',
     /**
-     * The one control in the app that destroys something, and the four lines
-     * around it. `eraseWhat` is a list because "everything" is not a size: a
-     * reader deciding this wants to know it is their forty games and not the
-     * app itself.
+     * The row that erases, in its two states. `eraseHint` is a list because
+     * "everything" is not a size: a reader deciding this wants to know it is
+     * their forty games and not the app itself. `eraseWhat` replaces it once
+     * the row is armed, and is short because a button has appeared beside it
+     * and the two have one row to share.
      */
     erase: 'Erase everything',
     eraseHint: 'Games, settings, and what is hidden',
-    eraseSure: 'Erase everything?',
-    eraseWhat: 'Every saved game, every setting. This cannot be undone.',
+    eraseWhat: 'This cannot be undone',
     eraseConfirm: 'Erase',
   },
 
