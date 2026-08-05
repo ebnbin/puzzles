@@ -279,6 +279,71 @@ a {
 }
 
 /*
+ * --- the one row that destroys something ---------------------------------
+ *
+ * A row can be a button now as well as a link, so it needs the reset every
+ * other button in this app already gets from the shared tonal rule — this one
+ * is not tonal, it is a row, so it takes the reset and nothing else.
+ */
+button.setting {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/*
+ * Red on the name and on the glyph, and not on the line under them: the
+ * sentence explaining what will go has to be read, and a paragraph in the
+ * warning colour is a paragraph people stop reading. `danger` is measured
+ * against `surface` in tokens.css, which is what a dialog is drawn on.
+ */
+.setting-danger .setting-text,
+.setting-danger > svg {
+  color: var(--danger);
+}
+
+/* The question, once it has been asked: the answer goes under the sentence and
+   not beside it. Two buttons and three lines of prose do fit across a phone,
+   in the sense that they can be made to — the sentence ends up a column four
+   words wide, which is the thing a reader is meant to actually read before
+   pressing the irreversible one. */
+.setting-danger {
+  flex-wrap: wrap;
+}
+
+.setting-answer {
+  display: flex;
+  flex: none;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: flex-end;
+  margin-top: 0.15rem;
+}
+
+.setting-answer button {
+  padding: 0.4rem 0.9rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* The one that does it, filled rather than tinted: everything else in this
+   dialog is a row you may press by accident, and this is the one that should
+   look like it was aimed at. */
+.setting-answer button.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/*
  * Three across on a phone, seven once there is a desktop's worth of room.
  * The thumbnail still leads, just at a size that puts a screenful of the
  * collection in front of you rather than four of it.
@@ -826,6 +891,12 @@ footer p {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-overflow: ellipsis;
+  /* It is held to be read in full, and a long press on a run of text is how a
+     phone starts selecting it — which would put a selection handle and a
+     Copy/Share bar over the label being asked for. Everything else that answers
+     a hold is a button, which does not select. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .play-status[data-filled='true'] {
@@ -1190,6 +1261,13 @@ p.notice-intro button:active {
   pointer-events: none;
   transform: translate(-50%, -100%) translateY(-0.35rem);
   animation: scrim-in var(--dur) var(--ease);
+}
+
+/* Under the thing that raised it, for the one that is raised from the top bar:
+   see ABOVE in useHoldTip. `top` is already the other edge of the button by the
+   time it gets here, so only the direction it grows in changes. */
+.hold-tip[data-below='true'] {
+  transform: translate(-50%, 0) translateY(0.35rem);
 }
 
 /* --- the four ways out of the board --- */

@@ -7,6 +7,7 @@ import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
+import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import { keysFor, READS_PREFS } from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
@@ -809,21 +810,32 @@ export default function PuzzleHost({
         </h1>
         {/* A pill only once there is something in it, so an empty status bar
             leaves no empty box behind. Tabular figures keep a running clock
-            from shuffling the text beside it. */}
+            from shuffling the text beside it.
+
+            Held to be read in full, on the same popup the buttons below use.
+            The pill has to be narrow — it shares the bar with a title and two
+            icons — so on a phone the longer things a back end says ("Active:
+            4/25", a clock and a count together) reach the ellipsis. A screen
+            reader was never short of it: `aria-live` announces the whole
+            string, and the truncation is only ever on the glass. Offered
+            whenever there is text rather than only when it is actually cut off:
+            measuring every render to hide an affordance that costs nothing when
+            it is redundant is a bad trade. */}
         <span
           className="play-status"
           data-filled={!!status}
           aria-live="polite"
+          {...(status ? holdToAsk(status) : {})}
         >
           {status}
         </span>
-        {/* No light-and-dark button here. It was the shortest way to turn the
-            board over, and the board is the last place that needs one: this
-            screen is a puzzle and two controls, and a third that changes how
-            the app looks rather than what the game does was the odd one out.
-            The setting is in the settings, where all three of its states can
-            be shown at once, and the manual keeps its own press because it is
-            a page of prose with nowhere else to put one. */}
+        {/* Light and dark, back on this screen after an argument that has
+            expired. It came off because the setting had three states and a
+            press cannot mean three things, so it went where three could be
+            shown. There are two now, so a press is the whole control, and it
+            belongs in the two bars a reader is actually looking at rather than
+            two taps into a dialog. */}
+        <ThemeToggle className="play-icon" />
         <button
           type="button"
           className="play-icon"

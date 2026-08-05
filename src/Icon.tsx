@@ -48,6 +48,9 @@ export type IconName =
   | 'help'
   | 'alert'
   | 'caret'
+  | 'sun'
+  | 'moon'
+  | 'trash'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -224,6 +227,37 @@ const PATHS: Record<IconName, React.ReactNode> = {
   /* Small, and drawn shallow: it sits beside a word rather than in a button
      of its own, and a steep chevron there reads as a second glyph. */
   caret: <path d="m7.5 10 4.5 4.5 4.5-4.5" />,
+  /*
+   * Light and dark, and the pair is copied rather than invented: the manual has
+   * had these two exact shapes in its bar all along (build-doc.mjs), and the
+   * reader who presses one has just come from the other. Same rule about which
+   * shows, too — whichever names what a press would do, so the sun appears on a
+   * dark page and the moon on a light one.
+   */
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.6v2.2" />
+      <path d="M12 19.2v2.2" />
+      <path d="M2.6 12h2.2" />
+      <path d="M19.2 12h2.2" />
+      <path d="m5.3 5.3 1.6 1.6" />
+      <path d="m17.1 17.1 1.6 1.6" />
+      <path d="m18.7 5.3-1.6 1.6" />
+      <path d="m6.9 17.1-1.6 1.6" />
+    </>
+  ),
+  moon: <path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z" />,
+  /* A bin, for the one control in the app that destroys something. */
+  trash: (
+    <>
+      <path d="M4.5 6.8h15" />
+      <path d="M9.2 6.8V5.2a1.4 1.4 0 0 1 1.4-1.4h2.8a1.4 1.4 0 0 1 1.4 1.4v1.6" />
+      <path d="M6.6 6.8 7.5 19a1.5 1.5 0 0 0 1.5 1.4h6a1.5 1.5 0 0 0 1.5-1.4l.9-12.2" />
+      <path d="M10.4 10.4v6" />
+      <path d="M13.6 10.4v6" />
+    </>
+  ),
   /* An eye, and the same eye struck through: shown and hidden. Drawn small —
      they live in the corner of a tile. */
   eye: (

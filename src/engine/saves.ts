@@ -225,3 +225,38 @@ export function markIntroduced(name: string): void {
     // Blocked; the session's own copy still holds until the tab is closed.
   }
 }
+
+/**
+ * Everything this app has ever put in the store, taken out again.
+ *
+ * By prefix rather than by list. There are nine kinds of key and they are not
+ * all declared here — the theme and the language have their own modules, the
+ * hidden set has another, and each puzzle's preferences are written by the
+ * wrapper around the C — so a list would be a tenth place to remember, and the
+ * kind of place that is remembered right up until it is not. The prefix is what
+ * they actually have in common, and it is what a reader means by "this app's
+ * data".
+ *
+ * Nothing else on the origin uses `puzzles.`, and the manual — the one other
+ * page here — reads two of these keys rather than keeping any of its own.
+ *
+ * The service worker's cache is deliberately left alone. That is a copy of the
+ * app, not of anything the reader did; clearing it would fetch the same bytes
+ * again and change nothing they can see.
+ *
+ * Collected before removing, because removing while enumerating renumbers what
+ * is being enumerated and would skip every other key.
+ */
+export function forgetEverything(): void {
+  try {
+    const store = window.localStorage
+    const mine: string[] = []
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i)
+      if (key?.startsWith('puzzles.')) mine.push(key)
+    }
+    for (const key of mine) store.removeItem(key)
+  } catch {
+    // A blocked store has nothing in it to forget.
+  }
+}

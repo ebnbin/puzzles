@@ -1,23 +1,23 @@
+import { useState } from 'react'
 import Dialog from './Dialog'
 import Icon from './Icon'
+import { forgetEverything } from './engine/saves'
 import { docHref, useLang, useStrings } from './i18n'
 import { useScrollLock } from './useScrollLock'
-import { useTheme } from './useTheme'
-import type { Theme } from './useTheme'
 
 /**
- * The two things there are to decide and the one place to read more, behind
- * the button that means "settings".
+ * The one place to read more, and the one thing in this app that destroys
+ * something.
  *
- * They were a card at the top of the launcher, which put a quarter of the first
+ * It was a card at the top of the launcher, which put a quarter of the first
  * screen between the reader and the puzzles for two switches most people touch
- * once.
+ * once. It then held the theme as well, on the argument that a three-way needed
+ * somewhere three states could be shown; the theme has two states now and a
+ * press of its own in the bar outside, so it has gone from here rather than
+ * being offered twice.
  *
- * Nothing in here is confirmed, so there is nothing to confirm with: the theme
- * lands as it is chosen and the manual is a link. A Done button under two
- * settings that are already set is a button that does what the scrim, the
- * corner cross and Escape all do — which is why it has gone, and the cross the
- * help dialog has had all along is what is left.
+ * Nothing in here is confirmed except the thing that cannot be taken back, so
+ * there is no Done button: the manual is a link, and the erase asks for itself.
  */
 export default function LauncherSettings({
   lockAt,
@@ -30,20 +30,30 @@ export default function LauncherSettings({
   // Read-only here: the language is set on the launcher itself, but the
   // manual's address depends on it.
   const [lang] = useLang()
-  const [theme, setTheme] = useTheme()
   // The launcher scrolls; it must not do so under its own settings. The
   // offset is the launcher's, caught before the dialog scrolled it away.
   useScrollLock(lockAt)
 
-  // Three, and this is the only control in the app that can show three: a
-  // press commits to a side, and the side it commits to is what the other two
-  // presses in this app are for. System leads because it is the default and
-  // because it is the one a reader picks by not deciding.
-  const themes: { value: Theme; label: string }[] = [
-    { value: 'system', label: t.settings.themeSystem },
-    { value: 'light', label: t.settings.themeLight },
-    { value: 'dark', label: t.settings.themeDark },
-  ]
+  /*
+   * The erase asks first, and asks in place.
+   *
+   * A dialog on top of a dialog would be the obvious thing and is the one to
+   * avoid: two layers means deciding which one Escape closes, and the app has
+   * exactly one such stack already (PuzzleHost's sheets) with the ordering
+   * written out by hand. This row turns into the question instead, so there is
+   * still one layer and Escape still means the same thing.
+   *
+   * It reloads afterwards rather than telling every store to re-read itself.
+   * The theme, the language and the hidden set are module-level and were
+   * populated on the way up; the gallery holds the scroll and the toast in
+   * memory. A reload is the honest way to arrive at what a reader who has just
+   * erased everything is asking for, which is the app as it comes.
+   */
+  const [asking, setAsking] = useState(false)
+  const erase = () => {
+    forgetEverything()
+    window.location.reload()
+  }
 
   return (
     <Dialog
@@ -52,28 +62,6 @@ export default function LauncherSettings({
       onClose={onClose}
       className="dialog-settings"
     >
-      <div className="setting">
-        <span className="setting-text">{t.settings.appearance}</span>
-        <div
-          className="segmented"
-          role="radiogroup"
-          aria-label={t.settings.appearance}
-        >
-          {themes.map((option) => (
-            <label key={option.value} data-selected={theme === option.value}>
-              <input
-                type="radio"
-                name="theme"
-                value={option.value}
-                checked={theme === option.value}
-                onChange={() => setTheme(option.value)}
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* A tab of its own, which it was before and is again for a reason
           that has changed. The objection was that a new tab put the manual
           outside the app's history; the app has no history now, so there is
@@ -93,6 +81,35 @@ export default function LauncherSettings({
         </span>
         <Icon name="external" size={18} />
       </a>
+
+      {asking ? (
+        <div className="setting setting-danger">
+          <span className="setting-text">
+            {t.settings.eraseSure}
+            <em>{t.settings.eraseWhat}</em>
+          </span>
+          <span className="setting-answer">
+            <button type="button" onClick={() => setAsking(false)}>
+              {t.dialog.cancel}
+            </button>
+            <button type="button" className="danger" onClick={erase}>
+              {t.settings.eraseConfirm}
+            </button>
+          </span>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="setting setting-link setting-danger"
+          onClick={() => setAsking(true)}
+        >
+          <span className="setting-text">
+            {t.settings.erase}
+            <em>{t.settings.eraseHint}</em>
+          </span>
+          <Icon name="trash" size={18} />
+        </button>
+      )}
     </Dialog>
   )
 }

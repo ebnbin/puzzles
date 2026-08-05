@@ -53,13 +53,26 @@ export const en = {
    */
   settings: {
     title: 'Settings',
-    appearance: 'Appearance',
-    themeSystem: 'System',
+    language: 'Language',
+    /**
+     * The two the theme button is named by, in the bar rather than in here: it
+     * says what a press would do, so the name is the side it is about to go to.
+     */
     themeLight: 'Light',
     themeDark: 'Dark',
-    language: 'Language',
     manual: 'Manual',
     manualHint: 'Rules and controls for every puzzle',
+    /**
+     * The one control in the app that destroys something, and the four lines
+     * around it. `eraseWhat` is a list because "everything" is not a size: a
+     * reader deciding this wants to know it is their forty games and not the
+     * app itself.
+     */
+    erase: 'Erase everything',
+    eraseHint: 'Games, settings, and what is hidden',
+    eraseSure: 'Erase everything?',
+    eraseWhat: 'Every saved game, every setting. This cannot be undone.',
+    eraseConfirm: 'Erase',
   },
 
   play: {
