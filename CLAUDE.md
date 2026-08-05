@@ -87,7 +87,12 @@ npm run doc             # 重新生成 public/doc/(需要 halibut)
 ```
 
 没有测试框架,也没有 linter:`npm run build` 里的 `tsc --noEmit` 和两个 verify 脚本
-就是全部的自动检查。改了 `src/engine/palette.ts` 或 `public/doc/` 就跑对应的 verify。
+就是全部的自动检查。但 build 只跑其中一个:`verify-palette` 在里面,`verify-doc` 不在——它要
+halibut,而 build 正是 Vercel 每次部署都要跑的那条命令(`vercel.json` 的 `buildCommand`)。
+改了 `public/doc/` 得自己跑一次,没人会替你跑。
+
+`node_modules` 不在仓库里,新克隆的第一件事是 `npm install`。跳过它 build 停在
+`Cannot find type definition file for 'vite/client'`:那句话在说依赖没装,不是 tsconfig 坏了。
 
 重量级的构建脚本平时**不需要跑**,产物已经提交进仓库:
 
@@ -168,6 +173,14 @@ Undead)因此多了三个键,上游的 `M` 被换掉了:
 从零变成全解开——这正是手册承诺的那两档;Intermediate 往上仍然停住,因为那要的是关于
 「一组格子」的判断,是再下一条线,没有越。Undead 不变,而且不是碰巧:它的 `groups` 是空的。
 
+**还有第四个导出,它不写棋盘。** `remaining` 数「每个值还剩几个没放」,就是数字键角上那个
+小数字。它走同一个 reader,但一步棋都不加:读者本来就会自己数,棋快满时尤其会数,这只是
+把那份数数接过来。它要 `Board.each`——一个填满的棋盘给每个值几格——四个格子游戏是拉丁方,
+所以是 `values.length`;Undead 没有(三种怪物数目各不相同,而且它自己就印在棋盘上方),
+于是它的键不带角标。代价是每走一步 serialise + replay 一遍。数到零和负数都不显示:多放了
+的那个数字棋盘自己已经画红,角上再来个减号只是一团脏点。铅笔标记不算数——那正是另外三个
+键全部建立在其上的区分。
+
 **读不懂就整个拒绝。** 参数不认识、描述解析不了、遇到一条没见过的走子——一律返回 null,
 界面什么都不做。猜错比不做坏得多:它会擦掉玩家自己写的候选,还会说某个数字不可能。和
 `keys.ts` 认不出 game id 时不显示键盘是同一笔交易。
@@ -235,6 +248,11 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 `extract-games.mjs` 会在它们与英文版脱节时告警,`verify-doc.mjs` 逐页比对标签序列、
 锚点和链接。
 
+这张表在 `.gitattributes` 里有第二份:同样这些路径标了 `linguist-generated`——既不算进语言
+统计,也在 diff 里折起来,免得一次手册重建读成九十个被改过的文件(`vendor/` 是同一件事的
+另一种写法:`linguist-vendored` 加 `-diff`)。加一个生成物要同时改两处,`.gitattributes` 的
+注释就是指着这张表写的。
+
 双语文件的命名有一条规则,两种形状各有理由:**`public/` 里(也就是有 URL 的)一律
 `<东西>/<语言>`**——`doc/en/`、`doc/zh/`、`help/en.json`、`help/zh.json`,谁都不是默认;
 **`src/` 里(打进 bundle,没有 URL)保留 `.zh.` 后缀**——`games.json` / `games.zh.json`,
@@ -257,7 +275,9 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   的空白。后端说的话(preset 名、状态栏、参数对话框的标签)不在这里也翻不了——它们是编进
   wasm 的字符串,而这个 build 的全部意义就是不动那份 C。
 - `src/engine/keys.ts` 重新实现了上游 `request_keys()` 的结果(emcc.c 不调用它),按
-  game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。
+  game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。Undead 是唯一一个
+  光看 id 不够的:键面画怪物还是写字母得问偏好设置,所以它列在 `READS_PREFS` 里——
+  `PuzzleHost` 见到这个名字,才会在偏好可能动过之后回去重读一遍。
 - TS 是 strict + `noUnusedLocals`/`noUnusedParameters`/`verbatimModuleSyntax`,类型
   导入要写 `import type`。
 
@@ -272,9 +292,15 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
   主题只认 light/dark 其余当 system、集合类过滤非字符串),所以**加**东西是安全的,**改**
   和**删**不是。
 - **`public/` 里的 URL**:`/engine/**`、`/doc/**`、`/help/**`、`/tiles|howto|art/**`、
-  `/og.png`、`/manifest.webmanifest`、`/sw.js`。改路径不会让谁崩掉(service worker 按整条
-  URL 存,老条目只是变成垃圾),但 `/og.png` 例外——Slack、Discord 这些按 URL 缓存分享卡片,
-  换地址等于换一张卡片,老链接还是老图。
+  `/og.png`、`/manifest.webmanifest`、`/sw.js`。多数情况下改路径不会让谁崩掉(service worker
+  按整条 URL 存,老条目只是变成垃圾),但有三处不是。`/og.png`:Slack、Discord 这些按 URL
+  缓存分享卡片,换地址等于换一张卡片,老链接还是老图。`sw.js` 里 `install` 预缓存的那三条
+  (`/`、`/icon-192.png`、`/manifest.webmanifest`)走的是 `addAll`,少一条就整个 reject、
+  worker 永不 activate,离线支持跟着一起没——`/icon.svg` 换成 PNG 之后,就在那张名单上留过
+  一阵。最后一处是两份名单要对上:`sw.js` 跳过不拦的 `/(tiles|howto|art)/`,和 vercel.json
+  给这三个目录发缓存头的那一条——一处授权浏览器自己缓存,另一处让开别去挡它。它们曾经叫
+  `solved`/`monsters`,改名时只改了一边,于是玩法图和键盘上的怪物又回到 worker 手里,
+  悄悄地,没有任何东西会因此报错。
 - **`sw.js` 的 `CACHE` 常量**:改了缓存规则、或者 `public/` 里有东西改名,就必须把版本号
   往上加一,否则老条目会一直被端出来。缓存条目比任何一次没点名它的部署活得都久。
 - **`manifest.webmanifest` 的 `id`**:装到主屏幕的那个 app 的身份。改了它 = 变成另一个 app,
