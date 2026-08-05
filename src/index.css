@@ -164,11 +164,32 @@ a {
 
 /* --- the gallery -------------------------------------------------------- */
 
+/*
+ * The gap is the puzzle screen's, because the row ends the same way that one
+ * does: two bare glyphs side by side.
+ *
+ * It was 0.85rem for everything, from when there was one glyph and nothing to
+ * pair it with. A second one arrived and the two floated — 14px apart where the
+ * play bar's two sit at 4 — which reads as two unrelated controls rather than
+ * as the pair they are. So the row takes the bar's 0.25rem and the standoff is
+ * added back in one place, between the language and the glyphs, which is
+ * exactly what the manual's bar does with the same 0.6rem.
+ *
+ * The name loses nothing by it: it is `flex: 1`, so the space the gap gives up
+ * goes into its box rather than to anything visible, and the text inside stops
+ * a long way short of the pill either way.
+ */
 .masthead {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.25rem;
   margin-bottom: 1.25rem;
+}
+
+/* A filled pill and a bare glyph four pixels apart read as one crowded thing;
+   see the same rule, and the same number, on `.doc-theme`. */
+.masthead .segmented + .masthead-icon {
+  margin-left: 0.6rem;
 }
 
 .masthead-name {
