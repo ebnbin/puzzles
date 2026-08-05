@@ -103,45 +103,50 @@ export default function PuzzleKeypad({
   if (keys.length === 0) return null
 
   return (
-    <div className="keypad" role="group" aria-label={t.play.keypad}>
-      {keys.map((key) => {
-        const said = describe(key)
-        const count = countOn(key, left)
-        return (
-          <button
-            // A key this side answers has no button value to be told apart by.
-            key={key.action ?? key.button}
-            type="button"
-            data-aid={key.aid ? 'true' : undefined}
-            // A digit says what it is, so it needs no name — until it carries a
-            // count, which would otherwise be read out beside it as a second
-            // digit, and "9 1" is not what the key says.
-            aria-label={
-              key.icon ? said : count !== null ? t.keys.left(key.label ?? '', count) : undefined
-            }
-            title={said}
-            // Keep focus on the board: the puzzle reads the keyboard from
-            // it, and a focused button would swallow arrow keys.
-            onMouseDown={(e) => e.preventDefault()}
-            {...holdToAsk(said)}
-            onClick={() => {
-              if (wasHeld()) return
-              onPress(key)
-            }}
-          >
-            {key.icon ? art(key.icon, theme) : key.label}
-            {count !== null && (
-              // Said by the button's own name above, so this is a picture of it
-              // and not a second thing to read out.
-              <span className="key-left" aria-hidden="true">
-                {count}
-              </span>
-            )}
-          </button>
-        )
-      })}
+    <>
+      <div className="keypad" role="group" aria-label={t.play.keypad}>
+        {keys.map((key) => {
+          const said = describe(key)
+          const count = countOn(key, left)
+          return (
+            <button
+              // A key this side answers has no button value to be told apart by.
+              key={key.action ?? key.button}
+              type="button"
+              data-aid={key.aid ? 'true' : undefined}
+              // A digit says what it is, so it needs no name — until it carries a
+              // count, which would otherwise be read out beside it as a second
+              // digit, and "9 1" is not what the key says.
+              aria-label={
+                key.icon ? said : count !== null ? t.keys.left(key.label ?? '', count) : undefined
+              }
+              title={said}
+              // Keep focus on the board: the puzzle reads the keyboard from
+              // it, and a focused button would swallow arrow keys.
+              onMouseDown={(e) => e.preventDefault()}
+              {...holdToAsk(said)}
+              onClick={() => {
+                if (wasHeld()) return
+                onPress(key)
+              }}
+            >
+              {key.icon ? art(key.icon, theme) : key.label}
+              {count !== null && (
+                // Said by the button's own name above, so this is a picture of it
+                // and not a second thing to read out.
+                <span className="key-left" aria-hidden="true">
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
 
+      {/* Outside the row, for the reason written on HoldTip: `.keypad` is a
+          stacking context, and a tip inside it cannot rise past whatever that
+          row's own level is. */}
       <HoldTip tip={tip} />
-    </div>
+    </>
   )
 }

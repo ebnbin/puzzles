@@ -104,7 +104,30 @@ export function useHoldTip() {
   return { tip, holdToAsk, wasHeld }
 }
 
-/** What the button would have said, if it were big enough to say it. */
+/**
+ * What the button would have said, if it were big enough to say it.
+ *
+ * ---------------------------------------------------------------------------
+ * IT MUST NOT BE RENDERED INSIDE THE ROW IT BELONGS TO
+ * ---------------------------------------------------------------------------
+ *
+ * Both rows that raise one — the keypad and the four buttons — set `position`
+ * and a `z-index`, which makes each of them a stacking context. A tip rendered
+ * inside one is sealed into it: its own `z-index` orders it against its
+ * siblings and nothing else, so the whole tip sits at whatever level its row
+ * has, however large the number on it.
+ *
+ * Both rows are at 1. The puzzle screen's introduction is at 2, in the same
+ * context, so the tip went under it — visibly, with the note taking the bottom
+ * half of the word being asked for. It stayed hidden while every tip pointed
+ * upward from the foot of the screen and the note sat at the top; the status
+ * pill, which raises one downward from the bar, is what put the two in the same
+ * place.
+ *
+ * So each caller renders this as a sibling of its row rather than a child. It
+ * is `position: fixed` and takes no space, so where it goes in the markup costs
+ * nothing — but it has to go somewhere the number means what it says.
+ */
 export function HoldTip({ tip }: { tip: Tip | null }) {
   if (!tip) return null
   return (
