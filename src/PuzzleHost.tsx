@@ -961,8 +961,13 @@ export default function PuzzleHost({
         >
           <Icon name="menu" />
         </button>
-        <HoldTip tip={tip} />
       </nav>
+
+      {/* Outside the row it belongs to, and it has to be: `.play-actions` is a
+          stacking context of its own, so a tip rendered inside it was pinned to
+          that row's level however high its own z-index went — under the
+          introduction, which is two levels up in this one. See HoldTip. */}
+      <HoldTip tip={tip} />
 
       {helpOpen && (
         /* A corner cross rather than a button in a row of buttons, because
