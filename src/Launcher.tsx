@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
+import ThemeToggle from './ThemeToggle'
 import { readRecent, setPlaying } from './engine/saves'
 import { useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
@@ -298,6 +299,10 @@ export default function Launcher() {
             </label>
           ))}
         </div>
+        {/* Between the two, and in the same order the manual's bar has them:
+            language, then light and dark. What is behind the settings button is
+            everything that is not one press. */}
+        <ThemeToggle className="masthead-icon" />
         <button
           type="button"
           className="masthead-icon"
