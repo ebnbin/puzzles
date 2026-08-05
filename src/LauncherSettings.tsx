@@ -1,9 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Dialog from './Dialog'
 import Icon from './Icon'
 import { forgetEverything } from './engine/saves'
 import { docHref, useLang, useStrings } from './i18n'
 import { useScrollLock } from './useScrollLock'
+
+/**
+ * How long the erase stays armed after a tap.
+ *
+ * Long enough to move a thumb across the row and no longer: what it is really
+ * for is the reader who pressed the wrong thing and is now reading the warning,
+ * and the kindest end to that is the button going away by itself.
+ */
+const ARMED_MS = 3000
 
 /**
  * The one place to read more, and the one thing in this app that destroys
@@ -35,22 +44,54 @@ export default function LauncherSettings({
   useScrollLock(lockAt)
 
   /*
-   * The erase asks first, and asks in place.
+   * The erase asks first, in the row it is in, and stops asking on its own.
    *
    * A dialog on top of a dialog would be the obvious thing and is the one to
    * avoid: two layers means deciding which one Escape closes, and the app has
    * exactly one such stack already (PuzzleHost's sheets) with the ordering
-   * written out by hand. This row turns into the question instead, so there is
-   * still one layer and Escape still means the same thing.
+   * written out by hand. So the row arms instead — the glyph gives way to a
+   * button that has to be pressed as well — and the row stays one row, which
+   * is what keeps this from reading as a second thing that has appeared.
    *
+   * No Cancel beside it. The way out is to do nothing, and doing nothing is
+   * what the reader who pressed it by accident is already doing; a button
+   * offering it is a second thing to aim at when neither needed aiming at.
+   *
+   * ---------------------------------------------------------------------------
+   * THREE SECONDS, EXCEPT FOR THE READER WHO CANNOT SPEND THEM
+   * ---------------------------------------------------------------------------
+   *
+   * It disarms itself after three seconds, which is right for a thumb and
+   * hostile to a keyboard: tab to the row, press Enter, and the thing you must
+   * press next is somewhere you have to go and find before it goes away again.
+   * So the countdown only runs for a press that came from a pointer. A click
+   * with a `detail` of 0 is the keyboard's — Enter and Space produce one — and
+   * that arms it for as long as it takes and moves focus onto the button, which
+   * is where the next press has to land anyway.
+   */
+  const [asking, setAsking] = useState(false)
+  const timer = useRef(0)
+  /** Whether the press that armed it was one that cannot chase a moving target. */
+  const byKeyboard = useRef(false)
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  const arm = (event: React.MouseEvent) => {
+    window.clearTimeout(timer.current)
+    byKeyboard.current = event.detail === 0
+    setAsking(true)
+    if (byKeyboard.current) return
+    timer.current = window.setTimeout(() => setAsking(false), ARMED_MS)
+  }
+
+  /*
    * It reloads afterwards rather than telling every store to re-read itself.
    * The theme, the language and the hidden set are module-level and were
    * populated on the way up; the gallery holds the scroll and the toast in
    * memory. A reload is the honest way to arrive at what a reader who has just
    * erased everything is asking for, which is the app as it comes.
    */
-  const [asking, setAsking] = useState(false)
   const erase = () => {
+    window.clearTimeout(timer.current)
     forgetEverything()
     window.location.reload()
   }
@@ -83,25 +124,24 @@ export default function LauncherSettings({
       </a>
 
       {asking ? (
+        // Not a button any more: the row holds one, and a button inside a
+        // button is not a thing the parser will keep.
         <div className="setting setting-danger">
           <span className="setting-text">
-            {t.settings.eraseSure}
-            <em>{t.settings.eraseWhat}</em>
+            {t.settings.erase}
+            {/* Announced, because the row changed under a reader who cannot
+                see that it did — and the thing it now says is the warning. */}
+            <em role="status">{t.settings.eraseWhat}</em>
           </span>
-          <span className="setting-answer">
-            <button type="button" onClick={() => setAsking(false)}>
-              {t.dialog.cancel}
-            </button>
-            <button type="button" className="danger" onClick={erase}>
-              {t.settings.eraseConfirm}
-            </button>
-          </span>
+          <button type="button" className="setting-do" onClick={erase} autoFocus={byKeyboard.current}>
+            {t.settings.eraseConfirm}
+          </button>
         </div>
       ) : (
         <button
           type="button"
           className="setting setting-link setting-danger"
-          onClick={() => setAsking(true)}
+          onClick={arm}
         >
           <span className="setting-text">
             {t.settings.erase}

@@ -305,42 +305,27 @@ button.setting {
   color: var(--danger);
 }
 
-/* The question, once it has been asked: the answer goes under the sentence and
-   not beside it. Two buttons and three lines of prose do fit across a phone,
-   in the sense that they can be made to — the sentence ends up a column four
-   words wide, which is the thing a reader is meant to actually read before
-   pressing the irreversible one. */
-.setting-danger {
-  flex-wrap: wrap;
-}
-
-.setting-answer {
-  display: flex;
+/*
+ * The button the row grows when it is armed, where the glyph was.
+ *
+ * Tinted rather than bare, because it is the one thing in this dialog that has
+ * to look aimed at rather than merely pressed — everything else here is a row
+ * you might brush past. It takes the glyph's place instead of going under the
+ * text so that the row stays a row: a second line appearing under a control is
+ * how a dialog starts jumping about, and this one is asking a question the
+ * reader is meant to be still for.
+ */
+.setting-do {
   flex: none;
-  gap: 0.5rem;
-  width: 100%;
-  justify-content: flex-end;
-  margin-top: 0.15rem;
-}
-
-.setting-answer button {
   padding: 0.4rem 0.9rem;
   border: 0;
   border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text);
+  background: var(--danger-soft);
+  color: var(--danger);
   font: inherit;
   font-size: var(--t-sm);
   font-weight: 500;
   cursor: pointer;
-}
-
-/* The one that does it, filled rather than tinted: everything else in this
-   dialog is a row you may press by accident, and this is the one that should
-   look like it was aimed at. */
-.setting-answer button.danger {
-  background: var(--danger-soft);
-  color: var(--danger);
 }
 
 /*
