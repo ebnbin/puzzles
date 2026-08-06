@@ -69,6 +69,8 @@ export type IconName =
   | 'rotate'
   | 'lock'
   | 'pencil'
+  | 'black'
+  | 'white'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -379,6 +381,27 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="12" cy="12" r="2.2" />
     </>
   ),
+  /*
+   * A square that has been filled in, and one that has been left white.
+   *
+   * Pattern's own two, drawn as the board draws them rather than as the key
+   * works: the key steps a square round a three-state cycle, but from an
+   * untouched square — which is where nearly every press happens, since that is
+   * how they all start — one of them gives black and the other white. The word
+   * on a long press carries the rest of the cycle, which a picture cannot.
+   *
+   * Safe to draw them the board's way round in both themes because Pattern's
+   * black and white are in `SEMANTIC` (palette.ts): its chapter states the rule
+   * in terms of the colours, so the dark board keeps them rather than flipping
+   * them, and a filled key still means the darker square on either theme.
+   *
+   * The house square, the same 17.2 with the same 2.6 corner as every other
+   * square glyph here, so the pair reads as this app's squares and not as two
+   * new shapes. Told apart by fill alone, which is the one difference that
+   * survives being 20 pixels across.
+   */
+  black: <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" fill="currentColor" />,
+  white: <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />,
   /*
    * A pencil, for the key that switches between writing in ink and pencilling.
    *

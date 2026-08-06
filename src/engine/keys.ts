@@ -353,7 +353,7 @@ export type CursorKey = {
 }
 
 /** The words these keys can be called, so a missing translation is a type error. */
-export type CursorWord = 'rotateLeft' | 'lock' | 'pencil'
+export type CursorWord = 'rotateLeft' | 'lock' | 'pencil' | 'black' | 'white'
 
 /**
  * Which puzzles have been given theirs, and what they do.
@@ -391,6 +391,27 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
   net: [
     { key: 'Enter', icon: 'rotate', says: 'rotateLeft' },
     { key: ' ', icon: 'lock', says: 'lock' },
+  ],
+
+  /*
+   * Two keys that are one key twice, wound opposite ways.
+   *
+   * A Pattern square is grey, black or white, and `Enter` steps it round that
+   * cycle while `Space` steps it back — "the space bar does the same cycle in
+   * reverse", as its chapter puts it. So neither key *sets* a colour, and the
+   * pictures on them are the colour each reaches from a square nobody has
+   * touched, which is where nearly every press happens. What the second and
+   * third press do is on the long press, where a sentence fits.
+   *
+   * This also quietly closes something older. Grey is upstream's middle button
+   * — or Shift with any button — and a finger has neither, so on a touch device
+   * a square could be painted but never unpainted. `Space` on a black square is
+   * grey in one press. The keys were added for the arrows; the hole they fill
+   * was there before them.
+   */
+  pattern: [
+    { key: 'Enter', icon: 'black', says: 'black' },
+    { key: ' ', icon: 'white', says: 'white' },
   ],
 
   /*

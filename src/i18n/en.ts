@@ -141,6 +141,13 @@ export const en = {
        * button is held cannot move like that, so it names the pair.
        */
       pencil: 'Switch between ink and pencil',
+      /**
+       * Pattern's pair, named as the whole cycle rather than as the picture on
+       * them. The picture is only the first press; a reader holding the button
+       * down is asking what the next one does.
+       */
+      black: 'Black, then white, then grey',
+      white: 'White, then black, then grey',
     },
   },
 
