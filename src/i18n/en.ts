@@ -107,20 +107,33 @@ export const en = {
   keys: {
     clear: 'Clear',
     /*
-     * The three that replaced upstream's `M` on every keypad that had it. The
-     * first leaves out everything the board has already ruled out. The second
-     * goes the other way, reading the marks rather than writing them. The third
-     * takes the lot off, which is the only thing that makes the first fill
-     * again rather than subtract.
+     * The three answered on this side. The first leaves out everything the
+     * board has already ruled out. The second goes the other way, reading the
+     * marks rather than writing them. The third takes the lot off, which is the
+     * only thing that makes the first fill again rather than subtract.
      *
      * "Only one answer" and not "one mark left", because the second reads two
      * ways: the square with one mark on it, and the value with one square left
      * to go in. Both are squares that can only be one thing, which is the whole
      * of what the key claims and all it is worth saying on a long press.
+     *
+     * The first said "Fill in the possible pencil marks" until `marks` came
+     * back beside it, and two keys in one row cannot both begin "Fill in … the
+     * pencil marks" — upstream's word is upstream's, so ours moved. It is the
+     * better line anyway: this key subtracts far more often than it fills, and
+     * "leave only" is the one sentence true of it in both directions.
      */
-    possible: 'Fill in the possible pencil marks',
+    possible: 'Leave only the pencil marks still possible',
     single: 'Fill in the squares with only one answer',
     blank: 'Clear all pencil marks',
+    /**
+     * Upstream's M, in upstream's words: the manual for Keen and for Towers
+     * says it "will fill in a full set of pencil marks in every square that
+     * does not have a main digit in it". The clause is the key; the rest of the
+     * sentence says which squares, and a reader holding the button down is
+     * looking at them.
+     */
+    marks: 'Fill in a full set of pencil marks',
     hint: 'Hint',
     jumble: 'Shuffle',
     ghost: 'Ghost',

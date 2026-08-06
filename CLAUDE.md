@@ -143,7 +143,7 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 放回去。
 
 `src/engine/marks/` 就是走这扇门的。五个有铅笔标记的谜题(Solo、Keen、Towers、Unequal、
-Undead)因此多了三个键,上游的 `M` 被换掉了:
+Undead)因此多了三个键:
 
 - **`fillMarks`** 读格子里已填的值,写候选:每个空格只留棋盘还没排除的。棋上有任何一个
   候选时它**只做减法**;只有整块棋盘一个候选都没有,它才填。
@@ -280,10 +280,12 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   `PuzzleHost` 见到这个名字,才会在偏好可能动过之后回去重读一遍。
 - **键盘上有三种键,画法不同**,分法是 `KeyLabel.aid`:不带这个字段的是往一个格子里放
   东西的普通键(数字、怪物、Clear);`'upstream'` 是后端自己就读、但从来没给过按钮的字母
-  ——`H`、`J`,加上 Dominosa 那排高亮数字;`'ours'` 是后端根本不认识、由这一侧回答的
+  ——`M`、`H`、`J`,加上 Dominosa 那排高亮数字;`'ours'` 是后端根本不认识、由这一侧回答的
   三个,也就是上面那扇门。三档按「按一下够到多远」爬:一格 → 整块棋盘 → 整块棋盘且是我们
   的。填色那一档给了我们的键而不是上游的,理由写在 `index.css` 里,和「谁更具破坏性」无关
-  ——Dominosa 的上游键什么都不伤,那条分法立不住。
+  ——Dominosa 的上游键什么都不伤,那条分法立不住。上游键的文案和顺序以上游手册为准,和我们
+  的键撞了就改我们的(`possible` 因此从 "Fill in the possible pencil marks" 改成了
+  "Leave only the pencil marks still possible")。
 - TS 是 strict + `noUnusedLocals`/`noUnusedParameters`/`verbatimModuleSyntax`,类型
   导入要写 `import type`。
 

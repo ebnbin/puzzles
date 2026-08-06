@@ -16,7 +16,14 @@
  * for exactly one thing, so it also names the words said about it. See
  * `keys` in the string catalogues.
  */
-export type KeyGlyph = 'clear' | 'hint' | 'possible' | 'single' | 'blank' | 'jumble'
+export type KeyGlyph =
+  | 'clear'
+  | 'marks'
+  | 'hint'
+  | 'possible'
+  | 'single'
+  | 'blank'
+  | 'jumble'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -135,6 +142,19 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m17.6 9.6-5.2 4.8" />
     </>
   ),
+  /* A square with every corner marked: upstream's M, which fills a full set of
+     pencil marks into every square that has no digit in it. Drawn for that key,
+     deleted when the key came off these keypads, and back unchanged with it —
+     see the note on the three below, which were drawn around this one. */
+  marks: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="8.4" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="8.4" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="8.4" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="15.6" r="1.15" fill="currentColor" stroke="none" />
+    </>
+  ),
   /* A wand: one move made for you. Not the bulb — that is Solve, which makes
      all of them. */
   hint: (
@@ -152,10 +172,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * All three are a square, because all three are about what goes in one, and
    * they are told apart by what is inside it. They were drawn to share nothing
    * with upstream's four-dot `marks`, which at the time was still on Undead's
-   * keypad; Undead has these three now and that glyph is gone, so the reason
-   * has outlived itself. They are kept as they are because they read well on
-   * their own and because a key that changes its face is a key the reader has
-   * to learn twice.
+   * keypad — `possible` began as `marks` with two of its four dots left out,
+   * which said "fewer marks" exactly and was dropped because a glyph reading as
+   * a worse copy of another glyph is worse than one sharing nothing with it.
+   *
+   * That reason lapsed when `marks` came off these keypads and is live again
+   * now that it is back: the four sit in one row, on all five of these puzzles,
+   * and the dots belong to the one that fills them all in.
    */
 
   /* A tick: the digits that check out. */
