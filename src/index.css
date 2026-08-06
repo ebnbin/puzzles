@@ -1242,6 +1242,10 @@ p.notice-intro button:active {
  *      forty times and the one you make once.
  *   3. The accent, filled — the same reach, and ours rather than the game's.
  *
+ * The row is laid out in that order too (engine/keys.ts), so the ladder is
+ * climbed left to right rather than described in one place and shuffled in
+ * another.
+ *
  * Which of the last two gets the filled step is the only real choice here, and
  * it went to ours for a reason about the row rather than about the keys: our
  * three are always together and always three, so a fill reads them as one

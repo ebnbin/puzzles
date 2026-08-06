@@ -3,12 +3,18 @@ import type { DialogControl, KeyLabel } from './types'
 /**
  * Which keys a puzzle needs offered on a device without a keyboard.
  *
- * Two sorts. The ones that put something in a square — digits, monsters,
- * clear — are what upstream's request_keys() returns, and six of the forty
- * puzzles have one. The rest are keys a puzzle reads but never advertises:
- * they do something to the whole board, and every one of them was, until
- * now, unreachable without a keyboard. Both are listed here, tagged, and
- * shown apart.
+ * Three sorts, and a row runs through them in this order. The ones that put
+ * something in a square — digits, monsters, clear — are what upstream's
+ * request_keys() returns, and six of the forty puzzles have one. Then the keys
+ * a puzzle reads but never advertises: they do something to the whole board,
+ * and every one of them was, until now, unreachable without a keyboard. Last
+ * the three no puzzle reads at all, because they are this front end's own.
+ *
+ * That order is the row's own logic twice over. Reach grows along it — one
+ * square, then the board, then the board again — and so does whose idea the key
+ * is: the game as its author shipped it comes before anything added to it. The
+ * three looks index.css gives them climb the same ladder, so the row is read
+ * left to right in the order the styles are written.
  *
  * Upstream answers the first question itself, through request_keys(), but
  * that is not reachable from here: the web front end never had a keypad, so
@@ -65,30 +71,14 @@ function digits(count: number, startAtZero = false): KeyLabel[] {
 /** Backspace. The midend treats 8 and 127 alike; upstream labels it Clear. */
 const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
 
-/**
- * The three keys no puzzle reads, because they are not the puzzle's: work out
- * what each square can still take, write in the squares that have come down to
- * one, and take every mark off again. No back end has a button for any of them
- * — their solvers cannot be asked what is still possible, only told to finish —
- * so these carry an action rather than a button and are answered on this side.
- * See engine/marks.
- *
- * In that order, because the first two are the pair a reader alternates and the
- * third is the one they reach for rarely: it is how the first is made to fill
- * again rather than subtract.
- */
-const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: 'ours' }
-const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: 'ours' }
-const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours' }
-
 /*
- * And the keys that are the puzzle's, which it reads without ever offering a
- * button for. M fills every empty square with every pencil mark; H runs the
- * game's own solver as far as it will go; J deals the same network again,
- * shuffled — its own source asks "should we have some mouse control for this?"
- * and the answer, here, is this key.
+ * The keys that are the puzzle's, which it reads without ever offering a button
+ * for. M fills every empty square with every pencil mark; H runs the game's own
+ * solver as far as it will go; J deals the same network again, shuffled — its
+ * own source asks "should we have some mouse control for this?" and the answer,
+ * here, is this key.
  *
- * `M` was taken off these five keypads when the three above arrived, on the
+ * `M` was taken off these five keypads when the three below arrived, on the
  * grounds that the first of them *is* `M` when there is nothing to rule out and
  * a keypad should not offer one key twice. That was wrong twice over. They
  * differ even then — `M` writes every value, POSSIBLE only the ones the board
@@ -99,6 +89,22 @@ const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours'
 const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: 'upstream' }
 const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: 'upstream' }
 const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upstream' }
+
+/**
+ * And the three keys no puzzle reads, because they are not the puzzle's: work
+ * out what each square can still take, write in the squares that have come down
+ * to one, and take every mark off again. No back end has a button for any of
+ * them — their solvers cannot be asked what is still possible, only told to
+ * finish — so these carry an action rather than a button and are answered on
+ * this side. See engine/marks.
+ *
+ * In that order among themselves, because the first two are the pair a reader
+ * alternates and the third is the one they reach for rarely: it is how the first
+ * is made to fill again rather than subtract.
+ */
+const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: 'ours' }
+const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: 'ours' }
+const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours' }
 
 /**
  * The parameter prefix of a game id — everything before the first colon. For
@@ -175,16 +181,16 @@ const RULES: Record<
     }
     const cr = c * r
     if (cr < 1 || cr > MAX_SYMBOLS) return null
-    return [...digits(cr), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS]
+    return [...digits(cr), CLEAR, MARKS, POSSIBLE, SINGLE, BLANK]
   },
   // Digits 1..w.
   keen(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS] : null
+    return w ? [...digits(w), CLEAR, MARKS, POSSIBLE, SINGLE, BLANK] : null
   },
   towers(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS] : null
+    return w ? [...digits(w), CLEAR, MARKS, POSSIBLE, SINGLE, BLANK] : null
   },
   // Digits 1..order, except that past 9 the puzzle counts from 0 so the
   // labels stay one character wide.
@@ -193,13 +199,13 @@ const RULES: Record<
   // manual puts them: "use the M key to auto-fill every numeric hint, ready for
   // removal as required, or the H key to do the same but also to remove all
   // obvious hints". Both write over the pencil marks with something the reader
-  // did not put there. The three before them are ours and stay inside what the
+  // did not put there. The three after them are ours and stay inside what the
   // marks on the board already say — see engine/marks, which is exact about how
   // far that goes now that one of them draws a conclusion from them.
   unequal(p) {
     const order = size(p)
     if (!order) return null
-    return [...digits(order, order > 9), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS, HINT]
+    return [...digits(order, order > 9), CLEAR, MARKS, HINT, POSSIBLE, SINGLE, BLANK]
   },
   // Always 1-9, whatever the grid.
   filling: () => [...digits(9), CLEAR],
@@ -224,10 +230,10 @@ const RULES: Record<
         ...(letters ? { label: letter } : { icon }),
       })),
       CLEAR,
+      MARKS,
       POSSIBLE,
       SINGLE,
       BLANK,
-      MARKS,
     ]
   },
 
