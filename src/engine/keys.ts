@@ -392,6 +392,8 @@ export type CursorWord =
   | 'white'
   | 'carryTile'
   | 'holdPlace'
+  | 'turnLeft'
+  | 'turnRight'
 
 /**
  * What the back end says its two cursor keys would do, right now.
@@ -699,6 +701,34 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'holdPlace',
       toggles: ['Lock pos', 'Unlock'],
     },
+  ],
+
+  /*
+   * The pair that makes Twiddle's outline square worth moving.
+   *
+   * Nothing new is reachable here and that is the point: a tap already turns a
+   * block anticlockwise and a long press turns it clockwise, so by the rule this
+   * file usually applies — a key earns a button when no gesture does its job —
+   * neither of these would qualify. They are in the other category. Twiddle's
+   * arrows walk an outline square around the grid, and without something to
+   * press when it arrives that square is a marker with no use; a puzzle that
+   * offers the arrows and not these offers a decoration.
+   *
+   * The simplest entry in this table, because Twiddle asks for nothing special.
+   * Its `current_key_label` opens with `if (!ui->cur_visible) return ""`
+   * (twiddle.c:633), so both keys go out on their own until the cursor is up.
+   * `move_cursor` walks a grid of block corners, `w-n+1` by `h-n+1`
+   * (twiddle.c:661), so there is nowhere off the board to fall. And the first
+   * select press only reveals — it returns before computing a move
+   * (twiddle.c:678) — so nothing turns under a cursor the reader cannot see.
+   *
+   * Left turns left. `CURSOR_SELECT` is `dir = +1`, the same as the left mouse
+   * button, which its chapter calls anticlockwise; `CURSOR_SELECT2` is `-1`.
+   * So the two land either side of the up arrow in the order they read.
+   */
+  twiddle: [
+    { key: 'Enter', icon: 'turnLeft', says: 'turnLeft' },
+    { key: ' ', icon: 'turnRight', says: 'turnRight' },
   ],
 
   /*

@@ -63,6 +63,9 @@ export const zh: Strings = {
       white: '白',
       carryTile: '方向键带着这个方块一起走',
       holdPlace: '方向键让方块从这一格穿过',
+      /* 手册自己的译法:doc-zh/twiddle.html 写的就是「逆时针或顺时针旋转」。 */
+      turnLeft: '逆时针旋转',
+      turnRight: '顺时针旋转',
     },
   },
 

@@ -67,6 +67,8 @@ export type IconName =
   | 'arrowDownLeft'
   | 'arrowDownRight'
   | 'rotate'
+  | 'turnLeft'
+  | 'turnRight'
   | 'lock'
   | 'pencil'
   | 'black'
@@ -499,6 +501,32 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m13.6 15.8 3.2 3.2-3.2 3.2" />
       <path d="m17.6 15.8 3.2 3.2-3.2 3.2" />
     </>
+  ),
+  /*
+   * Twiddle's pair: a ring turning one way, and the same ring turned the other.
+   *
+   * Drawn without the centre dot that `rotate` above carries. That dot is Net's
+   * and it earns its place there by keeping one glyph apart from `restart`,
+   * which is a lone ring in a screen full of them. These two are never alone —
+   * they sit either side of the up arrow, mirrored, and a pair of opposed
+   * arrows says "this way or that" without help. Rendered at 20 beside the
+   * dotted version, the dot is what the ring's inside fills up with.
+   *
+   * A square inside the ring was the other candidate, since what turns in
+   * Twiddle is a block of tiles rather than one thing. It is the ink-blot shape
+   * this file keeps rediscovering: at 20 the ring closes over the square.
+   */
+  turnLeft: (
+    <>
+      <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
+      <path d="m9.4 7.2-3.9.6-.6-3.9" />
+    </>
+  ),
+  turnRight: (
+    <g transform="translate(24,0) scale(-1,1)">
+      <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
+      <path d="m9.4 7.2-3.9.6-.6-3.9" />
+    </g>
   ),
   /* A padlock, shut. The key it stands for opens one as readily as it closes
      one, but a shut lock is what "lock" looks like everywhere, and the board

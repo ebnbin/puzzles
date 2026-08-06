@@ -168,6 +168,16 @@ export const en = {
        */
       carryTile: 'Arrows carry this tile along',
       holdPlace: 'Arrows slide tiles past this square',
+      /**
+       * Twiddle's pair, in its chapter's words rather than in the back end's.
+       * `current_key_label` says "Turn left" and "Turn right", which are short
+       * because they are soft-key captions and ambiguous because turning left
+       * is not a direction of rotation in most people's hands. The manual says
+       * "rotate the current square anticlockwise or clockwise respectively",
+       * and a long press has room for the word that cannot be misread.
+       */
+      turnLeft: 'Turn anticlockwise',
+      turnRight: 'Turn clockwise',
     },
   },
 
