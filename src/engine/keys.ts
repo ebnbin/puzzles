@@ -1003,6 +1003,21 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * says "pressing Space or Enter again removes it", but `interpret_move` sends
    * `CURSOR_SELECT2` to `sel_clear` and only Enter to `sel_movedesc`
    * (samegame.c:1302-1306). Space unselects; it does not remove.
+   *
+   * And it gets one key, not two, which took a second look to see. Space is
+   * Enter's synonym in three of those four rows — the fold is what says so, and
+   * says it for free: `lsk` arrives blank exactly when the two words agree. The
+   * one row where it differs offers "Unselect", and nothing in a game of Same
+   * Game needs it. Moving onto another region and pressing once switches the
+   * selection, because that branch clears before it expands (samegame.c:1307,
+   * whose own comment reads "might be no-op"); measured, a two-square selection
+   * became a four-square one in a single press with no move committed. So the
+   * second button was the same button again three times out of four, and on the
+   * fourth it offered to tidy a status line.
+   *
+   * Unselect is still reachable and still has its face, on Enter: standing on a
+   * lone square with a selection open is the one place a press can do nothing
+   * else, and that is precisely where upstream puts the word.
    */
   samegame: [
     {
@@ -1012,15 +1027,6 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Select: { icon: 'select', says: 'select' },
         Remove: { icon: 'done', says: 'remove', on: true },
-        Unselect: { icon: 'cancel', says: 'unselect' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'select',
-      says: 'select',
-      faces: {
-        Select: { icon: 'select', says: 'select' },
         Unselect: { icon: 'cancel', says: 'unselect' },
       },
     },
