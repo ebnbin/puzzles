@@ -77,6 +77,10 @@ export type IconName =
   | 'holdPlace'
   | 'carryTileOn'
   | 'holdPlaceOn'
+  | 'mark'
+  | 'erase'
+  | 'done'
+  | 'cancel'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -527,6 +531,40 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
     </g>
+  ),
+  /*
+   * Rectangles' four faces, worn two at a time by the same two buttons.
+   *
+   * `mark` is a rectangle, wider than tall so that it is not one of this file's
+   * several squares: what the key starts is a rectangle being dragged out, and
+   * a rectangle is the whole of what the puzzle is about. `erase` is the same
+   * box with its inside crossed out, which is exactly what that key does —
+   * "erase the contents of a rectangle without affecting its edges", says its
+   * chapter, so the outline stays and the middle goes.
+   *
+   * The eraser glyph everyone else would reach for lost its band at 20 and read
+   * as a blob; a box with a broken inner line read as noise. Both were drawn and
+   * looked at before this pair was kept.
+   *
+   * `done` and `cancel` are a tick and a cross, and there is nothing clever to
+   * say about them. `cancel` repeats `close` above rather than sharing it,
+   * because the two mean different things — one shuts a dialog, one abandons a
+   * drag — and a glyph in this file stands for one thing.
+   */
+  mark: <rect x="2.8" y="6.4" width="18.4" height="11.2" rx="1.6" />,
+  erase: (
+    <>
+      <rect x="2.8" y="6.4" width="18.4" height="11.2" rx="1.6" />
+      <path d="m9.4 9.6 5.2 4.8" />
+      <path d="m14.6 9.6-5.2 4.8" />
+    </>
+  ),
+  done: <path d="m4.6 12.4 5 5 9.8-11" />,
+  cancel: (
+    <>
+      <path d="M6 6l12 12" />
+      <path d="M18 6L6 18" />
+    </>
   ),
   /* A padlock, shut. The key it stands for opens one as readily as it closes
      one, but a shut lock is what "lock" looks like everywhere, and the board

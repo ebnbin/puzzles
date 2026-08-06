@@ -66,6 +66,10 @@ export const zh: Strings = {
       /* 手册自己的译法:doc-zh/twiddle.html 写的就是「逆时针或顺时针旋转」。 */
       turnLeft: '逆时针旋转',
       turnRight: '顺时针旋转',
+      mark: '画一个矩形',
+      erase: '清除矩形内部，保留边线',
+      done: '在这里结束',
+      cancel: '取消',
     },
   },
 

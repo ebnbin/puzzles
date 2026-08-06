@@ -178,6 +178,17 @@ export const en = {
        */
       turnLeft: 'Turn anticlockwise',
       turnRight: 'Turn clockwise',
+      /**
+       * Rectangles' four, which are two buttons through one flow rather than
+       * four keys. The first two open a drag and are named for what they will
+       * draw; the last two close one and are named for the press, because by
+       * then the rectangle is on the board in front of the reader and what is
+       * in question is only whether to keep it.
+       */
+      mark: 'Draw a rectangle',
+      erase: 'Clear a rectangle, keeping its edges',
+      done: 'Finish here',
+      cancel: 'Cancel',
     },
   },
 

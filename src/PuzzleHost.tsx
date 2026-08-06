@@ -11,7 +11,7 @@ import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
   CURSOR_KEYS,
-  isHeld,
+  faceOf,
   isOffBoard,
   keysFor,
   movesEightWays,
@@ -1241,26 +1241,31 @@ export default function PuzzleHost({
               from where the cursor is, and that is not always the same key.
             */}
             {(CURSOR_KEYS[name] ?? []).map((cursor, i) => {
-              const { icon, says } = cursor
+              // What the key is right now, which for two puzzles is not what it
+              // was a press ago: Sixteen's turn into the mode they have switched
+              // on, Rectangles' into Done and Cancel once a drag is open. See
+              // faceOf, and `faces` in keys.ts for why the back end decides it.
+              const { icon, says, on } = faceOf(name, cursor, labels)
               const said = t.play.cursor[says]
               const key = wouldSend(name, cursor, labels, awake)
-              // Whether the mode this key turns on is on. Said twice over — the
-              // surface it sits on and the face it wears — because Sixteen puts
-              // it nowhere else at all. See isHeld.
-              const held = isHeld(name, cursor, labels)
               return (
                 <button
-                  key={says}
+                  // The key it sends, not the word it is showing: two of these
+                  // change face as the puzzle goes along, and Rectangles' pair
+                  // can be showing the *same* word — a drag that has been opened
+                  // and not moved says "Cancel" on both — so a face-derived key
+                  // would collide and React would keep a stale button.
+                  key={cursor.key}
                   type="button"
                   data-act={i === 0 ? 'first' : 'second'}
                   // Enter and Space, which the back end reads as CURSOR_SELECT
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.
                   data-whose="upstream"
-                  // Held down, for the two that are a mode rather than a move.
-                  // Nothing else says so — see isHeld.
-                  data-on={held || undefined}
-                  aria-pressed={cursor.toggles ? held : undefined}
+                  // Held down, where the face says so — for a mode the board
+                  // draws nowhere, and for a drag that is waiting to be closed.
+                  data-on={on || undefined}
+                  aria-pressed={cursor.faces ? !!on : undefined}
                   aria-label={said}
                   disabled={key === null}
                   {...holdToAsk(said)}
@@ -1270,7 +1275,7 @@ export default function PuzzleHost({
                     sendKey(key)
                   }}
                 >
-                  <Icon name={held && cursor.iconOn ? cursor.iconOn : icon} />
+                  <Icon name={icon} />
                 </button>
               )
             })}

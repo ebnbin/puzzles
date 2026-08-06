@@ -361,27 +361,30 @@ export type CursorKey = {
    */
   does?: string
   /**
-   * Or, for a key that turns a mode on and off: the two words its own key
-   * reports, in the order [off, on] — what the label says while the mode is
-   * off, and what it says while the mode is on and a press would end it.
+   * Or, for a key that changes job as the puzzle goes along: a face per word
+   * its own key can report.
    *
-   * A mode is not a result, so `does` cannot describe one. Its button always
-   * sends its own key, is live only while that key's label is one of these two,
-   * and shows itself pressed on the second. Sixteen is why this exists: on a
-   * tile its two keys are sticky modifiers, on the rim they slide a row
-   * instead, and the rim already has a gesture.
-   */
-  toggles?: readonly [off: string, on: string]
-  /**
-   * The face to wear while `toggles` says the mode is on.
+   * `does` cannot describe these, because they are not a result to be asked
+   * for — they are the same key meaning different things at different moments,
+   * and the back end says which. Such a button always sends its own key, is
+   * live exactly while the word it is reporting is one of these, and wears the
+   * face filed under it.
    *
-   * Only a `toggles` key can have one, and one of them has to: Sixteen keeps
-   * `cur_mode` in its `game_ui` and never draws it, so the button is the only
-   * place the state exists. The pressed background says it too; this says it in
-   * the one part of the button a reader is already looking at.
+   * Two puzzles need it and they need it for opposite reasons. Sixteen's keys
+   * are modes, and the mode is invisible — `cur_mode` lives in its `game_ui`
+   * and never reaches `game_redraw` — so the button is the only place a reader
+   * can see it, which is what `on` is for. Rectangles' keys are a flow: "Mark"
+   * or "Erase" starts a drag, and mid-drag the same two become "Done" and
+   * "Cancel". Three words each, so a pair would not hold them.
    */
-  iconOn?: IconName
+  faces?: Record<string, CursorFace>
 }
+
+/**
+ * What a key looks like and is called while it is reporting one particular
+ * word. `on` draws it as held down, for the modes that are otherwise invisible.
+ */
+export type CursorFace = { icon: IconName; says: CursorWord; on?: boolean }
 
 /** The words these keys can be called, so a missing translation is a type error. */
 export type CursorWord =
@@ -394,6 +397,10 @@ export type CursorWord =
   | 'holdPlace'
   | 'turnLeft'
   | 'turnRight'
+  | 'mark'
+  | 'erase'
+  | 'done'
+  | 'cancel'
 
 /**
  * What the back end says its two cursor keys would do, right now.
@@ -566,6 +573,14 @@ const WORDS: Record<string, readonly string[]> = {
    * the first alone, so a cursor sitting on the rim finds both buttons out.
    */
   sixteen: ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock'],
+  /*
+   * Rectangles' four, which are a flow rather than a set of choices: "Mark" and
+   * "Erase" open a drag and "Done" and "Cancel" close one. The empty string is
+   * a fifth state and needs no entry — it is what a hidden cursor reports, and
+   * what upstream reports while a *mouse* drag is running, where it wants the
+   * keys ignored (rect.c:2377).
+   */
+  rect: ['Mark', 'Erase', 'Done', 'Cancel'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -582,8 +597,8 @@ const understood = (name: string, labels: KeyLabels) => {
  * keys. A `does` button is named for a result instead, and asks the back end
  * which key currently reaches it; nobody offering it is what "you already have
  * it" looks like from out here, since a puzzle does not label a press that
- * would change nothing. A `toggles` button always sends its own key, and is out
- * whenever that key is busy with something else.
+ * would change nothing. A `faces` button always sends its own key, and is out
+ * whenever the word it is reporting is not one it has a face for.
  *
  * `awake` is only consulted for the puzzles in `CURSOR_LIFE`, and only because
  * their labels answer as confidently with the cursor hidden as with it showing.
@@ -602,26 +617,39 @@ export const wouldSend = (
       if (labels.space === cursor.does) return ' '
       return null
     }
-    if (cursor.toggles) return cursor.toggles.includes(mine(cursor, labels)) ? cursor.key : null
+    if (cursor.faces) return cursor.faces[mine(cursor, labels)] ? cursor.key : null
   }
   return doesNothing(cursor.key, labels) ? null : cursor.key
 }
 
-/** What the back end says about this button's own key. */
+/**
+ * What the back end says about this button's own key, with the blanking undone.
+ *
+ * An empty Space beside a named Enter is `js_update_key_labels` folding the two
+ * together because they agree, so Space's real word is Enter's. Rectangles is
+ * where this bites: a drag that has been opened but not moved yet has both keys
+ * saying "Cancel", which arrives as {"", "Cancel"} — and taken at face value the
+ * Space button would go out wearing the face it had before the drag started,
+ * telling the reader it would erase something when a press would abandon the
+ * drag. The same fold is why `doesNothing` is asymmetric.
+ */
 const mine = (cursor: CursorKey, labels: KeyLabels) =>
-  cursor.key === 'Enter' ? labels.enter : labels.space
+  cursor.key === 'Enter' ? labels.enter : labels.space || labels.enter
 
 /**
- * Whether a button that turns a mode on is showing it already on.
+ * The face a key should be wearing: its picture, its word, and whether to draw
+ * it held down.
  *
- * Only `toggles` buttons can be, and only the back end knows — Sixteen keeps
- * `cur_mode` in its `game_ui` and never draws it, so the word on this key is
- * the one and only place a reader can see that their arrows have stopped moving
- * the cursor and started shoving tiles about. That is the whole reason these
- * buttons show a pressed state: without it the mode is invisible.
+ * The entry in `faces` for whatever the back end is reporting right now, and
+ * the key's own picture when it has no `faces` or we have stopped recognising
+ * the words. That fallback is the same bargain as everywhere else here — an
+ * upstream rename costs a button that shows its resting face and still works,
+ * rather than a button that vanishes.
  */
-export const isHeld = (name: string, cursor: CursorKey, labels: KeyLabels) =>
-  !!cursor.toggles && understood(name, labels) && mine(cursor, labels) === cursor.toggles[1]
+export const faceOf = (name: string, cursor: CursorKey, labels: KeyLabels): CursorFace => {
+  const face = understood(name, labels) ? cursor.faces?.[mine(cursor, labels)] : undefined
+  return face ?? { icon: cursor.icon, says: cursor.says }
+}
 
 /**
  * Which puzzles have been given theirs, and what they do.
@@ -680,7 +708,8 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * costs them two things the others do not need. They show a pressed state,
    * because `cur_mode` lives in Sixteen's `game_ui` and is never drawn — the
    * word on the key is the only place a reader can find out that their arrows
-   * have stopped moving the cursor and started shoving tiles. And they go out
+   * have stopped moving the cursor and started shoving tiles — hence the `on`
+   * face. And they go out
    * on the rim, where the same two keys slide a row instead: sliding already
    * has a gesture, so it is not what these buttons are for, and a key that
    * quietly changed jobs under the reader's finger would be worse than one that
@@ -690,16 +719,20 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
     {
       key: 'Enter',
       icon: 'carryTile',
-      iconOn: 'carryTileOn',
       says: 'carryTile',
-      toggles: ['Lock tile', 'Unlock'],
+      faces: {
+        'Lock tile': { icon: 'carryTile', says: 'carryTile' },
+        Unlock: { icon: 'carryTileOn', says: 'carryTile', on: true },
+      },
     },
     {
       key: ' ',
       icon: 'holdPlace',
-      iconOn: 'holdPlaceOn',
       says: 'holdPlace',
-      toggles: ['Lock pos', 'Unlock'],
+      faces: {
+        'Lock pos': { icon: 'holdPlace', says: 'holdPlace' },
+        Unlock: { icon: 'holdPlaceOn', says: 'holdPlace', on: true },
+      },
     },
   ],
 
@@ -729,6 +762,65 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
   twiddle: [
     { key: 'Enter', icon: 'turnLeft', says: 'turnLeft' },
     { key: ' ', icon: 'turnRight', says: 'turnRight' },
+  ],
+
+  /*
+   * Rectangles, where the two keys are a flow rather than two actions.
+   *
+   * Its chapter: "use the cursor keys to move the position indicator around the
+   * board. Pressing the return key then allows you to use the cursor keys to
+   * drag a rectangle out from that position, and pressing the return key again
+   * completes the rectangle. Using the space bar instead of the return key
+   * allows you to erase the contents of a rectangle without affecting its
+   * edges. Pressing escape cancels a drag." So each key opens a drag, and while
+   * one is open both keys mean something else — which is why these have `faces`
+   * and not a picture apiece.
+   *
+   * The whole of that state machine comes back in the labels (rect.c:2374), and
+   * it is worth writing out because the button is only ever repeating it:
+   *
+   *   idle                 {Mark, Erase}    either key opens a drag
+   *   opened, not moved    {Cancel, Cancel} nothing to finish yet
+   *   marking, moved       {Done, Cancel}   Enter finishes, Space abandons
+   *   erasing, moved       {Cancel, Done}   and the other way round
+   *   a mouse drag is on   {"", ""}         upstream ignores the keys entirely
+   *
+   * "Cancel" is not decoration in that second row: a drag that has not moved
+   * builds no rectangle, because the cursor path rounds to the middle of a
+   * square and only an edge midpoint makes a move (rect.c:2523). Pressing the
+   * key that does not match the drag's mode abandons it too — `erasing ==
+   * ui->erasing` guards the only branch that produces one (rect.c:2509). Both
+   * are exactly what upstream's own word says, which is the argument for
+   * repeating the word rather than inventing a fixed pair.
+   *
+   * Nothing else is needed. `current_key_label` opens on `ui->cur_visible`, so
+   * both keys go out until the cursor is up; `move_cursor` walks the plain w×h
+   * grid, so there is nowhere off the board; and the first select press only
+   * reveals (rect.c:2432). Escape and backspace also cancel, and neither has a
+   * button — the Cancel face is the way out, and it is the same key the reader
+   * already has a finger on.
+   */
+  rect: [
+    {
+      key: 'Enter',
+      icon: 'mark',
+      says: 'mark',
+      faces: {
+        Mark: { icon: 'mark', says: 'mark' },
+        Done: { icon: 'done', says: 'done', on: true },
+        Cancel: { icon: 'cancel', says: 'cancel' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'erase',
+      says: 'erase',
+      faces: {
+        Erase: { icon: 'erase', says: 'erase' },
+        Done: { icon: 'done', says: 'done', on: true },
+        Cancel: { icon: 'cancel', says: 'cancel' },
+      },
+    },
   ],
 
   /*
