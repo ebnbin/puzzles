@@ -44,6 +44,13 @@ export const zh: Strings = {
     switcher: '全部谜题',
     keypad: '谜题按键',
     error: '启动这个谜题时出错。',
+    arrows: {
+      group: '方向键',
+      up: '上',
+      down: '下',
+      left: '左',
+      right: '右',
+    },
   },
 
   keys: {
@@ -69,6 +76,7 @@ export const zh: Strings = {
     restart: '重新开始',
     solve: '求解',
     preferences: '偏好设置',
+    arrows: '显示方向键',
     gameId: 'Game ID',
     seed: '随机种子',
   },

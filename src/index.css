@@ -1341,10 +1341,75 @@ p.notice-intro button:active {
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
-.play-actions button {
+/* The four themselves, which are a row until something needs to stand beside
+   them. Grouped rather than left as children of the row above so that the
+   arrows can be the second group; with nothing beside them the two rules come
+   to the same picture they always did. */
+.play-acts {
+  display: flex;
+  gap: var(--key-gap);
+}
+
+.play-acts button {
   flex: none;
   width: var(--act-w);
   height: var(--tap-w);
+}
+
+/*
+ * The four arrow keys, as the cross they are drawn as everywhere else.
+ *
+ * Three columns, two rows, and every one placed by the direction it points
+ * rather than by the order it was written in: a cross has a shape, and reading
+ * that shape off `nth-child` would mean the markup could not be reordered
+ * without the up key ending up on the left.
+ *
+ * Keys and not actions: each is exactly the square every puzzle key is, because
+ * that is what they are — a keyboard's four keys, offered to a device that has
+ * no keyboard.
+ */
+.play-arrows {
+  display: grid;
+  grid-template-columns: repeat(3, var(--tap-w));
+  gap: var(--key-gap);
+}
+
+.play-arrows button {
+  width: var(--tap-w);
+  height: var(--tap-w);
+}
+
+.play-arrows [data-dir='up'] {
+  grid-area: 1 / 2;
+}
+
+.play-arrows [data-dir='left'] {
+  grid-area: 2 / 1;
+}
+
+.play-arrows [data-dir='down'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows [data-dir='right'] {
+  grid-area: 2 / 3;
+}
+
+/*
+ * With a cross beside them the four buttons pair off, and the row becomes two.
+ *
+ * Written in the order they are read — undo and redo above, the two that open
+ * something below — which is what the grid gives for free by filling rows
+ * first. Nothing is kept for a Type button that is not there: a puzzle whose
+ * back end offers no presets simply has Menu at the start of the second row.
+ *
+ * The height this costs comes out of the board, which refits itself: the area
+ * the board sits in is watched by a ResizeObserver (usePuzzleFit), so turning
+ * the arrows on and off is a resize like any other.
+ */
+.play[data-arrows='true'] .play-acts {
+  display: grid;
+  grid-template-columns: repeat(2, var(--act-w));
 }
 
 /* Everything else in this row acts on the board and can be greyed out when
@@ -2157,19 +2222,47 @@ p.notice-intro button:active {
     padding: 0.3rem 0;
   }
 
+  /*
+   * Six across once the arrows are in, because six is what the row below now
+   * comes to. The identity is exact and is the reason for both numbers:
+   *
+   *   6 keys      6 × 2.5    + 5 × 0.25                = 16.25rem
+   *   2×2 + cross (2 × 3.875 + 3 × 2.5) + 4 × 0.25     = 16.25rem
+   *
+   * which is the same trick `--act-w` was defined for one width down, where
+   * two of those buttons span exactly three keys. The rail has one width at a
+   * time and every row in it fills that width; a row that came up short would
+   * read as a mistake rather than as a smaller row.
+   *
+   * All of it is width taken off the board, and in this layout that is the one
+   * cost there is no way to spread — the rail is beside the puzzle, not under
+   * it. Which is why this is a thing the reader asks for rather than a thing
+   * they are given.
+   */
+  .play[data-arrows='true'] .keypad {
+    max-width: calc(6 * var(--tap-w) + 5 * var(--key-gap));
+  }
+
   /* Two by two at the foot of the rail, each row exactly as wide as the
      keypad's three keys above. Four across would be a rail a third wider;
-     two rows cost height, which down here is the dimension going spare. */
+     two rows cost height, which down here is the dimension going spare.
+
+     Always paired off here, arrows or no arrows: the rail is narrow by design,
+     and the 2×2 is what makes it so. The portrait rule that pairs them is the
+     conditional one. */
   .play-actions {
     grid-area: 3 / 2 / 4 / 3;
-    display: grid;
-    grid-template-columns: repeat(2, var(--act-w));
     justify-self: center;
     width: max-content;
     max-width: none;
     margin: 0;
     gap: var(--key-gap);
     padding: 0.3rem 0;
+  }
+
+  .play-acts {
+    display: grid;
+    grid-template-columns: repeat(2, var(--act-w));
   }
 
   /*

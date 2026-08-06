@@ -58,6 +58,10 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'trash'
+  | 'arrowUp'
+  | 'arrowDown'
+  | 'arrowLeft'
+  | 'arrowRight'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -279,6 +283,40 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M6.6 6.8 7.5 19a1.5 1.5 0 0 0 1.5 1.4h6a1.5 1.5 0 0 0 1.5-1.4l.9-12.2" />
       <path d="M10.4 10.4v6" />
       <path d="M13.6 10.4v6" />
+    </>
+  ),
+  /*
+   * The four directions, as one shape turned four ways: a shaft the width of
+   * the grid and a head over the end of it.
+   *
+   * Longer and thinner than `back`, which is the same drawing doing a different
+   * job. These four sit together in a block and are read as a set — what tells
+   * one from another is which way it points, so the pointing is what is drawn
+   * large, and the four have to be exact rotations of each other or the block
+   * looks assembled rather than turned.
+   */
+  arrowUp: (
+    <>
+      <path d="M12 19V5" />
+      <path d="m6 11 6-6 6 6" />
+    </>
+  ),
+  arrowDown: (
+    <>
+      <path d="M12 5v14" />
+      <path d="m6 13 6 6 6-6" />
+    </>
+  ),
+  arrowLeft: (
+    <>
+      <path d="M19 12H5" />
+      <path d="m11 6-6 6 6 6" />
+    </>
+  ),
+  arrowRight: (
+    <>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
     </>
   ),
   /* An eye, and the same eye struck through: shown and hidden. Drawn small —

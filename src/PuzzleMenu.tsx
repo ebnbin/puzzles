@@ -59,6 +59,8 @@ export default function PuzzleMenu({
   permalink,
   prefs,
   prefsError,
+  arrows,
+  onToggleArrows,
   onOpenPrefs,
   onCommitPrefs,
   textError,
@@ -72,6 +74,13 @@ export default function PuzzleMenu({
   prefs: DialogSpec | null
   /** What it said about a value, if it refused one. */
   prefsError: string | null
+  /**
+   * Whether this puzzle shows the arrow keys, or null for one that would do
+   * nothing with them — see `readsArrows`. Null is not false: false is an
+   * offer the reader has declined, and null is no offer to make.
+   */
+  arrows: boolean | null
+  onToggleArrows: () => void
   onOpenPrefs: () => void
   onCommitPrefs: () => void
   /** What it said about a typed address, and which of the two it was about. */
@@ -150,14 +159,35 @@ export default function PuzzleMenu({
           </section>
         )}
 
-        {/* Some puzzles offer none, and an empty heading is worse than no
-            heading. */}
-        {prefs && prefs.controls.length > 0 && (
+        {/* Some puzzles offer none of their own, and an empty heading is worse
+            than no heading — but the arrow keys are ours to offer and are
+            offered on all but one puzzle, so the section now stands on either
+            of the two. */}
+        {(arrows !== null || (prefs && prefs.controls.length > 0)) && (
           <section>
             <h2>{t.menu.preferences}</h2>
             <div className="sheet-prefs">
-              <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
-              {prefsError && <ErrorNote text={prefsError} />}
+              {prefs && prefs.controls.length > 0 && (
+                <>
+                  <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
+                  {prefsError && <ErrorNote text={prefsError} />}
+                </>
+              )}
+              {/* Last, under the puzzle's own. Written to look exactly like one
+                  of them — the same class ConfigFields gives a checkbox — because
+                  from where the reader sits it is one: a switch in the list of
+                  switches. That it is answered on this side and they are answered
+                  in the wasm is not a distinction the sheet should be drawing. */}
+              {arrows !== null && (
+                <label className="dialog-boolean">
+                  <input
+                    type="checkbox"
+                    checked={arrows}
+                    onChange={onToggleArrows}
+                  />
+                  {t.menu.arrows}
+                </label>
+              )}
             </div>
           </section>
         )}

@@ -9,7 +9,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { keysFor, READS_PREFS } from './engine/keys'
+import { keysFor, READS_PREFS, readsArrows } from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -32,6 +32,7 @@ import type {
 } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
+import { toggleArrows, useArrows } from './useArrows'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -71,6 +72,23 @@ const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
   single: placeSingles,
   blank: clearMarks,
 }
+
+/**
+ * The four arrow keys, in the order they are written into the block: the top of
+ * the cross first, then the row under it left to right.
+ *
+ * The name is what goes across the boundary, not the code: emcc.c reads the
+ * `key` string and matches "ArrowUp" and its three neighbours by name before it
+ * ever looks at a key code, so these reach `midend_process_key` as CURSOR_UP
+ * and the rest exactly as a real keyboard's would. Nothing about the press
+ * being made with a thumb is visible on the far side.
+ */
+const ARROWS = [
+  { dir: 'up', key: 'ArrowUp', icon: 'arrowUp' },
+  { dir: 'left', key: 'ArrowLeft', icon: 'arrowLeft' },
+  { dir: 'down', key: 'ArrowDown', icon: 'arrowDown' },
+  { dir: 'right', key: 'ArrowRight', icon: 'arrowRight' },
+] as const
 
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
@@ -154,6 +172,14 @@ export default function PuzzleHost({
    * reads them, and only one puzzle's keypad does — see READS_PREFS.
    */
   const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
+  /*
+   * Whether this puzzle is showing the four arrows, and whether it is even
+   * allowed to be asked. Null for Loopy, which reads no cursor key — see
+   * `readsArrows`; everywhere else it is the reader's own answer, off until
+   * they say otherwise.
+   */
+  const chosen = useArrows()
+  const arrows = readsArrows(name) ? chosen.has(name) : null
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -812,8 +838,34 @@ export default function PuzzleHost({
     canvasRef.current?.focus()
   }, [acted, markAction])
 
+  /*
+   * An arrow, sent as the keypress it is.
+   *
+   * The focus call is the whole reason this is not just `api.key`. Pressing a
+   * button moves focus to that button, and the board reads the keyboard from
+   * itself — so without this, one tap on an arrow would leave every *physical*
+   * arrow press going to a button that does nothing with it. Giving the board
+   * its focus back after each press is what lets the two be used in the same
+   * sitting, which on a laptop is exactly how they will be. Preventing the
+   * default on mousedown stops the focus leaving in the first place; both,
+   * because between them they also cover the case this feature exists for —
+   * a board that never had focus, because on a touch device nothing has.
+   */
+  const pressArrow = useCallback((key: string) => {
+    const api = apiRef.current
+    if (!api) return
+    acted()
+    api.key(0, key, '', 0, 0, 0)
+    canvasRef.current?.focus()
+  }, [acted])
+
   return (
-    <div className="play" data-ready={ready}>
+    /* The flag goes here rather than on the row that grows, because two rows
+       answer to it: the four buttons pair off into a 2×2 to make room for the
+       cross beside them, and in the landscape rail the keys above go from three
+       across to six — which is exactly the width the 2×2 and the cross come to
+       together. See the arithmetic in index.css. */
+    <div className="play" data-ready={ready} data-arrows={arrows ? 'true' : undefined}>
       <header className="play-bar">
         {/* The name is the way to the other thirty-nine, and the only way off
             this screen. There is no back arrow because there is nothing behind
@@ -920,71 +972,108 @@ export default function PuzzleHost({
           reader's language — so the words come on a long press instead, the
           same way the keys above answer the same question. */}
       <nav className="play-actions">
-        <button
-          type="button"
-          aria-label={t.play.undo}
-          disabled={!undoRedo.undo}
-          {...holdToAsk(t.play.undo)}
-          onClick={() => {
-            if (wasHeld()) return
-            act((a) => a.undo())
-          }}
-        >
-          <Icon name="undo" />
-        </button>
-        <button
-          type="button"
-          aria-label={t.play.redo}
-          disabled={!undoRedo.redo}
-          {...holdToAsk(t.play.redo)}
-          onClick={() => {
-            if (wasHeld()) return
-            act((a) => a.redo())
-          }}
-        >
-          <Icon name="redo" />
-        </button>
-        {/* Its own way in, beside the menu rather than inside it: how big a
-            board you want is asked far more often than anything the menu
-            holds, and on some puzzles the list of answers is longer than the
-            menu itself. */}
-        {presets && (
+        {/* A group of their own, so the arrows can sit beside them as a second
+            one. In a row of four this changes nothing; once there is a cross to
+            its right it is what pairs them off two by two, and the order they
+            are written in is the order they fill it — undo and redo above, the
+            two that open something below. A puzzle whose back end offers no
+            presets has no Type, and then the lower row is Menu alone, on the
+            left, rather than a gap kept for a button that does not exist. */}
+        <div className="play-acts">
           <button
             type="button"
-            aria-label={t.types.title}
-            aria-haspopup="dialog"
-            aria-expanded={typesOpen}
-            {...holdToAsk(t.types.title)}
+            aria-label={t.play.undo}
+            disabled={!undoRedo.undo}
+            {...holdToAsk(t.play.undo)}
             onClick={() => {
               if (wasHeld()) return
-              closeMenu()
-              setTypesOpen(true)
+              act((a) => a.undo())
             }}
           >
-            <Icon name="type" />
+            <Icon name="undo" />
           </button>
+          <button
+            type="button"
+            aria-label={t.play.redo}
+            disabled={!undoRedo.redo}
+            {...holdToAsk(t.play.redo)}
+            onClick={() => {
+              if (wasHeld()) return
+              act((a) => a.redo())
+            }}
+          >
+            <Icon name="redo" />
+          </button>
+          {/* Its own way in, beside the menu rather than inside it: how big a
+              board you want is asked far more often than anything the menu
+              holds, and on some puzzles the list of answers is longer than the
+              menu itself. */}
+          {presets && (
+            <button
+              type="button"
+              aria-label={t.types.title}
+              aria-haspopup="dialog"
+              aria-expanded={typesOpen}
+              {...holdToAsk(t.types.title)}
+              onClick={() => {
+                if (wasHeld()) return
+                closeMenu()
+                setTypesOpen(true)
+              }}
+            >
+              <Icon name="type" />
+            </button>
+          )}
+          {/* The one in the row that opens something rather than doing something,
+              drawn in the accent to say so — the same distinction the keypad makes
+              between a key that fills a square and a key that acts on the board. */}
+          <button
+            type="button"
+            className="is-menu"
+            aria-label={t.play.menu}
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            {...holdToAsk(t.play.menu)}
+            onClick={() => {
+              if (wasHeld()) return
+              closeTypes()
+              // Whatever the back end said about a typed id was said to a sheet
+              // that is no longer up. Opening a fresh one starts clean.
+              setTextError(null)
+              setMenuOpen(true)
+            }}
+          >
+            <Icon name="menu" />
+          </button>
+        </div>
+
+        {/*
+          The four the puzzle never asks for and almost always takes.
+
+          No hold tip, alone among the buttons on this screen, and that is
+          deliberate twice over. An arrow is the one glyph that needs no word —
+          it points — so there is nothing a tip would add; and an arrow is also
+          the one button here anybody would press by holding it down, which is
+          exactly the gesture a tip steals. Held keys still get their name, in
+          `aria-label`, where it is read out rather than shown.
+        */}
+        {arrows && (
+          <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
+            {ARROWS.map(({ dir, key, icon }) => (
+              <button
+                key={dir}
+                type="button"
+                data-dir={dir}
+                aria-label={t.play.arrows[dir]}
+                // Keep focus on the board, the same way the keypad does.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pressArrow(key)}
+              >
+                <Icon name={icon} />
+              </button>
+            ))}
+          </div>
         )}
-        {/* The one in the row that opens something rather than doing something,
-            drawn in the accent to say so — the same distinction the keypad makes
-            between a key that fills a square and a key that acts on the board. */}
-        <button
-          type="button"
-          className="is-menu"
-          aria-label={t.play.menu}
-          aria-haspopup="dialog"
-          aria-expanded={menuOpen}
-          {...holdToAsk(t.play.menu)}
-          onClick={() => {
-            if (wasHeld()) return
-            closeTypes()
-            // Whatever the back end said about a typed id was said to a sheet
-            // that is no longer up. Opening a fresh one starts clean.
-            setTextError(null)
-            setMenuOpen(true)
-          }}
-        >
-          <Icon name="menu" />
-        </button>
       </nav>
 
       {/* Outside the row it belongs to, and it has to be: `.play-actions` is a
@@ -1089,6 +1178,8 @@ export default function PuzzleHost({
           permalink={permalink}
           prefs={inline?.kind === 'prefs' ? inline.spec : null}
           prefsError={inlineError}
+          arrows={arrows}
+          onToggleArrows={() => toggleArrows(name)}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           textError={textError}

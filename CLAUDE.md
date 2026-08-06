@@ -264,7 +264,9 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 ### 前端约定
 
 - **模块级 store + `useSyncExternalStore`**,不用 Context:主题(`useTheme`)、语言
-  (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、当前屏幕(`view.ts`)都是这个形状。
+  (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、要不要方向键(`useArrows`)、当前屏幕
+  (`view.ts`)都是这个形状。后两个还共用一个更小的形状:一组游戏名存在一个 key 下,presence
+  即真——四十个只会被一起问到的布尔值是一件事,不是四十件。
 - 主题和语言在 `index.html` 的内联脚本里先解析一次,避免首帧闪白/闪英文;改了那段就要
   同步改 `useTheme` / `i18n`(以及 `build-doc.mjs` 里给手册用的同一段)。
 - 设计 token 全在 `src/tokens.css`,`data-theme` 属性切换,样式表里没有 media query。
@@ -299,10 +301,10 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
 改之前先想清楚代价:
 
 - **localStorage 的 key**(`src/engine/saves.ts` 列全了,外加 `puzzles.theme`、
-  `puzzles.lang`、`puzzles.hidden`、`puzzles.prefs.<name>`)。改名字 = 用户的存档、
-  设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验 `SAVEFILE` 开头、
-  主题只认 `dark`、其余一律当 light 并写回 `light`、集合类过滤非字符串),所以**加**东西
-  是安全的,**改**和**删**不是。
+  `puzzles.lang`、`puzzles.hidden`、`puzzles.arrows`、`puzzles.prefs.<name>`)。改名字 =
+  用户的存档、设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验
+  `SAVEFILE` 开头、主题只认 `dark`、其余一律当 light 并写回 `light`、集合类过滤非字符串),
+  所以**加**东西是安全的,**改**和**删**不是。
 
   「其余一律当 light」这条是**值**的语义改过一次而 key 没改的例子:主题曾经有第三档
   「跟随系统」,老用户存着 `system`。因为读的时候本来就容忍垃圾值,去掉那一档不需要动

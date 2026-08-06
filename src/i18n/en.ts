@@ -97,6 +97,20 @@ export const en = {
     switcher: 'All puzzles',
     keypad: 'Puzzle keys',
     error: 'Something went wrong starting this puzzle.',
+    /**
+     * The four that move the board's own cursor, for the reader who asked for
+     * them. Named as what they are and not as what they do, because what they
+     * do is each puzzle's own answer — in Cube the arrow rolls the cube, in
+     * Fifteen it slides a tile, in Sixteen it walks the rim — and a name that
+     * tried to cover all thirty-nine would say nothing about any of them.
+     */
+    arrows: {
+      group: 'Arrow keys',
+      up: 'Up',
+      down: 'Down',
+      left: 'Left',
+      right: 'Right',
+    },
   },
 
   /**
@@ -157,6 +171,14 @@ export const en = {
     restart: 'Restart',
     solve: 'Solve',
     preferences: 'Preferences',
+    /**
+     * Ours, and the only row in that section that is: everything above it comes
+     * out of the compiled back end and is in English whatever the reader has
+     * chosen. Last in the list for that reason as well as by request — the
+     * puzzle's own settings are what the heading promises, and this is the app
+     * adding one of its own underneath them.
+     */
+    arrows: 'Show arrow keys',
     gameId: 'Game ID',
     seed: 'Random seed',
   },

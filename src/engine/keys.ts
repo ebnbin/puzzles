@@ -267,6 +267,35 @@ const RULES: Record<
  */
 export const READS_PREFS = new Set(['undead'])
 
+/**
+ * The one puzzle that does not read the cursor keys.
+ *
+ * Everything above is about the keys a puzzle asks for. This is about the four
+ * it is never asked about and almost always takes: the arrows, which the
+ * midend hands over as CURSOR_UP and its three neighbours, and which
+ * thirty-nine of the forty do something with — move a cursor, roll a cube,
+ * slide a tile, walk the rim of the grid.
+ *
+ * Loopy is the exception, and it is an explicit one rather than an oversight.
+ * Its `interpret_move` switches on the three mouse buttons and returns NULL for
+ * everything else; the comment above that switch reads "I think it's only
+ * possible to play this game with mouse clicks, sorry". Its
+ * `game_get_cursor_location` is an empty function, because it has no cursor to
+ * report, and its chapter of the manual describes no keyboard control at all.
+ * Three independent ways of saying the same thing.
+ *
+ * Stated as the exception rather than as a list of thirty-nine because that is
+ * what it is: a puzzle added upstream will read the arrows unless it says
+ * otherwise, and the cost of being wrong here is small and self-correcting —
+ * four keys that do nothing, which the reader turns off again. That is the
+ * opposite of the bargain `keysFor` strikes below, where a misread id would put
+ * a *wrong* key on screen, and the answer is to show none.
+ */
+const NO_ARROWS = new Set(['loopy'])
+
+/** Whether this puzzle does anything at all with the arrow keys. */
+export const readsArrows = (name: string) => !NO_ARROWS.has(name)
+
 export function keysFor(
   name: string,
   gameId: string,
