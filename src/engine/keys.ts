@@ -366,23 +366,29 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
 }
 
 /**
- * The button a long press on the board stands for, where it is not the right
+ * The button a second press on the board stands for, where it is not the right
  * one.
  *
- * A finger has one button, so `usePuzzlePointer` spends the press itself: a tap
- * is the left button and a hold is the right one. That is the correct trade
- * almost everywhere — half the collection needs a right click for something,
- * flagging a mine or pencilling a digit — but it leaves the middle button with
- * no gesture at all, and in Net the middle button is the lock.
+ * Every pointer makes two presses and no more: a finger taps or holds, a mouse
+ * clicks left or right. `usePuzzlePointer` spends the second of them on the
+ * right button, which is the correct trade almost everywhere — half the
+ * collection needs a right click for something, flagging a mine or pencilling a
+ * digit — but it leaves the middle button with no gesture at all, and in Net
+ * the middle button is the lock.
  *
- * So Net spends its hold differently. What it gives up is rotating the other
- * way, which is three presses of the ordinary rotate; what it buys is the only
- * touch gesture that can lock a tile, and locking has no substitute at all.
+ * So Net spends its second press differently. What it gives up is rotating the
+ * other way, which is three presses of the ordinary rotate; what it buys is the
+ * only gesture that can lock a tile, and locking has no substitute at all.
+ *
+ * One number for both pointers, not one for the hold and another for the right
+ * click. They are the same request made two ways, and this was briefly wrong in
+ * exactly that way: the hold locked while the right click went on rotating, so
+ * the same board answered a mouse and a finger differently.
  *
  * Per puzzle, and it has to be: making this the rule everywhere would take the
  * right click away from the twenty-odd puzzles that are played with it.
  */
-export const LONG_PRESS: Record<string, number> = {
+export const SECOND_PRESS: Record<string, number> = {
   /** The middle button, which is `TOGGLE_LOCK` in net.c. */
   net: 1,
 }

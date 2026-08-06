@@ -2,18 +2,20 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { CanvasRenderer } from './engine/renderer'
 import type { PuzzleApi } from './engine/types'
 
-/** How long a touch must be held, with no movement, to count as the held press. */
+/** How long a touch must be held, with no movement, to count as a second press. */
 const LONG_PRESS_MS = 350
 
 /**
- * What a hold means unless the puzzle says otherwise: the right button.
+ * The second press, unless the puzzle says otherwise: the right button.
  *
- * It is the right answer nearly everywhere, because the right button is the one
- * half the collection is played with — flagging a mine, pencilling a digit,
- * marking a square impossible. See LONG_PRESS in engine/keys for the puzzle
- * that spends its hold on something else, and why.
+ * Every pointer here makes two presses — a tap and a hold, a left click and a
+ * right one — and this is what the second of them is worth. The right button
+ * nearly everywhere, because it is the one half the collection is played with:
+ * flagging a mine, pencilling a digit, marking a square impossible. See
+ * SECOND_PRESS in engine/keys for the puzzle that spends its second press
+ * elsewhere, and why.
  */
-const HELD_BUTTON = 2
+const RIGHT_BUTTON = 2
 /** Movement past this many CSS pixels means a drag, not a tap. */
 const DRAG_SLOP = 8
 
@@ -32,23 +34,30 @@ type Pending = {
  * A mouse is straightforward: buttons map through as they always did, with
  * Shift and Ctrl standing in for middle and right.
  *
- * Touch is not. Half these puzzles need a right-click — rotating the other
- * way in Net, flagging a mine, pencilling a Sudoku digit — and a finger has
- * only one button. So a touch press is not dispatched at once: it waits until
- * the gesture reveals itself. Lift quickly and it was a left click; hold still
- * and it becomes whichever button the puzzle spends its hold on; move and it
- * was a drag all along, replayed from where it started so puzzles that drag
- * still work.
+ * Touch is not. Half these puzzles need a right-click — flagging a mine,
+ * pencilling a Sudoku digit — and a finger has only one button. So a touch
+ * press is not dispatched at once: it waits until the gesture reveals itself.
+ * Lift quickly and it was a left click; hold still and it was the second press;
+ * move and it was a drag all along, replayed from where it started so puzzles
+ * that drag still work.
+ *
+ * Which leaves one thing both pointers share and neither owns: what that second
+ * press is worth. A hold and a right click are the same request made two ways,
+ * so a puzzle that redefines one must redefine the other — Net's hold locks a
+ * tile, and a right click that went on rotating instead would make the mouse
+ * and the finger disagree about a board they can both reach. It is one number,
+ * applied at both doors below.
  */
 export function usePuzzlePointer(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   /**
-   * The button a hold stands for. Defaults to the right one; a puzzle whose
-   * right button is reachable another way, and whose middle button is not, says
-   * so instead — see LONG_PRESS in engine/keys.
+   * The button a second press stands for — a hold, a right click, or a
+   * Ctrl-click. Defaults to the right one; a puzzle whose right button is
+   * reachable another way, and whose middle button is not, says so instead —
+   * see SECOND_PRESS in engine/keys.
    */
-  heldButton: number = HELD_BUTTON,
+  second: number = RIGHT_BUTTON,
 ) {
   // Logical button per physical button, so a release is reported as whatever
   // the press was, and a move with nothing held is not reported at all.
@@ -94,7 +103,12 @@ export function usePuzzlePointer(
 
       if (e.pointerType === 'mouse') {
         if (e.button >= 3) return
-        const button = e.shiftKey ? 1 : e.ctrlKey ? 2 : e.button
+        // Shift is an explicit request for the middle button and is left alone.
+        // What Ctrl and the right button ask for is a second press, and what
+        // that is worth is the puzzle's to say — the same number the hold below
+        // uses, so the two pointers cannot drift apart.
+        const asked = e.shiftKey ? 1 : e.ctrlKey ? 2 : e.button
+        const button = asked === RIGHT_BUTTON ? second : asked
         const { x, y } = at(e)
         if (api.mousedown(x, y, button)) e.preventDefault()
         held.current.set(e.pointerId, button)
@@ -110,16 +124,16 @@ export function usePuzzlePointer(
         clientX: e.clientX,
         clientY: e.clientY,
         timer: window.setTimeout(() => {
-          // Held still long enough: this is the held press. Fire press and
+          // Held still long enough: this is the second press. Fire press and
           // release together, since there is nothing sensible to drag now.
-          const p = flush(heldButton)
+          const p = flush(second)
           if (!p) return
-          apiRef.current?.mouseup(p.x, p.y, heldButton)
+          apiRef.current?.mouseup(p.x, p.y, second)
           held.current.delete(p.pointerId)
         }, LONG_PRESS_MS),
       }
     },
-    [apiRef, at, flush, heldButton],
+    [apiRef, at, flush, second],
   )
 
   const onPointerMove = useCallback(

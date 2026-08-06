@@ -9,7 +9,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { CURSOR_KEYS, keysFor, LONG_PRESS, READS_PREFS, readsArrows } from './engine/keys'
+import { CURSOR_KEYS, keysFor, READS_PREFS, SECOND_PRESS, readsArrows } from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -559,7 +559,7 @@ export default function PuzzleHost({
     ready,
     permalink?.desc.split(':')[0] ?? '',
   )
-  const pointer = usePuzzlePointer(apiRef, rendererRef, LONG_PRESS[name])
+  const pointer = usePuzzlePointer(apiRef, rendererRef, SECOND_PRESS[name])
 
   /*
    * Turn the board over with the rest of the page. The back end is not
