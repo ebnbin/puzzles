@@ -1988,7 +1988,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'From here': { icon: 'linkFrom', says: 'linkFrom', on: true },
         'To here': { icon: 'linkTo', says: 'linkTo' },
-        Cancel: { icon: 'cancel', says: 'cancelLoop', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
       },
     },
   ],
