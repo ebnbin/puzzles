@@ -111,6 +111,19 @@ export const en = {
       left: 'Left',
       right: 'Right',
     },
+    /**
+     * And the keys that act where the arrows have got to, which is what makes
+     * moving a cursor worth doing. Named per puzzle — see CURSOR_KEYS — because
+     * what Enter does is the puzzle's own answer.
+     *
+     * These say the word on a long press where the arrows do not. An arrow
+     * points, so it needs no gloss; a padlock says "lock" but not "lock what,
+     * in this puzzle", and Net's is a tile you have finished with.
+     */
+    cursor: {
+      rotateLeft: 'Rotate left',
+      lock: 'Lock or unlock',
+    },
   },
 
   /**

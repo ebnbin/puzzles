@@ -62,6 +62,8 @@ export type IconName =
   | 'arrowDown'
   | 'arrowLeft'
   | 'arrowRight'
+  | 'rotate'
+  | 'lock'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -317,6 +319,33 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M5 12h14" />
       <path d="m13 6 6 6-6 6" />
+    </>
+  ),
+  /*
+   * A turn, about the thing being turned.
+   *
+   * The dot is not decoration: without it this is `restart`, which is the same
+   * ring wound the same way, and the two must not be confusable — one turns a
+   * tile, the other throws the board away. Drawing the tile itself was the
+   * first attempt and it does not survive the size: a square inside a ring
+   * closes up into a blot at the 20 these are rendered at, which is the only
+   * size that counts. A single dot stays open, and says the same thing — this
+   * spins about its own centre.
+   */
+  rotate: (
+    <>
+      <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
+      <path d="m9.4 7.2-3.9.6-.6-3.9" />
+      <circle cx="12" cy="12" r="2.2" />
+    </>
+  ),
+  /* A padlock, shut. The key it stands for opens one as readily as it closes
+     one, but a shut lock is what "lock" looks like everywhere, and the board
+     draws which state the tile is actually in. */
+  lock: (
+    <>
+      <rect x="5.6" y="10.8" width="12.8" height="9" rx="2" />
+      <path d="M8.6 10.8V7.8a3.4 3.4 0 0 1 6.8 0v3" />
     </>
   ),
   /* An eye, and the same eye struck through: shown and hidden. Drawn small —

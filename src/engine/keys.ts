@@ -1,3 +1,4 @@
+import type { IconName } from '../Icon'
 import type { DialogControl, KeyLabel } from './types'
 
 /**
@@ -295,6 +296,91 @@ const NO_ARROWS = new Set(['loopy'])
 
 /** Whether this puzzle does anything at all with the arrow keys. */
 export const readsArrows = (name: string) => !NO_ARROWS.has(name)
+
+/**
+ * A key that acts on the square the cursor is sitting on, offered beside the
+ * arrows because it is the half of them that does anything.
+ *
+ * Moving a cursor is not playing: something has to happen where it stops, and
+ * in almost every puzzle here that something is Enter or Space —
+ * `CURSOR_SELECT` and `CURSOR_SELECT2` once midend.c has translated them
+ * (midend.c:1255). Thirty-seven of the forty read the first and twenty-nine the
+ * second, so without them the arrows move a cursor that can never do anything,
+ * which is most of a keyboard's worth of play still out of reach on a phone.
+ *
+ * Sent by name rather than by code, the way the arrows are: emcc.c matches
+ * "Enter" and a bare space against the key string before it consults any key
+ * code, so these arrive as the same button a keyboard would produce.
+ */
+export type CursorKey = {
+  /** The key name, as emcc.c matches it: "Enter" or " ". */
+  key: string
+  icon: IconName
+  /** Which of the words under `play.cursor` this key is called. */
+  says: CursorWord
+}
+
+/** The words these keys can be called, so a missing translation is a type error. */
+export type CursorWord = 'rotateLeft' | 'lock'
+
+/**
+ * Which puzzles have been given theirs, and what they do.
+ *
+ * One entry per puzzle rather than one rule for all of them, because what Enter
+ * does is each puzzle's own answer and the picture on the key has to agree with
+ * it — a padlock that rotated something would be a second puzzle on top of the
+ * first. The back end will happily report what its two keys do right now
+ * (`current_key_label`, which all forty implement), but it reports a word and
+ * in English; a picture is what fits on a 40 square, and it has to be chosen.
+ *
+ * At most two, in this order: the first sits left of the up arrow and the
+ * second right of it, in the two cells the cross leaves empty. A puzzle with
+ * one key fills only the left.
+ *
+ * Being absent is the same bargain the rest of this file strikes: a puzzle
+ * nobody has worked through yet shows the four arrows and nothing else, rather
+ * than a guessed pair.
+ */
+export const CURSOR_KEYS: Record<string, CursorKey[]> = {
+  /*
+   * Rotate, and lock.
+   *
+   * Rotating is the game, so it takes the left cell. Locking is the other
+   * thing a reader does constantly — it is how you record that a tile is
+   * settled — and it had no way in on a touch device at all: net.c gives it to
+   * the middle button, and a finger has no middle button.
+   *
+   * Rotating the other way is not here and does not need to be. It is three
+   * presses of this one, since a tile turns in quarters, and the cross has only
+   * two cells to give.
+   */
+  net: [
+    { key: 'Enter', icon: 'rotate', says: 'rotateLeft' },
+    { key: ' ', icon: 'lock', says: 'lock' },
+  ],
+}
+
+/**
+ * The button a long press on the board stands for, where it is not the right
+ * one.
+ *
+ * A finger has one button, so `usePuzzlePointer` spends the press itself: a tap
+ * is the left button and a hold is the right one. That is the correct trade
+ * almost everywhere — half the collection needs a right click for something,
+ * flagging a mine or pencilling a digit — but it leaves the middle button with
+ * no gesture at all, and in Net the middle button is the lock.
+ *
+ * So Net spends its hold differently. What it gives up is rotating the other
+ * way, which is three presses of the ordinary rotate; what it buys is the only
+ * touch gesture that can lock a tile, and locking has no substitute at all.
+ *
+ * Per puzzle, and it has to be: making this the rule everywhere would take the
+ * right click away from the twenty-odd puzzles that are played with it.
+ */
+export const LONG_PRESS: Record<string, number> = {
+  /** The middle button, which is `TOGGLE_LOCK` in net.c. */
+  net: 1,
+}
 
 export function keysFor(
   name: string,

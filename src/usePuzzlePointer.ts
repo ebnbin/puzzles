@@ -2,8 +2,18 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { CanvasRenderer } from './engine/renderer'
 import type { PuzzleApi } from './engine/types'
 
-/** How long a touch must be held, with no movement, to count as a right-click. */
+/** How long a touch must be held, with no movement, to count as the held press. */
 const LONG_PRESS_MS = 350
+
+/**
+ * What a hold means unless the puzzle says otherwise: the right button.
+ *
+ * It is the right answer nearly everywhere, because the right button is the one
+ * half the collection is played with — flagging a mine, pencilling a digit,
+ * marking a square impossible. See LONG_PRESS in engine/keys for the puzzle
+ * that spends its hold on something else, and why.
+ */
+const HELD_BUTTON = 2
 /** Movement past this many CSS pixels means a drag, not a tap. */
 const DRAG_SLOP = 8
 
@@ -26,12 +36,19 @@ type Pending = {
  * way in Net, flagging a mine, pencilling a Sudoku digit — and a finger has
  * only one button. So a touch press is not dispatched at once: it waits until
  * the gesture reveals itself. Lift quickly and it was a left click; hold still
- * and it becomes a right click; move and it was a drag all along, replayed
- * from where it started so puzzles that drag still work.
+ * and it becomes whichever button the puzzle spends its hold on; move and it
+ * was a drag all along, replayed from where it started so puzzles that drag
+ * still work.
  */
 export function usePuzzlePointer(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
+  /**
+   * The button a hold stands for. Defaults to the right one; a puzzle whose
+   * right button is reachable another way, and whose middle button is not, says
+   * so instead — see LONG_PRESS in engine/keys.
+   */
+  heldButton: number = HELD_BUTTON,
 ) {
   // Logical button per physical button, so a release is reported as whatever
   // the press was, and a move with nothing held is not reported at all.
@@ -93,16 +110,16 @@ export function usePuzzlePointer(
         clientX: e.clientX,
         clientY: e.clientY,
         timer: window.setTimeout(() => {
-          // Held still long enough: this is a right click. Fire press and
+          // Held still long enough: this is the held press. Fire press and
           // release together, since there is nothing sensible to drag now.
-          const p = flush(2)
+          const p = flush(heldButton)
           if (!p) return
-          apiRef.current?.mouseup(p.x, p.y, 2)
+          apiRef.current?.mouseup(p.x, p.y, heldButton)
           held.current.delete(p.pointerId)
         }, LONG_PRESS_MS),
       }
     },
-    [apiRef, at, flush],
+    [apiRef, at, flush, heldButton],
   )
 
   const onPointerMove = useCallback(

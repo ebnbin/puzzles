@@ -1396,6 +1396,28 @@ p.notice-intro button:active {
 }
 
 /*
+ * The two cells a cross leaves over, either side of the key at the top.
+ *
+ * They are what the arrows are for: something has to happen where the cursor
+ * stops. Placing them here rather than in a row of their own is the whole
+ * reason this costs nothing — the block is the same three keys across and two
+ * keys tall it was with only the arrows in it, so the landscape rail's width
+ * identity above is untouched.
+ *
+ * First on the left, second on the right, in the order engine/keys lists them:
+ * the left of a pair is read first, and the first is the one a puzzle is played
+ * with. A puzzle offering one key fills the left cell and leaves the right
+ * empty, which is a gap in a cross rather than a hole in a row.
+ */
+.play-arrows [data-act='first'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows [data-act='second'] {
+  grid-area: 1 / 3;
+}
+
+/*
  * With a cross beside them the four buttons pair off, and the row becomes two.
  *
  * Written in the order they are read — undo and redo above, the two that open

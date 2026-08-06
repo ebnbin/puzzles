@@ -9,7 +9,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { keysFor, READS_PREFS, readsArrows } from './engine/keys'
+import { CURSOR_KEYS, keysFor, LONG_PRESS, READS_PREFS, readsArrows } from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -559,7 +559,7 @@ export default function PuzzleHost({
     ready,
     permalink?.desc.split(':')[0] ?? '',
   )
-  const pointer = usePuzzlePointer(apiRef, rendererRef)
+  const pointer = usePuzzlePointer(apiRef, rendererRef, LONG_PRESS[name])
 
   /*
    * Turn the board over with the rest of the page. The back end is not
@@ -839,7 +839,9 @@ export default function PuzzleHost({
   }, [acted, markAction])
 
   /*
-   * An arrow, sent as the keypress it is.
+   * A key from the block around the arrows, sent as the keypress it is — the
+   * four directions, and the one or two beside them that act where the arrows
+   * have got to.
    *
    * The focus call is the whole reason this is not just `api.key`. Pressing a
    * button moves focus to that button, and the board reads the keyboard from
@@ -851,7 +853,7 @@ export default function PuzzleHost({
    * because between them they also cover the case this feature exists for —
    * a board that never had focus, because on a touch device nothing has.
    */
-  const pressArrow = useCallback((key: string) => {
+  const sendKey = useCallback((key: string) => {
     const api = apiRef.current
     if (!api) return
     acted()
@@ -1067,11 +1069,43 @@ export default function PuzzleHost({
                 aria-label={t.play.arrows[dir]}
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pressArrow(key)}
+                onClick={() => sendKey(key)}
               >
                 <Icon name={icon} />
               </button>
             ))}
+
+            {/*
+              And what to do where the arrows have got to, in the two cells the
+              cross leaves empty either side of the up key. Nothing is wider or
+              taller for them — a cross is three across and its top row was
+              carrying one key.
+
+              These do get a hold tip, unlike the arrows above. A padlock is a
+              picture of a thing, not of an action: it says "lock" but not
+              "lock what", and in Net the answer — a tile you have finished
+              turning — is worth a word. Nobody holds one down to repeat it,
+              either, so there is no gesture for the tip to steal.
+            */}
+            {(CURSOR_KEYS[name] ?? []).map(({ key, icon, says }, i) => {
+              const said = t.play.cursor[says]
+              return (
+                <button
+                  key={says}
+                  type="button"
+                  data-act={i === 0 ? 'first' : 'second'}
+                  aria-label={said}
+                  {...holdToAsk(said)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (wasHeld()) return
+                    sendKey(key)
+                  }}
+                >
+                  <Icon name={icon} />
+                </button>
+              )
+            })}
           </div>
         )}
       </nav>
