@@ -78,6 +78,7 @@ export type IconName =
   | 'carryTileOn'
   | 'holdPlaceOn'
   | 'slide'
+  | 'select'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -535,6 +536,29 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
     </g>
+  ),
+  /*
+   * Same Game's one new face: a region.
+   *
+   * Three tiles in an L rather than a tidy 2x2, because that is what a region
+   * in this puzzle looks like — same-coloured neighbours, in whatever shape they
+   * happen to fall. A block of four says "a block", which is the one shape a
+   * samegame region almost never is.
+   *
+   * Its other two faces are `done` and `cancel`, borrowed rather than drawn.
+   * That is the "one glyph, one thing" rule holding rather than bending: select
+   * a region and then confirm or drop it is the same shape as Rectangles' drag,
+   * and the two glyphs already mean carry-out-what-you-set-up and
+   * drop-what-you-set-up. Group-based drawings were tried for both and all of
+   * them lost — a struck-through group and a bare cross are two diagonals, and
+   * those two sit side by side on this screen the moment a region is selected.
+   */
+  select: (
+    <>
+      <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
+      <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
+      <rect x="13.6" y="13.6" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
+    </>
   ),
   /*
    * Mines' three: open this one, open the ring around it, and the flag.

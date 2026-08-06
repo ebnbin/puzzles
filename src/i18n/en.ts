@@ -203,6 +203,15 @@ export const en = {
        * upstream reports "Mark" or "Unmark" from the square under the cursor,
        * so this only repeats it. The picture stays the same either way.
        */
+      /**
+       * Same Game's three, in its chapter's words. "Region" is the puzzle's own
+       * noun for a run of touching squares of one colour, and it is worth
+       * keeping: what is picked and removed is never a single square, which is
+       * exactly why a lone one cannot be selected at all.
+       */
+      select: 'Select this region',
+      remove: 'Remove the selected region',
+      unselect: 'Drop the selection',
       uncover: 'Uncover this square',
       chord: 'Clear around this square',
       flag: 'Flag this as a mine',

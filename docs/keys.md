@@ -57,9 +57,9 @@ Sixteen 的边框那一档反过来验证了这条线：同两个键在边框上
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 15 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 16 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 24 | |
+| ⬜ 待办 | 23 | |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -85,7 +85,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | pattern | ✅ | 黑 ✅ · 白 ✅（两个键按颜色出，不是上游的循环；「灰」因此没有落点，见下） | —— |
 | solo | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | mines | ✅ | `Enter` 翻开／清除周围 ✅ · `Space` 插旗／取旗 ✅（按钮跟着标签换脸；`Enter` 只在旗数对上时才亮，插了旗的格子上会灭）· 中键⭕点已翻开的格子就是连开，见下 | —— |
-| samegame | ⬜ | `Enter` 选中/消除 · `Space` 取消选中 | —— |
+| samegame | ✅ | `Enter` 选中／移除 ✅ · `Space` 选中／取消选中 ✅（换脸；选中一个区域后就是「打钩／打叉」那一对）· 和 net 一样需要一份光标副本，见下 | —— |
 | flip | ⬜ | `Enter` 翻 | —— |
 | guess | ⬜ | `Enter` 放置/提交 · `Space` 保留 · 数字放 peg · `⌫`/`d` 删 | `h`/`?` 提示 ✅ · `l` 标签开关 |
 | pegs | ⬜ | `Enter` 选中棋子/跳 | —— |
@@ -174,7 +174,7 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
 | `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 8 个有肩键的 |
-| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | 只有 net |
+| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame |
 
 `labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
 真正说的东西：全 app 唯一一份「后端知道但不肯说，于是我们自己记着」的数据。
@@ -228,14 +228,31 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 以后多出第七条也照样覆盖。`midend_supersede_game_desc` 也发这个通知而不重建 ui（mines 的第一
 次点击），两头都无害：那一下本来就是碰棋盘，而且 mines 这边没有副本。
 
-### 其余 11 个候选
+### samegame 的 `awake`
 
-`current_key_label` 不检查可见性的还有 11 个：samegame、flip、guess、dominosa、inertia、
-tents、range、pearl、unruly、flood、tracks。轮到它们**不能照抄 net 这份**——每个游戏的标志
-名字、唤醒键、清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在
-`game_ui` 里都有一个 bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365
-在里面写 `*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置
-就是它自己。
+第二个，理由和 net 一模一样：它的 `current_key_label` 读 `ui->xsel, ui->ysel` 而从不问光标
+在不在屏幕上（samegame.c:1098），所以新开的盘上它已经在报左上角那个区域能做什么；而它的
+select 键是**立刻动手**而不是先显光标——`ui->displaysel = true` 然后直接进选择逻辑
+（samegame.c:1291）——于是盲按会选中一个谁都没指过的区域。
+
+规则比 net 少两条（没有 `a s d f`）：开局灭、碰棋盘灭（samegame.c:1285）、`new_ui` 重建灭、
+方向键或 `Enter`/`Space` 亮。方向键是 `wrap = true`，光标在网格上绕圈，没有边框问题。
+
+**它的标志叫 `displaysel`**，这就是为什么全集扫描会漏掉它。十个游戏十种拼法：`cur_visible`、
+`hshow`、`cshow`、`cursor_show`、`cursor_active`、`cursor_visible`、`cdisp`、`cursor`、
+`cdraw`、`displaysel`。**没有别的办法，只能一个一个读 `game_ui`。**
+
+### 其余 10 个候选
+
+`current_key_label` 不检查可见性的还有 10 个：flip、guess、dominosa、inertia、tents、range、
+pearl、unruly、flood、tracks。轮到它们**不能照抄这两份**——每个游戏的标志名字、唤醒键、
+清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在 `game_ui` 里都有一个
+bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365 在里面写
+`*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置就是它自己。
+
+顺带：**有副本的游戏，按钮在「不知道光标在哪」时戴的是自己的默认脸**，不是标签当下说的那张
+（`faceOf` 里那个 `awake` 判断）。否则 samegame 会在两个灰按钮上显示左上角那个区域的状态，
+而光标根本不在那儿。
 
 而且第一步永远是：**先确认这个游戏真的需要副本**。22 个不需要。
 

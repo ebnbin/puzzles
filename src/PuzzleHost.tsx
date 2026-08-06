@@ -1245,7 +1245,7 @@ export default function PuzzleHost({
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
               // faceOf, and `faces` in keys.ts for why the back end decides it.
-              const { icon, says, on } = faceOf(name, cursor, labels)
+              const { icon, says, on } = faceOf(name, cursor, labels, awake)
               const said = t.play.cursor[says]
               const key = wouldSend(name, cursor, labels, awake)
               return (

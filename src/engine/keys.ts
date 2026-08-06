@@ -398,6 +398,9 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
+  | 'select'
+  | 'remove'
+  | 'unselect'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -474,6 +477,22 @@ export type KeyLabels = { enter: string; space: string }
 const CURSOR_LIFE: Record<string, readonly string[]> = {
   net: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
         'Enter', ' ', 'a', 's', 'd', 'f', 'A', 'S', 'D', 'F'],
+  /*
+   * And Same Game, for the same reason and with a shorter list. Its
+   * `current_key_label` reads `ui->xsel, ui->ysel` without ever asking whether
+   * the cursor is on screen (samegame.c:1098), so on an untouched board it
+   * reports what the top-left region would do; and its select keys act at once
+   * rather than merely revealing — `ui->displaysel = true` and straight on to
+   * the selection (samegame.c:1291) — so a press with the cursor hidden picks a
+   * region nobody pointed at. Same trade as Net's, four rules and all of them
+   * self-correcting.
+   *
+   * Its flag is called `displaysel`, which is why the audit that swept the
+   * collection for one missed it: `cur_visible`, `hshow`, `cshow`,
+   * `cursor_active`, `cdisp`, `cdraw`, `displaysel` — ten spellings for one
+   * boolean, and no way to find them but to read each `game_ui`.
+   */
+  samegame: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
@@ -592,6 +611,7 @@ const WORDS: Record<string, readonly string[]> = {
    * one.
    */
   mines: ['Uncover', 'Clear', 'Mark', 'Unmark'],
+  samegame: ['Select', 'Remove', 'Unselect'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -657,8 +677,18 @@ const mine = (cursor: CursorKey, labels: KeyLabels) =>
  * upstream rename costs a button that shows its resting face and still works,
  * rather than a button that vanishes.
  */
-export const faceOf = (name: string, cursor: CursorKey, labels: KeyLabels): CursorFace => {
-  const face = understood(name, labels) ? cursor.faces?.[mine(cursor, labels)] : undefined
+export const faceOf = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  awake: boolean,
+): CursorFace => {
+  // A puzzle whose labels answer without being asked where the cursor is says
+  // something true about a square nobody is standing on. While the mirror says
+  // the cursor is away, that is not a face to wear — the button is out anyway,
+  // and its own picture is the honest thing to be out *as*. See CURSOR_LIFE.
+  const known = understood(name, labels) && (awake || !mirrorsCursor(name))
+  const face = known ? cursor.faces?.[mine(cursor, labels)] : undefined
   return face ?? { icon: cursor.icon, says: cursor.says }
 }
 
@@ -946,6 +976,52 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Mark: { icon: 'flag', says: 'flag' },
         Unmark: { icon: 'flag', says: 'unflag' },
+      },
+    },
+  ],
+
+  /*
+   * Same Game, whose two keys are a flow with a third state in the middle.
+   *
+   * Its chapter: "if you left-click an unselected region, it becomes selected";
+   * "if you left-click the selected region, it will be removed"; "if you
+   * right-click the selected region, it will be unselected". The cursor keys
+   * reach all three, and `current_key_label` (samegame.c:1098) names whichever
+   * applies where the cursor stands:
+   *
+   *   an unselected region      {Select, Select}      either key picks it
+   *   the selected region       {Remove, Unselect}    Enter does it, Space drops it
+   *   a lone square, selection  {Unselect, Unselect}  no region to pick, so it drops
+   *   a lone square, nothing    {"", ""}              and then there is nothing to do
+   *   an already-cleared square {"", ""}
+   *
+   * Both keys report "Select" on the first row, so the fold blanks Space and
+   * both buttons end up showing the same face — which is the truth, since both
+   * keys do select. Rectangles' pair does the same with "Cancel".
+   *
+   * One place the manual is looser than the code, and the labels are right: it
+   * says "pressing Space or Enter again removes it", but `interpret_move` sends
+   * `CURSOR_SELECT2` to `sel_clear` and only Enter to `sel_movedesc`
+   * (samegame.c:1302-1306). Space unselects; it does not remove.
+   */
+  samegame: [
+    {
+      key: 'Enter',
+      icon: 'select',
+      says: 'select',
+      faces: {
+        Select: { icon: 'select', says: 'select' },
+        Remove: { icon: 'done', says: 'remove', on: true },
+        Unselect: { icon: 'cancel', says: 'unselect' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'select',
+      says: 'select',
+      faces: {
+        Select: { icon: 'select', says: 'select' },
+        Unselect: { icon: 'cancel', says: 'unselect' },
       },
     },
   ],
