@@ -290,6 +290,13 @@ export const en = {
     left: (digit: string, count: number) => `${digit}, ${count} left to place`,
     /** Dominosa: light up every domino carrying this number. */
     highlight: (n: string) => `Highlight dominoes with ${n}`,
+    /*
+     * Guess: put this colour where the cursor is. Named by its number because
+     * that is the only name it has — guess.c calls them COL_1 to COL_10 and
+     * offers to write those numbers on them, and the colours themselves are
+     * ten unnamed swatches rather than a palette anyone has agreed words for.
+     */
+    peg: (n: number) => `Colour ${n}`,
   },
 
   menu: {

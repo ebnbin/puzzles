@@ -1218,6 +1218,32 @@ p.notice-intro button:active {
  * --surface-2 clears 7:1 in both themes, which is more than a number this small
  * needs and about what it wants.
  */
+/*
+ * A key that is a picture of a board colour: Guess's pegs.
+ *
+ * A disc rather than the square the key already is, because it is a photograph
+ * of the board and the board draws a peg with `draw_circle`. 22px inside a 40px
+ * key — two more than the 20px a glyph gets, since a flat disc has no interior
+ * detail to lose and the colour is the whole message; the rim is the board's
+ * COL_FRAME, which is what keeps a pale peg off a pale key.
+ *
+ * The number, when the reader has asked for numbers, sits inside it exactly as
+ * it does on the board. 0.75rem is the largest that fits two digits — there are
+ * none, the tenth colour is drawn as 0 — and clears the rim at one digit.
+ */
+.key-peg {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
 .key-left {
   position: absolute;
   top: 2px;

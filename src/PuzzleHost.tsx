@@ -129,6 +129,9 @@ const DIAGONALS = [
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
 
+/** Shared, so that "this puzzle paints no keys" is one object and not forty. */
+const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
+
 /**
  * Which of the two configurations a sheet is showing without a dialog: the
  * parameters, in the type sheet, or the preferences, in the menu.
@@ -662,6 +665,33 @@ export default function PuzzleHost({
     apiRef.current?.rescale()
   }, [theme, ready])
 
+  /*
+   * The board colours the keypad is painting keys out of — Guess's pegs, and
+   * nothing else so far. See `slot` on KeyLabel.
+   *
+   * An effect rather than a memo, and written after the one above rather than
+   * before it, both for the same reason: on a theme change it is that effect
+   * that turns the renderer's table over. Memos run during render and effects
+   * after it, in the order they are declared, so this is the first moment the
+   * new colours exist. As a memo it would have painted the last theme's pegs
+   * and had no reason to run again.
+   */
+  const [swatches, setSwatches] = useState<ReadonlyMap<number, string>>(NO_SWATCHES)
+  useEffect(() => {
+    const renderer = rendererRef.current
+    if (!renderer || !ready) return
+    const next = new Map<number, string>()
+    for (const key of keys)
+      for (const slot of [key.slot, key.ink]) {
+        if (slot === undefined) continue
+        const css = renderer.colour(slot)
+        if (css) next.set(slot, css)
+      }
+    // Thirty-nine puzzles ask for none, and handing them a fresh empty map
+    // every time the keypad changes would be a second render for nothing.
+    setSwatches((was) => (was.size === 0 && next.size === 0 ? was : next))
+  }, [keys, theme, ready])
+
   /** A dialog is modal to the game; the C side is waiting for its answer. */
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
@@ -956,9 +986,11 @@ export default function PuzzleHost({
     // itself, and the midend folds 8 and 127 together into backspace.
     const sent = String.fromCharCode(key.button)
     // And a keypad key can show the cursor, on the one puzzle where the two
-    // blocks overlap: Guess's `H` runs the hinter, which reveals the cursor on
-    // its way past (guess.c:799). Without this the mirror would sleep through
-    // a press the back end acted on. See CURSOR_LIFE.
+    // blocks overlap: every one of Guess's keys acts where the cursor is, and
+    // even `H` reveals it on the hinter's way past (guess.c:799). Without this
+    // the mirror would sleep through a press the back end acted on, and the
+    // two keys beside the arrows would sit grey next to a cursor the board is
+    // drawing. See CURSOR_LIFE.
     if (wakesCursor(name, sent)) setAwake(true)
     api.key(0, sent, '', 0, 0, 0)
     canvasRef.current?.focus()
@@ -1100,7 +1132,7 @@ export default function PuzzleHost({
         />
       </div>
 
-      <PuzzleKeypad keys={keys} left={left} onPress={pressKey} />
+      <PuzzleKeypad keys={keys} left={left} swatches={swatches} onPress={pressKey} />
 
       {/* Four, and each of them a glyph. Undo and Redo are the two arrows
           everything else in the world uses for the same thing; the grid and

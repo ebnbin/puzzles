@@ -126,6 +126,22 @@ export interface KeyLabel {
    */
   icon?: KeyIcon
   /**
+   * The board's own colour number this key is a picture of, and the number to
+   * draw its rim and its digit in — for the keys that put a colour rather than
+   * a symbol into a square. Guess's pegs are all of them.
+   *
+   * Numbers rather than colour strings, because the string is not knowable
+   * here: what the board draws with is the game's own palette put through the
+   * dark-board rewrite, and only the renderer holds the result. PuzzleHost
+   * looks these up and PuzzleKeypad paints them, so a swatch cannot agree with
+   * the board in one theme and disagree in the other.
+   *
+   * Which slot is which is the game's business, so it is stated in keys.ts
+   * beside the rule that builds these keys.
+   */
+  slot?: number
+  ink?: number
+  /**
    * Whose key this is, which is what tells the three looks apart.
    *
    * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a

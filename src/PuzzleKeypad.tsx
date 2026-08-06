@@ -53,6 +53,35 @@ const art = (icon: KeyIcon, theme: Resolved) =>
   )
 
 /**
+ * A key that is a picture of a board colour rather than of a glyph: Guess's
+ * pegs, and so far only those.
+ *
+ * Painted from the colours the board is drawing with this instant — see
+ * `slot` on KeyLabel and `colour` on the renderer — rather than from anything
+ * written here, so the key and the peg it puts down are the same colour in
+ * both themes. The rim and the digit come from the board too: guess.c draws a
+ * peg as `draw_circle(..., COL_EMPTY + col, COL_FRAME)` and writes its number
+ * on it in COL_FRAME, and this is that call.
+ *
+ * Null when the colours have not arrived, which is one render at start-up:
+ * the back end names them after it deals the first board, and the key falls
+ * back to the character it sends until then.
+ */
+const peg = (key: KeyLabel, swatches: ReadonlyMap<number, string>) => {
+  const fill = key.slot === undefined ? undefined : swatches.get(key.slot)
+  if (!fill) return null
+  const ink = key.ink === undefined ? undefined : swatches.get(key.ink)
+  return (
+    <span
+      className="key-peg"
+      style={{ background: fill, borderColor: ink ?? 'transparent', color: ink }}
+    >
+      {key.label}
+    </span>
+  )
+}
+
+/**
  * How many of this value are still to be placed, or null for a key that has no
  * such number — every key that is not a plain one, every puzzle whose board
  * this side cannot read, and
@@ -75,10 +104,12 @@ const countOn = (key: KeyLabel, left: Map<number, number> | null) => {
 export default function PuzzleKeypad({
   keys,
   left,
+  swatches,
   onPress,
 }: {
   keys: KeyLabel[]
   left: Map<number, number> | null
+  swatches: ReadonlyMap<number, string>
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
@@ -89,9 +120,20 @@ export default function PuzzleKeypad({
    * a digit says what it is. The glyph names the string, since a glyph is
    * only ever used for one thing — bar Dominosa's, which are digits doing a
    * board-wide key's job and are named by the number they carry.
+   *
+   * A swatch needs it most of all, and needs it whichever way the board is
+   * drawn: with the labels off there is nothing on the key to read at all, and
+   * with them on there is a digit whose meaning is the colour around it. Both
+   * are "the third colour", which is what the board's own numbering calls it.
    */
   const describe = (key: KeyLabel) =>
-    key.icon ? t.keys[key.icon] : key.whose ? t.keys.highlight(key.label ?? '') : undefined
+    key.icon
+      ? t.keys[key.icon]
+      : key.slot !== undefined
+        ? t.keys.peg(key.value ?? 0)
+        : key.whose
+          ? t.keys.highlight(key.label ?? '')
+          : undefined
 
   /*
    * Hold a key to be told what it is, rather than press it. The word is what
@@ -109,6 +151,7 @@ export default function PuzzleKeypad({
         {keys.map((key) => {
           const said = describe(key)
           const count = countOn(key, left)
+          const swatch = peg(key, swatches)
           return (
             <button
               // A key this side answers has no button value to be told apart by.
@@ -119,7 +162,11 @@ export default function PuzzleKeypad({
               // count, which would otherwise be read out beside it as a second
               // digit, and "9 1" is not what the key says.
               aria-label={
-                key.icon ? said : count !== null ? t.keys.left(key.label ?? '', count) : undefined
+                key.icon || key.slot !== undefined
+                  ? said
+                  : count !== null
+                    ? t.keys.left(key.label ?? '', count)
+                    : undefined
               }
               title={said}
               // Keep focus on the board: the puzzle reads the keyboard from
@@ -131,7 +178,15 @@ export default function PuzzleKeypad({
                 onPress(key)
               }}
             >
-              {key.icon ? art(key.icon, theme) : key.label}
+              {/* The character last, for the one key that can have neither a
+                  swatch nor a label: an unlabelled peg in the render before
+                  the board's colours arrive. Showing what it sends is the
+                  right answer there and would be the right answer for any
+                  other key that ever turned up with nothing on it. */}
+              {swatch ??
+                (key.icon
+                  ? art(key.icon, theme)
+                  : (key.label ?? String.fromCharCode(key.button)))}
               {count !== null && (
                 // Said by the button's own name above, so this is a picture of it
                 // and not a second thing to read out.

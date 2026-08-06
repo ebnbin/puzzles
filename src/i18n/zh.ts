@@ -108,6 +108,8 @@ export const zh: Strings = {
     zombie: '僵尸',
     left: (digit: string, count: number) => `${digit}，还有 ${count} 个没填`,
     highlight: (n: string) => `高亮含 ${n} 的骨牌`,
+    /* 手册（doc-zh/guess.html）把它们叫「颜色」，编号是 guess.c 自己的 COL_1..COL_10。 */
+    peg: (n: number) => `颜色 ${n}`,
   },
 
   menu: {

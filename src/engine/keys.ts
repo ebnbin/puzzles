@@ -155,6 +155,23 @@ function preference(
   return null
 }
 
+/**
+ * Whether a boolean preference is on. False when the box on offer does not
+ * hold it at all, which is the same answer as off — a keypad drawn from a
+ * setting nobody has is the plain one.
+ *
+ * Matched on the label, which `preference` above goes out of its way not to
+ * do. There is no choice here: a boolean has no answers to match on, and the
+ * keyword never crosses the boundary. So this is the one place where a
+ * sentence rewritten upstream would quietly take a face off a key, rather than
+ * putting the wrong one on it.
+ */
+function flag(prefs: readonly DialogControl[], label: string): boolean {
+  for (const control of prefs)
+    if (control.kind === 'boolean' && control.label === label) return control.value
+  return false
+}
+
 /** undead.c's "Monster representation", by its two answers. */
 const MONSTERS = ['Pictures', 'Letters']
 
@@ -164,6 +181,18 @@ const UNDEAD = [
   { letter: 'V', icon: 'vampire' },
   { letter: 'Z', icon: 'zombie' },
 ] as const
+
+/**
+ * The two colour numbers Guess's keys are pictures of: the first peg colour,
+ * which the other nine follow, and the ink the board rims a peg and writes its
+ * digit in. Counted off the `COL_*` enum at guess.c:21-25, where COL_BACKGROUND
+ * is 0 — the same counting the back end reports its colours by.
+ */
+const COL_FRAME = 1
+const COL_1 = 6
+
+/** guess.c's own name for the setting that writes numbers on the pegs. */
+const LABELLED = 'Label colours with numbers'
 
 const RULES: Record<
   string,
@@ -242,6 +271,47 @@ const RULES: Record<
       BLANK,
     ]
   },
+  /*
+   * Guess's colour bar, as keys: one per colour, drawn as the peg it puts down
+   * where the cursor is.
+   *
+   * These are the one set here that draws itself from the board's palette
+   * rather than from a glyph or a character — see `slot`, and the renderer's
+   * `colour`. A digit would need the reader to have turned the labels on and
+   * learnt the numbering; a swatch is the thing they are already looking at.
+   *
+   * And when the labels *are* on, the key wears the number too, because the
+   * board does. Same trade as Undead's monsters: the key has to agree with the
+   * square it fills, and the setting that decides one decides the other. Which
+   * is why guess is the second name in READS_PREFS.
+   */
+  guess(p, prefs) {
+    const m = p.match(/^c(\d+)p\d+g\d+/)
+    if (!m) return null
+    const n = +m[1]
+    // guess.c:219-224: under two colours is not a puzzle, and ten is as many
+    // as game_colours defines.
+    if (n < 2 || n > 10) return null
+    const labelled = flag(prefs, LABELLED)
+    return [
+      ...Array.from({ length: n }, (_, i): KeyLabel => {
+        // guess.c:940 takes '1'..'9' and then '0' for the tenth, and draw_peg
+        // writes `'0' + col % 10` inside the peg — so the character the key
+        // sends and the character the board shows are the same one, and the
+        // tenth peg is labelled 0 on both.
+        const button = '0'.charCodeAt(0) + ((i + 1) % 10)
+        return {
+          button,
+          ...(labelled ? { label: String.fromCharCode(button) } : {}),
+          slot: COL_1 + i,
+          ink: COL_FRAME,
+          value: i + 1,
+        }
+      }),
+      CLEAR,
+      HINT,
+    ]
+  },
 
   // Nothing to put in a square — only the key that was out of reach.
   net: () => [JUMBLE],
@@ -249,7 +319,6 @@ const RULES: Record<
   bridges: () => [HINT],
   range: () => [HINT],
   pearl: () => [HINT],
-  guess: () => [HINT],
   // 0..n lights up every domino carrying that number, two at a time. The
   // parameter is the highest face, so a default board wants 0-6.
   //
@@ -270,8 +339,14 @@ const RULES: Record<
  * Puzzles whose keypad is not settled by the game id alone. Everything else
  * here is worked out once per deal; these have to be worked out again whenever
  * a preference might have moved, which is what tells the host to go and look.
+ *
+ * Both are here for the same reason and answer it differently: the board draws
+ * a thing two ways, and the key that puts that thing down has to be drawn the
+ * way the board is. Undead's `a` moves the setting without touching the box,
+ * so the box is asked again after every press; Guess's `l` does the same
+ * (guess.c:825), which is why asking is on the key rather than on the box.
  */
-export const READS_PREFS = new Set(['undead'])
+export const READS_PREFS = new Set(['undead', 'guess'])
 
 /**
  * The one puzzle that does not read the cursor keys.
@@ -520,13 +595,20 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    * one of them shows the cursor: the digits insert a colour (guess.c:943), D
    * and Backspace clear a peg (952), and `h` runs the hinter, which shows the
    * cursor as a side effect of the "visually indicate futility" hack at
-   * guess.c:799. `h` matters to us and not only to a keyboard: it is on this
-   * puzzle's keypad, so a thumb can reach it, which is why `pressKey` asks
-   * about waking too.
+   * guess.c:799. Most of this list matters to us and not only to a keyboard:
+   * the digits, Clear and `h` are all on this puzzle's keypad, so a thumb can
+   * reach them, which is why `pressKey` asks about waking too.
+   *
+   * Backspace is in here twice on purpose, spelled both ways. The two paths
+   * name the same key differently: a physical press arrives as
+   * `KeyboardEvent.key`, which is `Backspace`, and a keypad press arrives as
+   * the character its button value stands for, which is `\b`. Neither spelling
+   * covers the other, and a mirror that slept through the button would leave
+   * two grey keys beside a cursor the board is drawing.
    */
   guess: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ',
           '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-          'd', 'D', 'Backspace', 'h', 'H', '?'],
+          'd', 'D', 'Backspace', '\b', 'h', 'H', '?'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
