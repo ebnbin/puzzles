@@ -78,6 +78,9 @@ export type IconName =
   | 'carryTileOn'
   | 'holdPlaceOn'
   | 'slide'
+  | 'uncover'
+  | 'chord'
+  | 'flag'
   | 'mark'
   | 'erase'
   | 'done'
@@ -532,6 +535,54 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
     </g>
+  ),
+  /*
+   * Mines' three: open this one, open the ring around it, and the flag.
+   *
+   * `uncover` is a square with its corner turned back, which is the one thing
+   * that says "there is something under this" without drawing what. Three other
+   * ideas lost at 20: a centre dot said only "a square with a thing in it", a
+   * burst read as noise, and a lid lifting off produced a caret that sat two
+   * cells from four real arrow keys.
+   *
+   * `chord` is the same square shrunk to its middle and given its eight
+   * neighbours, because that is exactly the move — "if the square has exactly as
+   * many flags surrounding it as it should have mines, then all the covered
+   * squares next to it which are not flagged will be uncovered". A centre with
+   * four arrows was the obvious alternative and is the universal move/pan glyph,
+   * two cells from the arrows again; a full 3x3 grid is the `type` icon.
+   *
+   * `flag` is worn by both of Space's faces, place and remove, for the reason
+   * `lock` above gives: the board draws which state the square is actually in,
+   * so the key shows the thing and the word says the direction. Here the word
+   * can be exact, because upstream reports "Mark" or "Unmark" and we are only
+   * repeating it.
+   */
+  uncover: (
+    <>
+      <path d="M3.6 6.2a2.6 2.6 0 0 1 2.6-2.6h11.6a2.6 2.6 0 0 1 2.6 2.6v11.6a2.6 2.6 0 0 1-2.6 2.6H6.2a2.6 2.6 0 0 1-2.6-2.6Z" />
+      <path d="M14.4 3.6v6.4h6" />
+    </>
+  ),
+  chord: (
+    <>
+      <rect x="9" y="9" width="6" height="6" rx="1.3" fill="currentColor" />
+      <circle cx="4.2" cy="4.2" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="4.2" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="19.8" cy="4.2" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="4.2" cy="12" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="19.8" cy="12" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="4.2" cy="19.8" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="19.8" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="19.8" cy="19.8" r="1.15" fill="currentColor" stroke="none" />
+    </>
+  ),
+  flag: (
+    <>
+      <path d="M6.4 20.6h11.2" />
+      <path d="M8.6 20.6V3.8" />
+      <path d="M8.6 4.6h9.2l-2.6 3.6 2.6 3.6H8.6" />
+    </>
   ),
   /*
    * Netslide's one key: a couple of tiles, and a push.

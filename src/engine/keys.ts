@@ -398,6 +398,10 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
+  | 'uncover'
+  | 'chord'
+  | 'flag'
+  | 'unflag'
   | 'mark'
   | 'erase'
   | 'done'
@@ -582,6 +586,12 @@ const WORDS: Record<string, readonly string[]> = {
    * keys ignored (rect.c:2377).
    */
   rect: ['Mark', 'Erase', 'Done', 'Cancel'],
+  /*
+   * Mines' four. "Mark" is Rectangles' word too and means something else there,
+   * which costs nothing: these tables are per puzzle and never consulted across
+   * one.
+   */
+  mines: ['Uncover', 'Clear', 'Mark', 'Unmark'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -890,6 +900,56 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * matches with `IS_CURSOR_SELECT`, which is both. A second button would be a
    * key these puzzles already have, twice.
    */
+  /*
+   * Mines, where the two keys are worth more for what they refuse than for what
+   * they do.
+   *
+   * Nothing here is out of reach without them. A tap uncovers a covered square,
+   * and a tap on an uncovered one clears around it — `ui->hradius` is 1 exactly
+   * when the square is already open, and `LEFT_BUTTON` copies it into
+   * `validradius` (mines.c:2616), which is the whole of what makes a click a
+   * chord. A long press flags. The middle button adds no move at all; it only
+   * refuses to uncover, which is a safety variant of the left button and not a
+   * capability. So docs/keys.md was wrong to file the chord as unreachable, and
+   * these are cursor companions like Twiddle's.
+   *
+   * What they add is upstream's own arithmetic, shown as a live button.
+   * `current_key_label` (mines.c:2516) counts the flags around the cursor and
+   * answers "Clear" only when the count matches the number, so Enter lights up
+   * exactly when a chord is available and goes out when it is not. It also goes
+   * out on a flagged square, which is upstream's safety rule made visible — you
+   * must take the flag off before you can open it — and both go out once the
+   * board is dead or won, until an undo brings them back.
+   *
+   * Lit is not the same as safe, and this is the one place in the collection
+   * where that distinction has teeth. The flags are the reader's own; if they
+   * are on the wrong squares the chord still lights, and pressing it opens
+   * precisely the mined ones among the squares it would have cleared
+   * (mines.c:2723). That is the move's own risk and the same one a tap on the
+   * number already carries — nothing here makes it worse — but a button is more
+   * of an endorsement than a tap, so it is worth having said.
+   */
+  mines: [
+    {
+      key: 'Enter',
+      icon: 'uncover',
+      says: 'uncover',
+      faces: {
+        Uncover: { icon: 'uncover', says: 'uncover' },
+        Clear: { icon: 'chord', says: 'chord' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'flag',
+      says: 'flag',
+      faces: {
+        Mark: { icon: 'flag', says: 'flag' },
+        Unmark: { icon: 'flag', says: 'unflag' },
+      },
+    },
+  ],
+
   solo: [PENCIL],
   unequal: [PENCIL],
   keen: [PENCIL],

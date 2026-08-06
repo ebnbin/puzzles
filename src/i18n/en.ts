@@ -193,6 +193,20 @@ export const en = {
        * way to the highlighted arrow the reader is looking at.
        */
       slide: 'Slide this row or column',
+      /**
+       * Mines' four, in its chapter's words. "Clear around" is the manual's own
+       * name for the second — "if you left-click in an uncovered square, it
+       * will clear around the square" — and it is worth the longer line, since
+       * it is the one press here that opens squares the reader did not point at.
+       *
+       * The flag says which direction it is going, where Net's padlock cannot:
+       * upstream reports "Mark" or "Unmark" from the square under the cursor,
+       * so this only repeats it. The picture stays the same either way.
+       */
+      uncover: 'Uncover this square',
+      chord: 'Clear around this square',
+      flag: 'Flag this as a mine',
+      unflag: 'Take the flag off',
       mark: 'Draw a rectangle',
       erase: 'Clear a rectangle, keeping its edges',
       done: 'Finish here',
