@@ -111,6 +111,13 @@ export type IconName =
   | 'advance'
   | 'edge'
   | 'noEdge'
+  | 'island'
+  | 'islandDone'
+  | 'linkFrom'
+  | 'linkTo'
+  | 'drawLine'
+  | 'galaxyArrow'
+  | 'stipple'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -962,6 +969,83 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M12 16v4.4" />
       <path d="m9.4 9.4 5.2 5.2" />
       <path d="m14.6 9.4-5.2 5.2" />
+    </>
+  ),
+  /*
+   * The last five puzzles, whose keys open something and close it again rather
+   * than putting a thing in a square. Each pair is the same object twice, the
+   * way Sixteen's and Dominosa's are: what identifies the button survives the
+   * press, and what changes says which half of the flow it is in.
+   *
+   * Bridges' island is a disc with four stubs — the board's own islands, which
+   * bridges run off in four directions. Finished, it gains the ring upstream
+   * draws round one you have said you are done with.
+   *
+   * Signpost's two are the same two squares, and which of them is filled is the
+   * whole message: the filled one is the square the cursor is standing on, so
+   * "from here" is filled on the left and "to here" filled on the right. No
+   * arrowhead, though this is the one puzzle whose board is made of arrows —
+   * these sit beside four of ours, and that is the constraint that wins.
+   *
+   * Pearl's is a line turning a corner inside a square, which is the shape that
+   * puzzle is made of and the one thing a loop segment can look like at 20.
+   *
+   * Galaxies' arrow points at its dot, which is what its markers are for: an
+   * arrow you drop in a square to remind yourself which dot owns it.
+   *
+   * Map's stipple is upstream's own word and drawing — a region dotted in a
+   * colour you are not yet sure of.
+   */
+  island: (
+    <>
+      <circle cx="12" cy="12" r="4.6" fill="currentColor" />
+      <path d="M12 3.4v3.4" />
+      <path d="M12 17.2v3.4" />
+      <path d="M3.4 12h3.4" />
+      <path d="M17.2 12h3.4" />
+    </>
+  ),
+  islandDone: (
+    <>
+      <circle cx="12" cy="12" r="4.6" fill="currentColor" />
+      <circle cx="12" cy="12" r="8.4" />
+    </>
+  ),
+  linkFrom: (
+    <>
+      <rect x="2.4" y="8" width="8" height="8" rx="1.8" fill="currentColor" />
+      <path d="M10.8 12h2.4" />
+      <rect x="13.6" y="8" width="8" height="8" rx="1.8" />
+    </>
+  ),
+  linkTo: (
+    <>
+      <rect x="2.4" y="8" width="8" height="8" rx="1.8" />
+      <path d="M10.8 12h2.4" />
+      <rect x="13.6" y="8" width="8" height="8" rx="1.8" fill="currentColor" />
+    </>
+  ),
+  drawLine: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M3.6 12h4.8a3.6 3.6 0 0 1 3.6 3.6v4.8" />
+    </>
+  ),
+  galaxyArrow: (
+    <>
+      <circle cx="17.6" cy="6.4" r="2.6" fill="currentColor" />
+      <path d="M4.2 19.8 14.4 9.6" />
+      <path d="M4.2 14.4v5.4h5.4" />
+    </>
+  ),
+  stipple: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="8.4" cy="8.4" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="8.4" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="8.4" cy="15.6" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="15.6" r="1.1" fill="currentColor" stroke="none" />
     </>
   ),
   /*

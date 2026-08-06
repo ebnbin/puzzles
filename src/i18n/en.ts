@@ -326,6 +326,34 @@ export const en = {
        */
       edge: 'Draw or rub out this wall',
       noEdge: 'Mark or unmark this as no wall',
+      /**
+       * The last five, whose keys open something and close it again. Each is in
+       * its chapter's words: Bridges' "finished" is what that manual calls an
+       * island you have done with, Map's "stipple" is its own verb for a colour
+       * you are not yet sure of, and Galaxies' "arrow" is the marker it drops in
+       * a square to say which dot owns it.
+       */
+      startBridge: 'Start a bridge from this island',
+      endBridge: 'Land the bridge here',
+      islandDone: 'Mark this island as finished',
+      linkFrom: 'Link this square to the next one',
+      linkTo: 'Link this square to the one before',
+      cancelLink: 'Drop this link',
+      startLoop: 'Start drawing the loop here',
+      endLoop: 'Stop drawing here',
+      cancelLoop: 'Drop what you were drawing',
+      newArrow: 'Pick up an arrow from this dot',
+      moveArrow: 'Pick this arrow up',
+      dropArrow: 'Drop the arrow here',
+      removeArrow: 'Throw this arrow away',
+      cancelArrow: 'Put the arrow back',
+      drawEdge: 'Draw an edge here',
+      clearEdge: 'Rub this edge out',
+      pickColour: 'Pick up the colour under the cursor',
+      fillRegion: 'Fill this region with it',
+      stippleRegion: 'Stipple this region: it might be that colour',
+      clearRegion: 'Clear this region',
+      cancelFill: 'Drop the colour you were carrying',
       domino: 'Place a domino across these two',
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',

@@ -538,6 +538,27 @@ export type CursorWord =
   | 'advance'
   | 'edge'
   | 'noEdge'
+  | 'startBridge'
+  | 'endBridge'
+  | 'islandDone'
+  | 'linkFrom'
+  | 'linkTo'
+  | 'cancelLink'
+  | 'startLoop'
+  | 'endLoop'
+  | 'cancelLoop'
+  | 'newArrow'
+  | 'moveArrow'
+  | 'dropArrow'
+  | 'removeArrow'
+  | 'cancelArrow'
+  | 'drawEdge'
+  | 'clearEdge'
+  | 'pickColour'
+  | 'fillRegion'
+  | 'stippleRegion'
+  | 'clearRegion'
+  | 'cancelFill'
   | 'place'
   | 'submit'
   | 'hold'
@@ -866,6 +887,17 @@ const WORDS: Record<string, readonly string[]> = {
   /* Flood's two do not share a state at all: one is a move on the board and
      the other replays the solver, which only exists after Solve. */
   flood: ['Fill', 'Advance'],
+  /* Bridges' two. "Finished" comes from both keys and means two things — end
+     the bridge you are drawing, or say you have done with this island — which
+     `faces` keeps apart because each key reads only its own word. */
+  bridges: ['Select', 'Finished'],
+  signpost: ['From here', 'To here', 'Cancel'],
+  pearl: ['Start', 'Stop', 'Cancel'],
+  /* Galaxies' seven, the longest label vocabulary in the collection. Its
+     `current_key_label` never looks at which key it was asked about, so both
+     report the same word and there is one button. */
+  galaxies: ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear'],
+  map: ['Pick', 'Fill', 'Stipple', 'Clear', 'Cancel'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -966,6 +998,14 @@ const BOTH: Record<string, readonly string[]> = {
   /* Same shape twice over — a black square restores and a circled one is
      rubbed out, whichever key is asked (singles.c:1141). */
   singles: ['Restore', 'Remove'],
+  /* While a bridge is being drawn both keys answer "Finished": Enter lands it,
+     Space drops it. Without this line the second button would go dark in the
+     middle of the one flow it is there to get out of. */
+  bridges: ['Finished'],
+  /* Both of Signpost's keys cancel the same half-built link, and both of Map's
+     abandon the same drag. */
+  signpost: ['Cancel'],
+  map: ['Cancel'],
 }
 
 /** What the back end says about this button's own key, with the blanking undone. */
@@ -1897,6 +1937,149 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   palisade: [
     { key: 'Enter', icon: 'edge', says: 'edge' },
     { key: ' ', icon: 'noEdge', says: 'noEdge' },
+  ],
+
+  /*
+   * Bridges, whose two keys are two different jobs that happen to share a word.
+   * Enter opens a bridge from the island under the cursor and lands it where
+   * the arrows have got to; Space says you have finished with this island, and
+   * upstream then refuses to let you disturb its bridges. Mid-drag both report
+   * "Finished" — Enter lands it, Space drops it — which is what `BOTH` is for.
+   */
+  bridges: [
+    {
+      key: 'Enter',
+      icon: 'island',
+      says: 'startBridge',
+      faces: {
+        Select: { icon: 'island', says: 'startBridge' },
+        Finished: { icon: 'done', says: 'endBridge', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'islandDone',
+      says: 'islandDone',
+      faces: { Finished: { icon: 'islandDone', says: 'islandDone' } },
+    },
+  ],
+
+  /*
+   * Signpost, where a press starts a link and the next one lands it. The two
+   * keys differ in which end the cursor is: Enter links this square to its
+   * successor, Space to its predecessor, and once a link is open each key says
+   * whether the square under the cursor can be the other end of it.
+   */
+  signpost: [
+    {
+      key: 'Enter',
+      icon: 'linkFrom',
+      says: 'linkFrom',
+      faces: {
+        'From here': { icon: 'linkFrom', says: 'linkFrom' },
+        'To here': { icon: 'linkTo', says: 'linkTo', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'linkTo',
+      says: 'linkTo',
+      faces: {
+        'From here': { icon: 'linkFrom', says: 'linkFrom', on: true },
+        'To here': { icon: 'linkTo', says: 'linkTo' },
+        Cancel: { icon: 'cancel', says: 'cancelLoop', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Pearl, whose Enter is a keyboard drag: press once to start drawing the
+   * loop, walk it with the arrows, press again to leave it. Space exists only
+   * to abandon one, which is why it has a single face and is out the rest of
+   * the time — upstream reports nothing for it until a drag is open.
+   */
+  pearl: [
+    {
+      key: 'Enter',
+      icon: 'drawLine',
+      says: 'startLoop',
+      faces: {
+        Start: { icon: 'drawLine', says: 'startLoop' },
+        Stop: { icon: 'done', says: 'endLoop', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'cancel',
+      says: 'cancelLoop',
+      faces: { Cancel: { icon: 'cancel', says: 'cancelLoop', on: true } },
+    },
+  ],
+
+  /*
+   * Galaxies, which has the longest label vocabulary in the collection and one
+   * button to spend it on: its `current_key_label` never asks which key it was
+   * called about, so both report the same word and a second button would be
+   * the first one again.
+   *
+   * Seven words, three jobs. On a grid line the key draws an edge or rubs one
+   * out. On a dot it picks up an arrow — the marker that says "this square
+   * belongs to that dot" — and on a square holding one it picks that up
+   * instead; the next press drops it, removes it, or abandons the whole thing,
+   * and upstream works out which and says so.
+   */
+  galaxies: [
+    {
+      key: 'Enter',
+      icon: 'edge',
+      says: 'drawEdge',
+      faces: {
+        Edge: { icon: 'edge', says: 'drawEdge' },
+        Clear: { icon: 'noEdge', says: 'clearEdge', on: true },
+        'New arrow': { icon: 'galaxyArrow', says: 'newArrow' },
+        'Move arrow': { icon: 'galaxyArrow', says: 'moveArrow' },
+        Place: { icon: 'done', says: 'dropArrow', on: true },
+        Remove: { icon: 'cancel', says: 'removeArrow', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelArrow', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Map, whose keys carry a colour about. Enter picks up whatever is under the
+   * cursor and the arrows take it to a region; pressing again drops it in.
+   * Space does the same with a stipple, which is upstream's word for "this
+   * region might be that colour".
+   *
+   * "Pick" is the state before a colour has been chosen at all — upstream says
+   * it when `drag_colour` is still -2 — and "Clear" empties a region, which is
+   * what dragging from an empty one does.
+   */
+  map: [
+    {
+      key: 'Enter',
+      icon: 'pickCell',
+      says: 'pickColour',
+      faces: {
+        Pick: { icon: 'pickCell', says: 'pickColour' },
+        Fill: { icon: 'black', says: 'fillRegion', on: true },
+        Stipple: { icon: 'stipple', says: 'stippleRegion', on: true },
+        Clear: { icon: 'emptyCell', says: 'clearRegion', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelFill', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'stipple',
+      says: 'stippleRegion',
+      faces: {
+        Pick: { icon: 'pickCell', says: 'pickColour' },
+        Stipple: { icon: 'stipple', says: 'stippleRegion', on: true },
+        Clear: { icon: 'emptyCell', says: 'clearRegion', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelFill', on: true },
+      },
+    },
   ],
 
   solo: [PENCIL],
