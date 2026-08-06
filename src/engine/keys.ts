@@ -405,6 +405,62 @@ export type CursorWord =
 export type KeyLabels = { enter: string; space: string }
 
 /**
+ * The puzzles whose labels do not say whether the cursor is on screen, and the
+ * keys that put it there.
+ *
+ * This table is the one place in the app that keeps a copy of something the
+ * back end knows and will not tell us, so it is meant to stay nearly empty.
+ * Everything else here is derived: `keysFor` reads the game id, `wouldSend`
+ * reads the labels, `marks` replays the save file. A mirror can drift; a
+ * derivation cannot. Read the note in docs/keys.md before adding a second one.
+ *
+ * Why there has to be one at all. Twenty-two of the thirty-four puzzles that
+ * implement `current_key_label` open it with a check on their own visibility
+ * flag, so an empty pair of labels already means "no cursor" and this side has
+ * to keep nothing. Net does not: it reads `tile(state, ui->cur_x, ui->cur_y)`
+ * unconditionally (net.c:2124), so on a board nobody has touched it reports
+ * `{Lock, Rotate}` about a tile the reader cannot see is selected — and its
+ * select key rotates *and* reveals in the same press (net.c:2330), unlike
+ * Pattern's, which reveals and returns. A live button that turns a tile you are
+ * not looking at is the thing being fixed.
+ *
+ * The rules, all four of them read out of the C:
+ *
+ *   - It starts hidden. `new_ui` sets the flag from `PUZZLES_SHOW_CURSOR`,
+ *     which no wasm build has.
+ *   - A press on the board hides it (net.c:2172), before any bounds check, so
+ *     a press outside the grid counts too.
+ *   - A key in this list shows it — arrows through `action = MOVE_CURSOR`
+ *     (net.c:2415), the rest through the select branch (net.c:2330). Modifiers
+ *     suppress the arrows: Shift and Ctrl turn them into `MOVE_ORIGIN` and
+ *     `MOVE_SOURCE`, which move something else and leave the flag alone.
+ *   - A rebuilt `game_ui` hides it — `midend_new_game` (midend.c:659) and
+ *     `midend_deserialise` (midend.c:2623). Restart does *not*: it keeps the
+ *     ui and only calls `changed_state` (midend.c:939), which Net leaves empty.
+ *
+ * Every input reaching `interpret_move` passes through this side — PuzzleHost's
+ * `onKeyDown` forwards each keystroke, `usePuzzlePointer` each board press, our
+ * own buttons go through `sendKey` — so the mirror sees everything it needs to.
+ *
+ * And it fails safe. Believing it hidden when it is not greys a button for one
+ * press, and the next arrow puts both sides back in step; believing it shown
+ * when it is not is the behaviour this replaces. Neither error sticks, which is
+ * what makes a mirror tolerable here and not in `marks`, where a wrong guess
+ * rubs out something the reader wrote.
+ */
+const CURSOR_LIFE: Record<string, readonly string[]> = {
+  net: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+        'Enter', ' ', 'a', 's', 'd', 'f', 'A', 'S', 'D', 'F'],
+}
+
+/** Whether this puzzle's cursor has to be tracked on this side. */
+const mirrorsCursor = (name: string) => name in CURSOR_LIFE
+
+/** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
+export const wakesCursor = (name: string, key: string) =>
+  CURSOR_LIFE[name]?.includes(key) ?? false
+
+/**
  * Whether a cursor key would do nothing where the cursor is standing.
  *
  * Enter is idle exactly when its own label is empty. Space is idle only when
@@ -475,8 +531,18 @@ const understood = (name: string, labels: KeyLabels) => {
  * it" looks like from out here, since a puzzle does not label a press that
  * would change nothing. A `toggles` button always sends its own key, and is out
  * whenever that key is busy with something else.
+ *
+ * `awake` is only consulted for the puzzles in `CURSOR_LIFE`, and only because
+ * their labels answer as confidently with the cursor hidden as with it showing.
+ * Everywhere else the pair already carries it and this argument is ignored.
  */
-export const wouldSend = (name: string, cursor: CursorKey, labels: KeyLabels): string | null => {
+export const wouldSend = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  awake: boolean,
+): string | null => {
+  if (mirrorsCursor(name) && !awake) return null
   if (understood(name, labels)) {
     if (cursor.does) {
       if (labels.enter === cursor.does) return 'Enter'

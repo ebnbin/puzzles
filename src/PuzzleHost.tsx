@@ -17,6 +17,7 @@ import {
   READS_PREFS,
   SECOND_PRESS,
   readsArrows,
+  wakesCursor,
   wouldSend,
 } from './engine/keys'
 import type { KeyLabels } from './engine/keys'
@@ -207,6 +208,15 @@ export default function PuzzleHost({
    * nothing are the ones whose cursor has not been woken yet.
    */
   const [labels, setLabels] = useState<KeyLabels>({ enter: '', space: '' })
+  /**
+   * Whether the cursor is on screen — for the one puzzle whose labels do not
+   * say, and only for it. See CURSOR_LIFE, which is where the rules live and
+   * where the case for keeping a copy of anything is argued.
+   *
+   * The only value in this file the back end does not hand us. It is a single
+   * bit and it is not the position: where the cursor is stays unreachable.
+   */
+  const [awake, setAwake] = useState(false)
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   /**
@@ -520,6 +530,22 @@ export default function PuzzleHost({
         onPermalinks: (desc, seed) => {
           setPermalink({ desc, seed })
           queueSave()
+          /*
+           * And the cursor is gone, for the puzzle that keeps one here.
+           *
+           * This is the back end announcing that it rebuilt its `game_ui`, not
+           * us listing the ways to make it: `game_id_change_notify` fires from
+           * `midend_new_game` (midend.c:664) and `midend_deserialise` (2722),
+           * which are the only two places `new_ui` runs, and both are five
+           * lines from it. So a new game, a preset, a typed game id or seed, a
+           * restored save and the marks keys are all covered by one line, and
+           * an eighth way to deal a board would be too.
+           *
+           * `midend_supersede_game_desc` fires it as well and does not rebuild
+           * the ui — Mines' first click. Harmless twice over: that press has
+           * already put the cursor away, and Mines keeps none here.
+           */
+          setAwake(false)
         },
         onPresetSelected: (index) => {
           setStandard((first) => first ?? index)
@@ -769,6 +795,9 @@ export default function PuzzleHost({
     const api = apiRef.current
     if (!api) return
     acted()
+    // Unmodified, because Net's arrows carry the origin and the source under
+    // Shift and Ctrl and leave the cursor where it was. See CURSOR_LIFE.
+    if (!e.shiftKey && !e.ctrlKey && wakesCursor(name, e.key)) setAwake(true)
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
     // Some of what the board takes changes a preference — undead's `a` — and
@@ -902,9 +931,11 @@ export default function PuzzleHost({
     const api = apiRef.current
     if (!api) return
     acted()
+    // No modifiers ever go out from here, so a waking key always wakes.
+    if (wakesCursor(name, key)) setAwake(true)
     api.key(0, key, '', where, 0, 0)
     canvasRef.current?.focus()
-  }, [acted])
+  }, [acted, name])
 
   return (
     /* The flag goes here rather than on the row that grows, because two rows
@@ -1001,7 +1032,12 @@ export default function PuzzleHost({
         )}
         <canvas
           ref={canvasRef}
-          onPointerDownCapture={acted}
+          onPointerDownCapture={() => {
+            acted()
+            // A press on the board puts the cursor away, wherever it lands —
+            // net.c:2172 does it before it checks the press was on the grid.
+            setAwake(false)
+          }}
           className="host-board"
           tabIndex={0}
           onContextMenu={(e) => e.preventDefault()}
@@ -1159,7 +1195,7 @@ export default function PuzzleHost({
             {(CURSOR_KEYS[name] ?? []).map((cursor, i) => {
               const { icon, says } = cursor
               const said = t.play.cursor[says]
-              const key = wouldSend(name, cursor, labels)
+              const key = wouldSend(name, cursor, labels, awake)
               return (
                 <button
                   key={says}

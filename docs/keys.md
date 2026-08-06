@@ -62,7 +62,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 
 | 游戏 | 状态 | 第 1 类：光标伴生 | 第 2 类：独立 |
 | --- | --- | --- | --- |
-| net | ✅ | `Enter` 左转 ✅ · `Space` 锁定/解锁 ✅ · 右转⭕长按已改锁定，右转用三次左转 | `J` 重排 ✅ |
+| net | ✅ | `Enter` 左转 ✅ · `Space` 锁定/解锁 ✅（没光标时两个都置灰，靠一份副本，见「我们自己保存的状态」）· 右转⭕长按已改锁定，右转用三次左转 | `J` 重排 ✅ |
 | cube | ✅ | —— 无光标，方向键即走子 | —— 不读 `Enter`/`Space`，`current_key_label` 是 `NULL` |
 | fifteen | ✅ | —— 无光标，方向键即滑块 | `h` 提示 ✅ |
 | sixteen | ✅ | 在方块上：`Enter` 粘住 Ctrl ✅ · `Space` 粘住 Shift ✅（两个键都是「模式」，按钮带按下态）· 在边框上：`Enter`/`Space` 推一行⭕（点边框箭头就能做到，所以按钮在边框上置灰） | —— |
@@ -142,6 +142,80 @@ holding down Shift」——上游自己把这两个修饰键做成了粘滞开�
 顺带一条经验，也是从这里来的：**一个游戏的「循环键」往往就把它的中键那格顺手补上了**，反过来
 说，把循环键改成绝对键就会把那格再丢掉。轮到 slant、mosaic、unruly、magnets、singles、tracks
 时先看一眼是不是同一笔账。
+
+## 我们自己保存的状态
+
+**默认是零。** 这一侧的东西全是推导出来的，不是记下来的：`keysFor` 读 game id，`wouldSend`
+读后端报的标签，`marks` 把存档 replay 一遍。推导不会漂，副本会。所以这一节是一张**要保持
+几乎空着**的表，加一条之前先读完下面那三行判据。
+
+| 名字 | 存什么 | 谁写 | 影响哪些游戏 |
+| --- | --- | --- | --- |
+| `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 8 个有肩键的 |
+| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | 只有 net |
+
+`labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
+真正说的东西：全 app 唯一一份「后端知道但不肯说，于是我们自己记着」的数据。
+
+### 加一条之前
+
+三条，缺一条就别加：
+
+1. **上游确实没有接口。** 不是「不好拿」，是拿不到。`awake` 满足：`midend_get_cursor_location`
+   存在但 emcc.c 既不调用也不导出；存档里没有（只有 5 个游戏写 `encode_ui`，net 写的是
+   org 和 centre，不是光标）；标签里也没有，因为 net 的 `current_key_label` 根本不问。
+2. **输入面是封闭的。** 送进 `interpret_move` 的每一样东西都得经过这一侧，否则副本必然漂。
+   现在成立：`PuzzleHost` 的 `onKeyDown` 转发每一次按键，`usePuzzlePointer` 转发每一次棋盘
+   触摸，方向键和肩键走 `sendKey`。
+3. **失效是自纠正的。** 猜错要能在一两步内自己回到正轨。`awake` 猜成「灭」而实际是亮的，
+   结果是按钮多灰一下，下一次方向键两边就同步了；猜成「亮」而实际是灭的，就是没做这件事
+   之前的行为。两种都不粘。**这条是 `marks/` 过不了的那条**——那边猜错会擦掉玩家写的候选，
+   所以那边的规矩是「读不懂就整个拒绝」，不是「记一份」。
+
+### net 的 `awake`
+
+为什么只有它：34 个实现 `current_key_label` 的游戏里有 22 个开头就检查自己的可见性标志
+（`cur_visible` / `hshow` / `cshow`，名字十种写法），所以「两个词都空」本身就等于「没光标」，
+这一侧什么都不用记。net 不检查——它无条件读 `tile(state, ui->cur_x, ui->cur_y)`
+（net.c:2124），所以刚发牌、光标还没出现时它就报 `{Lock, Rotate}`，说的是中间那格
+（`new_ui` 把光标放在 `width/2, height/2`，net.c:2043）。而 net 的 select 键是**一边转一边
+才把光标显出来**（net.c:2330），不像 pattern 的先显出来就返回。按钮亮着、按下去转了一块你
+根本没看见被选中的 tile——这就是要修的。
+
+四条规则，都是从 C 里读出来的：
+
+| 什么时候 | 灭/亮 | 依据 |
+| --- | --- | --- |
+| 开局 | 灭 | `new_ui` 读 `PUZZLES_SHOW_CURSOR`，wasm 里没有（net.c:2045） |
+| 碰棋盘 | 灭 | net.c:2172，而且在越界检查**之前**，所以点在格子外面也算 |
+| 后端重建 `game_ui` | 灭 | `midend_new_game`（midend.c:659）、`midend_deserialise`（midend.c:2623） |
+| 按下唤醒键 | 亮 | 方向键走 `MOVE_CURSOR`（net.c:2415），`Enter`/`Space`/`a s d f` 走 select 分支（net.c:2330） |
+
+两条值得单独记：
+
+- **Shift/Ctrl + 方向键不唤醒。** 它们在 net 里是 `MOVE_ORIGIN` / `MOVE_SOURCE`，移的是别的
+  东西，不碰那个标志。所以 `onKeyDown` 里要看修饰键。
+- **重新开始不灭。** `midend_restart_game` 保留 `me->ui`，只调 `changed_state`
+  （midend.c:939），而 net 的 `changed_state` 是空的。这条是查出来的，不是想当然——按直觉写
+  会多一条错的规则。
+
+第三条规则**没有**写成一串调用点，而是接在后端自己的通知上：`game_id_change_notify` 只从
+`midend_new_game`（midend.c:664）和 `midend_deserialise`（midend.c:2722）发出，正好就是那两处
+`new_ui` 所在的函数，各差五行。它一路走到 `js_update_permalinks`，也就是 `onPermalinks`。所以
+新游戏、换预设、手打 game id、手打种子、恢复存档、标记键的 `loadGame`——**六条路一行覆盖**，
+以后多出第七条也照样覆盖。`midend_supersede_game_desc` 也发这个通知而不重建 ui（mines 的第一
+次点击），两头都无害：那一下本来就是碰棋盘，而且 mines 这边没有副本。
+
+### 其余 11 个候选
+
+`current_key_label` 不检查可见性的还有 11 个：samegame、flip、guess、dominosa、inertia、
+tents、range、pearl、unruly、flood、tracks。轮到它们**不能照抄 net 这份**——每个游戏的标志
+名字、唤醒键、清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在
+`game_ui` 里都有一个 bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365
+在里面写 `*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置
+就是它自己。
+
+而且第一步永远是：**先确认这个游戏真的需要副本**。22 个不需要。
 
 ## 已经踩过的坑
 
