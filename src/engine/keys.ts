@@ -398,6 +398,7 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
+  | 'flip'
   | 'select'
   | 'remove'
   | 'uncover'
@@ -492,6 +493,22 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    * boolean, and no way to find them but to read each `game_ui`.
    */
   samegame: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
+  /*
+   * And Flip, which needs one for a starker reason than either. Net and Same
+   * Game answer about a square nobody is standing on; Flip's
+   * `current_key_label` is `if (IS_CURSOR_SELECT(button)) return "Flip";` and
+   * nothing else (flip.c:934) — a constant. It says the same word on a hidden
+   * cursor, a shown one, a finished board. So the labels carry no news at all
+   * here and the mirror is the only thing between a press and a blind flip of
+   * the top-left square.
+   *
+   * Its flag is `cdraw`, and its rules are Same Game's four with one wrinkle:
+   * only `LEFT_BUTTON` clears it (flip.c:959), because Flip reads no other
+   * button. A long press therefore puts the cursor away on this side while
+   * upstream keeps it — over-sleeping, which is the safe direction, and it
+   * clears on the next arrow. A long press does nothing in Flip anyway.
+   */
+  flip: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
@@ -1039,6 +1056,23 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       },
     },
   ],
+
+  /*
+   * Flip, one key, and the plainest entry in this table.
+   *
+   * Its chapter: "left-click in a square to flip it and its associated squares,
+   * or use the cursor keys to choose a square and the space bar or Enter key to
+   * flip". Both keys, one job — `IS_CURSOR_SELECT` covers them and
+   * `interpret_move` sends them down the same branch (flip.c:955) — so a second
+   * button would be the first one again.
+   *
+   * And no `faces`, because there is nothing for them to follow: the label is a
+   * constant. Whatever the board is doing, `current_key_label` answers "Flip".
+   * That is also why this is the only puzzle so far whose button is live from
+   * the moment the cursor is up and never goes out again: nothing upstream ever
+   * says it would do nothing, and the mirror is all that gates it.
+   */
+  flip: [{ key: 'Enter', icon: 'flip', says: 'flip' }],
 
   solo: [PENCIL],
   unequal: [PENCIL],

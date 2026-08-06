@@ -57,9 +57,9 @@ Sixteen 的边框那一档反过来验证了这条线：同两个键在边框上
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 16 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 17 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Flip、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 23 | |
+| ⬜ 待办 | 22 | |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -86,7 +86,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | solo | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | mines | ✅ | `Enter` 翻开／清除周围 ✅ · `Space` 插旗／取旗 ✅（按钮跟着标签换脸；`Enter` 只在旗数对上时才亮，插了旗的格子上会灭）· 中键⭕点已翻开的格子就是连开，见下 | —— |
 | samegame | ✅ | `Enter` 选中／移除 ✅（一个键两张脸；选不了的格子上置灰，仍戴「选中」那张脸）· `Space` 不给按钮，上游的「取消选中」也不给脸，见下 · 和 net 一样需要一份光标副本 | —— |
-| flip | ⬜ | `Enter` 翻 | —— |
+| flip | ✅ | `Enter` 翻转 ✅（`Space` 是同义词，只给一个键；标签是个常量，所以按钮醒来之后永不置灰）· 需要一份光标副本，见下 | —— |
 | guess | ⬜ | `Enter` 放置/提交 · `Space` 保留 · 数字放 peg · `⌫`/`d` 删 | `h`/`?` 提示 ✅ · `l` 标签开关 |
 | pegs | ⬜ | `Enter` 选中棋子/跳 | —— |
 | dominosa | ⬜ | `Enter` 放置/移除 · `Space` 画线 | 数字高亮骨牌 ✅ |
@@ -174,7 +174,7 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
 | `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 8 个有肩键的 |
-| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame |
+| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip |
 
 `labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
 真正说的东西：全 app 唯一一份「后端知道但不肯说，于是我们自己记着」的数据。
@@ -242,10 +242,27 @@ select 键是**立刻动手**而不是先显光标——`ui->displaysel = true` 
 `hshow`、`cshow`、`cursor_show`、`cursor_active`、`cursor_visible`、`cdisp`、`cursor`、
 `cdraw`、`displaysel`。**没有别的办法，只能一个一个读 `game_ui`。**
 
-### 其余 10 个候选
+### flip 的 `awake`
 
-`current_key_label` 不检查可见性的还有 10 个：flip、guess、dominosa、inertia、tents、range、
-pearl、unruly、flood、tracks。轮到它们**不能照抄这两份**——每个游戏的标志名字、唤醒键、
+第三个，而且理由比前两个更硬：net 和 samegame 至少还在说一件关于某个格子的真话，flip 的
+`current_key_label` 整个函数是
+
+```c
+if (IS_CURSOR_SELECT(button)) return "Flip";
+return "";
+```
+
+（flip.c:934）——**一个常量**。光标亮着、灭着、棋盘解完了，它都说 "Flip"。所以标签在这里一个
+字节的信息都没有，副本是「按下去」和「盲翻左上角那一格」之间唯一的东西。
+
+它的标志叫 `cdraw`，规则是 samegame 那四条，外加一个小差别：**只有 `LEFT_BUTTON` 会清掉它**
+（flip.c:959），因为 flip 根本不读别的按钮。于是长按会让这一侧睡下而上游那边光标还亮着——
+**朝安全方向多睡了一下**，下一次方向键就同步（而且 flip 里长按本来就什么都不做）。
+
+### 其余 9 个候选
+
+`current_key_label` 不检查可见性的还有 9 个：guess、dominosa、inertia、tents、range、pearl、
+unruly、flood、tracks。轮到它们**不能照抄这两份**——每个游戏的标志名字、唤醒键、
 清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在 `game_ui` 里都有一个
 bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365 在里面写
 `*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置就是它自己。

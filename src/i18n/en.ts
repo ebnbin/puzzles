@@ -210,6 +210,13 @@ export const en = {
        * exactly why a lone one cannot be selected at all — and why the button
        * has nothing to say when the cursor is on one.
        */
+      /**
+       * Flip's one, in its chapter's words: "flip it and its associated
+       * squares". "Associated" is doing real work there — which squares come
+       * along is a parameter, a cross on one setting and an arbitrary shape on
+       * the other — so the vaguer word is the accurate one.
+       */
+      flip: 'Flip this square and the ones tied to it',
       select: 'Select this region',
       remove: 'Remove the selected region',
       uncover: 'Uncover this square',

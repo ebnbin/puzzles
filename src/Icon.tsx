@@ -78,6 +78,7 @@ export type IconName =
   | 'carryTileOn'
   | 'holdPlaceOn'
   | 'slide'
+  | 'flip'
   | 'select'
   | 'uncover'
   | 'chord'
@@ -536,6 +537,31 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
     </g>
+  ),
+  /*
+   * Flip: a square with half of it turned over.
+   *
+   * The invert mark, and it is the honest one here for a reason about the
+   * parameters rather than about the drawing. What a press flips is the square
+   * *and the ones tied to it*, and their shape is a setting — "Crosses" gives
+   * the four neighbours, "Random" gives an arbitrary shape per square — so a
+   * plus of five squares, which is otherwise the most informative picture
+   * available, would be a lie on half the presets. What never varies is that
+   * squares turn over, so that is what the glyph says.
+   *
+   * A square with a turning arrow was the other candidate and reads as rotation,
+   * which nothing in Flip does, two cells from `turnLeft`.
+   */
+  flip: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path
+        d="M20.6 3.4 3.4 20.6V6a2.6 2.6 0 0 1 2.6-2.6Z"
+        fill="currentColor"
+        stroke="none"
+      />
+      <path d="M20.6 3.4 3.4 20.6" />
+    </>
   ),
   /*
    * Same Game's one new face: a region.
