@@ -68,6 +68,7 @@ export type IconName =
   | 'arrowDownRight'
   | 'rotate'
   | 'lock'
+  | 'pencil'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -376,6 +377,25 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
       <circle cx="12" cy="12" r="2.2" />
+    </>
+  ),
+  /*
+   * A pencil, for the key that switches between writing in ink and pencilling.
+   *
+   * The one glyph on these five puzzles' screens that is not a square. That is
+   * the point: the keypad above already carries four square-based glyphs about
+   * pencil marks — `marks`, `possible`, `single`, `blank` — and a fifth square
+   * would join a set it does not belong to. Those four are about what is *in* a
+   * square; this is about what the next press will *be*, so it is drawn as the
+   * thing that does the writing.
+   *
+   * The band is what keeps it a pencil at 20px rather than a diagonal stroke:
+   * candidate B was this without it and read as a slash.
+   */
+  pencil: (
+    <>
+      <path d="M4.2 19.8 5.4 15.6 16.2 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L9 19.2Z" />
+      <path d="m14.8 6.2 3 3" />
     </>
   ),
   /* A padlock, shut. The key it stands for opens one as readily as it closes

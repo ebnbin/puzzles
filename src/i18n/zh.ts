@@ -58,6 +58,7 @@ export const zh: Strings = {
     cursor: {
       rotateLeft: '向左旋转',
       lock: '锁定或解锁',
+      pencil: '切换墨水和铅笔',
     },
   },
 

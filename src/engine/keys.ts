@@ -353,7 +353,7 @@ export type CursorKey = {
 }
 
 /** The words these keys can be called, so a missing translation is a type error. */
-export type CursorWord = 'rotateLeft' | 'lock'
+export type CursorWord = 'rotateLeft' | 'lock' | 'pencil'
 
 /**
  * Which puzzles have been given theirs, and what they do.
@@ -373,6 +373,8 @@ export type CursorWord = 'rotateLeft' | 'lock'
  * nobody has worked through yet shows the four arrows and nothing else, rather
  * than a guessed pair.
  */
+const PENCIL: CursorKey = { key: 'Enter', icon: 'pencil', says: 'pencil' }
+
 export const CURSOR_KEYS: Record<string, CursorKey[]> = {
   /*
    * Rotate, and lock.
@@ -390,6 +392,27 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
     { key: 'Enter', icon: 'rotate', says: 'rotateLeft' },
     { key: ' ', icon: 'lock', says: 'lock' },
   ],
+
+  /*
+   * And one key, the same one, on all five puzzles that keep pencil marks.
+   *
+   * Whether the next digit goes in as an answer or as a pencil mark is a mode,
+   * and `Enter` is how the mode is turned over — `ui->hpencil = !ui->hpencil`
+   * in every one of the five. On a keyboard that is the whole of it; on a
+   * phone, where the digits are already buttons, it was the one thing about
+   * them nobody could say, so the digits could only ever write answers.
+   *
+   * Nothing goes in the cell beside it, and that is not an omission. `Space` in
+   * four of the five is clear — the same branch as `\b`, which is on the keypad
+   * as its own key already — and in Unequal it is `Enter` again, since that one
+   * matches with `IS_CURSOR_SELECT`, which is both. A second button would be a
+   * key these puzzles already have, twice.
+   */
+  solo: [PENCIL],
+  unequal: [PENCIL],
+  keen: [PENCIL],
+  towers: [PENCIL],
+  undead: [PENCIL],
 }
 
 /**

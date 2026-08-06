@@ -133,6 +133,14 @@ export const en = {
     cursor: {
       rotateLeft: 'Rotate left',
       lock: 'Lock or unlock',
+      /**
+       * Named as the switch rather than as either side of it, which upstream's
+       * own label is not: `current_key_label` says "Ink" when you are
+       * pencilling and "Pencil" when you are not, because it names where the
+       * press will take you. A word on a button that is only shown when the
+       * button is held cannot move like that, so it names the pair.
+       */
+      pencil: 'Switch between ink and pencil',
     },
   },
 

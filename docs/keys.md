@@ -44,9 +44,9 @@
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 4 | Net、Inertia（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 9 | Net、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 35 | |
+| ⬜ 待办 | 30 | |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -70,7 +70,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | rect | ⬜ | `Enter` 起止拖拽 · `Space` 标记/擦除 · `⌫` 取消拖拽 | —— |
 | netslide | ⬜ | `Enter` 推 | —— |
 | pattern | ⬜ | `Enter` 黑 · `Space` 白/灰 · **中键「未知」够不着** | —— |
-| solo | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter`/`Space` 切墨水/铅笔 | `M` ✅ · 三个标记键 ✅ |
+| solo | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | mines | ⬜ | `Enter` 翻开 · `Space` 插旗 · **中键连开够不着** | —— |
 | samegame | ⬜ | `Enter` 选中/消除 · `Space` 取消选中 | —— |
 | flip | ⬜ | `Enter` 翻 | —— |
@@ -86,17 +86,17 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | inertia | ✅ | —— 无光标，八向已补齐 ✅ | `Enter` = Advance（重放求解器下一步，只在按过求解之后有用）——**待定** |
 | tents | ⬜ | `Enter` 循环帐篷 · `Space` 循环草 · `T`/`N`/`B` 直接设⭕ | —— |
 | bridges | ⬜ | `Enter`/`Space` 选中/完成 · 数字跳到该数的岛 | `h` 提示 ✅ · `g` 提示开关 |
-| unequal | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 | `h` ✅ · `M` ✅ · 三个标记键 ✅ |
+| unequal | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` 同 `Enter`（走 `IS_CURSOR_SELECT`） | `h` ✅ · `M` ✅ · 三个标记键 ✅ |
 | galaxies | ⬜ | `Enter` 放点/新箭头/移除 | **`h` 走一步显然推理——唯一一个有实质提示却没键盘的游戏** |
 | filling | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter` 选中 · `Space` 多选/取消 | —— |
-| keen | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter`/`Space` 切墨水/铅笔 | `M` ✅ · 三个标记键 ✅ |
-| towers | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter`/`Space` 切墨水/铅笔 | `M` ✅ · 三个标记键 ✅ |
+| keen | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
+| towers | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | singles | ⬜ | `Enter` 涂黑 · `Space` 画圈 | —— |
 | magnets | ⬜ | `Enter` 循环 +/−/空 | —— |
 | signpost | ⬜ | `Enter` 从这里/到这里/取消 · `x` 标记不可能 | —— |
 | range | ⬜ | `Enter` 填/点/空 · `Space` 反向 | `h` 提示 ✅ |
 | pearl | ⬜ | `Enter` 起点/终点 · `Space` 取消 · `⌫` 取消拖拽 | `h` 提示 ✅ |
-| undead | ⬜ | 怪物 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 · `Space` 清除 · 数字 1/2/3（同怪物，重复） | `M` ✅ · 三个标记键 ✅ · `a` 切图片/字母（偏好里也有） |
+| undead | ✅ | 怪物 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 · 数字 1/2/3（同怪物，重复） | `M` ✅ · 三个标记键 ✅ · `a` 切图片/字母（偏好里也有） |
 | unruly | ⬜ | `Enter` 循环 · `Space` 反向 · `0`/`1`/`2` 直接设⭕ · `⌫` · **中键「空」够不着** | —— |
 | flood | ⬜ | `Enter` 填充 | `Space` = Advance（重放求解器下一步） |
 | tracks | ⬜ | `Enter` 铺轨 · `Space` 打叉 | —— (`h` 在 `#if 0` 里，死代码) |
@@ -107,9 +107,17 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 
 ## 三件跨游戏的事
 
-**37 个读 `Enter`，29 个读 `Space`。** 只有 Cube 和 Fifteen 不需要（方向键本身就是走子），
-Loopy 什么都不读。所以第 1 类的绝大部分工作就是这两个键——把它们补齐，35 个待办里的每一个
-方向键才真正有意义。
+**37 个读 `Enter`，37 个也读 `Space`——但只有 29 个给了 `Space` 自己的含义。** 另外 8 个
+（netslide、flip、pegs、inertia、unequal、galaxies、magnets、signpost）用的是
+`IS_CURSOR_SELECT` 宏，它一次覆盖两个键，所以在那 8 个里 `Space` 只是 `Enter` 的同义词。只有
+Cube、Fifteen、Loopy 三个两个都不读。
+
+这条数错过一次：审计脚本只 grep 字面的 `CURSOR_SELECT2`，把用宏的那 8 个漏掉了，于是「29 个
+读 Space」变成了一句听起来精确的错话。要判断一个游戏读不读 `Space`，两种写法都得找。
+
+所以第 1 类的绝大部分工作还是这两个键——把它们补齐，30 个待办里的每一个方向键才真正有意义。
+第二档的经验是：`Space` 值不值得一个按钮，要看它在那个游戏里是不是**已经有落点的另一个键**。
+五个铅笔游戏里它是「清除」（键盘上已有 `⌫`）或者就是 `Enter` 本身，所以那五个只加了一个键。
 
 **修饰键组合没有落点，也没打算给。** net（移原点/源）、sixteen、pattern（拖着刷）、tents
 （拖一行）、bridges（画桥）、unequal、towers（划线索）、range、pearl（画线）、palisade 都读
