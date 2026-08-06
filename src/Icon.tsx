@@ -82,6 +82,7 @@ export type IconName =
   | 'hold'
   | 'flip'
   | 'select'
+  | 'jump'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -616,6 +617,30 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
       <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
       <rect x="13.6" y="13.6" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
+    </>
+  ),
+  /*
+   * Pegs' one, and it is the game's whole rule drawn once: a peg hops over its
+   * neighbour into the hole beyond, and the neighbour is what the move removes.
+   * Both of the first two are filled because both have to be pegs for the move
+   * to be legal, and the third is hollow because it has to be empty.
+   *
+   * Nothing in it is an arrow, and that is what decided it. This button sits in
+   * a block of four arrow keys, and the four candidates that said "the arrows
+   * will take this peg" — a disc with a chevron beside it, a disc ringed by four
+   * chevrons — all read at 20 as a fifth arrow among four. The two that put a
+   * curved arrow over one disc were worse: at 20 they are the redo glyph, which
+   * is a real button two rows down.
+   *
+   * The same picture serves both of this key's faces. See the note beside pegs
+   * in engine/keys.ts, where the board's own drawing of the mode is the reason.
+   */
+  jump: (
+    <>
+      <path d="M4.4 15a7.6 7.6 0 0 1 15.2 0" />
+      <circle cx="4.4" cy="17.6" r="3" fill="currentColor" />
+      <circle cx="12" cy="17.6" r="2" fill="currentColor" />
+      <circle cx="19.6" cy="17.6" r="3" />
     </>
   ),
   /*

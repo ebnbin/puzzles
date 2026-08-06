@@ -492,6 +492,8 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
+  | 'jump'
+  | 'unjump'
   | 'place'
   | 'submit'
   | 'hold'
@@ -746,6 +748,12 @@ const WORDS: Record<string, readonly string[]> = {
   mines: ['Uncover', 'Clear', 'Mark', 'Unmark'],
   samegame: ['Select', 'Remove', 'Unselect'],
   guess: ['Place', 'Submit', 'Hold'],
+  /*
+   * Pegs' two, and the shortest list here. "Select" is offered on a peg,
+   * "Cancel" once one is armed, and the third state — a hole, or a hidden
+   * cursor — is the empty string, which needs no entry (pegs.c:836).
+   */
+  pegs: ['Select', 'Cancel'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -1214,12 +1222,11 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * is a long press on the board already. This button is the keyboard's way to
    * the same mark.
    *
-   * Not covered here, and still open: the colour digits and D/Backspace. Both
-   * act where the cursor is, so they are cursor companions by the second
-   * criterion, but there are up to ten of them and the cross has two cells.
-   * They belong on the keypad beside `H`, drawn as the coloured pegs they
-   * insert, which needs `keysFor` to read the colour count out of the game id.
-   * A separate piece of work; see docs/keys.md.
+   * The colour digits and the backspace act where the cursor is too, but there
+   * are up to ten of them and this cross has two cells, so they are on the
+   * keypad instead — drawn as the pegs they insert, above. They are the one
+   * place in this file where a key was given despite being reachable by a
+   * gesture; docs/keys.md argues both sides of it.
    */
   guess: [
     {
@@ -1236,6 +1243,51 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       icon: 'hold',
       says: 'hold',
       faces: { Hold: { icon: 'hold', says: 'hold' } },
+    },
+  ],
+
+  /*
+   * Pegs, where the button arms the arrows rather than moving anything itself.
+   *
+   * Its chapter: "Pressing the return key while over a peg, followed by a
+   * cursor key, will jump the peg in that direction (if that is a legal move)."
+   * So the press sets `cur_jumping` (pegs.c:993) and the *next* arrow is the
+   * move — pegs.c:960 takes the arrow branch apart and sends a jump instead of
+   * walking the cursor. Without this button the arrows in this puzzle can only
+   * ever move a marker about, which is the second criterion exactly.
+   *
+   * One button. `current_key_label` answers `IS_CURSOR_SELECT`, so Enter and
+   * Space always report the same word, the blanking empties the left one, and a
+   * second button would be the first one again.
+   *
+   * And no mirror: this is one of the twenty-two that check the flag —
+   * `if (!ui->cur_visible) return ""` is the first line of it (pegs.c:838) — so
+   * a hidden cursor greys the button out with nothing kept on this side. The
+   * same line greys it on a hole, where upstream answers MOVE_NO_EFFECT.
+   *
+   * Two words for one toggle, and the same picture under both. Sixteen's rule
+   * — the thing that identifies a button has to survive being pressed — with
+   * one fact on top of it that Sixteen did not have: pegs *draws* the mode.
+   * Pointed at, a peg is a solid disc in the cursor colour; armed, it is a ring
+   * of that colour around its own (pegs.c:1150-1155). Measured on a fresh
+   * board, 3249 cursor-coloured pixels against 1214.
+   *
+   * That is a real difference but a quiet one — same hue, and the reader is
+   * looking at thirty-two identical discs — so the tint from `on` is carrying
+   * its share rather than repeating something obvious. What the key must not do
+   * is change shape: it would stop being findable in a block of five, and the
+   * state is on the board already. The word changes instead, because upstream's
+   * second word is news: the press undoes.
+   */
+  pegs: [
+    {
+      key: 'Enter',
+      icon: 'jump',
+      says: 'jump',
+      faces: {
+        Select: { icon: 'jump', says: 'jump' },
+        Cancel: { icon: 'jump', says: 'unjump', on: true },
+      },
     },
   ],
 

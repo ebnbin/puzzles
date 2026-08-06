@@ -223,6 +223,20 @@ export const en = {
        * guess" — but the back end's own label is "Submit", and a reader about to
        * commit a finished row is better served by the shorter one.
        */
+      /**
+       * Pegs' two, named for what the arrows will do rather than for the mode
+       * being switched on — Sixteen's pair are named the same way, and for the
+       * same reason: a reader holding the button down is asking what happens
+       * next, and what happens next is that the arrows stop walking.
+       *
+       * The second is upstream's own word. It could have been the first one
+       * again, the way Sixteen's are, but there the two faces describe one
+       * action and here they are two: arming and abandoning. "Cancel this jump"
+       * is the only line on this list that tells the reader a press undoes
+       * rather than does.
+       */
+      jump: 'Arrows jump this peg',
+      unjump: 'Cancel this jump',
       place: 'Place a peg of the chosen colour',
       submit: 'Submit this guess',
       hold: 'Hold this peg for the next guess',
