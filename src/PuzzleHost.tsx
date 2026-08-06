@@ -11,12 +11,12 @@ import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
   CURSOR_KEYS,
-  doesNothing,
   keysFor,
   movesEightWays,
   READS_PREFS,
   SECOND_PRESS,
   readsArrows,
+  wouldSend,
 } from './engine/keys'
 import type { KeyLabels } from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
@@ -1150,9 +1150,15 @@ export default function PuzzleHost({
               cursor has got there. Dimmed the same way Undo is, since it is the
               same sentence: the button is still what it was, there is just
               nothing for it to do yet.
+
+              Which key a press sends is `wouldSend`'s answer and not the one in
+              the table: a button named for a result asks which key reaches it
+              from where the cursor is, and that is not always the same key.
             */}
-            {(CURSOR_KEYS[name] ?? []).map(({ key, icon, says }, i) => {
+            {(CURSOR_KEYS[name] ?? []).map((cursor, i) => {
+              const { icon, says } = cursor
               const said = t.play.cursor[says]
+              const key = wouldSend(name, cursor, labels)
               return (
                 <button
                   key={says}
@@ -1163,11 +1169,11 @@ export default function PuzzleHost({
                   // stand among, whatever each puzzle spends them on.
                   data-whose="upstream"
                   aria-label={said}
-                  disabled={doesNothing(key, labels)}
+                  disabled={key === null}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    if (wasHeld()) return
+                    if (wasHeld() || key === null) return
                     sendKey(key)
                   }}
                 >

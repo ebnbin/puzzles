@@ -350,6 +350,16 @@ export type CursorKey = {
   icon: IconName
   /** Which of the words under `play.cursor` this key is called. */
   says: CursorWord
+  /**
+   * Upstream's own word for the thing this button is for, when the button is
+   * named for a result rather than for a press.
+   *
+   * With it, the button stops meaning "send this key" and starts meaning "get
+   * me this": it sends whichever of the two keys currently offers the word, and
+   * stands down when neither does, which is what already having it looks like.
+   * See `wouldSend`, and `WORDS` for the vocabulary that makes it safe.
+   */
+  does?: string
 }
 
 /** The words these keys can be called, so a missing translation is a type error. */
@@ -397,8 +407,50 @@ export type KeyLabels = { enter: string; space: string }
  * Both are greyed here anyway. The arrows are in the same group, they wake the
  * cursor too, and unlike these they say where it went.
  */
-export const doesNothing = (key: string, labels: KeyLabels) =>
+const doesNothing = (key: string, labels: KeyLabels) =>
   key === 'Enter' ? !labels.enter : !labels.enter && !labels.space
+
+/**
+ * Every word a puzzle's two keys are known to report, for the puzzles whose
+ * buttons are named for a result.
+ *
+ * This is the whole of what keeps `does` honest, and it is worth the extra
+ * table. Matching one word would tell a renamed label apart from nothing at
+ * all: if upstream ever calls Pattern's states something else, "no key offers
+ * Black" would read as "the square is already black" and the button would grey
+ * itself out for good. Recognising the *pair* answers instead — a word outside
+ * this list means we are no longer reading the labels, and `wouldSend` falls
+ * back to the key the button has always sent, which is upstream's cycle and
+ * still plays the game.
+ *
+ * Pattern's three, measured from a running board: a grey square reports
+ * `{Space: "White", Enter: "Black"}`, a black one `{"Grey", "White"}`, a white
+ * one `{"Black", "Grey"}` (pattern.c:1269). No pair repeats a word, so the
+ * blanking above never fires here.
+ */
+const WORDS: Record<string, readonly string[]> = {
+  pattern: ['Black', 'White', 'Grey'],
+}
+
+/**
+ * Which key a cursor button should send, or null when it should stand down.
+ *
+ * Two kinds of button come through here. Most send the key they were built
+ * with, and go quiet when its label is empty — Net's rotate, the five pencil
+ * keys. The ones with a `does` are named for a result instead, and ask the back
+ * end which key currently reaches it; nobody offering it is what "you already
+ * have it" looks like from out here, since a puzzle does not label a press that
+ * would change nothing.
+ */
+export const wouldSend = (name: string, cursor: CursorKey, labels: KeyLabels): string | null => {
+  const words = WORDS[name]
+  if (cursor.does && words && [labels.enter, labels.space].every((w) => !w || words.includes(w))) {
+    if (labels.enter === cursor.does) return 'Enter'
+    if (labels.space === cursor.does) return ' '
+    return null
+  }
+  return doesNothing(cursor.key, labels) ? null : cursor.key
+}
 
 /**
  * Which puzzles have been given theirs, and what they do.
@@ -439,24 +491,35 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Two keys that are one key twice, wound opposite ways.
+   * Two keys that are a colour each, which is not how the puzzle spells them.
    *
-   * A Pattern square is grey, black or white, and `Enter` steps it round that
-   * cycle while `Space` steps it back — "the space bar does the same cycle in
-   * reverse", as its chapter puts it. So neither key *sets* a colour, and the
-   * pictures on them are the colour each reaches from a square nobody has
-   * touched, which is where nearly every press happens. What the second and
-   * third press do is on the long press, where a sentence fits.
+   * A Pattern square is grey, black or white, and upstream's two keys are one
+   * cycle wound opposite ways: `Enter` steps grey→black→white→grey and `Space`
+   * steps it back — "the space bar does the same cycle in reverse", as its
+   * chapter puts it. Neither key *sets* a colour, so a black square on a button
+   * would have been a promise about the first press only, and a lie about the
+   * second.
    *
-   * This also quietly closes something older. Grey is upstream's middle button
-   * — or Shift with any button — and a finger has neither, so on a touch device
-   * a square could be painted but never unpainted. `Space` on a black square is
-   * grey in one press. The keys were added for the arrows; the hole they fill
-   * was there before them.
+   * `does` is how they become a promise about every press. The back end reports
+   * what each key would do from where the cursor is standing, and the words are
+   * the colours themselves, so a button asking for "Black" can look up which
+   * key reaches black right now and send that one. On a grey square that is
+   * `Enter`; on a white square it is `Space`; on a square already black it is
+   * neither, and the button goes out. The picture on the key is now the whole
+   * of what it does, so the long press has nothing left to explain and says the
+   * colour.
+   *
+   * Grey is the one thing this costs, and it is worth saying where it went.
+   * Grey is upstream's middle button — or Shift with any button — and a finger
+   * has neither, so on a touch device a square could be painted and never
+   * unpainted; the cycle reached it in two or three presses, which was the hole
+   * these keys quietly closed when they arrived. Naming the colours takes it
+   * away again: neither button ever asks for "Grey". Undo is the way back for
+   * now.
    */
   pattern: [
-    { key: 'Enter', icon: 'black', says: 'black' },
-    { key: ' ', icon: 'white', says: 'white' },
+    { key: 'Enter', icon: 'black', says: 'black', does: 'Black' },
+    { key: ' ', icon: 'white', says: 'white', does: 'White' },
   ],
 
   /*

@@ -3,7 +3,7 @@
 四十个谜题，一个一个把「在键盘上能做、在触摸屏上做不到」的事补成按钮。这份文档记录每个
 游戏读哪些键、哪些已经有落点、还差什么。
 
-改动落地时同步改这里。**这不是生成物**,没有脚本会替你更新它。
+改动落地时同步改这里。**这不是生成物**，没有脚本会替你更新它。
 
 ## 判据
 
@@ -69,7 +69,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | twiddle | ⬜ | `Enter` 顺时针 · `Space` 逆时针 | `a`/`b`/`c`/`d` 转四角块⭕（点棋盘可做） |
 | rect | ⬜ | `Enter` 起止拖拽 · `Space` 标记/擦除 · `⌫` 取消拖拽 | —— |
 | netslide | ⬜ | `Enter` 推 | —— |
-| pattern | ✅ | `Enter` 循环 灰→黑→白 ✅ · `Space` 反向 ✅（顺带让「灰」有了落点，见下） | —— |
+| pattern | ✅ | 黑 ✅ · 白 ✅（两个键按颜色出，不是上游的循环；「灰」因此没有落点，见下） | —— |
 | solo | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | mines | ⬜ | `Enter` 翻开 · `Space` 插旗 · **中键连开够不着** | —— |
 | samegame | ⬜ | `Enter` 选中/消除 · `Space` 取消选中 | —— |
@@ -125,13 +125,18 @@ Cube、Fifteen、Loopy 三个两个都不读。
 单独记在这里，不混进上表。
 
 **中键在触摸上没有任何手势。** `usePuzzlePointer` 只造得出 button 0（点/左键）和一个
-「第二下」（长按/右键）。用中键的五个游戏里，net、unruly 和现在的 pattern 有字母或 `Space`
-兜底——pattern 那一格是这次顺带补上的：灰色（未定）原本只有中键或 Shift+点击能到，现在
-`Space` 在黑格上一按就是。剩下 **mines（连开）和 loopy（线设为未知）没有落点**，pattern 还差
-「拖一片变灰」那半个（单格已经够得着）。这是一笔和方向键无关的旧账，判据一下它们是够不着的。
+「第二下」（长按/右键）。用中键的五个游戏里，net 和 unruly 有字母或 `Space` 兜底。剩下
+**mines（连开）和 loopy（线设为未知）没有落点**。这是一笔和方向键无关的旧账，判据一下它们是
+够不着的。
 
-顺带一条经验：**一个游戏的「循环键」往往就把它的中键那格顺手补上了**，因为循环总要经过那个
-第三态。轮到 slant、mosaic、unruly、magnets、singles、tracks 时先看一眼是不是同一笔账。
+**pattern 在这条账上来回过一次，值得记。** 灰色（未定）原本只有中键或 Shift+点击能到，两个
+光标键刚加上时是上游的循环（`Enter` 灰→黑→白，`Space` 反向），循环总要经过第三态，所以顺带
+就把灰补上了。改成绝对语义之后又还回去了：两个键现在各要一个颜色，谁都不要「Grey」。**这不
+是疏忽，是那次改动的已知代价**（见 `keys.ts` 里 pattern 那段），暂时靠撤销回去。
+
+顺带一条经验，也是从这里来的：**一个游戏的「循环键」往往就把它的中键那格顺手补上了**，反过来
+说，把循环键改成绝对键就会把那格再丢掉。轮到 slant、mosaic、unruly、magnets、singles、tracks
+时先看一眼是不是同一笔账。
 
 ## 已经踩过的坑
 
@@ -146,23 +151,23 @@ square"），三角网格上它们是别名（`UP_LEFT` 接 `LEFT`，两个下�
 **死代码看起来像功能。** `tracks` 的 `h` 包在 `#if 0` 里，`signpost` 的 `h` 整段被注释掉了。
 两个都不要照着加。
 
-**`current_key_label` 现在接上了。** 35 个游戏实现了它,按当前光标位置返回一个活的词:Net 在
+**`current_key_label` 现在接上了。** 35 个游戏实现了它，按当前光标位置返回一个活的词：Net 在
 锁着的格子上说 `Unlock`、没锁的说 `Rotate`/`Lock`。这条链路一路通到
-`PuzzleCallbacks.onKeyLabels`,以前在 `PuzzleHost` 里撞上 `onKeyLabels: () => {}`,现在存进
-state,`keys.ts` 的 `doesNothing` 拿它给按不动的光标键置灰。
+`PuzzleCallbacks.onKeyLabels`，以前在 `PuzzleHost` 里撞上 `onKeyLabels: () => {}`，现在存进
+state，`keys.ts` 的 `wouldSend` 拿它决定一个光标键该发哪个键、还是干脆置灰。
 
-这也是这一侧唯一能知道的关于光标的事:`midend_get_cursor_location` 存在,但 emcc.c 既不调用
-也不导出,位置够不着。**两个词就够了**,因为要问的只是「现在按下去有没有用」。
+这也是这一侧唯一能知道的关于光标的事：`midend_get_cursor_location` 存在，但 emcc.c 既不调用
+也不导出，位置够不着。**两个词就够了**，因为要问的只是「现在按下去有没有用」。
 
-有一条不对称,是被逼出来的而不是选的:`js_update_key_labels` 在 `lsk === csk` 时把 `lsk` 抹成
+有一条不对称，是被逼出来的而不是选的：`js_update_key_labels` 在 `lsk === csk` 时把 `lsk` 抹成
 空串。实测 Solo 和 Unequal 在同一种局面下都报 `{"", "Pencil"}`——Solo 的 `Space` 是真死
-(`current_key_label` 只答 `CURSOR_SELECT`),Unequal 的 `Space` 和 `Enter` 干同一件事
-(`IS_CURSOR_SELECT` 两个都盖)。**从这一侧分不出来**,所以 `Space` 只在两个词都空时才算死。
-按一下白按是小事,一个永远灰着的按钮是没人找得到的功能。
+（`current_key_label` 只答 `CURSOR_SELECT`），Unequal 的 `Space` 和 `Enter` 干同一件事
+（`IS_CURSOR_SELECT` 两个都盖）。**从这一侧分不出来**，所以 `Space` 只在两个词都空时才算死。
+按一下白按是小事，一个永远灰着的按钮是没人找得到的功能。
 
-置灰说的是「对棋盘没用」。有两个游戏,标签空着时按下去仍然会**唤醒光标**——Pattern 的
-select 会先把光标显出来就返回(`pattern.c:1423`),Net 的会在去做一次锁定挡下的旋转的路上把
-`cur_visible` 设成 true(`net.c:2330`)。它们照样置灰:方向键就在同一组里,一样唤醒光标,而且
+置灰说的是「对棋盘没用」。有两个游戏，标签空着时按下去仍然会**唤醒光标**——Pattern 的
+select 会先把光标显出来就返回（`pattern.c:1423`），Net 的会在去做一次锁定挡下的旋转的路上把
+`cur_visible` 设成 true（`net.c:2330`）。它们照样置灰：方向键就在同一组里，一样唤醒光标，而且
 还会说光标去了哪。
 
 **图标要按渲染尺寸画。** 键是 40px 的方块、图标 20px。任何「环里套方块」的构图在这个尺寸下

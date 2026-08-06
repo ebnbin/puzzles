@@ -59,8 +59,8 @@ export const zh: Strings = {
       rotateLeft: '向左旋转',
       lock: '锁定或解锁',
       pencil: '切换墨水和铅笔',
-      black: '黑；再按依次变白、变灰',
-      white: '白；再按依次变黑、变灰',
+      black: '黑',
+      white: '白',
     },
   },
 
