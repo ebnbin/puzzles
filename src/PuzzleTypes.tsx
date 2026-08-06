@@ -39,6 +39,7 @@ const CUSTOM = -1
 export default function PuzzleTypes({
   presets,
   selected,
+  standard,
   custom,
   customError,
   onSelectPreset,
@@ -50,6 +51,12 @@ export default function PuzzleTypes({
   presets: Preset[]
   /** Which preset the game being played matches; negative for none of them. */
   selected: number
+  /**
+   * And which one it was set to before anybody chose — see PuzzleHost, which
+   * takes it from the back end rather than assuming the top of the list, since
+   * on half the collection it is not that. Null when nothing has said.
+   */
+  standard: number | null
   /** The parameters, while they are shown. */
   custom: DialogSpec | null
   /** What the back end said about the values, if it rejected them. */
@@ -121,6 +128,7 @@ export default function PuzzleTypes({
           <PresetList
             presets={presets}
             chosen={custom ? CUSTOM : selected}
+            standard={standard}
             onSelect={choosePreset}
             onChooseCustom={onOpenCustom}
           />
@@ -159,20 +167,35 @@ export default function PuzzleTypes({
 function PresetList({
   presets,
   chosen,
+  standard,
   onSelect,
   onChooseCustom,
 }: {
   presets: Preset[]
   /** The type in force, or CUSTOM while its parameters are being written. */
   chosen: number
+  /** The one the puzzle came set to, which is said on the chip. */
+  standard: number | null
   onSelect: (value: number) => void
   onChooseCustom: () => void
 }) {
+  const t = useStrings()
   return (
     <ul className="sheet-presets">
       {presets.map((preset, i) => {
         const custom = preset.value !== null && preset.value < 0
         const isChosen = custom ? chosen < 0 : chosen === preset.value
+        /*
+         * Said on the chip rather than shown as a mark, because a mark would
+         * have to be learnt and there is nowhere here to learn it. It rides
+         * inside the label, so it is part of what the radio is called — "6x6
+         * Normal, Default" — which is the same sentence the eye reads.
+         *
+         * Never on "Custom…", whose value is negative and could not be the
+         * answer to this anyway: a puzzle whose parameters match no preset
+         * reports -1, and PuzzleHost keeps that out by starting at null.
+         */
+        const isStandard = !custom && standard !== null && standard === preset.value
         return (
           <li key={i}>
             {preset.submenu ? (
@@ -181,6 +204,7 @@ function PresetList({
                 <PresetList
                   presets={preset.submenu}
                   chosen={chosen}
+                  standard={standard}
                   onSelect={onSelect}
                   onChooseCustom={onChooseCustom}
                 />
@@ -189,6 +213,7 @@ function PresetList({
               <label
                 className={custom ? 'sheet-preset-custom' : undefined}
                 data-selected={isChosen}
+                data-standard={isStandard || undefined}
               >
                 <input
                   type="radio"
@@ -199,6 +224,7 @@ function PresetList({
                   }
                 />
                 {preset.name}
+                {isStandard && <span className="sheet-preset-tag">{t.types.standard}</span>}
               </label>
             )}
           </li>

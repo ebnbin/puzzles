@@ -1555,6 +1555,28 @@ p.notice-intro button:active {
   font-weight: 600;
 }
 
+/*
+ * "Default", on the one chip the puzzle came set to.
+ *
+ * Inside the chip, after the name, rather than a mark beside it: only one chip
+ * in the list ever carries it, so the width it adds costs the row nothing, and
+ * a word needs no key to read it.
+ *
+ * Held at --text-2 in both of the chip's states, which is the point of setting
+ * it at all — the chip's own colour says whether this is the type you are
+ * playing, and that is a different question from which one it started as. Both
+ * can be true of the same chip, and when they are, the two have to stay
+ * legible as two things. 5.5:1 at worst, over the tint.
+ *
+ * Not bold, even on the selected chip, which sets 600 on everything inside it.
+ */
+.sheet-presets .sheet-preset-tag {
+  color: var(--text-2);
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
 /* Still a real radio — one choice, arrow keys through the group, announced as
    such — just drawn to belong to the chip it sits in. */
 .sheet-presets input[type='radio'] {

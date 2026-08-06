@@ -75,6 +75,7 @@ export const zh: Strings = {
 
   types: {
     title: '类型',
+    standard: '默认',
   },
 
   dialog: {
