@@ -32,15 +32,16 @@ const MAX_SYMBOLS = 36
 
 /**
  * And the keys that are not symbols, at their widest: clear, the three of ours,
- * and Unequal's hint. Counted rather than guessed at, because it is only ever
- * used to tell a misread id from an unusual one, and a number too small there
- * would take a working keypad away instead — which is what it was on its way
- * to doing, having been written when there were two of these keys and not four.
+ * and Unequal's two of upstream's. Counted rather than guessed at, because it is
+ * only ever used to tell a misread id from an unusual one, and a number too
+ * small there would take a working keypad away instead — which is what it was on
+ * its way to doing, having been written when there were two of these keys and
+ * not four.
  *
  * The widest real keypad is Unequal's: solo.c stops at 31 symbols and
  * unequal.c at 32, so nothing legal comes anywhere near 36 + this.
  */
-const MAX_AIDS = 5
+const MAX_AIDS = 6
 
 /**
  * `count` consecutive values, spelled the way the puzzles spell them: as
@@ -82,16 +83,20 @@ const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours'
 
 /*
  * And the keys that are the puzzle's, which it reads without ever offering a
- * button for. H runs the game's own solver as far as it will go; J deals the
- * same network again, shuffled — its own source asks "should we have some mouse
- * control for this?" and the answer, here, is this key.
+ * button for. M fills every empty square with every pencil mark; H runs the
+ * game's own solver as far as it will go; J deals the same network again,
+ * shuffled — its own source asks "should we have some mouse control for this?"
+ * and the answer, here, is this key.
  *
- * Upstream's `M` used to be among them, filling every empty square with every
- * pencil mark. It is on none of these keypads now: the three above replace it
- * wherever marks are kept, because the first of them *is* `M` when there is
- * nothing to rule out, and a keypad offering both would be offering one key
- * twice.
+ * `M` was taken off these five keypads when the three above arrived, on the
+ * grounds that the first of them *is* `M` when there is nothing to rule out and
+ * a keypad should not offer one key twice. That was wrong twice over. They
+ * differ even then — `M` writes every value, POSSIBLE only the ones the board
+ * has not ruled out — and they are opposites the rest of the time, since `M`
+ * fills marks the reader has spent the game crossing off. It is upstream's key,
+ * with upstream's meaning and upstream's word for it, and it is back.
  */
+const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: 'upstream' }
 const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: 'upstream' }
 const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upstream' }
 
@@ -170,29 +175,31 @@ const RULES: Record<
     }
     const cr = c * r
     if (cr < 1 || cr > MAX_SYMBOLS) return null
-    return [...digits(cr), CLEAR, POSSIBLE, SINGLE, BLANK]
+    return [...digits(cr), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS]
   },
   // Digits 1..w.
   keen(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK] : null
+    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS] : null
   },
   towers(p) {
     const w = size(p)
-    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK] : null
+    return w ? [...digits(w), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS] : null
   },
   // Digits 1..order, except that past 9 the puzzle counts from 0 so the
   // labels stay one character wide.
   //
-  // `HINT` stays where it is, and is a different offer: it is upstream's, it
-  // runs upstream's own solver, and it writes over the pencil marks with what
-  // that solver believes. The three beside it are ours and stay inside what the
+  // Two of upstream's here rather than one, and in the order unequal.c's own
+  // manual puts them: "use the M key to auto-fill every numeric hint, ready for
+  // removal as required, or the H key to do the same but also to remove all
+  // obvious hints". Both write over the pencil marks with something the reader
+  // did not put there. The three before them are ours and stay inside what the
   // marks on the board already say — see engine/marks, which is exact about how
   // far that goes now that one of them draws a conclusion from them.
   unequal(p) {
     const order = size(p)
     if (!order) return null
-    return [...digits(order, order > 9), CLEAR, POSSIBLE, SINGLE, BLANK, HINT]
+    return [...digits(order, order > 9), CLEAR, POSSIBLE, SINGLE, BLANK, MARKS, HINT]
   },
   // Always 1-9, whatever the grid.
   filling: () => [...digits(9), CLEAR],
@@ -220,6 +227,7 @@ const RULES: Record<
       POSSIBLE,
       SINGLE,
       BLANK,
+      MARKS,
     ]
   },
 

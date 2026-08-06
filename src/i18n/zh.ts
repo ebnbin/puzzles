@@ -48,9 +48,12 @@ export const zh: Strings = {
 
   keys: {
     clear: '清除',
-    possible: '只填可能的铅笔标记',
+    possible: '只留下仍然可能的铅笔标记',
     single: '填入答案唯一的格子',
     blank: '清空所有铅笔标记',
+    /* 上游 M 的说法照搬手册自己的译法:doc-zh/keen.html 写的是「按 M 键将在每个
+       尚未填入主数字的方格中填入一整套铅笔标记」。 */
+    marks: '填入一整套铅笔标记',
     hint: '提示',
     jumble: '重新打乱',
     ghost: '幽灵',
