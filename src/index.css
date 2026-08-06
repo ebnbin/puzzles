@@ -1351,6 +1351,12 @@ p.notice-intro button:active {
   display: flex;
   flex: none;
   justify-content: center;
+  /* Along the bottom, not the middle: the two blocks are the same height until
+     Inertia makes its own three keys tall, and the four buttons should stay
+     where a thumb has learnt to find them rather than drift down half a key.
+     What grows is the top of the block, which is the end nothing is reaching
+     for. */
+  align-items: end;
   gap: var(--key-gap);
   width: 100%;
   max-width: 26rem;
@@ -1432,6 +1438,46 @@ p.notice-intro button:active {
 
 .play-arrows [data-act='second'] {
   grid-area: 1 / 3;
+}
+
+/*
+ * Eight ways out of a square rather than four, which is Inertia and nothing
+ * else — see movesEightWays.
+ *
+ * The cross becomes the full three by three it was always a piece of: the four
+ * corners fill in, and down drops out of the middle to the foot, where it
+ * belongs once there is a row under it. Nothing sits in the centre. A key there
+ * would have to mean "stay", and a ball that rolls until it hits something has
+ * no such move.
+ *
+ * The block is no wider — still three keys — so the landscape rail's width is
+ * untouched. It is a key taller, and that comes out of the board, which is the
+ * trade this puzzle has no way around: half its directions were unreachable
+ * without a numeric keypad.
+ *
+ * The two cells either side of the up key are the corners now, so a puzzle
+ * wanting both these and a pair of cursor keys would have nowhere to put them.
+ * None does: Inertia has no cursor to act at. If one ever arrives, this is the
+ * collision to expect.
+ */
+.play-arrows[data-ways='8'] [data-dir='down'] {
+  grid-area: 3 / 2;
+}
+
+.play-arrows[data-ways='8'] [data-dir='upLeft'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='upRight'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-ways='8'] [data-dir='downLeft'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='downRight'] {
+  grid-area: 3 / 3;
 }
 
 /*

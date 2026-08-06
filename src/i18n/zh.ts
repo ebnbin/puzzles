@@ -50,6 +50,10 @@ export const zh: Strings = {
       down: '下',
       left: '左',
       right: '右',
+      upLeft: '左上',
+      upRight: '右上',
+      downLeft: '左下',
+      downRight: '右下',
     },
     cursor: {
       rotateLeft: '向左旋转',

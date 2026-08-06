@@ -110,6 +110,16 @@ export const en = {
       down: 'Down',
       left: 'Left',
       right: 'Right',
+      /**
+       * And the corners, for the one puzzle that has them. Named as compounds
+       * of the four above rather than as compass points: a reader who has just
+       * read "Up" and "Left" off the two keys beside this one should not have
+       * to work out that "north-west" is the same idea again.
+       */
+      upLeft: 'Up and left',
+      upRight: 'Up and right',
+      downLeft: 'Down and left',
+      downRight: 'Down and right',
     },
     /**
      * And the keys that act where the arrows have got to, which is what makes

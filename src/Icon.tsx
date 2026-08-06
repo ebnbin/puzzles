@@ -62,6 +62,10 @@ export type IconName =
   | 'arrowDown'
   | 'arrowLeft'
   | 'arrowRight'
+  | 'arrowUpLeft'
+  | 'arrowUpRight'
+  | 'arrowDownLeft'
+  | 'arrowDownRight'
   | 'rotate'
   | 'lock'
 
@@ -319,6 +323,41 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M5 12h14" />
       <path d="m13 6 6 6-6 6" />
+    </>
+  ),
+  /*
+   * And the same shape again at forty-five degrees, for the one puzzle whose
+   * board has eight ways out of a square rather than four.
+   *
+   * The head is the chevron above turned with it, which on a diagonal draws as
+   * a right angle — two strokes of 8 against the four's 8.49, and a shaft of
+   * 15.6 against 14. Near enough that a corner key and the key beside it read
+   * as the same arrow pointing somewhere else, which is the whole job: in
+   * Inertia these eight are one control, and a diagonal that looked like a
+   * different sort of key would read as doing a different sort of thing.
+   */
+  arrowUpLeft: (
+    <>
+      <path d="M17.5 17.5 6.5 6.5" />
+      <path d="M6.5 14.5v-8h8" />
+    </>
+  ),
+  arrowUpRight: (
+    <>
+      <path d="M6.5 17.5 17.5 6.5" />
+      <path d="M9.5 6.5h8v8" />
+    </>
+  ),
+  arrowDownLeft: (
+    <>
+      <path d="M17.5 6.5 6.5 17.5" />
+      <path d="M14.5 17.5h-8v-8" />
+    </>
+  ),
+  arrowDownRight: (
+    <>
+      <path d="M6.5 6.5 17.5 17.5" />
+      <path d="M17.5 9.5v8h-8" />
     </>
   ),
   /*

@@ -303,6 +303,33 @@ const NO_ARROWS = new Set(['loopy'])
 export const readsArrows = (name: string) => !NO_ARROWS.has(name)
 
 /**
+ * The puzzle whose board has eight ways out of a square rather than four.
+ *
+ * Inertia's ball rolls until it hits something, and it rolls diagonally as
+ * readily as it rolls straight: `DX`/`DY` in inertia.c turn its eight
+ * directions into the eight unit steps, corners included. Four of those are the
+ * arrow keys and the other four have no key at all — upstream puts them on the
+ * corners of the numeric keypad, which is a device this app's readers largely
+ * do not have.
+ *
+ * So this is the one place the four arrows really are half a control, and the
+ * cross grows into a full three by three to hold the rest.
+ *
+ * Cube is the puzzle that looks like it belongs here and does not, which is
+ * worth writing down because reading the key handler alone says otherwise: it
+ * takes the same four numpad corners, but on its square grid all four are
+ * `0` — "no diagonals in a square", cube.c says — and on its triangular grids
+ * they are aliases, `UP_LEFT` wired to `LEFT` and both down diagonals to
+ * `DOWN` (cube.c:408-411, 453-456). A triangle has three exits, not eight.
+ * Measured over four presets and sixteen positions, no numpad corner in Cube
+ * ever reached a square one of the four arrows had not already reached.
+ */
+const EIGHT_WAY = new Set(['inertia'])
+
+/** Whether the four arrows are the whole of this puzzle's directions. */
+export const movesEightWays = (name: string) => EIGHT_WAY.has(name)
+
+/**
  * A key that acts on the square the cursor is sitting on, offered beside the
  * arrows because it is the half of them that does anything.
  *

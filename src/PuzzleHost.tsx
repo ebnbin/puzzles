@@ -9,7 +9,14 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { CURSOR_KEYS, keysFor, READS_PREFS, SECOND_PRESS, readsArrows } from './engine/keys'
+import {
+  CURSOR_KEYS,
+  keysFor,
+  movesEightWays,
+  READS_PREFS,
+  SECOND_PRESS,
+  readsArrows,
+} from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -73,6 +80,9 @@ const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
   blank: clearMarks,
 }
 
+/** DOM_KEY_LOCATION_NUMPAD, which is how emcc.c is told to set MOD_NUM_KEYPAD. */
+const NUMPAD = 3
+
 /**
  * The four arrow keys, in the order they are written into the block: the top of
  * the cross first, then the row under it left to right.
@@ -84,10 +94,29 @@ const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
  * being made with a thumb is visible on the far side.
  */
 const ARROWS = [
-  { dir: 'up', key: 'ArrowUp', icon: 'arrowUp' },
-  { dir: 'left', key: 'ArrowLeft', icon: 'arrowLeft' },
-  { dir: 'down', key: 'ArrowDown', icon: 'arrowDown' },
-  { dir: 'right', key: 'ArrowRight', icon: 'arrowRight' },
+  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp' },
+  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft' },
+  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown' },
+  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight' },
+] as const
+
+/**
+ * And the four corners, for the puzzle that has somewhere to go in them.
+ *
+ * These have no key of their own to be named by. Upstream reads them as digits
+ * carrying `MOD_NUM_KEYPAD` — the corners of a numeric keypad, which is where
+ * they sit under a hand — so what goes across is the digit and the claim that
+ * it came from the keypad, which is what `where` is. A plain `7` would be the
+ * digit seven and would mean nothing to Inertia at all.
+ *
+ * The digits are the keypad's own geometry and not a code: 7 is up and left of
+ * 5, and it is up and left that it means.
+ */
+const DIAGONALS = [
+  { dir: 'upLeft', key: '7', where: NUMPAD, icon: 'arrowUpLeft' },
+  { dir: 'upRight', key: '9', where: NUMPAD, icon: 'arrowUpRight' },
+  { dir: 'downLeft', key: '1', where: NUMPAD, icon: 'arrowDownLeft' },
+  { dir: 'downRight', key: '3', where: NUMPAD, icon: 'arrowDownRight' },
 ] as const
 
 /** Enough of a set of controls to tell whether anything in it was changed. */
@@ -853,11 +882,11 @@ export default function PuzzleHost({
    * because between them they also cover the case this feature exists for —
    * a board that never had focus, because on a touch device nothing has.
    */
-  const sendKey = useCallback((key: string) => {
+  const sendKey = useCallback((key: string, where = 0) => {
     const api = apiRef.current
     if (!api) return
     acted()
-    api.key(0, key, '', 0, 0, 0)
+    api.key(0, key, '', where, 0, 0)
     canvasRef.current?.focus()
   }, [acted])
 
@@ -1061,8 +1090,16 @@ export default function PuzzleHost({
           `aria-label`, where it is read out rather than shown.
         */}
         {arrows && (
-          <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
-            {ARROWS.map(({ dir, key, icon }) => (
+          <div
+            className="play-arrows"
+            /* Three rows instead of two, and the corners filled. Only Inertia
+               has anywhere to go in them — see movesEightWays, which is also
+               where the puzzle that looks like it should is written down. */
+            data-ways={movesEightWays(name) ? '8' : undefined}
+            role="group"
+            aria-label={t.play.arrows.group}
+          >
+            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map(({ dir, key, where, icon }) => (
               <button
                 key={dir}
                 type="button"
@@ -1074,7 +1111,7 @@ export default function PuzzleHost({
                 aria-label={t.play.arrows[dir]}
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => sendKey(key)}
+                onClick={() => sendKey(key, where)}
               >
                 <Icon name={icon} />
               </button>
