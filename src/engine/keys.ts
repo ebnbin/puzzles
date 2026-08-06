@@ -400,7 +400,6 @@ export type CursorWord =
   | 'slide'
   | 'select'
   | 'remove'
-  | 'unselect'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -1015,9 +1014,19 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * second button was the same button again three times out of four, and on the
    * fourth it offered to tidy a status line.
    *
-   * Unselect is still reachable and still has its face, on Enter: standing on a
-   * lone square with a selection open is the one place a press can do nothing
-   * else, and that is precisely where upstream puts the word.
+   * "Unselect" gets no face at all, which is the reason there are only two here.
+   * This button is one job in two steps — pick a region, then press again to
+   * take it — and unselecting is a third thing that is neither. Where upstream
+   * offers it, the reader is standing on a lone square, which is to say they
+   * tried to pick something and there was nothing pickable; the button that
+   * says "select" going quiet is what that looks like. Sixteen's pair make the
+   * same call on the rim, where the keys really would slide a row: a key that
+   * changed jobs under the reader's finger is worse than one that waits.
+   *
+   * So on any square where nothing can be picked the button greys out still
+   * wearing its own face, which falls out of `faces` without a special case —
+   * an unlisted word is not live, and `faceOf` drops back to the key's own
+   * picture.
    */
   samegame: [
     {
@@ -1027,7 +1036,6 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Select: { icon: 'select', says: 'select' },
         Remove: { icon: 'done', says: 'remove', on: true },
-        Unselect: { icon: 'cancel', says: 'unselect' },
       },
     },
   ],
