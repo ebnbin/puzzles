@@ -216,6 +216,16 @@ export const en = {
        * along is a parameter, a cross on one setting and an arbitrary shape on
        * the other — so the vaguer word is the accurate one.
        */
+      /**
+       * Guess's three, in its chapter's words. "Hold" is the puzzle's own noun
+       * for the mark that carries a peg into the next guess, so it is kept as
+       * the verb; "submit" is not the manual's word — it says "mark the current
+       * guess" — but the back end's own label is "Submit", and a reader about to
+       * commit a finished row is better served by the shorter one.
+       */
+      place: 'Place a peg of the chosen colour',
+      submit: 'Submit this guess',
+      hold: 'Hold this peg for the next guess',
       flip: 'Flip this square and the ones tied to it',
       select: 'Select this region',
       remove: 'Remove the selected region',

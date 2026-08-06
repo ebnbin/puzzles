@@ -57,9 +57,9 @@ Sixteen 的边框那一档反过来验证了这条线：同两个键在边框上
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 17 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Flip、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 18 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Flip、Guess、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 22 | |
+| ⬜ 待办 | 21 | |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -87,7 +87,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | mines | ✅ | `Enter` 翻开／清除周围 ✅ · `Space` 插旗／取旗 ✅（按钮跟着标签换脸；`Enter` 只在旗数对上时才亮，插了旗的格子上会灭）· 中键⭕点已翻开的格子就是连开，见下 | —— |
 | samegame | ✅ | `Enter` 选中／移除 ✅（一个键两张脸；选不了的格子上置灰，仍戴「选中」那张脸）· `Space` 不给按钮，上游的「取消选中」也不给脸，见下 · 和 net 一样需要一份光标副本 | —— |
 | flip | ✅ | `Enter` 翻转 ✅（`Space` 是同义词，只给一个键；标签是个常量，所以按钮醒来之后永不置灰）· 需要一份光标副本，见下 | —— |
-| guess | ⬜ | `Enter` 放置/提交 · `Space` 保留 · 数字放 peg · `⌫`/`d` 删 | `h`/`?` 提示 ✅ · `l` 标签开关 |
+| guess | ✅ | `Enter` 放置／提交 ✅ · `Space` 保留 ✅ · 需要一份光标副本 · **数字放 peg 和 `⌫`/`d` 删还差**，它们该上键盘不该上十字，见下 | `h`/`?` 提示 ✅ · `l` 标签开关⬜ |
 | pegs | ⬜ | `Enter` 选中棋子/跳 | —— |
 | dominosa | ⬜ | `Enter` 放置/移除 · `Space` 画线 | 数字高亮骨牌 ✅ |
 | untangle | ⬜ | `Enter` 抓起/放下点 | —— |
@@ -174,7 +174,7 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
 | `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 8 个有肩键的 |
-| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip |
+| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip、guess |
 
 `labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
 真正说的东西：全 app 唯一一份「后端知道但不肯说，于是我们自己记着」的数据。
@@ -259,10 +259,30 @@ return "";
 （flip.c:959），因为 flip 根本不读别的按钮。于是长按会让这一侧睡下而上游那边光标还亮着——
 **朝安全方向多睡了一下**，下一次方向键就同步（而且 flip 里长按本来就什么都不做）。
 
-### 其余 9 个候选
+### guess 的 `awake`
 
-`current_key_label` 不检查可见性的还有 9 个：guess、dominosa、inertia、tents、range、pearl、
-unruly、flood、tracks。轮到它们**不能照抄这两份**——每个游戏的标志名字、唤醒键、
+第四个，理由和前三个同一条（标签不问 `ui->display_cur`，而 select 键按下就放子，guess.c:933），
+但它的唤醒键表是目前最长的一份：guess 读的键最多，而且几乎每一个都会显示光标——数字键插入
+颜色（guess.c:943）、`D`/`Backspace` 清掉一枚（952）、`h` 跑提示器，而提示器会顺手把光标显出来
+（那是 guess.c:799 那段「用一点 ui 变化表示算不出来」的 hack 的副作用）。
+
+**`h` 那条对我们是实打实的，不只是键盘。** 它在 guess 的键盘上有按钮，拇指够得到——所以
+`pressKey` 现在也问一次 `wakesCursor`。**这是键盘区和十字区唯一一处重叠**，四十个游戏里只有
+guess 撞上：net 的 `J` 不显光标，samegame 和 flip 没有键盘。
+
+### guess 还差的两样
+
+**数字键（放入某个颜色）和 `⌫`/`d`（删掉一枚）没做。** 它们作用在光标处，按第二条判据属于
+第 1 类，但**最多十个，而十字只有两格**。它们该去键盘那一排、排在 `H` 旁边，而且该画成它们
+插入的那枚彩色棋子而不是数字——这需要 `keysFor` 从 game id 里读出颜色数（`c6p4g10Bm` 里的
+`c6`），还需要键盘能拿到调色板。是一件独立的活。
+
+`l`（给颜色标数字）是显示开关，第 2 类，同样归键盘。
+
+### 其余 8 个候选
+
+`current_key_label` 不检查可见性的还有 8 个：dominosa、inertia、tents、range、pearl、unruly、
+flood、tracks。轮到它们**不能照抄这两份**——每个游戏的标志名字、唤醒键、
 清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在 `game_ui` 里都有一个
 bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365 在里面写
 `*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置就是它自己。

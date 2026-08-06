@@ -954,9 +954,15 @@ export default function PuzzleHost({
     // Every puzzle that requests keys requests ASCII ones, so the ordinary
     // key path carries them: a one-character string is taken as the button
     // itself, and the midend folds 8 and 127 together into backspace.
-    api.key(0, String.fromCharCode(key.button), '', 0, 0, 0)
+    const sent = String.fromCharCode(key.button)
+    // And a keypad key can show the cursor, on the one puzzle where the two
+    // blocks overlap: Guess's `H` runs the hinter, which reveals the cursor on
+    // its way past (guess.c:799). Without this the mirror would sleep through
+    // a press the back end acted on. See CURSOR_LIFE.
+    if (wakesCursor(name, sent)) setAwake(true)
+    api.key(0, sent, '', 0, 0, 0)
     canvasRef.current?.focus()
-  }, [acted, markAction])
+  }, [acted, markAction, name])
 
   /*
    * A key from the block around the arrows, sent as the keypress it is — the

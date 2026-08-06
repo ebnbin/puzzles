@@ -398,6 +398,9 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
+  | 'place'
+  | 'submit'
+  | 'hold'
   | 'flip'
   | 'select'
   | 'remove'
@@ -509,6 +512,21 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    * clears on the next arrow. A long press does nothing in Flip anyway.
    */
   flip: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
+  /*
+   * And Guess, whose label leaves out `ui->display_cur` like the other three,
+   * and whose select key places a peg the instant it is pressed (guess.c:933).
+   *
+   * The longest list here, because Guess reads the most keys and nearly every
+   * one of them shows the cursor: the digits insert a colour (guess.c:943), D
+   * and Backspace clear a peg (952), and `h` runs the hinter, which shows the
+   * cursor as a side effect of the "visually indicate futility" hack at
+   * guess.c:799. `h` matters to us and not only to a keyboard: it is on this
+   * puzzle's keypad, so a thumb can reach it, which is why `pressKey` asks
+   * about waking too.
+   */
+  guess: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ',
+          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+          'd', 'D', 'Backspace', 'h', 'H', '?'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
@@ -628,6 +646,7 @@ const WORDS: Record<string, readonly string[]> = {
    */
   mines: ['Uncover', 'Clear', 'Mark', 'Unmark'],
   samegame: ['Select', 'Remove', 'Unselect'],
+  guess: ['Place', 'Submit', 'Hold'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -1073,6 +1092,53 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * says it would do nothing, and the mirror is all that gates it.
    */
   flip: [{ key: 'Enter', icon: 'flip', says: 'flip' }],
+
+  /*
+   * Guess, where the arrows are two dials rather than one cursor.
+   *
+   * Its chapter: "the up and down cursor keys can be used to select a peg
+   * colour, the left and right keys to select a peg position, and the Enter key
+   * to place a peg of the selected colour in the chosen position... Space adds a
+   * hold marker." So up and down pick *what*, left and right pick *where*, and
+   * these two act on the pair — `move_cursor` is handed `&ui->peg_cur` for x and
+   * `&ui->colour_cur` for y (guess.c:925), which is the whole of that.
+   *
+   * Enter has a second job at the end of the row and `current_key_label` names
+   * it (guess.c:542): walk one step past the last peg and it becomes "Submit",
+   * which marks the guess. That position only exists when the guess is
+   * finished — `maxcur` is `npegs + ui->markable` — so the word appears exactly
+   * when there is something to submit, and Space reports nothing there, since
+   * holding a feedback slot means nothing.
+   *
+   * A hold is what carries a peg into the next guess, and it is the one thing
+   * here the mouse reaches by a button rather than a drag — right-click, which
+   * is a long press on the board already. This button is the keyboard's way to
+   * the same mark.
+   *
+   * Not covered here, and still open: the colour digits and D/Backspace. Both
+   * act where the cursor is, so they are cursor companions by the second
+   * criterion, but there are up to ten of them and the cross has two cells.
+   * They belong on the keypad beside `H`, drawn as the coloured pegs they
+   * insert, which needs `keysFor` to read the colour count out of the game id.
+   * A separate piece of work; see docs/keys.md.
+   */
+  guess: [
+    {
+      key: 'Enter',
+      icon: 'place',
+      says: 'place',
+      faces: {
+        Place: { icon: 'place', says: 'place' },
+        Submit: { icon: 'done', says: 'submit', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'hold',
+      says: 'hold',
+      faces: { Hold: { icon: 'hold', says: 'hold' } },
+    },
+  ],
 
   solo: [PENCIL],
   unequal: [PENCIL],

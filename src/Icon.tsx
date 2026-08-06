@@ -78,6 +78,8 @@ export type IconName =
   | 'carryTileOn'
   | 'holdPlaceOn'
   | 'slide'
+  | 'place'
+  | 'hold'
   | 'flip'
   | 'select'
   | 'uncover'
@@ -537,6 +539,36 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
     </g>
+  ),
+  /*
+   * Guess's two, both drawn as the board draws them: a peg is a disc.
+   *
+   * `hold` is upstream's own marker, not an invention — a bar the width of the
+   * peg, drawn just under it (guess.c:1302), and `encode_ui` writes a held peg
+   * as an underscore. Same bargain as Undead's monsters: where the puzzle has
+   * already decided what the thing looks like, the key shows that.
+   *
+   * `place` is a peg with an arrow above it, and the arrow is there for the
+   * pair rather than for itself. A bare disc beside a disc-with-a-bar is two
+   * dots differing by two pixels, and these two are on screen together — Enter
+   * offering Place while Space offers Hold is the ordinary state of this
+   * puzzle. Rendered side by side at 20 before it was settled.
+   *
+   * The third face is `done`, borrowed: submitting a finished guess is
+   * carry-out-what-you-set-up, the same as Rectangles' and Same Game's.
+   */
+  place: (
+    <>
+      <circle cx="12" cy="15.4" r="5.6" fill="currentColor" />
+      <path d="M12 2.4v4.8" />
+      <path d="m9 5 3 3 3-3" />
+    </>
+  ),
+  hold: (
+    <>
+      <circle cx="12" cy="10.4" r="6.4" fill="currentColor" />
+      <path d="M6.4 20.2h11.2" />
+    </>
   ),
   /*
    * Flip: a square with half of it turned over.
