@@ -124,6 +124,27 @@ export default function PuzzleHost({
   const [status, setStatus] = useState<string | null>(null)
   const [presets, setPresets] = useState<Preset[] | null>(null)
   const [selected, setSelected] = useState(0)
+  /**
+   * Which preset the puzzle is set to before anybody chooses — upstream's
+   * `default_params()`, as an index into the list.
+   *
+   * Worth showing because it is not guessable: on twenty of the forty it is not
+   * the first chip in the list, and emcc.c says as much where it makes the
+   * menu ("in case it isn't the first one in the list (e.g. Slant)"). Keen
+   * opens on the fifth of eleven, Dominosa on the seventh of thirteen.
+   *
+   * The back end is not asked for it, because it answers unprompted: emcc.c
+   * calls select_appropriate_preset() once while it is building the menu, and
+   * only then does anything else touch the parameters — a save being restored,
+   * a preset being picked. So the first index the back end ever reports is the
+   * one it started on, and every one after it is somebody's choice. First wins,
+   * which is what the `??` below is.
+   *
+   * Null while nothing has been reported. Not -1: that is a real answer,
+   * meaning the parameters match no preset at all, and a puzzle whose defaults
+   * are custom should mark nothing rather than mark the "Custom…" chip.
+   */
+  const [standard, setStandard] = useState<number | null>(null)
   const [canSolve, setCanSolve] = useState(true)
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
@@ -429,7 +450,10 @@ export default function PuzzleHost({
           setPermalink({ desc, seed })
           queueSave()
         },
-        onPresetSelected: setSelected,
+        onPresetSelected: (index) => {
+          setStandard((first) => first ?? index)
+          setSelected(index)
+        },
         onSolveRemoved: () => setCanSolve(false),
         onDialog: (spec) => {
           // Borrowed: answered before this call returns, so it never reaches
@@ -1042,6 +1066,7 @@ export default function PuzzleHost({
         <PuzzleTypes
           presets={presets}
           selected={selected}
+          standard={standard}
           custom={inline?.kind === 'custom' ? inline.spec : null}
           customError={inlineError}
           onSelectPreset={(value) => {

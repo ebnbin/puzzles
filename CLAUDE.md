@@ -133,7 +133,10 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 
 几个反复出现的坑,改 `PuzzleHost` 前先读它的注释:后端只有**一个** config box(游戏 ID、
 参数、偏好设置共用),所以打开一个就必须有人回答它;StrictMode 下 effect 会跑两遍而 wasm
-没有 teardown;`rescale()` 而不是 `resize()`。
+没有 teardown;`rescale()` 而不是 `resize()`;**后端第一次报的 `onPresetSelected` 是默认
+预设**——emcc.c 建菜单时调一次 `select_appropriate_preset()`,那之后才轮到读存档和玩家选,
+所以「第一个赢」就拿到了 `default_params()`,类型弹窗上那个「默认」标记全靠它。四十个游戏
+里有二十个的默认不是列表第一项(Keen 是十一个里的第五个),所以这个值不能猜。
 
 ### 还有一扇门:存档文件(`src/engine/marks/`)
 

@@ -164,6 +164,14 @@ export const en = {
   /** The sheet that is only about which puzzle you are being set. */
   types: {
     title: 'Type',
+    /**
+     * On the one chip the puzzle came set to.
+     *
+     * Worth a word rather than a mark because it is not guessable from where
+     * the chip sits: on twenty of the forty puzzles the default is not the
+     * first in the list. Keen opens on the fifth of its eleven.
+     */
+    standard: 'Default',
   },
 
   dialog: {
