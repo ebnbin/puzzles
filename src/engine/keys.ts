@@ -194,6 +194,25 @@ const COL_1 = 6
 /** guess.c's own name for the setting that writes numbers on the pegs. */
 const LABELLED = 'Label colours with numbers'
 
+/**
+ * Clear, sent backwards: it takes the peg the cursor has just gone past rather
+ * than the empty place it is standing on.
+ *
+ * Upstream's key clears where the cursor is (guess.c:948), and a colour key
+ * moves the cursor on after placing (946) — so a reader who has just put four
+ * pegs down and wants the last one back finds the key does nothing, and has to
+ * press left first. That is not what a key drawn as a backspace means anywhere
+ * else, and the row of colour keys above it is a row of characters being typed.
+ *
+ * `notAt` is the one place the cursor can stand where this key must not be
+ * pressed at all. Past the last peg the label reads "Submit", and upstream's
+ * clear branch is the only one in that function that does not bound-check
+ * `peg_cur` first — it would read, and possibly write, one int past the row.
+ * So there the step comes first and the press lands on the last peg, which is
+ * what the reader meant anyway.
+ */
+const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft', notAt: ['Submit'] } }
+
 const RULES: Record<
   string,
   (p: string, prefs: readonly DialogControl[]) => KeyLabel[] | null
@@ -308,7 +327,7 @@ const RULES: Record<
           value: i + 1,
         }
       }),
-      CLEAR,
+      ERASE,
       HINT,
     ]
   },
@@ -599,16 +618,14 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    * the digits, Clear and `h` are all on this puzzle's keypad, so a thumb can
    * reach them, which is why `pressKey` asks about waking too.
    *
-   * Backspace is in here twice on purpose, spelled both ways. The two paths
-   * name the same key differently: a physical press arrives as
-   * `KeyboardEvent.key`, which is `Backspace`, and a keypad press arrives as
-   * the character its button value stands for, which is `\b`. Neither spelling
-   * covers the other, and a mirror that slept through the button would leave
-   * two grey keys beside a cursor the board is drawing.
+   * Backspace is spelled the way both paths spell it, which is the same way:
+   * a physical press arrives as `KeyboardEvent.key`, and the keypad's clear key
+   * is sent under that name too rather than as its character — see `behind` in
+   * ./types for the reason, which is about the answer the back end gives back.
    */
   guess: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ',
           '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-          'd', 'D', 'Backspace', '\b', 'h', 'H', '?'],
+          'd', 'D', 'Backspace', 'h', 'H', '?'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */

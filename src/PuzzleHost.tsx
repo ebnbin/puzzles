@@ -981,18 +981,48 @@ export default function PuzzleHost({
       return
     }
     acted()
+    const send = (sent: string, code = 0) => {
+      // A keypad key can show the cursor, on the one puzzle where the two
+      // blocks overlap: every one of Guess's keys acts where the cursor is, and
+      // even `H` reveals it on the hinter's way past (guess.c:799). Without
+      // this the mirror would sleep through a press the back end acted on, and
+      // the two keys beside the arrows would sit grey next to a cursor the
+      // board is drawing. See CURSOR_LIFE.
+      if (wakesCursor(name, sent)) setAwake(true)
+      return api.key(code, sent, '', 0, 0, 0)
+    }
+    /*
+     * A key that erases backwards, which takes two presses to say — see
+     * `behind` in engine/types for what it means and keys.ts for who asks.
+     *
+     * It rests on the one piece of news the back end sends back other than the
+     * two labels: `key()` returns false when a press was understood and came
+     * to nothing, and it does that for exactly one key — the one spelled
+     * `Backspace`, a KaiOS accommodation at emcc.c:456. So this is sent under
+     * that name rather than as its character, and the midend folds 8, 127 and
+     * `\b` into the same button anyway (midend.c:1261). Measured on Guess: the
+     * call answers false on an empty cell with the cursor showing and true on
+     * a full one, which is exactly the question being asked.
+     *
+     * Two presses at most. Stepping until something gives would walk the whole
+     * row on a press that should have done nothing.
+     */
+    if (key.behind) {
+      const back = () => send('Backspace', 8)
+      if (key.behind.notAt?.includes(labelsRef.current.enter)) {
+        send(key.behind.step)
+        back()
+      } else if (!back()) {
+        send(key.behind.step)
+        back()
+      }
+      canvasRef.current?.focus()
+      return
+    }
     // Every puzzle that requests keys requests ASCII ones, so the ordinary
     // key path carries them: a one-character string is taken as the button
-    // itself, and the midend folds 8 and 127 together into backspace.
-    const sent = String.fromCharCode(key.button)
-    // And a keypad key can show the cursor, on the one puzzle where the two
-    // blocks overlap: every one of Guess's keys acts where the cursor is, and
-    // even `H` reveals it on the hinter's way past (guess.c:799). Without this
-    // the mirror would sleep through a press the back end acted on, and the
-    // two keys beside the arrows would sit grey next to a cursor the board is
-    // drawing. See CURSOR_LIFE.
-    if (wakesCursor(name, sent)) setAwake(true)
-    api.key(0, sent, '', 0, 0, 0)
+    // itself.
+    send(String.fromCharCode(key.button))
     canvasRef.current?.focus()
   }, [acted, markAction, name])
 

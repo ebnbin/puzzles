@@ -142,6 +142,21 @@ export interface KeyLabel {
   slot?: number
   ink?: number
   /**
+   * Turns a key that clears what is *under* the cursor into one that clears
+   * what is *behind* it, which is what a key drawn as a backspace has to mean.
+   *
+   * `step` is the arrow that means "behind". The press is tried where the
+   * cursor is first and the step only happens if it was wasted, so a reader
+   * who has walked the cursor onto something and pressed this still takes that
+   * one — the two readings only differ on an empty cell, where upstream's does
+   * nothing at all. `notAt` lists the labels at which the cursor is not on
+   * anything this key may touch, and there the step comes first instead.
+   *
+   * PuzzleHost is where this is carried out, and where the one back end
+   * message that makes it possible is written down.
+   */
+  behind?: { step: string; notAt?: readonly string[] }
+  /**
    * Whose key this is, which is what tells the three looks apart.
    *
    * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a
