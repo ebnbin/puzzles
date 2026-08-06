@@ -356,6 +356,51 @@ export type CursorKey = {
 export type CursorWord = 'rotateLeft' | 'lock' | 'pencil' | 'black' | 'white'
 
 /**
+ * What the back end says its two cursor keys would do, right now.
+ *
+ * `post_move` asks for both after every input event and pushes them out
+ * (emcc.c:310) — the same notice that carries undo and redo — and each puzzle
+ * answers from wherever its cursor is standing. Net says "Rotate" on a tile you
+ * can turn and nothing at all on one you have locked; Solo says "Pencil" only
+ * once a square is highlighted.
+ *
+ * This is the only thing this side ever learns about the cursor.
+ * `midend_get_cursor_location` exists and would say where it is, but emcc.c
+ * neither calls nor exports it, so the position is unreachable without changing
+ * the C. Two words about what the keys would do turn out to be enough for what
+ * the keys need, which is to know when to stand down.
+ *
+ * Named for the keys the buttons send rather than for upstream's `csk`/`lsk`,
+ * which are a phone's soft keys and not these.
+ */
+export type KeyLabels = { enter: string; space: string }
+
+/**
+ * Whether a cursor key would do nothing where the cursor is standing.
+ *
+ * Enter is idle exactly when its own label is empty. Space is idle only when
+ * *both* are, and the asymmetry is forced rather than chosen:
+ * `js_update_key_labels` blanks `lsk` when it equals `csk`, so an empty Space
+ * beside a named Enter has two meanings this side cannot tell apart. Measured,
+ * Solo and Unequal both report `{"", "Pencil"}` from a highlighted square — and
+ * in Solo that Space really is dead (`current_key_label` answers only
+ * `CURSOR_SELECT`), while in Unequal it does exactly what Enter does
+ * (`IS_CURSOR_SELECT`, which covers both). One reading grants a key that would
+ * do nothing; the other takes away a key that works. A press that turns out to
+ * be wasted is cheap, and a button greyed out for good is a feature nobody can
+ * find, so the tie goes to alive.
+ *
+ * "Nothing" here means nothing to the board. Two puzzles would still wake a
+ * sleeping cursor from a key whose label is empty: Pattern's select shows the
+ * cursor and returns before touching a square (pattern.c:1423), and Net's sets
+ * `cur_visible` on its way to a rotation the lock will refuse (net.c:2330).
+ * Both are greyed here anyway. The arrows are in the same group, they wake the
+ * cursor too, and unlike these they say where it went.
+ */
+export const doesNothing = (key: string, labels: KeyLabels) =>
+  key === 'Enter' ? !labels.enter : !labels.enter && !labels.space
+
+/**
  * Which puzzles have been given theirs, and what they do.
  *
  * One entry per puzzle rather than one rule for all of them, because what Enter

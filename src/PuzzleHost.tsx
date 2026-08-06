@@ -11,12 +11,14 @@ import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
   CURSOR_KEYS,
+  doesNothing,
   keysFor,
   movesEightWays,
   READS_PREFS,
   SECOND_PRESS,
   readsArrows,
 } from './engine/keys'
+import type { KeyLabels } from './engine/keys'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -194,6 +196,16 @@ export default function PuzzleHost({
   const [standard, setStandard] = useState<number | null>(null)
   const [canSolve, setCanSolve] = useState(true)
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
+  /**
+   * And what the two cursor keys would do, from the same notice. Only the
+   * buttons beside the arrows read it, to stand down when there is nothing
+   * where the cursor is for them to do — see doesNothing.
+   *
+   * Empty to begin with, which is the right answer rather than a placeholder:
+   * every puzzle reports both keys during start-up, and the ones that report
+   * nothing are the ones whose cursor has not been woken yet.
+   */
+  const [labels, setLabels] = useState<KeyLabels>({ enter: '', space: '' })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   /**
@@ -500,7 +512,10 @@ export default function PuzzleHost({
           queueSave()
           countLeft()
         },
-        onKeyLabels: () => {},
+        // Both keys, every move, named in the order emcc.c asks for them:
+        // CURSOR_SELECT2 first. Turned round here so that the rest of this file
+        // can say `enter` and `space` and mean the keys the buttons send.
+        onKeyLabels: (space, enter) => setLabels({ enter, space }),
         onPermalinks: (desc, seed) => {
           setPermalink({ desc, seed })
           queueSave()
@@ -1128,6 +1143,13 @@ export default function PuzzleHost({
               "lock what", and in Net the answer — a tile you have finished
               turning — is worth a word. Nobody holds one down to repeat it,
               either, so there is no gesture for the tip to steal.
+
+              And they go out when the back end says they would do nothing,
+              which the arrows beside them never do — an arrow always has
+              somewhere to go, and these have somewhere to act only if the
+              cursor has got there. Dimmed the same way Undo is, since it is the
+              same sentence: the button is still what it was, there is just
+              nothing for it to do yet.
             */}
             {(CURSOR_KEYS[name] ?? []).map(({ key, icon, says }, i) => {
               const said = t.play.cursor[says]
@@ -1141,6 +1163,7 @@ export default function PuzzleHost({
                   // stand among, whatever each puzzle spends them on.
                   data-whose="upstream"
                   aria-label={said}
+                  disabled={doesNothing(key, labels)}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {

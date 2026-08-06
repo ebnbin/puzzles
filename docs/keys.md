@@ -146,10 +146,24 @@ square"），三角网格上它们是别名（`UP_LEFT` 接 `LEFT`，两个下�
 **死代码看起来像功能。** `tracks` 的 `h` 包在 `#if 0` 里，`signpost` 的 `h` 整段被注释掉了。
 两个都不要照着加。
 
-**`current_key_label` 是现成的。** 35 个游戏实现了它，按当前光标位置返回一个活的词：Net 在
+**`current_key_label` 现在接上了。** 35 个游戏实现了它,按当前光标位置返回一个活的词:Net 在
 锁着的格子上说 `Unlock`、没锁的说 `Rotate`/`Lock`。这条链路一路通到
-`PuzzleCallbacks.onKeyLabels`，然后在 `PuzzleHost` 里撞上 `onKeyLabels: () => {}` ——**我们
-一直扔着**。要做「按不动时置灰」或者「用后端自己的词做提示」，东西已经在那里了。
+`PuzzleCallbacks.onKeyLabels`,以前在 `PuzzleHost` 里撞上 `onKeyLabels: () => {}`,现在存进
+state,`keys.ts` 的 `doesNothing` 拿它给按不动的光标键置灰。
+
+这也是这一侧唯一能知道的关于光标的事:`midend_get_cursor_location` 存在,但 emcc.c 既不调用
+也不导出,位置够不着。**两个词就够了**,因为要问的只是「现在按下去有没有用」。
+
+有一条不对称,是被逼出来的而不是选的:`js_update_key_labels` 在 `lsk === csk` 时把 `lsk` 抹成
+空串。实测 Solo 和 Unequal 在同一种局面下都报 `{"", "Pencil"}`——Solo 的 `Space` 是真死
+(`current_key_label` 只答 `CURSOR_SELECT`),Unequal 的 `Space` 和 `Enter` 干同一件事
+(`IS_CURSOR_SELECT` 两个都盖)。**从这一侧分不出来**,所以 `Space` 只在两个词都空时才算死。
+按一下白按是小事,一个永远灰着的按钮是没人找得到的功能。
+
+置灰说的是「对棋盘没用」。有两个游戏,标签空着时按下去仍然会**唤醒光标**——Pattern 的
+select 会先把光标显出来就返回(`pattern.c:1423`),Net 的会在去做一次锁定挡下的旋转的路上把
+`cur_visible` 设成 true(`net.c:2330`)。它们照样置灰:方向键就在同一组里,一样唤醒光标,而且
+还会说光标去了哪。
 
 **图标要按渲染尺寸画。** 键是 40px 的方块、图标 20px。任何「环里套方块」的构图在这个尺寸下
 会闭合成一个墨点——`rotate` 第一版就是这么废掉的。画之前先把候选并排渲染成 20px 亮、20px

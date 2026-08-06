@@ -1284,6 +1284,14 @@ p.notice-intro button:active {
   color: var(--accent);
 }
 
+/* Except when it has nothing to do, where the dim from further up wins. It has
+   to be said again rather than left to the cascade: the two selectors weigh the
+   same, and this block is the later one, so an accented key would have kept its
+   colour while disabled. Only the cursor keys can be both — see doesNothing. */
+.play-actions button[data-whose]:disabled {
+  color: var(--text-3);
+}
+
 .keypad button[data-whose='ours'],
 .play-actions button[data-whose='ours'] {
   background: var(--accent-soft);
