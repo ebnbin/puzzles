@@ -245,6 +245,16 @@ export const en = {
        * "Draw a line" would be the one label here that names a drawing rather
        * than a deduction.
        */
+      /**
+       * Untangle's two. The first names the switch rather than either side of
+       * it, the way Net's padlock does and for the same reason — a press picks
+       * a point up as readily as it puts one down, and upstream's own sentence
+       * is "toggle dragging". This is also the one word here that has to carry
+       * its own weight: that back end reports nothing, so a long press is the
+       * only thing that will ever say what the button is for.
+       */
+      drag: 'Pick up or put down this point',
+      cycle: 'Go to the next point',
       domino: 'Place a domino across these two',
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',

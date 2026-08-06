@@ -87,6 +87,8 @@ export type IconName =
   | 'dominoOn'
   | 'line'
   | 'lineOn'
+  | 'vertex'
+  | 'cycle'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -685,6 +687,43 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <rect x="1.8" y="7" width="7.8" height="10" rx="2" />
       <rect x="14.4" y="7" width="7.8" height="10" rx="2" />
       <path d="M12 5.6v12.8" strokeWidth="3.4" />
+    </>
+  ),
+  /*
+   * Untangle's two, and they are both nouns rather than verbs.
+   *
+   * `vertex` is one point with its edges running off it — the thing the button
+   * acts on, drawn the way the board draws it, with the picking-up and the
+   * putting-down left to the word. Net's padlock is the same bargain and for
+   * the same reason: a key that does a thing and undoes it cannot have a
+   * picture of the doing.
+   *
+   * Two that tried to show the doing both lost at 20. The node lifted off a
+   * dashed ghost of where it came from turns the ghost into a smudge; a dashed
+   * ring around the node closes into the halo this file has been caught by
+   * before (see `rotate`).
+   *
+   * `cycle` is four points with one of them picked, which is what "cycle
+   * through all the points" looks like standing still. It carries no arrow, and
+   * that was the deciding constraint for both: this pair sits in a block with
+   * four arrow keys, and anything arrow-shaped reads at 20 as a fifth one. A
+   * row of three dots with an arrow threaded through it was tried and is the
+   * thing that rule exists to stop.
+   */
+  vertex: (
+    <>
+      <path d="M12 12 4 5.6" />
+      <path d="M12 12 20.4 8" />
+      <path d="M12 12 8.6 20.6" />
+      <circle cx="12" cy="12" r="3.4" fill="currentColor" />
+    </>
+  ),
+  cycle: (
+    <>
+      <circle cx="12" cy="4.8" r="2.4" fill="currentColor" />
+      <circle cx="19.2" cy="12" r="2.4" />
+      <circle cx="12" cy="19.2" r="2.4" />
+      <circle cx="4.8" cy="12" r="2.4" />
     </>
   ),
   /*

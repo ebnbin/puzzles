@@ -498,6 +498,8 @@ export type CursorWord =
   | 'undomino'
   | 'line'
   | 'unline'
+  | 'drag'
+  | 'cycle'
   | 'place'
   | 'submit'
   | 'hold'
@@ -793,6 +795,29 @@ const understood = (name: string, labels: KeyLabels) => {
 }
 
 /**
+ * The puzzles that read the cursor keys and never say a word about them.
+ *
+ * `current_key_label` is optional and five back ends leave it NULL. Three of
+ * those do not read the keys at all; these two read them and report nothing, so
+ * `midend_current_key_label` hands back "" for both, forever. Read literally
+ * that is "neither key does anything", and both buttons would sit out the whole
+ * game.
+ *
+ * So they are exempted rather than fixed. Their buttons are always live, which
+ * is very nearly true of them: every press Untangle's Enter can make does
+ * something — pick a point up, put it down, or show the highlight for the first
+ * time — and its Space does nothing only while a point is in the air. A dead
+ * press there is the price of not keeping a copy of a state upstream will not
+ * report, and it costs nothing that is not immediately visible: the board draws
+ * the point being carried.
+ *
+ * Nothing else changes for them. `faceOf` already falls back to a key's own
+ * picture when there are no words to read, which is the right face when there
+ * never will be any.
+ */
+const SILENT = new Set(['untangle', 'palisade'])
+
+/**
  * Which key a cursor button should send, or null when it should stand down.
  *
  * Three kinds of button come through here. Most send the key they were built
@@ -814,6 +839,7 @@ export const wouldSend = (
   awake: boolean,
 ): string | null => {
   if (mirrorsCursor(name) && !awake) return null
+  if (SILENT.has(name)) return cursor.key
   if (understood(name, labels)) {
     if (cursor.does) {
       if (labels.enter === cursor.does) return 'Enter'
@@ -1379,6 +1405,40 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Remove: { icon: 'lineOn', says: 'unline', on: true },
       },
     },
+  ],
+
+  /*
+   * Untangle, the first puzzle here whose back end says nothing at all — its
+   * `current_key_label` is NULL. See `SILENT` for what that costs.
+   *
+   * Its chapter: "the cursor keys may also be used to navigate amongst the
+   * points. Pressing the Enter key will toggle dragging the currently-
+   * highlighted point. Pressing Tab or Space will cycle through all the points."
+   * Three sentences, three keys, and the two here are the two that are not
+   * arrows.
+   *
+   * The arrows are unlike every other puzzle's: they do not step a grid, they
+   * search for the nearest point in the quadrant they point at
+   * (untangle.c:2287-2350) — and once a point is in the air the same four keys
+   * shove it half a tile at a time instead. So Enter is not merely what makes
+   * the arrows worth having, it is what changes what they are.
+   *
+   * `drag` is named as the switch rather than as either side of it, which is
+   * upstream's own framing — "toggle dragging" — and Net's padlock all over
+   * again. There is nothing to gate it on and nothing needs gating: with no
+   * point highlighted a press highlights the first one rather than moving
+   * anything, so there is no state in which this button acts unseen. That makes
+   * Untangle the one puzzle so far that keeps no copy and needs no label.
+   *
+   * `cycle` is the second key and it earns the cell. It is not a synonym for
+   * Enter the way Netslide's and Flip's Space is, and the quadrant search is
+   * exactly the kind of thing that leaves a point unreachable — two points in
+   * the same place are skipped on purpose (2313), and upstream's own answer to
+   * that is this key.
+   */
+  untangle: [
+    { key: 'Enter', icon: 'vertex', says: 'drag' },
+    { key: ' ', icon: 'cycle', says: 'cycle' },
   ],
 
   solo: [PENCIL],
