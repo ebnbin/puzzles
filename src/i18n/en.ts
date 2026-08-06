@@ -296,6 +296,36 @@ export const en = {
       emptySquare: 'Empty this square',
       fillSquare: 'Paint this square black',
       dotSquare: 'Dot this: definitely not black',
+      /**
+       * Magnets names its markers after what upstream draws on the domino, not
+       * after what they mean, because what they mean takes a sentence: a blank
+       * domino is a claim that neither half holds a pole, and the pair of
+       * question marks is the opposite claim. Both sentences are here.
+       */
+      plus: 'Put a + here',
+      minus: 'Put a − here',
+      blankDomino: 'Mark this domino as blank',
+      notBlankDomino: 'Mark this domino as not blank',
+      track: 'Lay track here',
+      noTrack: 'Cross this off: no track here',
+      /**
+       * Filling's two are about the selection rather than the board — the
+       * digits on its keypad are what fill squares, and these choose which
+       * squares they fill.
+       */
+      multiselect: 'Select squares with the arrows',
+      stopSelect: 'Stop selecting',
+      selectSquare: 'Add this square to the selection',
+      deselectSquare: 'Take this square out of the selection',
+      floodFill: 'Flood the corner with this colour',
+      advance: 'Play the solver’s next move',
+      /**
+       * Palisade's two name the switch rather than either side of it, the way
+       * Untangle's does and for the same reason: that back end reports nothing,
+       * so there is no word to follow and a press undoes as readily as it does.
+       */
+      edge: 'Draw or rub out this wall',
+      noEdge: 'Mark or unmark this as no wall',
       domino: 'Place a domino across these two',
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',

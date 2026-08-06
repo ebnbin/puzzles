@@ -101,6 +101,16 @@ export type IconName =
   | 'tent'
   | 'grass'
   | 'lamp'
+  | 'plusSquare'
+  | 'minusSquare'
+  | 'crossSquare'
+  | 'questionSquare'
+  | 'track'
+  | 'pickCell'
+  | 'floodFill'
+  | 'advance'
+  | 'edge'
+  | 'noEdge'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -855,6 +865,103 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m16.8 16.8 1.8 1.8" />
       <path d="m18.6 5.4-1.8 1.8" />
       <path d="m7.2 16.8-1.8 1.8" />
+    </>
+  ),
+  /*
+   * Four more of the same square, for Magnets' poles and its two markers. The
+   * `?` is a glyph rather than a drawing because upstream's is too: it writes
+   * two question marks on the domino, and there is no picture of "I am not
+   * sure" that a square can hold at 20 pixels.
+   */
+  plusSquare: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M12 7.6v8.8" />
+      <path d="M7.6 12h8.8" />
+    </>
+  ),
+  minusSquare: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M7.6 12h8.8" />
+    </>
+  ),
+  crossSquare: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="m8.4 8.4 7.2 7.2" />
+      <path d="m15.6 8.4-7.2 7.2" />
+    </>
+  ),
+  questionSquare: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5" />
+      <path d="M12 16.9v.1" />
+    </>
+  ),
+  /*
+   * Tracks' rail: two sleepers across a line, which is what its board draws
+   * inside a square once you say a track goes through it. Its other key takes
+   * `crossSquare`, since a cross on an edge is exactly what upstream calls it.
+   */
+  track: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M3.4 12h17.2" />
+      <path d="M9 8.8v6.4" />
+      <path d="M15 8.8v6.4" />
+    </>
+  ),
+  /*
+   * Filling's second key adds one square to the run it is about to fill and
+   * takes it out again. The board says so by drawing that square heavier, so
+   * this is a square with a heavier outline, and its opposite is the plain one.
+   */
+  pickCell: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" strokeWidth="3.4" />
+    </>
+  ),
+  /*
+   * Flood's two. The first is a drop falling into the corner it floods — the
+   * whole board runs from that one square, so the glyph is the corner and not
+   * the grid. The second is the skip-forward mark, for replaying the solver a
+   * move at a time: a solid triangle against a bar, which is the one arrow-like
+   * shape in this set that no line-arrow could be mistaken for.
+   */
+  floodFill: (
+    <>
+      <path d="M4.2 4.2h6.4v6.4H4.2Z" fill="currentColor" />
+      <path d="M17 6.6c1.9 2.4 3 4.1 3 5.4a3 3 0 0 1-6 0c0-1.3 1.1-3 3-5.4Z" />
+      <path d="M4.2 14.6v5.2h5.2" />
+      <path d="M13.4 19.8h6.4" />
+    </>
+  ),
+  advance: (
+    <>
+      <path d="M5 5.4 15 12 5 18.6Z" fill="currentColor" />
+      <path d="M18.6 5.4v13.2" />
+    </>
+  ),
+  /*
+   * Palisade's pair: a square with one side drawn as a wall, and the same side
+   * struck through. Which side does not matter and cannot — the cursor stands
+   * on the border it will act on, and the board draws which one that is.
+   */
+  edge: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M12 3.6v16.8" strokeWidth="3.4" />
+    </>
+  ),
+  noEdge: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M12 3.6v4.4" />
+      <path d="M12 16v4.4" />
+      <path d="m9.4 9.4 5.2 5.2" />
+      <path d="m14.6 9.4-5.2 5.2" />
     </>
   ),
   /*

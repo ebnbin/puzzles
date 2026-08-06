@@ -10,7 +10,7 @@ import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
-  CURSOR_KEYS,
+  cursorKeys,
   faceOf,
   isOffBoard,
   keysFor,
@@ -1308,7 +1308,7 @@ export default function PuzzleHost({
               the table: a button named for a result asks which key reaches it
               from where the cursor is, and that is not always the same key.
             */}
-            {(CURSOR_KEYS[name] ?? []).map((cursor, i) => {
+            {cursorKeys(name, prefs).map((cursor, i) => {
               // What the key is right now, which for two puzzles is not what it
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See

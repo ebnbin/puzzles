@@ -365,7 +365,7 @@ const RULES: Record<
  * so the box is asked again after every press; Guess's `l` does the same
  * (guess.c:825), which is why asking is on the key rather than on the box.
  */
-export const READS_PREFS = new Set(['undead', 'guess'])
+export const READS_PREFS = new Set(['undead', 'guess', 'palisade'])
 
 /**
  * The one puzzle that does not read the cursor keys.
@@ -524,6 +524,20 @@ export type CursorWord =
   | 'emptySquare'
   | 'fillSquare'
   | 'dotSquare'
+  | 'plus'
+  | 'minus'
+  | 'blankDomino'
+  | 'notBlankDomino'
+  | 'track'
+  | 'noTrack'
+  | 'multiselect'
+  | 'stopSelect'
+  | 'selectSquare'
+  | 'deselectSquare'
+  | 'floodFill'
+  | 'advance'
+  | 'edge'
+  | 'noEdge'
   | 'place'
   | 'submit'
   | 'hold'
@@ -676,6 +690,16 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    * Flip makes; the next arrow puts it right.
    */
   dominosa: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
+  /*
+   * And Flood, the last of them and the only one whose label never mentions the
+   * cursor at all: `current_key_label` asks whether the square under it is a
+   * different colour from the corner and nothing else (flood.c:830), so with
+   * the cursor away it would still offer to flood from wherever it was left.
+   *
+   * Only the arrows wake it — `move_cursor` has the flag (flood.c:876) and the
+   * select keys do not touch it — and a press on the board puts it away.
+   */
+  flood: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
@@ -834,6 +858,14 @@ const WORDS: Record<string, readonly string[]> = {
   unruly: ['Black', 'White', 'Empty'],
   mosaic: ['Black', 'White', 'Empty'],
   range: ['Fill', 'Dot', 'Empty'],
+  /* Magnets' six. The two markers are upstream's own characters — a blank
+     domino and a pair of question marks — and it names them by what it draws. */
+  magnets: ['+', '-', 'X', '?', 'Clear'],
+  tracks: ['Track', 'X', 'Clear'],
+  filling: ['Multiselect', 'Stop', 'Select', 'Deselect'],
+  /* Flood's two do not share a state at all: one is a move on the board and
+     the other replays the solver, which only exists after Solve. */
+  flood: ['Fill', 'Advance'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -864,6 +896,8 @@ const understood = (name: string, labels: KeyLabels) => {
  * never will be any.
  */
 const SILENT = new Set(['untangle', 'palisade'])
+
+/** Palisade's cursor walks a half-grid; only the borders are worth a press. */
 
 /**
  * Which key a cursor button should send, or null when it should stand down.
@@ -985,7 +1019,7 @@ export const faceOf = (
  */
 const PENCIL: CursorKey = { key: 'Enter', icon: 'pencil', says: 'pencil' }
 
-export const CURSOR_KEYS: Record<string, CursorKey[]> = {
+const CURSOR_KEYS: Record<string, CursorKey[]> = {
   /*
    * Rotate, and lock.
    *
@@ -1737,6 +1771,134 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
     },
   ],
 
+  /*
+   * Magnets, where a press works on half a domino and the other half follows.
+   * Enter cycles the poles, Space the two markers upstream draws for "this
+   * domino is blank" and "this one is definitely not" — six words between
+   * them, and each names what the press will leave behind.
+   */
+  magnets: [
+    {
+      key: 'Enter',
+      icon: 'plusSquare',
+      says: 'plus',
+      faces: {
+        '+': { icon: 'plusSquare', says: 'plus' },
+        '-': { icon: 'minusSquare', says: 'minus' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'crossSquare',
+      says: 'blankDomino',
+      faces: {
+        X: { icon: 'crossSquare', says: 'blankDomino' },
+        '?': { icon: 'questionSquare', says: 'notBlankDomino' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare' },
+      },
+    },
+  ],
+
+  /*
+   * Tracks, whose cursor walks a half-grid like Dominosa's: the even stops are
+   * squares and the odd ones the edges between them, and both keys work on
+   * whichever it is standing on. Upstream's `ui_can_flip_*` decides whether
+   * there is anything to do at all (tracks.c:1268), and where there is not the
+   * label is empty and the button goes out — which is how a clue square, whose
+   * track is given, keeps its answer.
+   */
+  tracks: [
+    {
+      key: 'Enter',
+      icon: 'track',
+      says: 'track',
+      faces: {
+        Track: { icon: 'track', says: 'track' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'crossSquare',
+      says: 'noTrack',
+      faces: {
+        X: { icon: 'crossSquare', says: 'noTrack' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Filling, whose two keys are both about the selection rather than about the
+   * board: the digits on its keypad are what actually fill squares, and these
+   * choose which squares they fill. Enter runs a selection along with the
+   * arrows and stops it; Space adds and removes the one square under the
+   * cursor. A clue square cannot be selected, and upstream says so by falling
+   * silent (filling.c:1462).
+   */
+  filling: [
+    {
+      key: 'Enter',
+      icon: 'select',
+      says: 'multiselect',
+      faces: {
+        Multiselect: { icon: 'select', says: 'multiselect' },
+        Stop: { icon: 'done', says: 'stopSelect', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'pickCell',
+      says: 'selectSquare',
+      faces: {
+        Select: { icon: 'pickCell', says: 'selectSquare' },
+        Deselect: { icon: 'white', says: 'deselectSquare', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Flood, whose two keys have nothing to do with each other. Enter floods the
+   * top-left corner with the colour under the cursor — the only move this game
+   * has — and Space replays the solver's next step, which exists only after
+   * Solve has been pressed and which upstream reports exactly then.
+   *
+   * This is the one puzzle in the collection whose label does not check the
+   * cursor flag, so it needs a mirror. See CURSOR_LIFE.
+   */
+  flood: [
+    {
+      key: 'Enter',
+      icon: 'floodFill',
+      says: 'floodFill',
+      faces: { Fill: { icon: 'floodFill', says: 'floodFill' } },
+    },
+    {
+      key: ' ',
+      icon: 'advance',
+      says: 'advance',
+      faces: { Advance: { icon: 'advance', says: 'advance' } },
+    },
+  ],
+
+  /*
+   * Palisade, the second back end that reports nothing (see SILENT) and the
+   * only puzzle where a preference decides whether these buttons exist at all
+   * — see `cursorKeys`.
+   *
+   * In its half-grid mode the cursor stands on the border between two squares
+   * and these two draw a wall there or cross it off; on a square's own centre
+   * or corner both do nothing, which is the same shape as Dominosa's half-grid
+   * and the same cost. Both words name the switch rather than either side of
+   * it, because with no label there is nothing to follow: a press draws a wall
+   * as readily as it rubs one out, and the board shows which.
+   */
+  palisade: [
+    { key: 'Enter', icon: 'edge', says: 'edge' },
+    { key: ' ', icon: 'noEdge', says: 'noEdge' },
+  ],
+
   solo: [PENCIL],
   unequal: [PENCIL],
   keen: [PENCIL],
@@ -1770,6 +1932,32 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
 export const SECOND_PRESS: Record<string, number> = {
   /** The middle button, which is `TOGGLE_LOCK` in net.c. */
   net: 1,
+}
+
+/** palisade.c's "Cursor mode", by its two answers (palisade.c:906). */
+const CURSOR_MODE = ['Half-grid', 'Full-grid']
+
+/**
+ * The keys to put either side of the arrows, for a puzzle whose answer is not
+ * settled by its name alone.
+ *
+ * Palisade is the only one, and it is the one place where a preference decides
+ * whether a button exists at all rather than what it looks like. Its cursor has
+ * two modes: on the borders, where Enter and Space place and unplace an edge,
+ * and on the squares, where the same job is Ctrl and Shift held with an arrow
+ * (palisade.c:1013). We cannot send a modifier, so in the second mode these two
+ * buttons would be live and do nothing — and Palisade reports no labels at all,
+ * so nothing else would ever put them out. Better to have no buttons than two
+ * that lie.
+ *
+ * Half-grid is upstream's default (892), so the ordinary reader gets them.
+ */
+export function cursorKeys(
+  name: string,
+  prefs: readonly DialogControl[] = [],
+): CursorKey[] {
+  if (name === 'palisade' && preference(prefs, CURSOR_MODE) === 1) return []
+  return CURSOR_KEYS[name] ?? []
 }
 
 export function keysFor(

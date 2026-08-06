@@ -57,9 +57,9 @@ Sixteen 的边框那一档反过来验证了这条线：同两个键在边框上
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 29 | 见下表 |
+| ✅ 完成 | 34 | 见下表 |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 10 | map、bridges、galaxies、filling、magnets、signpost、pearl、flood、tracks、palisade |
+| ⬜ 待办 | 5 | map、bridges、galaxies、signpost、pearl |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -101,19 +101,19 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | bridges | ⬜ | `Enter`/`Space` 选中/完成 · 数字跳到该数的岛 | `h` 提示 ✅ · `g` 提示开关 |
 | unequal | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` 同 `Enter`（走 `IS_CURSOR_SELECT`） | `h` ✅ · `M` ✅ · 三个标记键 ✅ |
 | galaxies | ⬜ | `Enter` 放点/新箭头/移除 | **`h` 走一步显然推理——唯一一个有实质提示却没键盘的游戏** |
-| filling | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter` 选中 · `Space` 多选/取消 | —— |
+| filling | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 用方向键连选／结束 ✅ · `Space` 加入／移出选区 ✅（这两个管的是选区，填数字的是键盘那排） | —— |
 | keen | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | towers | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | singles | ✅ | `Enter` 涂黑／还原 ✅ · `Space` 画圈／去掉 ✅（黑格和圈格上两个键报同一个词，见 `BOTH`） | —— |
-| magnets | ⬜ | `Enter` 循环 +/−/空 | —— |
+| magnets | ✅ | `Enter` +→−→空 ✅ · `Space` 空白骨牌→两个问号→空 ✅（六个词，每个都说按下去会留下什么） | —— |
 | signpost | ⬜ | `Enter` 从这里/到这里/取消 · `x` 标记不可能 | —— |
 | range | ✅ | `Enter` 涂黑→空→点 ✅ · `Space` 反向 ✅ | `h` 提示 ✅ |
 | pearl | ⬜ | `Enter` 起点/终点 · `Space` 取消 · `⌫` 取消拖拽 | `h` 提示 ✅ |
 | undead | ✅ | 怪物 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 · 数字 1/2/3（同怪物，重复） | `M` ✅ · 三个标记键 ✅ · `a` 切图片/字母（偏好里也有） |
 | unruly | ✅ | `Enter` 黑→白→空 ✅ · `Space` 反向 ✅ · `0`/`1`/`2` 直接设⭕ · `⌫` · **中键「空」够不着**——但两个键之间已经能到「空」，见下 | —— |
-| flood | ⬜ | `Enter` 填充 | `Space` = Advance（重放求解器下一步） |
-| tracks | ⬜ | `Enter` 铺轨 · `Space` 打叉 | —— (`h` 在 `#if 0` 里，死代码) |
-| palisade | ⬜ | `Enter`/`Space` 画边 | —— |
+| flood | ✅ | `Enter` 淹没左上角 ✅ · `Space` 重放求解器下一步 ✅（按过求解才亮，标签自己说）· **唯一一个标签完全不问光标的游戏**，需要一份副本 | —— |
+| tracks | ✅ | `Enter` 铺轨／清除 ✅ · `Space` 打叉／清除 ✅（半格网格，格子和边都能按；线索格上游自己不给动，标签为空就置灰） | —— (`h` 在 `#if 0` 里，死代码) |
+| palisade | ✅ | `Enter` 画墙／擦掉 ✅ · `Space` 标记「没有墙」✅（**后端不报**，永远可按；半格网格里一半的落点什么都不做，见下）· 只在「Half-grid」光标模式下给按钮 | —— |
 | mosaic | ✅ | `Enter` 黑→白→空 ✅ · `Space` 反向 ✅ | —— |
 
 ⭕ = 碰棋盘就能做到，按判据一不该做成按钮。
@@ -181,7 +181,7 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
 | `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 10 个有肩键的 |
-| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip、guess、dominosa |
+| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip、guess、dominosa、flood |
 
 `labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
 真正说的东西：全 app 唯一一份「后端知道但不肯说，于是我们自己记着」的数据。
@@ -356,7 +356,7 @@ peg」，没说哪一枚。
 
 ### 后端一个字都不报的两个
 
-untangle 和 palisade 的 `current_key_label` 是 `NULL`，所以
+**两个都做完了。** untangle 和 palisade 的 `current_key_label` 是 `NULL`，所以
 `midend_current_key_label` 对两个键永远回空串。**照字面读就是「两个键都没用」，两个按钮会
 整局灰着**——这是这份文档里第一次出现「没有传感器」的情况，前面二十个游戏的置灰全靠那两个词。
 
@@ -369,16 +369,35 @@ untangle 和 palisade 的 `current_key_label` 是 `NULL`，所以
 - `Space` 只在「点正拿在手上」时是空按（2445 直接 `MOVE_NO_EFFECT`）。一次空按换掉一份
   副本，值得——而且棋盘正把那个点画成另一种颜色，读者看得见自己在拿着东西。
 
+**palisade 的代价比 untangle 大，而且大得可以量。** 它的光标走半格网格：偶数位是格子中心和
+角，奇数位才是两格之间那条边，而只有边上按下去才有事发生（palisade.c:1092 的 `px == py` 直接
+返回 `MOVE_NO_EFFECT`）。dominosa 是同一个形状，但它会报标签，所以在没用的落点上两个按钮会
+灭掉；palisade 不报，于是**一半的按键是空按**——实测走 26 步按 26 次，13 次什么都没发生。
+没有修：要修就得自己记住光标的奇偶，而点棋盘会把光标扔到任意位置，那份副本立刻就漂了，正是
+上面三条判据里「失败能自愈」那条不成立的样子。
+
+**palisade 还是唯一一个「偏好设置决定按钮存不存在」的游戏。** 它的光标有两种模式：Half-grid
+（走边，`Enter`/`Space` 画墙）和 Full-grid（走格子，画墙要按住 Ctrl/Shift 再按方向键）。修饰键
+我们发不出去，而它又不报标签，所以在 Full-grid 下这两个按钮会一直亮着且永远无效——**宁可不
+给**。`cursorKeys(name, prefs)` 因此多了一个参数，palisade 也进了 `READS_PREFS`。上游默认是
+Half-grid，所以正常读者拿得到这两个键。
+
 **这个游戏的方向键和别处都不一样，值得单记一笔。** 它不是走格子，是**按象限找最近的点**
 （untangle.c:2287-2350）；而一旦有点被拿起来，同样四个键改成每次推半格。所以 `Enter` 不只是
 「让方向键有意义」，它是**换掉方向键是什么**。`Space` 因此也不是同义词：象限搜索会跳过和当前
 点完全重合的点（2313），上游自己给的出路就是这个键。
 
-### 其余 7 个候选
+### 那份「其余 7 个候选」的名单是错的
 
-`current_key_label` 不检查可见性的还有 7 个：inertia、tents、range、pearl、unruly、
-flood、tracks。轮到它们**不能照抄这几份**——每个游戏的标志名字、唤醒键、
-清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在 `game_ui` 里都有一个
+这里曾经列着「`current_key_label` 不检查可见性的还有 7 个：inertia、tents、range、pearl、
+unruly、flood、tracks」。**逐个读过之后只剩一个**：tents 查 `cdisp`、range 查 `cursor_show`、
+pearl 查 `cursor_active`、unruly 查 `cursor`、tracks 查 `cursor_active`，全都自己把关了；
+inertia 根本没有光标。**只有 flood 是真的不查**——它的标签只问「光标底下那格和左上角是不是
+同色」，别的什么都不问（flood.c:830），所以它是第五份、也是最后一份副本。
+
+那份名单是怎么来的：当时 grep 的是 `cur_visible` 这一个名字，而这些游戏各叫各的
+（`cdisp`、`cshow`、`cursor`、`cursor_show`、`cursor_active`）。**要判断一个游戏查不查，
+只能把那个函数读一遍**，名字数不出来。共通的只有形状：每个有光标的游戏在 `game_ui` 里都有一个
 bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365 在里面写
 `*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置就是它自己。
 

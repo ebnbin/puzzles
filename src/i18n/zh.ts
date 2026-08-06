@@ -116,6 +116,23 @@ export const zh: Strings = {
       emptySquare: '把这一格清空',
       fillSquare: '把这一格涂黑',
       dotSquare: '打个点：这一格肯定不是黑的',
+      /* magnets 的两个标记按上游画出来的样子命名（空白骨牌、两个问号），含义写在句子里。 */
+      plus: '在这里放一个 +',
+      minus: '在这里放一个 −',
+      blankDomino: '把这张骨牌标成空白',
+      notBlankDomino: '把这张骨牌标成「不是空白」',
+      track: '在这里铺一段轨道',
+      noTrack: '打叉：这里不可能有轨道',
+      /* filling 这两个管的是选区，真正填数字的是键盘那一排。 */
+      multiselect: '用方向键选中一片格子',
+      stopSelect: '结束选择',
+      selectSquare: '把这一格加进选区',
+      deselectSquare: '把这一格移出选区',
+      floodFill: '用这个颜色淹没左上角',
+      advance: '重放求解器的下一步',
+      /* palisade 的两个按开关命名，理由和 untangle 一样：后端不报，没有词可跟。 */
+      edge: '画上或擦掉这道墙',
+      noEdge: '标记或取消「这里没有墙」',
       domino: '放一张骨牌盖住这两格',
       undomino: '拿掉这张骨牌',
       line: '画一条线：这两格不属于同一张骨牌',
