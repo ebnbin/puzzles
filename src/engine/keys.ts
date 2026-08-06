@@ -494,6 +494,10 @@ export type CursorWord =
   | 'slide'
   | 'jump'
   | 'unjump'
+  | 'domino'
+  | 'undomino'
+  | 'line'
+  | 'unline'
   | 'place'
   | 'submit'
   | 'hold'
@@ -628,6 +632,24 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
   guess: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ',
           '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
           'd', 'D', 'Backspace', 'h', 'H', '?'],
+  /*
+   * And Dominosa, whose list is the shortest of the five and interesting for
+   * what is missing from it.
+   *
+   * Only the arrows wake this cursor. `move_cursor` is handed `&ui->cur_visible`
+   * (dominosa.c:2831) and nothing else in that function sets it — not the select
+   * keys, which place a domino or a line without showing where, and not the
+   * digits, which only light numbers up. So a physical Enter on a hidden cursor
+   * makes a move nobody can see; the board does not draw the cursor either, and
+   * the button beside the arrows stays out, which is the two of us agreeing.
+   *
+   * It clears the way the others do — a press on the board — but only on the
+   * path that ends in a move (2823). A right-click on a *number* toggles a
+   * highlight and returns before that line, so upstream keeps the cursor and we
+   * put it away. Over-sleeping, which is the safe direction and the same trade
+   * Flip makes; the next arrow puts it right.
+   */
+  dominosa: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
@@ -754,6 +776,14 @@ const WORDS: Record<string, readonly string[]> = {
    * cursor — is the empty string, which needs no entry (pegs.c:836).
    */
   pegs: ['Select', 'Cancel'],
+  /*
+   * Dominosa's three, and it is the first puzzle here whose two keys share one.
+   * "Remove" is Enter's word for a domino that is down and Space's for a line
+   * that is drawn, and the two can never be offered together — a line may not
+   * be marked beside a domino (dominosa.c:2762), which is also what makes the
+   * blanking unreadable here. See `BOTH`.
+   */
+  dominosa: ['Place', 'Remove', 'Line'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -790,24 +820,43 @@ export const wouldSend = (
       if (labels.space === cursor.does) return ' '
       return null
     }
-    if (cursor.faces) return cursor.faces[mine(cursor, labels)] ? cursor.key : null
+    if (cursor.faces) return cursor.faces[mine(name, cursor, labels)] ? cursor.key : null
   }
   return doesNothing(cursor.key, labels) ? null : cursor.key
 }
 
 /**
- * What the back end says about this button's own key, with the blanking undone.
+ * The words a puzzle's two keys can be reporting *at the same moment*, for the
+ * puzzles where there are any. This is the whole of what the blanking can ever
+ * have eaten, and the only reason to undo it.
  *
- * An empty Space beside a named Enter is `js_update_key_labels` folding the two
- * together because they agree, so Space's real word is Enter's. Rectangles is
- * where this bites: a drag that has been opened but not moved yet has both keys
- * saying "Cancel", which arrives as {"", "Cancel"} — and taken at face value the
- * Space button would go out wearing the face it had before the drag started,
- * telling the reader it would erase something when a press would abandon the
- * drag. The same fold is why `doesNothing` is asymmetric.
+ * Rectangles is the one entry. A drag that has been opened and not moved has
+ * both keys saying "Cancel" (rect.c:2374), so it arrives as {"", "Cancel"} —
+ * and read literally the Space button would go out still wearing the face it
+ * had before the drag started, telling the reader it would erase something when
+ * a press would abandon the drag.
+ *
+ * Everywhere else an empty Space means an empty Space, and reading it as
+ * Enter's word is wrong rather than merely cautious. Dominosa is where that
+ * showed: a square covered by a domino reports {"", "Remove"} — Enter takes the
+ * domino off and Space genuinely cannot act, since a line may not be drawn
+ * beside a domino — and both keys *have* a "Remove" face, so the fallback lit
+ * the second button up and offered to remove a line that was not there. Four of
+ * the five puzzles with `faces` were only safe from this by accident: their two
+ * keys share no word at all, so an inherited one never matched a face.
+ *
+ * Checked one function at a time rather than assumed. Sixteen looks like a
+ * second entry and is not: its `cur_mode` is one enum with three values
+ * (sixteen.c:569), so "Unlock" is on offer from one key or the other but never
+ * both.
  */
-const mine = (cursor: CursorKey, labels: KeyLabels) =>
-  cursor.key === 'Enter' ? labels.enter : labels.space || labels.enter
+const BOTH: Record<string, readonly string[]> = { rect: ['Cancel'] }
+
+/** What the back end says about this button's own key, with the blanking undone. */
+const mine = (name: string, cursor: CursorKey, labels: KeyLabels) =>
+  cursor.key === 'Enter'
+    ? labels.enter
+    : labels.space || (BOTH[name]?.includes(labels.enter) ? labels.enter : '')
 
 /**
  * The face a key should be wearing: its picture, its word, and whether to draw
@@ -830,7 +879,7 @@ export const faceOf = (
   // the cursor is away, that is not a face to wear — the button is out anyway,
   // and its own picture is the honest thing to be out *as*. See CURSOR_LIFE.
   const known = understood(name, labels) && (awake || !mirrorsCursor(name))
-  const face = known ? cursor.faces?.[mine(cursor, labels)] : undefined
+  const face = known ? cursor.faces?.[mine(name, cursor, labels)] : undefined
   return face ?? { icon: cursor.icon, says: cursor.says }
 }
 
@@ -1287,6 +1336,47 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Select: { icon: 'jump', says: 'jump' },
         Cancel: { icon: 'jump', says: 'unjump', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Dominosa, where the cursor stands between two squares rather than on one.
+   *
+   * Its chapter: "when the cursor is half way between two adjacent numbers,
+   * pressing the return key will place a domino covering those numbers, or
+   * pressing the space bar will lay a line between the two squares. Repeating
+   * either action removes the domino or line." So the arrows walk a grid of
+   * `2w-1` by `2h-1` (dominosa.c:2831) and only the positions with exactly one
+   * odd coordinate are between two squares; on a square's own centre, and on the
+   * corner where four meet, both keys report nothing and both buttons go out.
+   *
+   * Two buttons, and they are the clearest case of it so far: one says these two
+   * are a domino, the other says they are not, and a reader deducing their way
+   * through a board wants the second at least as often as the first. Upstream
+   * spends its right-click on the same mark.
+   *
+   * Both keys can say "Remove" — of a domino, and of a line — and they are the
+   * reason `BOTH` exists. They are never on offer together, so an empty Space
+   * beside "Remove" is a real empty, not a folded one.
+   */
+  dominosa: [
+    {
+      key: 'Enter',
+      icon: 'domino',
+      says: 'domino',
+      faces: {
+        Place: { icon: 'domino', says: 'domino' },
+        Remove: { icon: 'dominoOn', says: 'undomino', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'line',
+      says: 'line',
+      faces: {
+        Line: { icon: 'line', says: 'line' },
+        Remove: { icon: 'lineOn', says: 'unline', on: true },
       },
     },
   ],

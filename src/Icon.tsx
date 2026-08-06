@@ -83,6 +83,10 @@ export type IconName =
   | 'flip'
   | 'select'
   | 'jump'
+  | 'domino'
+  | 'dominoOn'
+  | 'line'
+  | 'lineOn'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -641,6 +645,46 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="4.4" cy="17.6" r="3" fill="currentColor" />
       <circle cx="12" cy="17.6" r="2" fill="currentColor" />
       <circle cx="19.6" cy="17.6" r="3" />
+    </>
+  ),
+  /*
+   * Dominosa's four, two pairs, and each pair is one thing before and after.
+   *
+   * The domino is the silhouette rather than the two squares it will cover,
+   * because the button is named for what a press produces. Filled when one is
+   * there, which is the board's own drawing: upstream paints a placed domino as
+   * a solid slab of COL_DOMINO with the numbers reversed out of it in white
+   * (dominosa.c:3192-3221), so outline-to-solid is that picture arriving.
+   *
+   * The line is the opposite statement and is drawn as the opposite picture:
+   * two squares held apart by a bar, where the domino is one shape. Its `On` is
+   * a thicker bar rather than a filled anything — there is nothing to fill, and
+   * the board's own mark is a one-pixel rule along the shared border.
+   *
+   * A dashed divider inside the domino outline was the other line candidate and
+   * it lost twice over: at 20 the dashes close up into a solid stroke, so it
+   * became the domino key with a spot on it, and it says "one shape" where the
+   * whole point of the mark is that these two are not one shape.
+   */
+  domino: (
+    <>
+      <rect x="2.4" y="7" width="19.2" height="10" rx="2.4" />
+      <path d="M12 7v10" />
+    </>
+  ),
+  dominoOn: <rect x="2.4" y="7" width="19.2" height="10" rx="2.4" fill="currentColor" />,
+  line: (
+    <>
+      <rect x="1.8" y="7" width="7.8" height="10" rx="2" />
+      <rect x="14.4" y="7" width="7.8" height="10" rx="2" />
+      <path d="M12 5.6v12.8" />
+    </>
+  ),
+  lineOn: (
+    <>
+      <rect x="1.8" y="7" width="7.8" height="10" rx="2" />
+      <rect x="14.4" y="7" width="7.8" height="10" rx="2" />
+      <path d="M12 5.6v12.8" strokeWidth="3.4" />
     </>
   ),
   /*

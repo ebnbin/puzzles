@@ -57,9 +57,9 @@ Sixteen 的边框那一档反过来验证了这条线：同两个键在边框上
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 19 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Flip、Guess、Pegs、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 20 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Flip、Guess、Pegs、Dominosa、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 20 | |
+| ⬜ 待办 | 19 | |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -89,7 +89,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | flip | ✅ | `Enter` 翻转 ✅（`Space` 是同义词，只给一个键；标签是个常量，所以按钮醒来之后永不置灰）· 需要一份光标副本，见下 | —— |
 | guess | ✅ | `Enter` 放置／提交 ✅ · `Space` 保留 ✅ · 需要一份光标副本 · 颜色键放 peg ✅ · `⌫` 向后删 ✅（两样拖拽本来就能做，破例的理由见下） | `h`/`?` 提示 ✅ · `l` 标签开关⭕在偏好设置里 |
 | pegs | ✅ | `Enter` 选中／取消 ✅（一个键一张脸两个词，按下去是**给方向键上膛**，跳跃是下一次方向键；孔位上置灰）· `Space` 是同义词，不给第二个键 · 不需要副本，标签自己查 `cur_visible` | —— |
-| dominosa | ⬜ | `Enter` 放置/移除 · `Space` 画线 | 数字高亮骨牌 ✅ |
+| dominosa | ✅ | `Enter` 放骨牌／拿走 ✅ · `Space` 画线／擦掉 ✅（光标走的是半格网格，只有「正好一个坐标是奇数」的落点两个键才活）· 需要一份光标副本，只有方向键唤醒 | 数字高亮骨牌 ✅ |
 | untangle | ⬜ | `Enter` 抓起/放下点 | —— |
 | blackbox | ⬜ | `Enter`（位置决定 Fire/Ball/Check）· `Space` 锁定 | —— |
 | slant | ⬜ | `Enter` 顺时针 · `Space` 逆时针 · `\` `/` `⌫` 直接设⭕ | —— |
@@ -174,8 +174,8 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
-| `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 8 个有肩键的 |
-| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip、guess |
+| `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 10 个有肩键的 |
+| `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip、guess、dominosa |
 
 `labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
 真正说的东西：全 app 唯一一份「后端知道但不肯说，于是我们自己记着」的数据。
@@ -337,10 +337,21 @@ guess 撞上：net 的 `J` 不显光标，samegame 和 flip 没有键盘。
 文案和顺序以上游手册为准」是同一件事。手册对这个键的说法是「\q{D} or Backspace removes a
 peg」，没说哪一枚。
 
-### 其余 8 个候选
+### dominosa 的 `awake`
 
-`current_key_label` 不检查可见性的还有 8 个：dominosa、inertia、tents、range、pearl、unruly、
-flood、tracks。轮到它们**不能照抄这两份**——每个游戏的标志名字、唤醒键、
+第五个，理由和前四个同一条，但它的唤醒键表是最短的一份：**只有方向键**。
+`move_cursor` 拿到了 `&ui->cur_visible`（dominosa.c:2831），而那个函数里再没有别的地方写它
+——select 键放骨牌/画线时不写，数字键只点亮数字也不写。所以键盘上按一个 `Enter`、光标是灭的，
+上游会在没人看得见的地方落一张骨牌；棋盘也不画光标，我们的按钮也照样灰着，两边是一致的。
+
+清除照旧是「碰棋盘」，但上游只在**产生走子的那条路**上写 `cur_visible = false`（2823）。在数字
+上右键只翻高亮，早在那一行之前就返回了，于是上游留着光标而我们收了起来——过度睡眠，安全的那
+个方向，和 flip 同一笔交易，下一次方向键就纠正回来。
+
+### 其余 7 个候选
+
+`current_key_label` 不检查可见性的还有 7 个：inertia、tents、range、pearl、unruly、
+flood、tracks。轮到它们**不能照抄这几份**——每个游戏的标志名字、唤醒键、
 清除时机都要自己读一遍自己的 C。共通的只有形状：每个有光标的游戏在 `game_ui` 里都有一个
 bool，方向键会点亮它（多数经由 `move_cursor` 的最后一个参数，misc.c:365 在里面写
 `*visible = true`），碰棋盘会灭掉它。inertia 例外，它根本没有光标——棋盘上那个位置就是它自己。
@@ -437,6 +448,21 @@ rect.c:2523），而按下和拖拽模式不匹配的那个键也是放弃（`er
 内部」那张脸——告诉读者它会擦东西，而实际按下去是放弃拖拽。修法是读 `Space` 的词时把抹空还
 原成 `Enter` 的词（`mine`）。**这条规则每次新加一种「按键盘上的词做决定」的机制都要想一遍**,
 `doesNothing` 的不对称是同一件事的第一次。
+
+**然后那个修法本身又是错的，dominosa 上现的形。** 「把空的 `Space` 读成 `Enter` 的词」只有在
+抹空**真的发生过**时才对，而抹空只在两个词相同时发生。dominosa 里 `Enter` 在有骨牌的地方报
+`Remove`，同一时刻 `Space` 报的是真空串（骨牌旁边不许画线，dominosa.c:2762）——收到的同样是
+`{"", "Remove"}`，而两个键**都有** `Remove` 这张脸，于是第二个按钮亮起来，说要擦掉一条根本不
+存在的线。
+
+前面四个有 `faces` 的游戏没出事是**碰巧**：它们两个键的词表互不相交，继承来的词配不上任何一张
+脸。所以现在多了一张表 `BOTH`——**两个键可能同时报出的词**，也就是抹空唯一可能吃掉的东西。
+只有 rect 有一条（`Cancel`）。sixteen 看着像第二条，其实不是：它的 `cur_mode` 是一个三值枚举
+（sixteen.c:569），`Unlock` 只会从其中一个键上给出来。
+
+教训写在这里：**「空」和「被抹掉的」分不出来，所以要么有一份「什么可能被抹掉」的清单，要么
+就别猜。** 加一个有 `faces` 的游戏时，先把它 `current_key_label` 的所有分支列出来，看两个键能
+不能同时给出同一个非空词。
 
 **Netslide 和 Sixteen 的边框光标，四个方向键里只有两个是活的。** 光标沿边框走的是
 `c2pos`/`pos2c`/`c2diff` 这套（misc.c:409，专为这两个游戏写的），而 `c2diff` 只给「沿当前这条

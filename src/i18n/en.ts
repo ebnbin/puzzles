@@ -237,6 +237,18 @@ export const en = {
        */
       jump: 'Arrows jump this peg',
       unjump: 'Cancel this jump',
+      /**
+       * Dominosa's four, in its chapter's words. "Line" is the manual's own
+       * noun — "a line between them, which you can use to remind yourself that
+       * you know those two numbers are not covered by a single domino" — and
+       * that sentence is why the second half is worth saying on the key: a bare
+       * "Draw a line" would be the one label here that names a drawing rather
+       * than a deduction.
+       */
+      domino: 'Place a domino across these two',
+      undomino: 'Take this domino off',
+      line: 'Draw a line: no domino crosses here',
+      unline: 'Take this line off',
       place: 'Place a peg of the chosen colour',
       submit: 'Submit this guess',
       hold: 'Hold this peg for the next guess',
