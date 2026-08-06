@@ -77,6 +77,7 @@ export type IconName =
   | 'holdPlace'
   | 'carryTileOn'
   | 'holdPlaceOn'
+  | 'slide'
   | 'mark'
   | 'erase'
   | 'done'
@@ -531,6 +532,29 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
     </g>
+  ),
+  /*
+   * Netslide's one key: a couple of tiles, and a push.
+   *
+   * Direction is the one thing it cannot honestly show, because the press has
+   * no fixed one — the cursor lives on the ring of arrows around the grid, and
+   * what it slides is whichever row or column the arrow it is sitting on points
+   * into. So the arrow here is a convention, the way `jumble`'s crossed paths
+   * do not claim a particular shuffle, and the board's own highlighted arrow is
+   * what says which way this press will go.
+   *
+   * Two tiles rather than three: at 20 a third merges the row into a bar. The
+   * two obvious alternatives are both taken — a bar and an arrow reads as a
+   * fifth arrow key beside the four it would sit among, and a filled square
+   * with an arrow is already Sixteen's `carryTile`.
+   */
+  slide: (
+    <>
+      <rect x="2.4" y="9.3" width="5.4" height="5.4" rx="1.2" />
+      <rect x="8.6" y="9.3" width="5.4" height="5.4" rx="1.2" />
+      <path d="M15.4 12h5.2" />
+      <path d="m18 9.4 2.6 2.6-2.6 2.6" />
+    </>
   ),
   /*
    * Rectangles' four faces, worn two at a time by the same two buttons.

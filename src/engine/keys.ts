@@ -397,6 +397,7 @@ export type CursorWord =
   | 'holdPlace'
   | 'turnLeft'
   | 'turnRight'
+  | 'slide'
   | 'mark'
   | 'erase'
   | 'done'
@@ -822,6 +823,25 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       },
     },
   ],
+
+  /*
+   * Netslide, which needs one key and gets one.
+   *
+   * It is Sixteen's rim with none of Sixteen's modes: its whole `game_ui` is
+   * `cur_x, cur_y, cur_visible` (netslide.c:965), and the cursor lives only on
+   * the ring of arrows, walked by the shared `c2pos`/`pos2c` pair that exists
+   * for these two puzzles. There is no interior to stand on, so nothing here
+   * needs keeping off it.
+   *
+   * One key because upstream gives one job: `current_key_label` answers
+   * `IS_CURSOR_SELECT` with "Slide" and nothing else (netslide.c:1047), and
+   * `interpret_move` takes both keys down the same branch. Space is Enter's
+   * synonym, and a second button would be the same button twice. The reverse
+   * direction is the right mouse button's alone — `if (button == RIGHT_BUTTON)`
+   * is what flips it, and no key reaches that — so it stays a long press on the
+   * board's own arrow, where it already was.
+   */
+  netslide: [{ key: 'Enter', icon: 'slide', says: 'slide' }],
 
   /*
    * Two keys that are a colour each, which is not how the puzzle spells them.

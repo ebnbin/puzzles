@@ -66,6 +66,9 @@ export const zh: Strings = {
       /* 手册自己的译法:doc-zh/twiddle.html 写的就是「逆时针或顺时针旋转」。 */
       turnLeft: '逆时针旋转',
       turnRight: '顺时针旋转',
+      /* 手册的说法（doc-zh/sixteen.html，netslide 那章指过去）：「用回车键让该行/列沿所
+         指示的方向移动」。方向由棋盘上高亮的那个箭头指示，所以这里只说动哪一条。 */
+      slide: '推动这一行或这一列',
       mark: '画一个矩形',
       erase: '清除矩形内部，保留边线',
       done: '在这里结束',

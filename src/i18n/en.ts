@@ -185,6 +185,14 @@ export const en = {
        * then the rectangle is on the board in front of the reader and what is
        * in question is only whether to keep it.
        */
+      /**
+       * Netslide's one, in the words its chapter borrows from Sixteen's: "use
+       * the return key to move the row/column in the direction indicated". The
+       * direction is the board's to indicate — the cursor is sitting on the
+       * arrow that gives it — so this says which line moves and leaves which
+       * way to the highlighted arrow the reader is looking at.
+       */
+      slide: 'Slide this row or column',
       mark: 'Draw a rectangle',
       erase: 'Clear a rectangle, keeping its edges',
       done: 'Finish here',
