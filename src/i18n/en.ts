@@ -267,6 +267,35 @@ export const en = {
       check: 'Check these guesses',
       lockCell: 'Lock this cell, row or column',
       unlockCell: 'Unlock this cell, row or column',
+      /**
+       * And the nine puzzles that put one of three or four things in a square,
+       * each in its own chapter's words. Slant's two are the characters the
+       * manual itself uses; Tents' "green" is the colour that chapter names,
+       * not a euphemism for "no tent"; Singles' circle and Range's dot are
+       * different marks in different puzzles and are kept apart on purpose.
+       *
+       * Every one of these names the *result* rather than the press, because
+       * that is what the back end reports and what the picture on the key
+       * shows.
+       */
+      backslash: 'Put a \\ here',
+      slash: 'Put a / here',
+      noLine: 'Leave this square blank',
+      light: 'Put a light here',
+      unlight: 'Take this light away',
+      cannot: 'Mark this square as unlit',
+      uncannot: 'Take this mark off',
+      tent: 'Pitch a tent here',
+      grass: 'Colour this green: no tent here',
+      clearSquare: 'Clear this square',
+      blackSquare: 'Colour this square black',
+      restore: 'Show the number again',
+      circle: 'Circle this: definitely not black',
+      uncircle: 'Take this circle off',
+      whiteSquare: 'Colour this square white',
+      emptySquare: 'Empty this square',
+      fillSquare: 'Paint this square black',
+      dotSquare: 'Dot this: definitely not black',
       domino: 'Place a domino across these two',
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',

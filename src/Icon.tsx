@@ -93,6 +93,14 @@ export type IconName =
   | 'ball'
   | 'ballOn'
   | 'unlock'
+  | 'slash'
+  | 'backslash'
+  | 'emptyCell'
+  | 'dotSquare'
+  | 'circleSquare'
+  | 'tent'
+  | 'grass'
+  | 'lamp'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -763,6 +771,90 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
       <circle cx="12" cy="12" r="4.6" fill="currentColor" />
+    </>
+  ),
+  /*
+   * The squares the rest of the collection fills in, on the same 17.2 house
+   * square as `black` and `white` above. Nine puzzles put one of three or four
+   * things in a cell and say which in their label, so these are the vocabulary
+   * those faces are drawn from — with `black`, `white` and `blank` doing double
+   * duty where the thing really is the same thing.
+   *
+   * `slash` is the same drawing as `blank`, and that is allowed rather than
+   * tidied away. There it is a square with its marks struck out; here it is
+   * Slant's line leaning right, which is what that puzzle *puts in* a square.
+   * Two puzzles, never on screen together, and folding them into one name would
+   * make both call sites read wrong.
+   *
+   * `emptyCell` is a square with a dash in it rather than a bare outline,
+   * because three of these puzzles need "white" and "empty" to be different
+   * pictures — Unruly and Mosaic play with both, and a bare outline is already
+   * `white`. The dash is the shortest mark that says "nothing here" without
+   * being a line, a dot or a cross, all three of which mean something else in
+   * this set.
+   */
+  slash: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M7.4 16.6 16.6 7.4" />
+    </>
+  ),
+  backslash: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="m7.4 7.4 9.2 9.2" />
+    </>
+  ),
+  emptyCell: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M8.6 12h6.8" />
+    </>
+  ),
+  dotSquare: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+    </>
+  ),
+  circleSquare: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="12" cy="12" r="4.6" />
+    </>
+  ),
+  /*
+   * A tent and a patch of grass, which is what Tents' two keys put down. The
+   * tent is upstream's own shape — its board draws a triangle with a pole — and
+   * the grass is three blades, since one is a tally mark and two is a quotation
+   * mark.
+   */
+  tent: (
+    <>
+      <path d="M12 4.4 3.6 19.6h16.8Z" />
+      <path d="M12 4.4v15.2" />
+    </>
+  ),
+  grass: (
+    <>
+      <path d="M4.6 20.4c0-5 1.4-8 3.4-9.6" />
+      <path d="M12 20.4c0-6.4.8-10.4 0-14.8" />
+      <path d="M19.4 20.4c0-5-1.4-8-3.4-9.6" />
+    </>
+  ),
+  /* A lit lamp: Light Up's whole game in one glyph, and its board draws the
+     same thing — a disc with the light coming off it. */
+  lamp: (
+    <>
+      <circle cx="12" cy="12" r="4.4" fill="currentColor" />
+      <path d="M12 2.6v2.6" />
+      <path d="M12 18.8v2.6" />
+      <path d="M2.6 12h2.6" />
+      <path d="M18.8 12h2.6" />
+      <path d="m5.4 5.4 1.8 1.8" />
+      <path d="m16.8 16.8 1.8 1.8" />
+      <path d="m18.6 5.4-1.8 1.8" />
+      <path d="m7.2 16.8-1.8 1.8" />
     </>
   ),
   /*

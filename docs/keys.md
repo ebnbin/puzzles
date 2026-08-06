@@ -57,9 +57,9 @@ Sixteen 的边框那一档反过来验证了这条线：同两个键在边框上
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 22 | Net、Sixteen、Twiddle、Rect、Netslide、Pattern、Mines、Samegame、Flip、Guess、Pegs、Dominosa、Untangle、Blackbox、Inertia、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 29 | 见下表 |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 17 | |
+| ⬜ 待办 | 10 | map、bridges、galaxies、filling、magnets、signpost、pearl、flood、tracks、palisade |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -92,29 +92,29 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | dominosa | ✅ | `Enter` 放骨牌／拿走 ✅ · `Space` 画线／擦掉 ✅（光标走的是半格网格，只有「正好一个坐标是奇数」的落点两个键才活）· 需要一份光标副本，只有方向键唤醒 | 数字高亮骨牌 ✅ |
 | untangle | ✅ | `Enter` 拿起／放下一个点 ✅ · `Space` 循环到下一个点 ✅（**后端一个字都不报**，两个按钮永远可按，见下） · 不需要副本 | —— |
 | blackbox | ✅ | `Enter` 发射／猜球／取消／检查 ✅（**一个键四张脸**，按光标在三个区域的哪一个换；已发射的激光格和锁住的格子上置灰）· `Space` 锁定／解锁 ✅（格子、整行、整列都是它）· 不需要副本 | —— |
-| slant | ⬜ | `Enter` 顺时针 · `Space` 逆时针 · `\` `/` `⌫` 直接设⭕ | —— |
-| lightup | ⬜ | `Enter` 放灯 · `Space` 标记（`i` 同 `Space`，重复） | —— |
+| slant | ✅ | `Enter` 放 `\` · `Space` 放 `/` ✅（两个键都按上游的循环走，标签直接说下一按会得到什么，按钮就画那个）· `\` `/` `⌫` 直接设⭕ | —— |
+| lightup | ✅ | `Enter` 放灯／拿走 ✅ · `Space` 标记不能放灯／取消 ✅（两者互斥，用了一个另一个就置灰） | —— |
 | map | ⬜ | `Enter` 填色/取色 · `Space` 点画/清除 | `l` 显示区域编号 |
 | loopy | 🚫 | —— | —— 只有鼠标；中键「未知」在触摸上够不着，无解 |
 | inertia | ✅ | —— 无光标，八向已补齐 ✅ | `Enter` = Advance（重放求解器下一步，只在按过求解之后有用）——**待定** |
-| tents | ⬜ | `Enter` 循环帐篷 · `Space` 循环草 · `T`/`N`/`B` 直接设⭕ | —— |
+| tents | ✅ | `Enter` 搭帐篷 ✅ · `Space` 涂绿 ✅ · 占用的格子上两个键都报 `Clear`，抹空会触发，见 `BOTH` · `T`/`N`/`B` 直接设⭕ | —— |
 | bridges | ⬜ | `Enter`/`Space` 选中/完成 · 数字跳到该数的岛 | `h` 提示 ✅ · `g` 提示开关 |
 | unequal | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` 同 `Enter`（走 `IS_CURSOR_SELECT`） | `h` ✅ · `M` ✅ · 三个标记键 ✅ |
 | galaxies | ⬜ | `Enter` 放点/新箭头/移除 | **`h` 走一步显然推理——唯一一个有实质提示却没键盘的游戏** |
 | filling | ⬜ | 数字 ✅ · `⌫` ✅ · `Enter` 选中 · `Space` 多选/取消 | —— |
 | keen | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
 | towers | ✅ | 数字 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 | `M` ✅ · 三个标记键 ✅ |
-| singles | ⬜ | `Enter` 涂黑 · `Space` 画圈 | —— |
+| singles | ✅ | `Enter` 涂黑／还原 ✅ · `Space` 画圈／去掉 ✅（黑格和圈格上两个键报同一个词，见 `BOTH`） | —— |
 | magnets | ⬜ | `Enter` 循环 +/−/空 | —— |
 | signpost | ⬜ | `Enter` 从这里/到这里/取消 · `x` 标记不可能 | —— |
-| range | ⬜ | `Enter` 填/点/空 · `Space` 反向 | `h` 提示 ✅ |
+| range | ✅ | `Enter` 涂黑→空→点 ✅ · `Space` 反向 ✅ | `h` 提示 ✅ |
 | pearl | ⬜ | `Enter` 起点/终点 · `Space` 取消 · `⌫` 取消拖拽 | `h` 提示 ✅ |
 | undead | ✅ | 怪物 ✅ · `⌫` ✅ · `Enter` 切墨水/铅笔 ✅ · `Space` = 清除，和 `⌫` 同一分支 · 数字 1/2/3（同怪物，重复） | `M` ✅ · 三个标记键 ✅ · `a` 切图片/字母（偏好里也有） |
-| unruly | ⬜ | `Enter` 循环 · `Space` 反向 · `0`/`1`/`2` 直接设⭕ · `⌫` · **中键「空」够不着** | —— |
+| unruly | ✅ | `Enter` 黑→白→空 ✅ · `Space` 反向 ✅ · `0`/`1`/`2` 直接设⭕ · `⌫` · **中键「空」够不着**——但两个键之间已经能到「空」，见下 | —— |
 | flood | ⬜ | `Enter` 填充 | `Space` = Advance（重放求解器下一步） |
 | tracks | ⬜ | `Enter` 铺轨 · `Space` 打叉 | —— (`h` 在 `#if 0` 里，死代码) |
 | palisade | ⬜ | `Enter`/`Space` 画边 | —— |
-| mosaic | ⬜ | `Enter` 黑/白/空 · `Space` 反向 | —— |
+| mosaic | ✅ | `Enter` 黑→白→空 ✅ · `Space` 反向 ✅ | —— |
 
 ⭕ = 碰棋盘就能做到，按判据一不该做成按钮。
 
@@ -163,8 +163,14 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 是疏忽，是那次改动的已知代价**（见 `keys.ts` 里 pattern 那段），暂时靠撤销回去。
 
 顺带一条经验，也是从这里来的：**一个游戏的「循环键」往往就把它的中键那格顺手补上了**，反过来
-说，把循环键改成绝对键就会把那格再丢掉。轮到 slant、mosaic、unruly、magnets、singles、tracks
-时先看一眼是不是同一笔账。
+说，把循环键改成绝对键就会把那格再丢掉。slant、mosaic、unruly、singles、range、tents、lightup
+后来都按「照着标签走」做了——**没有一个改成绝对语义**，所以那格都顺手补上了：unruly 的中键
+「设为空」在两个键之间走两步就到，pattern 丢掉的那格是唯一一次例外，理由写在上面。
+
+**这一批七个是最便宜的一批，理由值得记：它们的标签说的是「按下去会得到什么」，不是「现在是
+什么」。** 于是按钮的脸就是那个结果的图，`faces` 一张表就够，一行判断都不用写。pattern 是唯一
+需要手写的，因为它被改成了绝对语义——按钮名字是颜色，就得反过来去找哪个键当下能给出这个颜色
+（`does`）。**下次遇到「三态循环」的游戏，先看标签说的是结果还是状态**，是结果就照抄这七个。
 
 ## 我们自己保存的状态
 

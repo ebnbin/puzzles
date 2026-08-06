@@ -506,6 +506,24 @@ export type CursorWord =
   | 'check'
   | 'lockCell'
   | 'unlockCell'
+  | 'slash'
+  | 'backslash'
+  | 'noLine'
+  | 'light'
+  | 'unlight'
+  | 'cannot'
+  | 'uncannot'
+  | 'tent'
+  | 'grass'
+  | 'clearSquare'
+  | 'blackSquare'
+  | 'restore'
+  | 'circle'
+  | 'uncircle'
+  | 'whiteSquare'
+  | 'emptySquare'
+  | 'fillSquare'
+  | 'dotSquare'
   | 'place'
   | 'submit'
   | 'hold'
@@ -802,6 +820,20 @@ const WORDS: Record<string, readonly string[]> = {
    * Space beside a named Enter is an empty Space.
    */
   blackbox: ['Fire', 'Ball', 'Clear', 'Check', 'Lock', 'Unlock'],
+
+  /*
+   * And the nine that put one of three or four things in a square. Every one of
+   * these labels names *what the press will produce*, not what is there now, so
+   * the face on the button is a picture of the result — which is the whole
+   * reason these were cheap to do once the machinery existed.
+   */
+  slant: ['\\', '/', 'Blank'],
+  lightup: ['Light', 'Mark', 'Clear'],
+  tents: ['Tent', 'Green', 'Clear'],
+  singles: ['Black', 'Circle', 'Restore', 'Remove'],
+  unruly: ['Black', 'White', 'Empty'],
+  mosaic: ['Black', 'White', 'Empty'],
+  range: ['Fill', 'Dot', 'Empty'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -892,7 +924,15 @@ export const wouldSend = (
  * (sixteen.c:569), so "Unlock" is on offer from one key or the other but never
  * both.
  */
-const BOTH: Record<string, readonly string[]> = { rect: ['Cancel'] }
+const BOTH: Record<string, readonly string[]> = {
+  rect: ['Cancel'],
+  /* An occupied square answers "Clear" to both keys (tents.c:2035): either one
+     empties it, so there is nothing to tell them apart with and nothing to. */
+  tents: ['Clear'],
+  /* Same shape twice over — a black square restores and a circled one is
+     rubbed out, whichever key is asked (singles.c:1141). */
+  singles: ['Restore', 'Remove'],
+}
 
 /** What the back end says about this button's own key, with the blanking undone. */
 const mine = (name: string, cursor: CursorKey, labels: KeyLabels) =>
@@ -1510,6 +1550,189 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Lock: { icon: 'lock', says: 'lockCell' },
         Unlock: { icon: 'unlock', says: 'unlockCell', on: true },
+      },
+    },
+  ],
+
+  /*
+   * The nine that cycle one square through three or four contents, and the
+   * plainest entries in this table: two keys, a face per word, and the word is
+   * already a name for what the press produces.
+   *
+   * That last part is what makes them plain, and it is worth saying because
+   * Pattern is the exception that had to be built by hand. There the labels are
+   * upstream's cycle — press Enter on a grey square and you get "Black", press
+   * it on a black one and you get "Grey" — so a button named for a colour has
+   * to hunt for the key that currently reaches it (`does`). These nine report
+   * the same way, but their two keys between them cover every state a square
+   * can be in, so nothing has to be hunted for: whatever the label says, that
+   * is what this key does here, and the picture says it.
+   *
+   * Where a square goes back to nothing the face is `emptyCell` rather than a
+   * bare outline. Unruly and Mosaic need "white" and "empty" to be two
+   * pictures; the rest are given the same one for the sake of the reader who
+   * plays more than one of them.
+   */
+  slant: [
+    {
+      key: 'Enter',
+      icon: 'backslash',
+      says: 'backslash',
+      faces: {
+        '\\': { icon: 'backslash', says: 'backslash' },
+        '/': { icon: 'slash', says: 'slash' },
+        Blank: { icon: 'white', says: 'noLine' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'slash',
+      says: 'slash',
+      faces: {
+        '\\': { icon: 'backslash', says: 'backslash' },
+        '/': { icon: 'slash', says: 'slash' },
+        Blank: { icon: 'white', says: 'noLine' },
+      },
+    },
+  ],
+
+  /*
+   * Light Up, whose two keys are mutually exclusive rather than a cycle: a lit
+   * square cannot be marked and a marked one cannot be lit (lightup.c:1500), so
+   * whichever one is in use puts the other button out. Both spell their undo
+   * "Clear", and they can never say it together, which is why there is no
+   * `BOTH` line for it.
+   */
+  lightup: [
+    {
+      key: 'Enter',
+      icon: 'lamp',
+      says: 'light',
+      faces: {
+        Light: { icon: 'lamp', says: 'light' },
+        Clear: { icon: 'white', says: 'unlight', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'dotSquare',
+      says: 'cannot',
+      faces: {
+        Mark: { icon: 'dotSquare', says: 'cannot' },
+        Clear: { icon: 'white', says: 'uncannot', on: true },
+      },
+    },
+  ],
+
+  tents: [
+    {
+      key: 'Enter',
+      icon: 'tent',
+      says: 'tent',
+      faces: {
+        Tent: { icon: 'tent', says: 'tent' },
+        Clear: { icon: 'white', says: 'clearSquare', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'grass',
+      says: 'grass',
+      faces: {
+        Green: { icon: 'grass', says: 'grass' },
+        Clear: { icon: 'white', says: 'clearSquare', on: true },
+      },
+    },
+  ],
+
+  singles: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        Restore: { icon: 'white', says: 'restore', on: true },
+        Remove: { icon: 'white', says: 'uncircle', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'circleSquare',
+      says: 'circle',
+      faces: {
+        Circle: { icon: 'circleSquare', says: 'circle' },
+        Restore: { icon: 'white', says: 'restore', on: true },
+        Remove: { icon: 'white', says: 'uncircle', on: true },
+      },
+    },
+  ],
+
+  unruly: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'white',
+      says: 'whiteSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+  ],
+
+  mosaic: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'white',
+      says: 'whiteSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+  ],
+
+  range: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'fillSquare',
+      faces: {
+        Fill: { icon: 'black', says: 'fillSquare' },
+        Dot: { icon: 'dotSquare', says: 'dotSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'dotSquare',
+      says: 'dotSquare',
+      faces: {
+        Fill: { icon: 'black', says: 'fillSquare' },
+        Dot: { icon: 'dotSquare', says: 'dotSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
       },
     },
   ],
