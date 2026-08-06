@@ -500,6 +500,12 @@ export type CursorWord =
   | 'unline'
   | 'drag'
   | 'cycle'
+  | 'fire'
+  | 'ball'
+  | 'unball'
+  | 'check'
+  | 'lockCell'
+  | 'unlockCell'
   | 'place'
   | 'submit'
   | 'hold'
@@ -786,6 +792,16 @@ const WORDS: Record<string, readonly string[]> = {
    * blanking unreadable here. See `BOTH`.
    */
   dominosa: ['Place', 'Remove', 'Line'],
+  /*
+   * Black Box's six, the longest list here and the only one where a single key
+   * carries four. Enter's word comes from which of three regions the cursor is
+   * standing in — the check button in the corner, the arena, the ring of laser
+   * squares — and Space's from whether what is under it is already locked.
+   *
+   * Disjoint between the keys, so there is nothing here for `BOTH`: an empty
+   * Space beside a named Enter is an empty Space.
+   */
+  blackbox: ['Fire', 'Ball', 'Clear', 'Check', 'Lock', 'Unlock'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -1439,6 +1455,63 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
   untangle: [
     { key: 'Enter', icon: 'vertex', says: 'drag' },
     { key: ' ', icon: 'cycle', says: 'cycle' },
+  ],
+
+  /*
+   * Black Box, whose Enter means three different things depending on which part
+   * of the board the cursor has got to.
+   *
+   * Its chapter puts two of them in one sentence — "pressing the Enter key will
+   * fire a laser or add a new ball-location guess, and pressing Space will lock
+   * a cell, row, or column" — and the third a paragraph later: "when an
+   * appropriate number of balls have been guessed, a button will appear at the
+   * top-left corner of the grid; clicking that (with mouse or cursor) will check
+   * your guesses". The cursor roams a grid two wider and two taller than the
+   * arena (blackbox.c:934), so those three regions are three places it can
+   * stand, and `current_key_label` names which one it is in.
+   *
+   * Four faces on one key looks like the thing the Same Game note warns
+   * against, and it is the other side of that line. The rule there is that a
+   * button keeps one job and greys out when upstream spends the key on
+   * something else; here every one of the four *is* the job — do what this
+   * square offers — and each is the only thing the cursor could mean while it
+   * stands where it stands. Rectangles' pair is the same shape with fewer
+   * regions.
+   *
+   * Nothing is kept on this side. The label checks `ui->cur_visible` and
+   * `!state->reveal` before it says anything (blackbox.c:1170), so a hidden
+   * cursor and a revealed board both grey the pair out on their own. It greys
+   * them in two more places worth knowing: a laser square that has already been
+   * fired, where a press only replays the beam — reachable by tapping it, which
+   * is what the manual describes — and an arena square that is locked, which is
+   * what locking is for.
+   *
+   * Space says "Lock" or "Unlock" for a single square, and for a whole row or
+   * column from the ring, where upstream picks the word by majority (1183-1194).
+   * That is the case for reading it rather than printing one padlock the way Net
+   * does: nobody can see at a glance which way a row of eight will go.
+   */
+  blackbox: [
+    {
+      key: 'Enter',
+      icon: 'ball',
+      says: 'ball',
+      faces: {
+        Fire: { icon: 'laser', says: 'fire' },
+        Ball: { icon: 'ball', says: 'ball' },
+        Clear: { icon: 'ballOn', says: 'unball', on: true },
+        Check: { icon: 'done', says: 'check' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'lock',
+      says: 'lockCell',
+      faces: {
+        Lock: { icon: 'lock', says: 'lockCell' },
+        Unlock: { icon: 'unlock', says: 'unlockCell', on: true },
+      },
+    },
   ],
 
   solo: [PENCIL],

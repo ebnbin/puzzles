@@ -89,6 +89,10 @@ export type IconName =
   | 'lineOn'
   | 'vertex'
   | 'cycle'
+  | 'laser'
+  | 'ball'
+  | 'ballOn'
+  | 'unlock'
   | 'uncover'
   | 'chord'
   | 'flag'
@@ -727,6 +731,41 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   /*
+   * Black Box's three, plus the padlock below opened.
+   *
+   * `laser` is an emitter with three rays spreading out of it, and the rays fan
+   * rather than point because this button sits among four arrows: a single
+   * straight beam is a dash at 20, and a beam with a head on it is an arrow.
+   * Two others lost — a beam with a dot at the far end reads as a key, and a
+   * ring with a beam through it as a coin.
+   *
+   * `ball` is a cell with a ring in it and `ballOn` the same cell with the ring
+   * filled, which is the board: a guess is drawn as a black circle inside an
+   * arena square, and a press puts one there or takes it away. The square is
+   * doing work — what this key acts on is a cell of the arena, and a bare disc
+   * would have said "a ball" without saying where.
+   */
+  laser: (
+    <>
+      <rect x="2.4" y="8.4" width="7.2" height="7.2" rx="1.6" fill="currentColor" />
+      <path d="M12.4 12h9" />
+      <path d="M12.8 7.6 20 5.4" />
+      <path d="M12.8 16.4 20 18.6" />
+    </>
+  ),
+  ball: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="12" cy="12" r="4.4" />
+    </>
+  ),
+  ballOn: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="12" cy="12" r="4.6" fill="currentColor" />
+    </>
+  ),
+  /*
    * Mines' three: open this one, open the ring around it, and the flag.
    *
    * `uncover` is a square with its corner turned back, which is the one thing
@@ -838,6 +877,21 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <rect x="5.6" y="10.8" width="12.8" height="9" rx="2" />
       <path d="M8.6 10.8V7.8a3.4 3.4 0 0 1 6.8 0v3" />
+    </>
+  ),
+  /*
+   * And the same padlock with the shackle sprung, for the one puzzle whose back
+   * end says which way its press will go. Net's does not, which is why Net has
+   * only the shut one.
+   *
+   * The body does not move. Swinging the shackle clear and sliding the body
+   * left reads as "open" a shade more plainly at 56, and at 20 it reads as a
+   * different object — the same rule that keeps Sixteen's square still.
+   */
+  unlock: (
+    <>
+      <rect x="5.6" y="10.8" width="12.8" height="9" rx="2" />
+      <path d="M8.6 10.8V7.8a3.4 3.4 0 0 1 6.8-.6" />
     </>
   ),
   /* An eye, and the same eye struck through: shown and hidden. Drawn small —

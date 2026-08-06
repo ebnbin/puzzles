@@ -255,6 +255,18 @@ export const en = {
        */
       drag: 'Pick up or put down this point',
       cycle: 'Go to the next point',
+      /**
+       * Black Box's six, in its chapter's words. "Lock a cell, row, or column"
+       * is upstream's own list and it is kept whole rather than split by where
+       * the cursor is: one key does all three, and which one it is doing is
+       * plain from what the cursor is standing on.
+       */
+      fire: 'Fire a laser from here',
+      ball: 'Guess a ball here',
+      unball: 'Take this guess off',
+      check: 'Check these guesses',
+      lockCell: 'Lock this cell, row or column',
+      unlockCell: 'Unlock this cell, row or column',
       domino: 'Place a domino across these two',
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',
