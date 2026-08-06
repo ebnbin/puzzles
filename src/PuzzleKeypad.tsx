@@ -12,10 +12,10 @@ import type { Resolved } from './useTheme'
  * Three sorts in one run, in the order a reader meets them. First the keys
  * that put something in a square — the digits of Solo and Keen, Undead's
  * three monsters, clear — which is how those puzzles are played, and a touch
- * device has no other way to do it. Then the three this side answers, which
- * work out what each square can still take. Last the keys the games read but
- * never advertise — fill in every pencil mark, play the solver, deal the
- * network again — which this is the only way to reach without a keyboard.
+ * device has no other way to do it. Then the keys the games read but never
+ * advertise — fill in every pencil mark, play the solver, deal the network
+ * again — which this is the only way to reach without a keyboard. Last the
+ * three this side answers, which work out what each square can still take.
  *
  * The three are drawn differently, which is `key.aid` and index.css. See
  * engine/keys.ts for which puzzle gets which.
