@@ -191,9 +191,13 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 读后端报的标签，`marks` 把存档 replay 一遍。推导不会漂，副本会。所以这一节是一张**要保持
 几乎空着**的表，加一条之前先读完下面那三行判据。
 
+**四十个做完之后的最终结果：三十九个游戏，六份副本。** net、samegame、flip、guess、dominosa、
+flood 各一个 boolean，全部是同一个 `awake`。其余三十三个一个字节都不记，因为它们的
+`current_key_label` 自己就查了可见性标志。这个比例是这一节存在的意义。
+
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
-| `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 10 个有肩键的 |
+| `labels`（PuzzleHost） | 两个字符串 | **后端**，`onKeyLabels`，每次输入后整对覆盖 | 37 个有肩键的（除 untangle、palisade 两个不报的） |
 | `awake`（PuzzleHost） | 一个 boolean | **我们**，见下 | net、samegame、flip、guess、dominosa、flood |
 
 `labels` 不算副本——它是镜子，唯一的写入者是后端，我们一个字都不推导。`awake` 才是这一节
