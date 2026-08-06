@@ -17,7 +17,7 @@ import type { Resolved } from './useTheme'
  * again — which this is the only way to reach without a keyboard. Last the
  * three this side answers, which work out what each square can still take.
  *
- * The three are drawn differently, which is `key.aid` and index.css. See
+ * The three are drawn differently, which is `key.whose` and index.css. See
  * engine/keys.ts for which puzzle gets which.
  */
 
@@ -54,7 +54,8 @@ const art = (icon: KeyIcon, theme: Resolved) =>
 
 /**
  * How many of this value are still to be placed, or null for a key that has no
- * such number — every aid, every puzzle whose board this side cannot read, and
+ * such number — every key that is not a plain one, every puzzle whose board
+ * this side cannot read, and
  * the digits that are done.
  *
  * Nothing is shown at zero, and nothing at less than zero either. Zero is worth
@@ -86,11 +87,11 @@ export default function PuzzleKeypad({
   /*
    * What a key does, said in words. Only the ones that are a picture need it:
    * a digit says what it is. The glyph names the string, since a glyph is
-   * only ever used for one thing — bar Dominosa's, which are digits doing an
-   * aid's job and are named by the number they carry.
+   * only ever used for one thing — bar Dominosa's, which are digits doing a
+   * board-wide key's job and are named by the number they carry.
    */
   const describe = (key: KeyLabel) =>
-    key.icon ? t.keys[key.icon] : key.aid ? t.keys.highlight(key.label ?? '') : undefined
+    key.icon ? t.keys[key.icon] : key.whose ? t.keys.highlight(key.label ?? '') : undefined
 
   /*
    * Hold a key to be told what it is, rather than press it. The word is what
@@ -113,7 +114,7 @@ export default function PuzzleKeypad({
               // A key this side answers has no button value to be told apart by.
               key={key.action ?? key.button}
               type="button"
-              data-aid={key.aid}
+              data-whose={key.whose}
               // A digit says what it is, so it needs no name — until it carries a
               // count, which would otherwise be read out beside it as a second
               // digit, and "9 1" is not what the key says.

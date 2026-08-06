@@ -1230,21 +1230,34 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* --- the three kinds of key --------------------------------------------
+/* --- the three kinds of press ------------------------------------------
  *
- * A ladder, and it climbs by how far a press reaches rather than by how much
- * anything matters:
+ * A ladder, spent on both rows along the foot of the board — the keys and the
+ * buttons under them — and it climbs by whose the press is:
  *
- *   1. Plain — a digit, a monster, clear. Acts on one square. `--text` on
- *      `--surface-2`, which is what every button in the app is.
- *   2. The accent — acts on the whole board. This is the step the reader has
- *      to notice, because it is the difference between the press you make
- *      forty times and the one you make once.
- *   3. The accent, filled — the same reach, and ours rather than the game's.
+ *   1. Plain — the ordinary press. A digit, a monster, clear; and below them
+ *      undo, redo and the type list, which are the midend's own commands
+ *      rather than keys at all. `--text` on `--surface-2`, which is what every
+ *      button in the app is.
+ *   2. The accent — a key the back end reads and has never offered a button
+ *      for, here only because a finger cannot type it. M, H and J on the
+ *      keypad; the four arrows and the two beside them below. This is the step
+ *      the reader has to notice, because it is the difference between the
+ *      press you make forty times and the one you make once.
+ *   3. The accent, filled — ours rather than the game's. The three answered
+ *      through the save file, and the menu, which is a sheet of this app's and
+ *      the one button down there the puzzle knows nothing about.
  *
- * The row is laid out in that order too (engine/keys.ts), so the ladder is
- * climbed left to right rather than described in one place and shuffled in
- * another.
+ * That the two rows agree is the point of doing it twice: a reader who has
+ * learnt the tint on the keypad reads the arrows below it without being told
+ * again. It also settles what the bottom row could never say before — the
+ * arrows are the game's keyboard and the menu is not, and until now both were
+ * simply buttons in a row.
+ *
+ * The keypad is laid out in that order too (engine/keys.ts), so up there the
+ * ladder is climbed left to right rather than described in one place and
+ * shuffled in another. The row below cannot be: its order is fixed by which
+ * button a thumb should find without looking.
  *
  * Which of the last two gets the filled step is the only real choice here, and
  * it went to ours for a reason about the row rather than about the keys: our
@@ -1266,22 +1279,26 @@ p.notice-intro button:active {
  * `--accent-soft` is spent once elsewhere, on the selected preset chip. Two
  * meanings for one tint, in two places that are never on screen together.
  */
-.keypad button[data-aid] {
+.keypad button[data-whose],
+.play-actions button[data-whose] {
   color: var(--accent);
 }
 
-.keypad button[data-aid='ours'] {
+.keypad button[data-whose='ours'],
+.play-actions button[data-whose='ours'] {
   background: var(--accent-soft);
   color: var(--accent-soft-text);
 }
 
 @media (hover: hover) {
-  .keypad button[data-aid='ours']:hover {
+  .keypad button[data-whose='ours']:hover,
+  .play-actions button[data-whose='ours']:hover:not(:disabled) {
     background: var(--accent-soft-hover);
   }
 }
 
-.keypad button[data-aid='ours']:active {
+.keypad button[data-whose='ours']:active,
+.play-actions button[data-whose='ours']:active {
   background: var(--accent-soft-hover);
 }
 
@@ -1434,13 +1451,11 @@ p.notice-intro button:active {
   grid-template-columns: repeat(2, var(--act-w));
 }
 
-/* Everything else in this row acts on the board and can be greyed out when
-   there is nothing to act on; this one opens the rest of the puzzle and is never
-   unavailable. Drawn in the accent for the same reason the keypad's board-wide
-   keys are: a different kind of press, said in colour rather than in shape. */
-.play-actions .is-menu {
-  color: var(--accent);
-}
+/* The menu used to be the one button in this row drawn differently, in the
+   accent, on the grounds that it opens something rather than doing something.
+   That reading survives and is now said in the same three steps the keypad
+   uses — it takes the filled one, as the only press down here the puzzle has
+   never heard of. See the ladder above; there is no rule of its own left. */
 
 /* --- the menu, over the board rather than under it --- */
 

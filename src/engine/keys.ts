@@ -47,8 +47,13 @@ const MAX_SYMBOLS = 36
  *
  * The widest real keypad is Unequal's: solo.c stops at 31 symbols and
  * unequal.c at 32, so nothing legal comes anywhere near 36 + this.
+ *
+ * Named for what it counts rather than for what those keys are, because they
+ * are not one thing any more: of the six, clear is a plain key, M and H are
+ * upstream's and the last three are ours. It was `MAX_AIDS` while "aid" was
+ * the word for all of them — see `whose` in ./types, where that word ran out.
  */
-const MAX_AIDS = 6
+const MAX_EXTRAS = 6
 
 /**
  * `count` consecutive values, spelled the way the puzzles spell them: as
@@ -87,9 +92,9 @@ const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
  * fills marks the reader has spent the game crossing off. It is upstream's key,
  * with upstream's meaning and upstream's word for it, and it is back.
  */
-const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: 'upstream' }
-const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: 'upstream' }
-const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upstream' }
+const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', whose: 'upstream' }
+const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', whose: 'upstream' }
+const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', whose: 'upstream' }
 
 /**
  * And the three keys no puzzle reads, because they are not the puzzle's: work
@@ -103,9 +108,9 @@ const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upst
  * alternates and the third is the one they reach for rarely: it is how the first
  * is made to fill again rather than subtract.
  */
-const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: 'ours' }
-const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: 'ours' }
-const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours' }
+const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', whose: 'ours' }
+const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', whose: 'ours' }
+const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', whose: 'ours' }
 
 /**
  * The parameter prefix of a game id — everything before the first colon. For
@@ -256,7 +261,7 @@ const RULES: Record<
     if (n === null) return null
     return digits(n + 1, true).map(({ value: _, ...key }): KeyLabel => ({
       ...key,
-      aid: 'upstream',
+      whose: 'upstream',
     }))
   },
 }
@@ -393,6 +398,6 @@ export function keysFor(
   // A misread game id would put a keypad of the wrong length on screen, which
   // is worse than none: better to show nothing than to offer a digit the
   // puzzle will not take, or to leave one out that it needs.
-  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + MAX_AIDS) return []
+  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + MAX_EXTRAS) return []
   return keys
 }

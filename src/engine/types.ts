@@ -113,8 +113,9 @@ export interface KeyLabel {
    * passes nine, so its `0` key places a 1. Only the puzzle that owns the
    * encoding can say, and keys.ts is where that lives.
    *
-   * Absent on a key that puts nothing in a square — every aid, and Dominosa's
-   * digits, which light dominoes up rather than filling anything in.
+   * Absent on a key that puts nothing in a square — everything with a `whose`,
+   * and Dominosa's digits, which light dominoes up rather than filling anything
+   * in.
    */
   value?: number
   /**
@@ -125,8 +126,7 @@ export interface KeyLabel {
    */
   icon?: KeyIcon
   /**
-   * Set on a key that acts on the whole board rather than on one square, and
-   * saying whose idea the key is.
+   * Whose key this is, which is what tells the three looks apart.
    *
    * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a
    * letter the back end already reads and has never offered a button for — M,
@@ -135,11 +135,17 @@ export interface KeyLabel {
    * the save file; there are three, and engine/marks is all of them.
    *
    * It is three values rather than a flag because it is three things on the
-   * screen: the keypad draws each kind differently, and the reader is owed the
-   * difference between a key the game has always had and one this front end
-   * made up. See index.css, where the ladder is set out.
+   * screen, and the same three are now spent on the row of buttons below the
+   * keypad as well — see index.css, where the ladder is set out once for both.
+   *
+   * It was called `aid` while the keypad was the only place it applied, and
+   * that word meant "acts on the whole board rather than on one square". True
+   * of M and of H; false of an arrow key and false of the menu, both of which
+   * wear the same two looks down there. What is left once those arrived is the
+   * axis the two rows really share, which is whose the press is — and which
+   * this field was already sorting by.
    */
-  aid?: 'upstream' | 'ours'
+  whose?: 'upstream' | 'ours'
 }
 
 /** Everything the running game wants the interface to show. */

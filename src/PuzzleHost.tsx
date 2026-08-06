@@ -1026,12 +1026,13 @@ export default function PuzzleHost({
               <Icon name="type" />
             </button>
           )}
-          {/* The one in the row that opens something rather than doing something,
-              drawn in the accent to say so — the same distinction the keypad makes
-              between a key that fills a square and a key that acts on the board. */}
+          {/* The one press in this row the puzzle has never heard of: undo and
+              redo are the midend's own, the type list is its parameters, and
+              this opens a sheet that is entirely ours. So it takes the filled
+              step of the ladder the keypad already climbs — see index.css. */}
           <button
             type="button"
-            className="is-menu"
+            data-whose="ours"
             aria-label={t.play.menu}
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
@@ -1066,6 +1067,10 @@ export default function PuzzleHost({
                 key={dir}
                 type="button"
                 data-dir={dir}
+                // Upstream's, every one of them: CURSOR_UP and its neighbours
+                // are keys the back end has always read and never offered a
+                // button for. Same step of the ladder as M, H and J above.
+                data-whose="upstream"
                 aria-label={t.play.arrows[dir]}
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
@@ -1094,6 +1099,10 @@ export default function PuzzleHost({
                   key={says}
                   type="button"
                   data-act={i === 0 ? 'first' : 'second'}
+                  // Enter and Space, which the back end reads as CURSOR_SELECT
+                  // and CURSOR_SELECT2 — upstream's keys like the arrows they
+                  // stand among, whatever each puzzle spends them on.
+                  data-whose="upstream"
                   aria-label={said}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
