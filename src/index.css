@@ -1485,6 +1485,21 @@ p.notice-intro button:active {
 }
 
 /*
+ * Except the one that opens a sheet, which has nothing above it to be kept
+ * away from.
+ *
+ * This is a separator, and the Type sheet is the only one whose first child
+ * after the handle is a section — the menu leads with its row of buttons, so
+ * its sections all have a block above them and the rule does its job. In the
+ * Type sheet it collapsed against the handle's own 0.4rem and won, which put
+ * "TYPE" 34.4px below the grip against the menu's 18.4px. Two sheets, opened
+ * from buttons beside each other, starting at different heights.
+ */
+.sheet-handle + section {
+  margin-top: 0;
+}
+
+/*
  * What a section of the sheet is called. One rule, because there is one kind
  * of thing being named: Type, Preferences, Game ID, Random seed. The two id
  * rows are labels rather than headings — each one names its own field, and a
