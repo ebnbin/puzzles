@@ -12,8 +12,10 @@ import { createPuzzle } from './engine/createPuzzle'
 import {
   CURSOR_KEYS,
   isHeld,
+  isOffBoard,
   keysFor,
   movesEightWays,
+  OPPOSITE,
   READS_PREFS,
   SECOND_PRESS,
   readsArrows,
@@ -217,6 +219,15 @@ export default function PuzzleHost({
    * bit and it is not the position: where the cursor is stays unreachable.
    */
   const [awake, setAwake] = useState(false)
+  /*
+   * The same two words again, in a ref, because one caller cannot wait for a
+   * render: the arrow that has just walked Sixteen's cursor off the board needs
+   * undoing in the same turn, and `post_move` has already reported the new
+   * labels by the time `api.key` returns while React has not rendered anything.
+   * Measured — the button's `disabled` attribute is still the old one at that
+   * instant. Written in the same breath as the state, never separately.
+   */
+  const labelsRef = useRef<KeyLabels>({ enter: '', space: '' })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   /**
@@ -526,7 +537,10 @@ export default function PuzzleHost({
         // Both keys, every move, named in the order emcc.c asks for them:
         // CURSOR_SELECT2 first. Turned round here so that the rest of this file
         // can say `enter` and `space` and mean the keys the buttons send.
-        onKeyLabels: (space, enter) => setLabels({ enter, space }),
+        onKeyLabels: (space, enter) => {
+          labelsRef.current = { enter, space }
+          setLabels({ enter, space })
+        },
         onPermalinks: (desc, seed) => {
           setPermalink({ desc, seed })
           queueSave()
@@ -791,21 +805,53 @@ export default function PuzzleHost({
   // What the four glyphs along the foot of the board are called, on a hold.
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
+  /*
+   * Undo an arrow that walked the cursor off the board, before anything is
+   * painted. Only Sixteen has anywhere off the board to walk to; see OFF_BOARD,
+   * which is also where the case for keeping it on is argued.
+   *
+   * `wasOn` is not a nicety. Without it a cursor that somehow started out there
+   * would be pinned: every arrow would land off the board, every bounce would
+   * put it back, and nothing would move. It cannot happen — Sixteen's `new_ui`
+   * opens at (0,0) and no path leaves the board once this is on — so the guard
+   * is here to make that unreachable rather than merely unlikely.
+   *
+   * Both presses go out in one turn, so the browser paints once and the cursor
+   * is never seen on the rim. And both are free: an arrow returns
+   * MOVE_UI_UPDATE, which the midend does not keep as a state.
+   */
+  const stepBack = useCallback(
+    (api: PuzzleApi, key: string, wasOn: boolean, where = 0) => {
+      const back = OPPOSITE[key]
+      if (back && wasOn && isOffBoard(name, labelsRef.current))
+        api.key(0, back, '', where, 0, 0)
+    },
+    [name],
+  )
+
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
     acted()
     // Unmodified, because Net's arrows carry the origin and the source under
     // Shift and Ctrl and leave the cursor where it was. See CURSOR_LIFE.
-    if (!e.shiftKey && !e.ctrlKey && wakesCursor(name, e.key)) setAwake(true)
+    const plain = !e.shiftKey && !e.ctrlKey
+    if (plain && wakesCursor(name, e.key)) setAwake(true)
+    const wasOn = !isOffBoard(name, labelsRef.current)
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
+    // The keyboard gets the same treatment as the buttons, which is the rule
+    // this whole block of the screen was built on — a button and the key it
+    // stands for are one press, and a puzzle where they disagreed about where
+    // the cursor may go would be harder to explain than either behaviour alone.
+    // Only unmodified, since Sixteen's modified arrows slide rather than move.
+    if (plain) stepBack(api, e.key, wasOn)
     // Some of what the board takes changes a preference — undead's `a` — and
     // it says nothing when it does, so a puzzle whose keypad follows one is
     // asked again after every press. Which key it was is undead.c's business,
     // not ours, and asking is cheap: one config box, built and freed.
     if (READS_PREFS.has(name)) readPrefs()
-  }, [acted, name, readPrefs])
+  }, [acted, name, readPrefs, stepBack])
 
   // Shortcuts on the page rather than the board, so they work wherever focus
   // is. Skipped while a dialog is up or a field has focus.
@@ -933,9 +979,11 @@ export default function PuzzleHost({
     acted()
     // No modifiers ever go out from here, so a waking key always wakes.
     if (wakesCursor(name, key)) setAwake(true)
+    const wasOn = !isOffBoard(name, labelsRef.current)
     api.key(0, key, '', where, 0, 0)
+    stepBack(api, key, wasOn, where)
     canvasRef.current?.focus()
-  }, [acted, name])
+  }, [acted, name, stepBack])
 
   return (
     /* The flag goes here rather than on the row that grows, because two rows
@@ -1196,6 +1244,10 @@ export default function PuzzleHost({
               const { icon, says } = cursor
               const said = t.play.cursor[says]
               const key = wouldSend(name, cursor, labels, awake)
+              // Whether the mode this key turns on is on. Said twice over — the
+              // surface it sits on and the face it wears — because Sixteen puts
+              // it nowhere else at all. See isHeld.
+              const held = isHeld(name, cursor, labels)
               return (
                 <button
                   key={says}
@@ -1207,8 +1259,8 @@ export default function PuzzleHost({
                   data-whose="upstream"
                   // Held down, for the two that are a mode rather than a move.
                   // Nothing else says so — see isHeld.
-                  data-on={isHeld(name, cursor, labels) || undefined}
-                  aria-pressed={cursor.toggles ? isHeld(name, cursor, labels) : undefined}
+                  data-on={held || undefined}
+                  aria-pressed={cursor.toggles ? held : undefined}
                   aria-label={said}
                   disabled={key === null}
                   {...holdToAsk(said)}
@@ -1218,7 +1270,7 @@ export default function PuzzleHost({
                     sendKey(key)
                   }}
                 >
-                  <Icon name={icon} />
+                  <Icon name={held && cursor.iconOn ? cursor.iconOn : icon} />
                 </button>
               )
             })}

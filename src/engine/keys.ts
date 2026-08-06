@@ -372,6 +372,15 @@ export type CursorKey = {
    * instead, and the rim already has a gesture.
    */
   toggles?: readonly [off: string, on: string]
+  /**
+   * The face to wear while `toggles` says the mode is on.
+   *
+   * Only a `toggles` key can have one, and one of them has to: Sixteen keeps
+   * `cur_mode` in its `game_ui` and never draws it, so the button is the only
+   * place the state exists. The pressed background says it too; this says it in
+   * the one part of the button a reader is already looking at.
+   */
+  iconOn?: IconName
 }
 
 /** The words these keys can be called, so a missing translation is a type error. */
@@ -455,6 +464,48 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
 const mirrorsCursor = (name: string) => name in CURSOR_LIFE
+
+/**
+ * The puzzles whose cursor can walk off the board, and what they report while
+ * it is out there.
+ *
+ * Sixteen is the only one. Its cursor roams a grid two wider and two taller
+ * than the board (sixteen.c:657-686), so the arrows walk it out into the ring
+ * of sliding arrows around the edge, and the four corners of that ring bounce
+ * it round onto the neighbouring edge. Nowhere else in the collection do the
+ * arrows leave the board at all.
+ *
+ * Those rim squares are a dead end for anyone playing from the button pad. The
+ * two keys slide a row from out there instead of setting a mode, and sliding a
+ * row already has a gesture — the same arrow, tapped on the board — so the
+ * shoulder buttons go out and the reader is somewhere with nothing to press.
+ * `PuzzleHost` keeps the cursor off them: an arrow that lands out here is
+ * undone by sending its opposite, in the same turn, before anything is painted.
+ *
+ * Measured: fifty of those step-off-step-back pairs leave the cursor exactly
+ * where it started and add nothing to the move list — cursor movement returns
+ * `MOVE_UI_UPDATE`, which the midend does not record as a state.
+ *
+ * Reading it from the labels rather than from a tracked position is what keeps
+ * this free. "Slide" and "Back" are what the keys report out there and nothing
+ * else reports them, so one string comparison answers it, and an upstream
+ * rename means no match, no bounce, and upstream's own behaviour back.
+ */
+const OFF_BOARD: Record<string, readonly string[]> = {
+  sixteen: ['Slide', 'Back'],
+}
+
+/** Whether this puzzle's cursor is somewhere the arrows should not leave it. */
+export const isOffBoard = (name: string, labels: KeyLabels) =>
+  (OFF_BOARD[name] ?? []).includes(labels.enter)
+
+/** The arrow that undoes an arrow, for stepping back off the rim. */
+export const OPPOSITE: Record<string, string> = {
+  ArrowUp: 'ArrowDown',
+  ArrowDown: 'ArrowUp',
+  ArrowLeft: 'ArrowRight',
+  ArrowRight: 'ArrowLeft',
+}
 
 /** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
 export const wakesCursor = (name: string, key: string) =>
@@ -634,8 +685,20 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * waits.
    */
   sixteen: [
-    { key: 'Enter', icon: 'carryTile', says: 'carryTile', toggles: ['Lock tile', 'Unlock'] },
-    { key: ' ', icon: 'holdPlace', says: 'holdPlace', toggles: ['Lock pos', 'Unlock'] },
+    {
+      key: 'Enter',
+      icon: 'carryTile',
+      iconOn: 'carryTileOn',
+      says: 'carryTile',
+      toggles: ['Lock tile', 'Unlock'],
+    },
+    {
+      key: ' ',
+      icon: 'holdPlace',
+      iconOn: 'holdPlaceOn',
+      says: 'holdPlace',
+      toggles: ['Lock pos', 'Unlock'],
+    },
   ],
 
   /*

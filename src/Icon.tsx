@@ -73,6 +73,8 @@ export type IconName =
   | 'white'
   | 'carryTile'
   | 'holdPlace'
+  | 'carryTileOn'
+  | 'holdPlaceOn'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -464,6 +466,38 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <rect x="3.2" y="3.4" width="9" height="9" rx="2" />
       <path d="M3 19h17.6" />
       <path d="m17.4 15.8 3.2 3.2-3.2 3.2" />
+    </>
+  ),
+  /*
+   * And the same two with the mode switched on, which they have to have because
+   * Sixteen draws it nowhere else: `cur_mode` lives in its `game_ui` and never
+   * reaches `game_redraw`, so the key is the only place the state exists.
+   *
+   * The square does not move. That is deliberate and it is the whole design:
+   * the reader finds the button by its square — filled for the tile, hollow for
+   * the place — so the thing that identifies it has to survive being pressed.
+   * What changes is the arrow, which becomes a double chevron: the arrows have
+   * stopped walking the cursor and started shoving the board, and that is a
+   * statement about the arrows, not about the square.
+   *
+   * Four pairs were rendered at 20 light, 20 dark on the pressed surface, and 56.
+   * A padlock badge lost its shackle at 20 and read as a second small square;
+   * a ring round the square is the ink-blot shape this file has been caught by
+   * before; and swapping the fill — the obvious "inverted" idea — makes carry-on
+   * identical to hold-off, which is worse than saying nothing.
+   */
+  carryTileOn: (
+    <>
+      <rect x="3.2" y="7.2" width="9" height="9" rx="2" fill="currentColor" />
+      <path d="m14 8.5 3.2 3.2-3.2 3.2" />
+      <path d="m18 8.5 3.2 3.2-3.2 3.2" />
+    </>
+  ),
+  holdPlaceOn: (
+    <>
+      <rect x="3.2" y="3.4" width="9" height="9" rx="2" />
+      <path d="m13.6 15.8 3.2 3.2-3.2 3.2" />
+      <path d="m17.6 15.8 3.2 3.2-3.2 3.2" />
     </>
   ),
   /* A padlock, shut. The key it stands for opens one as readily as it closes
