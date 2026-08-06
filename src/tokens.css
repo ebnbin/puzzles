@@ -54,6 +54,12 @@
   --accent-on: #ffffff;
   --accent-soft: #e7e7fb;
   --accent-soft-text: #1e1e9e;
+  /* What `surface-3` is to `surface-2`, for the tint: the pressed state of a
+     key filled with it. Picked to move as far as that pair does and no further
+     — ΔE 5.6 against 4.3 — so the two kinds of key depress by the same amount
+     rather than one of them flinching. `accent-soft-text` still reads 9.0:1
+     over it. */
+  --accent-soft-hover: #dcdcf8;
 
   --danger: #b3261e;
   /* The ground a refusal is written on, so that a sentence from the back end
@@ -151,6 +157,9 @@
   --accent-on: #14143a;
   --accent-soft: #23234a;
   --accent-soft-text: #c3c3ff;
+  /* ΔE 5.1, against 5.3 for `surface-2` to `surface-3`. Lighter rather than
+     darker, which is the direction every pressed state goes on this theme. */
+  --accent-soft-hover: #2c2c58;
 
   --danger: #f2b8b5;
   /* 8.60:1 against `danger`, against 9.37:1 on `surface-2`. */

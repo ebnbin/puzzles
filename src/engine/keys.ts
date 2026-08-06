@@ -31,7 +31,7 @@ import type { DialogControl, KeyLabel } from './types'
 const MAX_SYMBOLS = 36
 
 /**
- * And the keys that are not symbols, at their widest: clear, the three below,
+ * And the keys that are not symbols, at their widest: clear, the three of ours,
  * and Unequal's hint. Counted rather than guessed at, because it is only ever
  * used to tell a misread id from an unusual one, and a number too small there
  * would take a working keypad away instead — which is what it was on its way
@@ -64,19 +64,6 @@ function digits(count: number, startAtZero = false): KeyLabel[] {
 /** Backspace. The midend treats 8 and 127 alike; upstream labels it Clear. */
 const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
 
-/*
- * The keys no puzzle asks for. H plays one deduction for you; J deals the same
- * network again, shuffled — its own source asks "should we have some mouse
- * control for this?" and the answer, here, is this key.
- *
- * Upstream's `M` used to be among them, filling every empty square with every
- * pencil mark. It is on none of these keypads now: the two below replace it
- * wherever marks are kept, because the first of them *is* `M` when there is
- * nothing to rule out, and a keypad offering both would be offering one key
- * twice. Nothing else in the collection has marks to fill, so nothing else lost
- * anything.
- */
-
 /**
  * The three keys no puzzle reads, because they are not the puzzle's: work out
  * what each square can still take, write in the squares that have come down to
@@ -89,11 +76,24 @@ const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
  * third is the one they reach for rarely: it is how the first is made to fill
  * again rather than subtract.
  */
-const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: true }
-const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: true }
-const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: true }
-const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: true }
-const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: true }
+const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: 'ours' }
+const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: 'ours' }
+const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours' }
+
+/*
+ * And the keys that are the puzzle's, which it reads without ever offering a
+ * button for. H runs the game's own solver as far as it will go; J deals the
+ * same network again, shuffled — its own source asks "should we have some mouse
+ * control for this?" and the answer, here, is this key.
+ *
+ * Upstream's `M` used to be among them, filling every empty square with every
+ * pencil mark. It is on none of these keypads now: the three above replace it
+ * wherever marks are kept, because the first of them *is* `M` when there is
+ * nothing to rule out, and a keypad offering both would be offering one key
+ * twice.
+ */
+const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: 'upstream' }
+const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upstream' }
 
 /**
  * The parameter prefix of a game id — everything before the first colon. For
@@ -239,7 +239,10 @@ const RULES: Record<
   dominosa(p) {
     const n = size(p)
     if (n === null) return null
-    return digits(n + 1, true).map(({ value: _, ...key }) => ({ ...key, aid: true }))
+    return digits(n + 1, true).map(({ value: _, ...key }): KeyLabel => ({
+      ...key,
+      aid: 'upstream',
+    }))
   },
 }
 
