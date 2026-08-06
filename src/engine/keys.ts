@@ -360,10 +360,29 @@ export type CursorKey = {
    * See `wouldSend`, and `WORDS` for the vocabulary that makes it safe.
    */
   does?: string
+  /**
+   * Or, for a key that turns a mode on and off: the two words its own key
+   * reports, in the order [off, on] — what the label says while the mode is
+   * off, and what it says while the mode is on and a press would end it.
+   *
+   * A mode is not a result, so `does` cannot describe one. Its button always
+   * sends its own key, is live only while that key's label is one of these two,
+   * and shows itself pressed on the second. Sixteen is why this exists: on a
+   * tile its two keys are sticky modifiers, on the rim they slide a row
+   * instead, and the rim already has a gesture.
+   */
+  toggles?: readonly [off: string, on: string]
 }
 
 /** The words these keys can be called, so a missing translation is a type error. */
-export type CursorWord = 'rotateLeft' | 'lock' | 'pencil' | 'black' | 'white'
+export type CursorWord =
+  | 'rotateLeft'
+  | 'lock'
+  | 'pencil'
+  | 'black'
+  | 'white'
+  | 'carryTile'
+  | 'holdPlace'
 
 /**
  * What the back end says its two cursor keys would do, right now.
@@ -430,27 +449,60 @@ const doesNothing = (key: string, labels: KeyLabels) =>
  */
 const WORDS: Record<string, readonly string[]> = {
   pattern: ['Black', 'White', 'Grey'],
+  /*
+   * Sixteen's five, and there are five because its two keys hold two different
+   * jobs at once. On the rim they play — "Slide" one way, "Back" the other. On
+   * a tile they are sticky modifiers, and each says "Lock tile" / "Lock pos"
+   * while off and "Unlock" while on. `toggles` reads the second job and lets
+   * the first alone, so a cursor sitting on the rim finds both buttons out.
+   */
+  sixteen: ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock'],
+}
+
+/** Whether we are still reading a puzzle's labels rather than guessing at them. */
+const understood = (name: string, labels: KeyLabels) => {
+  const words = WORDS[name]
+  return !!words && [labels.enter, labels.space].every((w) => !w || words.includes(w))
 }
 
 /**
  * Which key a cursor button should send, or null when it should stand down.
  *
- * Two kinds of button come through here. Most send the key they were built
+ * Three kinds of button come through here. Most send the key they were built
  * with, and go quiet when its label is empty — Net's rotate, the five pencil
- * keys. The ones with a `does` are named for a result instead, and ask the back
- * end which key currently reaches it; nobody offering it is what "you already
- * have it" looks like from out here, since a puzzle does not label a press that
- * would change nothing.
+ * keys. A `does` button is named for a result instead, and asks the back end
+ * which key currently reaches it; nobody offering it is what "you already have
+ * it" looks like from out here, since a puzzle does not label a press that
+ * would change nothing. A `toggles` button always sends its own key, and is out
+ * whenever that key is busy with something else.
  */
 export const wouldSend = (name: string, cursor: CursorKey, labels: KeyLabels): string | null => {
-  const words = WORDS[name]
-  if (cursor.does && words && [labels.enter, labels.space].every((w) => !w || words.includes(w))) {
-    if (labels.enter === cursor.does) return 'Enter'
-    if (labels.space === cursor.does) return ' '
-    return null
+  if (understood(name, labels)) {
+    if (cursor.does) {
+      if (labels.enter === cursor.does) return 'Enter'
+      if (labels.space === cursor.does) return ' '
+      return null
+    }
+    if (cursor.toggles) return cursor.toggles.includes(mine(cursor, labels)) ? cursor.key : null
   }
   return doesNothing(cursor.key, labels) ? null : cursor.key
 }
+
+/** What the back end says about this button's own key. */
+const mine = (cursor: CursorKey, labels: KeyLabels) =>
+  cursor.key === 'Enter' ? labels.enter : labels.space
+
+/**
+ * Whether a button that turns a mode on is showing it already on.
+ *
+ * Only `toggles` buttons can be, and only the back end knows — Sixteen keeps
+ * `cur_mode` in its `game_ui` and never draws it, so the word on this key is
+ * the one and only place a reader can see that their arrows have stopped moving
+ * the cursor and started shoving tiles about. That is the whole reason these
+ * buttons show a pressed state: without it the mode is invisible.
+ */
+export const isHeld = (name: string, cursor: CursorKey, labels: KeyLabels) =>
+  !!cursor.toggles && understood(name, labels) && mine(cursor, labels) === cursor.toggles[1]
 
 /**
  * Which puzzles have been given theirs, and what they do.
@@ -488,6 +540,36 @@ export const CURSOR_KEYS: Record<string, CursorKey[]> = {
   net: [
     { key: 'Enter', icon: 'rotate', says: 'rotateLeft' },
     { key: ' ', icon: 'lock', says: 'lock' },
+  ],
+
+  /*
+   * The half of Sixteen a finger has never been able to reach.
+   *
+   * Tapping an arrow in the rim slides that row or column, and that is a whole
+   * game — Sixteen has always been playable on a phone. But its chapter
+   * describes a second way to play beside it: "move the cursor onto a tile,
+   * hold Control and press an arrow key to move the tile under the cursor and
+   * move the cursor along with the tile. Or, hold Shift to move only the tile."
+   * A touch screen has no Control and no Shift, so that paragraph has been
+   * describing something nobody here could do.
+   *
+   * The same paragraph gives the way in: "pressing Enter simulates holding down
+   * Control (press Enter again to release), while pressing Space simulates
+   * holding down Shift". Sticky modifiers, and a sticky modifier is a button.
+   *
+   * They are the first keys here that are a mode rather than a move, and that
+   * costs them two things the others do not need. They show a pressed state,
+   * because `cur_mode` lives in Sixteen's `game_ui` and is never drawn — the
+   * word on the key is the only place a reader can find out that their arrows
+   * have stopped moving the cursor and started shoving tiles. And they go out
+   * on the rim, where the same two keys slide a row instead: sliding already
+   * has a gesture, so it is not what these buttons are for, and a key that
+   * quietly changed jobs under the reader's finger would be worse than one that
+   * waits.
+   */
+  sixteen: [
+    { key: 'Enter', icon: 'carryTile', says: 'carryTile', toggles: ['Lock tile', 'Unlock'] },
+    { key: ' ', icon: 'holdPlace', says: 'holdPlace', toggles: ['Lock pos', 'Unlock'] },
   ],
 
   /*

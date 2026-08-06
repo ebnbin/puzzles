@@ -155,6 +155,19 @@ export const en = {
        */
       black: 'Black',
       white: 'White',
+      /**
+       * Sixteen's two, named for what the arrows will do next rather than for
+       * the mode being switched on, because the mode is not a thing the reader
+       * can see — Sixteen never draws it. Upstream's own soft-key words are
+       * "Lock tile" and "Lock pos", which say what is being held rather than
+       * what that buys, and a reader holding the button down is asking the
+       * second question.
+       *
+       * They differ in one clause and it is the whole difference, so the two
+       * lines are built to be read against each other.
+       */
+      carryTile: 'Arrows carry this tile along',
+      holdPlace: 'Arrows slide tiles past this square',
     },
   },
 

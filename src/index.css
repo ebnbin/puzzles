@@ -1292,6 +1292,20 @@ p.notice-intro button:active {
   color: var(--text-3);
 }
 
+/*
+ * And a cursor key that is a mode rather than a move, while its mode is on.
+ *
+ * The surface every button on this screen already goes to under a finger, which
+ * is the whole argument for it: these two are sticky modifiers — Sixteen's own
+ * chapter says Enter "simulates holding down Control" — so a key that looks
+ * held down is not a metaphor, it is what the key is. `--accent-soft` was the
+ * other candidate and is spoken for: it means "ours" one button along, and the
+ * menu is on screen at the same time.
+ */
+.play-actions button[data-on] {
+  background: var(--surface-3);
+}
+
 .keypad button[data-whose='ours'],
 .play-actions button[data-whose='ours'] {
   background: var(--accent-soft);

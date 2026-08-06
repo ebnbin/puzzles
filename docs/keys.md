@@ -44,9 +44,9 @@
 
 | 状态 | 数量 | 谁 |
 | --- | --- | --- |
-| ✅ 完成 | 10 | Net、Inertia、Pattern、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
+| ✅ 完成 | 11 | Net、Sixteen、Inertia、Pattern、五个铅笔游戏（做过改动）· Cube、Fifteen（本来就不缺） |
 | 🚫 不适用 | 1 | Loopy，只有鼠标 |
-| ⬜ 待办 | 29 | |
+| ⬜ 待办 | 28 | |
 
 另有一处待定：Inertia 的 `Enter`（重放求解器下一步）要不要给按钮。它只在按过求解之后才有
 用，见下表。
@@ -65,7 +65,7 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 | net | ✅ | `Enter` 左转 ✅ · `Space` 锁定/解锁 ✅ · 右转⭕长按已改锁定，右转用三次左转 | `J` 重排 ✅ |
 | cube | ✅ | —— 无光标，方向键即走子 | —— 不读 `Enter`/`Space`，`current_key_label` 是 `NULL` |
 | fifteen | ✅ | —— 无光标，方向键即滑块 | `h` 提示 ✅ |
-| sixteen | ⬜ | `Enter` 推一行 · `Space` 锁定模式 | —— |
+| sixteen | ✅ | 在方块上：`Enter` 粘住 Ctrl ✅ · `Space` 粘住 Shift ✅（两个键都是「模式」，按钮带按下态）· 在边框上：`Enter`/`Space` 推一行⭕（点边框箭头就能做到，所以按钮在边框上置灰） | —— |
 | twiddle | ⬜ | `Enter` 顺时针 · `Space` 逆时针 | `a`/`b`/`c`/`d` 转四角块⭕（点棋盘可做） |
 | rect | ⬜ | `Enter` 起止拖拽 · `Space` 标记/擦除 · `⌫` 取消拖拽 | —— |
 | netslide | ⬜ | `Enter` 推 | —— |
@@ -119,10 +119,15 @@ Cube、Fifteen、Loopy 三个两个都不读。
 第二档的经验是：`Space` 值不值得一个按钮，要看它在那个游戏里是不是**已经有落点的另一个键**。
 五个铅笔游戏里它是「清除」（键盘上已有 `⌫`）或者就是 `Enter` 本身，所以那五个只加了一个键。
 
-**修饰键组合没有落点，也没打算给。** net（移原点/源）、sixteen、pattern（拖着刷）、tents
+**修饰键组合没有落点，也没打算给。** net（移原点/源）、pattern（拖着刷）、tents
 （拖一行）、bridges（画桥）、unequal、towers（划线索）、range、pearl（画线）、palisade 都读
 `Shift`/`Ctrl` + 方向键。它们天然属于第 1 类，但做不成一个普通按钮——得先有个修饰键开关。
 单独记在这里，不混进上表。
+
+**Sixteen 是这条里唯一一个已经解决的，办法是上游自己给的。** 它的手册写着「pressing Enter
+simulates holding down Control（press Enter again to release），while pressing Space simulates
+holding down Shift」——上游自己把这两个修饰键做成了粘滞开关，而粘滞开关就是一个按钮。轮到
+上面别的游戏时先查一遍有没有同样的东西：一个粘滞版本比「加一个修饰键开关」便宜得多。
 
 **中键在触摸上没有任何手势。** `usePuzzlePointer` 只造得出 button 0（点/左键）和一个
 「第二下」（长按/右键）。用中键的五个游戏里，net 和 unruly 有字母或 `Space` 兜底。剩下

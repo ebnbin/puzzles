@@ -11,6 +11,7 @@ import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
   CURSOR_KEYS,
+  isHeld,
   keysFor,
   movesEightWays,
   READS_PREFS,
@@ -1168,6 +1169,10 @@ export default function PuzzleHost({
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.
                   data-whose="upstream"
+                  // Held down, for the two that are a mode rather than a move.
+                  // Nothing else says so — see isHeld.
+                  data-on={isHeld(name, cursor, labels) || undefined}
+                  aria-pressed={cursor.toggles ? isHeld(name, cursor, labels) : undefined}
                   aria-label={said}
                   disabled={key === null}
                   {...holdToAsk(said)}

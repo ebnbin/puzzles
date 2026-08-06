@@ -71,6 +71,8 @@ export type IconName =
   | 'pencil'
   | 'black'
   | 'white'
+  | 'carryTile'
+  | 'holdPlace'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -419,6 +421,49 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M4.2 19.8 5.4 15.6 16.2 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L9 19.2Z" />
       <path d="m14.8 6.2 3 3" />
+    </>
+  ),
+  /*
+   * Sixteen's two sticky modifiers, which are the same move told apart by what
+   * the cursor does: a square and an arrow, twice.
+   *
+   * Its chapter describes them as one of the two ways to play — "move the
+   * cursor onto a tile, hold Control and press an arrow key to move the tile
+   * under the cursor and move the cursor along with the tile. Or, hold Shift to
+   * move only the tile." So one carries the square away and the cursor rides
+   * with it, and the other leaves the cursor where it is while tiles go past.
+   *
+   * Drawn as that difference and nothing else, in where the arrow sits rather
+   * than in what it points at. `carryTile` puts it on the square's own line and
+   * against its edge, so the two are one object going somewhere together, and
+   * fills the square because it is a tile. `holdPlace` lifts the square clear
+   * and runs the arrow underneath it, apart: the board goes past, the square
+   * stays, and it is drawn hollow because it is a place and not a tile.
+   *
+   * An earlier pair sent the arrow *through* an outlined square, which is the
+   * more obvious picture of "passes by" and the one thing that cannot be drawn
+   * here — line and outline close into a blot at 20px, the same way the first
+   * `rotate` did. Rendered side by side at 20 light, 20 dark and 56 before this
+   * pair was picked, which is the only way to find that out.
+   *
+   * The square drops to 9 across from the house 17.2, which it has to: these are
+   * the only two glyphs here that put a square and something else on the same 24
+   * grid, and a full-size square leaves no room for an arrow that reads. Each is
+   * centred in its own box rather than sharing the square's position, because
+   * they are 40 pixels apart in separate buttons and never seen edge to edge.
+   */
+  carryTile: (
+    <>
+      <rect x="3.2" y="7.2" width="9" height="9" rx="2" fill="currentColor" />
+      <path d="M14 11.7h6.6" />
+      <path d="m17.6 8.5 3.2 3.2-3.2 3.2" />
+    </>
+  ),
+  holdPlace: (
+    <>
+      <rect x="3.2" y="3.4" width="9" height="9" rx="2" />
+      <path d="M3 19h17.6" />
+      <path d="m17.4 15.8 3.2 3.2-3.2 3.2" />
     </>
   ),
   /* A padlock, shut. The key it stands for opens one as readily as it closes

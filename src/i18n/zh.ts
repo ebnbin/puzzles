@@ -61,6 +61,8 @@ export const zh: Strings = {
       pencil: '切换墨水和铅笔',
       black: '黑',
       white: '白',
+      carryTile: '方向键带着这个方块一起走',
+      holdPlace: '方向键让方块从这一格穿过',
     },
   },
 
