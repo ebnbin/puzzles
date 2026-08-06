@@ -278,6 +278,12 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。Undead 是唯一一个
   光看 id 不够的:键面画怪物还是写字母得问偏好设置,所以它列在 `READS_PREFS` 里——
   `PuzzleHost` 见到这个名字,才会在偏好可能动过之后回去重读一遍。
+- **键盘上有三种键,画法不同**,分法是 `KeyLabel.aid`:不带这个字段的是往一个格子里放
+  东西的普通键(数字、怪物、Clear);`'upstream'` 是后端自己就读、但从来没给过按钮的字母
+  ——`H`、`J`,加上 Dominosa 那排高亮数字;`'ours'` 是后端根本不认识、由这一侧回答的
+  三个,也就是上面那扇门。三档按「按一下够到多远」爬:一格 → 整块棋盘 → 整块棋盘且是我们
+  的。填色那一档给了我们的键而不是上游的,理由写在 `index.css` 里,和「谁更具破坏性」无关
+  ——Dominosa 的上游键什么都不伤,那条分法立不住。
 - TS 是 strict + `noUnusedLocals`/`noUnusedParameters`/`verbatimModuleSyntax`,类型
   导入要写 `import type`。
 

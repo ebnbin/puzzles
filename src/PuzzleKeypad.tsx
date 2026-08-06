@@ -9,16 +9,16 @@ import type { Resolved } from './useTheme'
 /**
  * The keys the puzzle asked for, as buttons.
  *
- * Two sorts in one run. First the keys that put something in a square — the
- * digits of Solo and Keen, Undead's three monsters, clear — which is how
- * those puzzles are played, and a touch device has no other way to do it.
- * After them, in the same grid but drawn in the accent, the keys that ask
- * the puzzle to do something to the whole board: fill in every pencil mark,
- * play one deduction, deal the network again. Those are keys the games read
- * but never advertise, and this is the only way to reach them without a
- * keyboard.
+ * Three sorts in one run, in the order a reader meets them. First the keys
+ * that put something in a square — the digits of Solo and Keen, Undead's
+ * three monsters, clear — which is how those puzzles are played, and a touch
+ * device has no other way to do it. Then the three this side answers, which
+ * work out what each square can still take. Last the keys the games read but
+ * never advertise — fill in every pencil mark, play the solver, deal the
+ * network again — which this is the only way to reach without a keyboard.
  *
- * See engine/keys.ts for which puzzle gets which.
+ * The three are drawn differently, which is `key.aid` and index.css. See
+ * engine/keys.ts for which puzzle gets which.
  */
 
 /**
@@ -113,7 +113,7 @@ export default function PuzzleKeypad({
               // A key this side answers has no button value to be told apart by.
               key={key.action ?? key.button}
               type="button"
-              data-aid={key.aid ? 'true' : undefined}
+              data-aid={key.aid}
               // A digit says what it is, so it needs no name — until it carries a
               // count, which would otherwise be read out beside it as a second
               // digit, and "9 1" is not what the key says.

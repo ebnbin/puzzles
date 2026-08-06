@@ -125,12 +125,21 @@ export interface KeyLabel {
    */
   icon?: KeyIcon
   /**
-   * Two kinds of key. One puts something in a square, which is how the
-   * puzzle is played; the other asks the puzzle to do something to the
-   * board, and exists on this side only because a touch device has no way
-   * to type the letter that does it.
+   * Set on a key that acts on the whole board rather than on one square, and
+   * saying whose idea the key is.
+   *
+   * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a
+   * letter the back end already reads and has never offered a button for — M,
+   * H, J — which exists here only because a touch device cannot type it.
+   * `ours` is a key no back end has heard of, answered on this side through
+   * the save file; there are three, and engine/marks is all of them.
+   *
+   * It is three values rather than a flag because it is three things on the
+   * screen: the keypad draws each kind differently, and the reader is owed the
+   * difference between a key the game has always had and one this front end
+   * made up. See index.css, where the ladder is set out.
    */
-  aid?: boolean
+  aid?: 'upstream' | 'ours'
 }
 
 /** Everything the running game wants the interface to show. */

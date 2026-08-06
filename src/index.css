@@ -1213,8 +1213,8 @@ p.notice-intro button:active {
  * do not meet at any size the label reaches.
  *
  * Drawn in --text-2 rather than the accent. The accent means one thing on this
- * keypad already — "acts on the whole board", which is what tells the three aid
- * keys from the digits — and a count is not that. Secondary text against
+ * keypad already — "acts on the whole board", which is what tells the aid keys
+ * from the digits — and a count is not that. Secondary text against
  * --surface-2 clears 7:1 in both themes, which is more than a number this small
  * needs and about what it wants.
  */
@@ -1230,11 +1230,55 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* The keys that do something to the whole board rather than to one square.
-   Drawn in the accent so they read as a different kind of press — the one
-   you make once, not the one you make forty times. */
+/* --- the three kinds of key --------------------------------------------
+ *
+ * A ladder, and it climbs by how far a press reaches rather than by how much
+ * anything matters:
+ *
+ *   1. Plain — a digit, a monster, clear. Acts on one square. `--text` on
+ *      `--surface-2`, which is what every button in the app is.
+ *   2. The accent — acts on the whole board. This is the step the reader has
+ *      to notice, because it is the difference between the press you make
+ *      forty times and the one you make once.
+ *   3. The accent, filled — the same reach, and ours rather than the game's.
+ *
+ * Which of the last two gets the filled step is the only real choice here, and
+ * it went to ours for a reason about the row rather than about the keys: our
+ * three are always together and always three, so a fill reads them as one
+ * block, while upstream's arrive one at a time (two on Unequal) and read
+ * better as an accent among the digits. The other argument — that upstream's
+ * are the heavier press, since M buries the marks you spent the game crossing
+ * off and H overwrites them with the solver's — does not survive Dominosa,
+ * whose upstream keys only light dominoes up and harm nothing. So: by whose
+ * key it is, which is a fact, and not by what it costs, which varies.
+ *
+ * The tint is faint by contrast ratio — 1.07:1 against `--surface-2` — and
+ * that number is the wrong one: the difference is nearly all hue, which
+ * luminance does not measure. ΔE puts it at 11.2 on light and 22.5 on dark,
+ * against 4.3 and 5.3 for the step from `--surface-2` to `--surface-3` that
+ * every button on this screen already uses to say it has been pressed. It is
+ * more than twice the difference the app asks a reader to see elsewhere.
+ *
+ * `--accent-soft` is spent once elsewhere, on the selected preset chip. Two
+ * meanings for one tint, in two places that are never on screen together.
+ */
 .keypad button[data-aid] {
   color: var(--accent);
+}
+
+.keypad button[data-aid='ours'] {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+@media (hover: hover) {
+  .keypad button[data-aid='ours']:hover {
+    background: var(--accent-soft-hover);
+  }
+}
+
+.keypad button[data-aid='ours']:active {
+  background: var(--accent-soft-hover);
 }
 
 /* A monster, at the size the glyph beside it is drawn. Bigger than the 20px
