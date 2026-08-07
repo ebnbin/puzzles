@@ -1231,7 +1231,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Mark: { icon: 'mark', says: 'mark' },
         Done: { icon: 'done', says: 'done', on: true },
-        Cancel: { icon: 'cancel', says: 'cancel' },
+        Cancel: { icon: 'cancel', says: 'cancel', on: true },
       },
     },
     {
@@ -1241,7 +1241,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Erase: { icon: 'erase', says: 'erase' },
         Done: { icon: 'done', says: 'done', on: true },
-        Cancel: { icon: 'cancel', says: 'cancel' },
+        Cancel: { icon: 'cancel', says: 'cancel', on: true },
       },
     },
   ],
