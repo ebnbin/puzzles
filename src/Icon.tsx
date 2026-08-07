@@ -78,6 +78,7 @@ export type IconName =
   | 'carryTileOn'
   | 'holdPlaceOn'
   | 'slide'
+  | 'slideBack'
   | 'place'
   | 'hold'
   | 'flip'
@@ -1117,6 +1118,25 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <rect x="8.6" y="9.3" width="5.4" height="5.4" rx="1.2" />
       <path d="M15.4 12h5.2" />
       <path d="m18 9.4 2.6 2.6-2.6 2.6" />
+    </>
+  ),
+  /*
+   * And the same line pushed the other way, drawn as the mirror of `slide`
+   * about x=12.
+   *
+   * Sixteen's rim keys are a pair of opposites — upstream calls them "Slide"
+   * and "Back" — so the only thing that may distinguish them is which way round
+   * they are. Every number here is its partner's, reflected. Which compass
+   * direction either one means is the board's to say, not this glyph's: the
+   * cursor is sitting on one of the fat arrows drawn round the edge, and that
+   * arrow is the answer. See the note beside `slide` in the string catalogue.
+   */
+  slideBack: (
+    <>
+      <rect x="10" y="9.3" width="5.4" height="5.4" rx="1.2" />
+      <rect x="16.2" y="9.3" width="5.4" height="5.4" rx="1.2" />
+      <path d="M8.6 12H3.4" />
+      <path d="m6 9.4-2.6 2.6 2.6 2.6" />
     </>
   ),
   /*

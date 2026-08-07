@@ -13,10 +13,8 @@ import {
   cursorKeys,
   faceOf,
   HOLD_BUTTON,
-  isOffBoard,
   keysFor,
   movesEightWays,
-  OPPOSITE,
   READS_PREFS,
   readsArrows,
   wakesCursor,
@@ -865,30 +863,6 @@ export default function PuzzleHost({
   // What the four glyphs along the foot of the board are called, on a hold.
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
-  /*
-   * Undo an arrow that walked the cursor off the board, before anything is
-   * painted. Only Sixteen has anywhere off the board to walk to; see OFF_BOARD,
-   * which is also where the case for keeping it on is argued.
-   *
-   * `wasOn` is not a nicety. Without it a cursor that somehow started out there
-   * would be pinned: every arrow would land off the board, every bounce would
-   * put it back, and nothing would move. It cannot happen — Sixteen's `new_ui`
-   * opens at (0,0) and no path leaves the board once this is on — so the guard
-   * is here to make that unreachable rather than merely unlikely.
-   *
-   * Both presses go out in one turn, so the browser paints once and the cursor
-   * is never seen on the rim. And both are free: an arrow returns
-   * MOVE_UI_UPDATE, which the midend does not keep as a state.
-   */
-  const stepBack = useCallback(
-    (api: PuzzleApi, key: string, wasOn: boolean, where = 0) => {
-      const back = OPPOSITE[key]
-      if (back && wasOn && isOffBoard(name, labelsRef.current))
-        api.key(0, back, '', where, 0, 0)
-    },
-    [name],
-  )
-
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
     if (!api) return
@@ -897,21 +871,14 @@ export default function PuzzleHost({
     // Shift and Ctrl and leave the cursor where it was. See CURSOR_LIFE.
     const plain = !e.shiftKey && !e.ctrlKey
     if (plain && wakesCursor(name, e.key)) setAwake(true)
-    const wasOn = !isOffBoard(name, labelsRef.current)
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
-    // The keyboard gets the same treatment as the buttons, which is the rule
-    // this whole block of the screen was built on — a button and the key it
-    // stands for are one press, and a puzzle where they disagreed about where
-    // the cursor may go would be harder to explain than either behaviour alone.
-    // Only unmodified, since Sixteen's modified arrows slide rather than move.
-    if (plain) stepBack(api, e.key, wasOn)
     // Some of what the board takes changes a preference — undead's `a` — and
     // it says nothing when it does, so a puzzle whose keypad follows one is
     // asked again after every press. Which key it was is undead.c's business,
     // not ours, and asking is cheap: one config box, built and freed.
     if (READS_PREFS.has(name)) readPrefs()
-  }, [acted, name, readPrefs, stepBack])
+  }, [acted, name, readPrefs])
 
   // Shortcuts on the page rather than the board, so they work wherever focus
   // is. Skipped while a dialog is up or a field has focus.
@@ -1077,11 +1044,9 @@ export default function PuzzleHost({
     acted()
     // No modifiers ever go out from here, so a waking key always wakes.
     if (wakesCursor(name, key)) setAwake(true)
-    const wasOn = !isOffBoard(name, labelsRef.current)
     api.key(0, key, '', where, 0, 0)
-    stepBack(api, key, wasOn, where)
     canvasRef.current?.focus()
-  }, [acted, name, stepBack])
+  }, [acted, name])
 
   return (
     /* The flag goes here rather than on the row that grows, because two rows

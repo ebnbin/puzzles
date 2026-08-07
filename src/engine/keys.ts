@@ -511,6 +511,7 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
+  | 'slideBack'
   | 'jump'
   | 'unjump'
   | 'domino'
@@ -765,48 +766,6 @@ const mirrorsCursor = (name: string) => name in CURSOR_LIFE
 const gated = (name: string, cursor: CursorKey) =>
   mirrorsCursor(name) && !cursor.offCursor
 
-/**
- * The puzzles whose cursor can walk off the board, and what they report while
- * it is out there.
- *
- * Sixteen is the only one. Its cursor roams a grid two wider and two taller
- * than the board (sixteen.c:657-686), so the arrows walk it out into the ring
- * of sliding arrows around the edge, and the four corners of that ring bounce
- * it round onto the neighbouring edge. Nowhere else in the collection do the
- * arrows leave the board at all.
- *
- * Those rim squares are a dead end for anyone playing from the button pad. The
- * two keys slide a row from out there instead of setting a mode, and sliding a
- * row already has a gesture — the same arrow, tapped on the board — so the
- * shoulder buttons go out and the reader is somewhere with nothing to press.
- * `PuzzleHost` keeps the cursor off them: an arrow that lands out here is
- * undone by sending its opposite, in the same turn, before anything is painted.
- *
- * Measured: fifty of those step-off-step-back pairs leave the cursor exactly
- * where it started and add nothing to the move list — cursor movement returns
- * `MOVE_UI_UPDATE`, which the midend does not record as a state.
- *
- * Reading it from the labels rather than from a tracked position is what keeps
- * this free. "Slide" and "Back" are what the keys report out there and nothing
- * else reports them, so one string comparison answers it, and an upstream
- * rename means no match, no bounce, and upstream's own behaviour back.
- */
-const OFF_BOARD: Record<string, readonly string[]> = {
-  sixteen: ['Slide', 'Back'],
-}
-
-/** Whether this puzzle's cursor is somewhere the arrows should not leave it. */
-export const isOffBoard = (name: string, labels: KeyLabels) =>
-  (OFF_BOARD[name] ?? []).includes(labels.enter)
-
-/** The arrow that undoes an arrow, for stepping back off the rim. */
-export const OPPOSITE: Record<string, string> = {
-  ArrowUp: 'ArrowDown',
-  ArrowDown: 'ArrowUp',
-  ArrowLeft: 'ArrowRight',
-  ArrowRight: 'ArrowLeft',
-}
-
 /** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
 export const wakesCursor = (name: string, key: string) =>
   CURSOR_LIFE[name]?.includes(key) ?? false
@@ -860,8 +819,7 @@ const WORDS: Record<string, readonly string[]> = {
    * Sixteen's five, and there are five because its two keys hold two different
    * jobs at once. On the rim they play — "Slide" one way, "Back" the other. On
    * a tile they are sticky modifiers, and each says "Lock tile" / "Lock pos"
-   * while off and "Unlock" while on. `toggles` reads the second job and lets
-   * the first alone, so a cursor sitting on the rim finds both buttons out.
+   * while off and "Unlock" while on. All five have a face; see CURSOR_KEYS.
    */
   sixteen: ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock'],
   /*
@@ -1132,16 +1090,29 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * Control (press Enter again to release), while pressing Space simulates
    * holding down Shift". Sticky modifiers, and a sticky modifier is a button.
    *
-   * They are the first keys here that are a mode rather than a move, and that
-   * costs them two things the others do not need. They show a pressed state,
-   * because `cur_mode` lives in Sixteen's `game_ui` and is never drawn — the
-   * word on the key is the only place a reader can find out that their arrows
-   * have stopped moving the cursor and started shoving tiles — hence the `on`
-   * face. And they go out
-   * on the rim, where the same two keys slide a row instead: sliding already
-   * has a gesture, so it is not what these buttons are for, and a key that
-   * quietly changed jobs under the reader's finger would be worse than one that
-   * waits.
+   * They are the first keys here that are a mode rather than a move, and they
+   * show a pressed state for it, because `cur_mode` lives in Sixteen's
+   * `game_ui` and is never drawn. Measured: a board with a mode on and the same
+   * board with it off are byte-identical images. So the key is the only place a
+   * reader can find out that their arrows have stopped moving the cursor and
+   * started shoving tiles — hence the `on` face.
+   *
+   * And there is a third face each, because upstream's cursor also walks out
+   * into the rim of arrows, where the same two keys slide a row — one way and
+   * the other. Two faces used to be the whole of it, and the cursor was kept
+   * off the rim by undoing any arrow that landed there. That was the wrong
+   * trade, and looking at the board says why: on the rim the cursor lights up
+   * one of the fat arrows upstream has drawn all round the edge, and pressing a
+   * key then does what that arrow says — nothing to learn. On a tile it shades
+   * a number, which announces nothing at all, and the mode it arms is invisible.
+   * The design that had to be explained was the one being kept.
+   *
+   * So all four positions are upstream's now, and the faces follow the labels
+   * rather than the reader being steered away from half of them. The rim pair
+   * borrows Netslide's `slide` glyph and its wording, which were drawn for this
+   * exact job on that puzzle's identical rim — and the direction stays the
+   * board's to indicate, because the cursor is sitting on the arrow that gives
+   * it.
    */
   sixteen: [
     {
@@ -1151,6 +1122,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock tile': { icon: 'carryTile', says: 'carryTile' },
         Unlock: { icon: 'carryTileOn', says: 'carryTile', on: true },
+        Slide: { icon: 'slide', says: 'slide' },
       },
     },
     {
@@ -1160,6 +1132,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock pos': { icon: 'holdPlace', says: 'holdPlace' },
         Unlock: { icon: 'holdPlaceOn', says: 'holdPlace', on: true },
+        Back: { icon: 'slideBack', says: 'slideBack' },
       },
     },
   ],

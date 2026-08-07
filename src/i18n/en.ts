@@ -193,6 +193,11 @@ export const en = {
        * way to the highlighted arrow the reader is looking at.
        */
       slide: 'Slide this row or column',
+      /* And the same line the other way, which upstream's second key offers
+         from the same rim square — "Back" in its own label. Worded as the
+         reverse of the arrow rather than as a compass direction, for the
+         reason above: which way is the board's to say. */
+      slideBack: 'Slide it the other way',
       /**
        * Mines' four, in its chapter's words. "Clear around" is the manual's own
        * name for the second — "if you left-click in an uncovered square, it
