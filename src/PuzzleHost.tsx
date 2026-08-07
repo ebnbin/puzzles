@@ -214,9 +214,11 @@ export default function PuzzleHost({
    */
   const [labels, setLabels] = useState<KeyLabels>({ enter: '', space: '' })
   /**
-   * Whether the cursor is on screen — for the one puzzle whose labels do not
-   * say, and only for it. See CURSOR_LIFE, which is where the rules live and
-   * where the case for keeping a copy of anything is argued.
+   * Whether the cursor is on screen — for the six puzzles whose labels do not
+   * say, and only for them. See CURSOR_LIFE, which is where the rules live and
+   * where the case for keeping a copy of anything is argued. Six games need it,
+   * but this is one boolean rather than six: only one puzzle runs at a time,
+   * and the other thirty-three simply never read it.
    *
    * The only value in this file the back end does not hand us. It is a single
    * bit and it is not the position: where the cursor is stays unreachable.

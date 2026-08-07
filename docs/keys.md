@@ -77,8 +77,8 @@ signpost 的 `x`、inertia 的 `Enter`。它们全是第 2 类（和光标无关
 
 `Enter` / `Space` 那一列写的是这个游戏拿它们做什么。**35 个游戏的说法取自上游自己**——它们
 实现了 `current_key_label`，会按当前光标位置返回一个活的词。五个没实现（`NULL`）：cube、
-fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读但不报**——untangle 已经做了
-（见「后端一个字都不报的两个」），palisade 轮到时同一套办法。
+fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读但不报**——这两个也都做完了，
+词是我们自己起的，见「后端一个字都不报的两个」。
 
 | 游戏 | 状态 | 第 1 类：光标伴生 | 第 2 类：独立 |
 | --- | --- | --- | --- |
@@ -127,19 +127,26 @@ fifteen、loopy 三个本来就不读这两个键，**untangle 和 palisade 读�
 
 ## 三件跨游戏的事
 
-**37 个读 `Enter`，37 个也读 `Space`——但只有 29 个给了 `Space` 自己的含义。** 另外 8 个
-（netslide、flip、pegs、inertia、unequal、galaxies、magnets、signpost）用的是
-`IS_CURSOR_SELECT` 宏，它一次覆盖两个键，所以在那 8 个里 `Space` 只是 `Enter` 的同义词。只有
-Cube、Fifteen、Loopy 三个两个都不读。
+**37 个读 `Enter`，37 个也读 `Space`——但只有 31 个给了 `Space` 自己的含义。** 另外 6 个
+（netslide、flip、pegs、inertia、unequal、galaxies）用 `IS_CURSOR_SELECT` 宏一次覆盖两个键，
+进去之后不再分，两个键报同一个词，所以在那 6 个里 `Space` 只是 `Enter` 的同义词。只有 Cube、
+Fifteen、Loopy 三个两个都不读。
 
-这条数错过一次：审计脚本只 grep 字面的 `CURSOR_SELECT2`，把用宏的那 8 个漏掉了，于是「29 个
-读 Space」变成了一句听起来精确的错话。要判断一个游戏读不读 `Space`，两种写法都得找。
+这条数错过两次，两次都是拿 grep 当阅读。第一次：审计脚本只找字面的 `CURSOR_SELECT2`，把用宏
+的漏掉了，于是「29 个读 Space」变成一句听起来精确的错话。第二次是补救时矫枉过正——**用了宏不
+等于两个键是同义词**。magnets 和 signpost 拿它当门卫（`if (IS_CURSOR_SELECT(button))`），进门
+第一件事就是 `button == CURSOR_SELECT` 分岔：magnets 的 `Enter` 走 `+`/`−`/清除，`Space` 走
+`?`/`X`；signpost 是「连到下一格」和「连到上一格」。它们各自该有两个按钮，表里也是两个。要问
+的从来只有一件事：这个 `current_key_label` 读不读 `button`——两种写法都得找，找到之后还得往下
+读一行。
 
 这两个键现在全部补齐了。回头看，**`Space` 值不值得第二个按钮，最后落在三种答案上**：
 
-- **是同义词，只给一个键**——netslide、flip、pegs、galaxies 四个走 `IS_CURSOR_SELECT`
-  宏，两个键报同一个词，第二个按钮会是第一个的复制；五个铅笔游戏里它是「清除」，键盘上已有
-  `⌫`。
+- **是同义词，只给一个键**——netslide、flip、pegs、galaxies、unequal 五个走
+  `IS_CURSOR_SELECT` 宏之后不再分岔，两个键报同一个词，第二个按钮会是第一个的复制；另外四个
+  铅笔游戏（solo、keen、towers、undead）里 `Space` 和 `\b` 走同一条分支，就是「清除」，键盘上
+  已有 `⌫`。上面数出来的第六个同义词 inertia 不在这条里：它压根没有光标，两个键都不长在方向键
+  旁边。
 - **不同但没用，也不给**——samegame 唯一一次靠「抹空」量出来：四种局面里只有一种两个键不同，
   而那点不同（取消选中）玩下去一次都用不上。
 - **不同而且有用，给**——其余全部。判据就是那一行：`labels.space !== ''` 恰好等于「两个键
