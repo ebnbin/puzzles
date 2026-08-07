@@ -473,6 +473,36 @@ export type CursorKey = {
    */
   faces?: Record<string, CursorFace>
   /**
+   * Words this button hands to its neighbour, because while one of them is
+   * showing the two do the identical thing and one button is enough.
+   *
+   * Upstream has to offer both. It has two keys covering four states, so in the
+   * state where neither can finish there is nothing for them to say but the
+   * same thing twice — Rectangles' open-but-unmoved drag, where Enter and Space
+   * both abandon. Two keys forced into one meaning is a keyboard's constraint;
+   * a pair of buttons has no such constraint, and drawing the same X twice only
+   * asks the reader which of them is the other one.
+   *
+   * The button that stands down is the one that will become "Done". It is the
+   * finisher, and while there is nothing to finish it has nothing to offer; the
+   * one left standing is the abandon button and keeps that job for the whole
+   * drag. Each button then holds one meaning from the first press to the last,
+   * which two identical Xs cannot do.
+   *
+   * Detecting "these two are the same" costs nothing and remembers nothing:
+   * `js_update_key_labels` blanks the first word when the two are equal, so
+   * `labels.space === ''` already says it — the same asymmetry `doesNothing`
+   * and `BOTH` read.
+   *
+   * Which of the pair defers is fixed, and it is Enter's. That is stable for a
+   * Mark drag — Enter stays out and then becomes the tick, while the abandon X
+   * sits on Space throughout — and swaps once on the first arrow of an Erase
+   * drag, which is the rarer of the two. Holding both stable would mean
+   * remembering which key opened the drag, and one owned bit is not worth the
+   * rarer half of one puzzle's transient state.
+   */
+  defers?: readonly string[]
+  /**
    * That this key does its work somewhere other than where the cursor is, so
    * the mirror in `CURSOR_LIFE` must not gate it.
    *
@@ -971,6 +1001,12 @@ export const wouldSend = (
 ): string | null => {
   if (gated(name, cursor) && !awake) return null
   if (SILENT.has(name)) return cursor.key
+  // Ahead of the faces below, which would answer for this button before the
+  // question of whether it is wanted at all has been asked. Both keys saying
+  // the same thing is one button's worth of meaning, and the blanking is what
+  // says they are the same. See `defers`.
+  if (labels.space === '' && cursor.defers?.includes(mine(name, cursor, labels)))
+    return null
   if (understood(name, labels)) {
     if (cursor.does) {
       if (labels.enter === cursor.does) return 'Enter'
@@ -1051,8 +1087,16 @@ export const faceOf = (
   // something true about a square nobody is standing on. While the mirror says
   // the cursor is away, that is not a face to wear — the button is out anyway,
   // and its own picture is the honest thing to be out *as*. See CURSOR_LIFE.
-  const known = understood(name, labels) && (awake || !gated(name, cursor))
-  const face = known ? cursor.faces?.[mine(name, cursor, labels)] : undefined
+  const word = mine(name, cursor, labels)
+  // A button that has handed this word to its neighbour is out, and a button
+  // that is out wears its own resting face rather than the word it stood down
+  // from — otherwise the pair still shows the same picture twice, one of them
+  // greyed, which is the thing `defers` exists to stop. See `defers`.
+  const known =
+    understood(name, labels) &&
+    (awake || !gated(name, cursor)) &&
+    !(labels.space === '' && cursor.defers?.includes(word))
+  const face = known ? cursor.faces?.[word] : undefined
   return face ?? { icon: cursor.icon, says: cursor.says }
 }
 
@@ -1233,6 +1277,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Done: { icon: 'done', says: 'done', on: true },
         Cancel: { icon: 'cancel', says: 'cancel', on: true },
       },
+      defers: ['Cancel'],
     },
     {
       key: ' ',
