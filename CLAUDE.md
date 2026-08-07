@@ -116,6 +116,16 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 不在 `build-games.sh` 里,net/cube 的缩略图或画廊的样子变了要自己补跑。只有升级
 `vendor/sgtpuzzles`(见 `vendor/UPSTREAM`)或改构建参数时才需要 `build-games.sh`。
 
+还有一个不生成任何东西、只做检查的:
+
+```bash
+node scripts/check-cube.mjs       # src/engine/cube.ts 和引擎对不对得上,同样要 preview + playwright
+```
+
+`src/engine/cube.ts` 把上游的网格几何在这一侧重写了一遍(为了给 cube 滚不过去的那个方向置灰,
+理由见 `docs/keys.md`),所以**升级 `vendor/sgtpuzzles` 之后要跑它**。模型漂了会把能按的键灰掉,
+而那是唯一一种读者报不上来的故障:错灰的按钮和该灰的按钮长得一模一样。
+
 ## 架构
 
 ### 一条契约把 C 和 React 隔开

@@ -23,6 +23,7 @@ import {
   wouldSend,
 } from './engine/keys'
 import type { KeyLabels } from './engine/keys'
+import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -257,6 +258,15 @@ export default function PuzzleHost({
    * engine/marks.
    */
   const [left, setLeft] = useState<Map<number, number> | null>(null)
+  /**
+   * And which of the four arrows would move Cube's solid, for the one puzzle
+   * where an arrow can be dead without the board saying so — see engine/cube.
+   *
+   * Null means "do not answer", which is what every other puzzle gets and what
+   * this one got before: all four live. It is not the empty set, which would
+   * mean the solid is stuck and cannot be.
+   */
+  const [rolling, setRolls] = useState<Set<string> | null>(null)
   // A message from the back end, or the sentinel for the one failure that is
   // ours to describe. Kept as a sentinel rather than as the sentence itself so
   // that it is still in the reader's language if they change it afterwards.
@@ -394,6 +404,22 @@ export default function PuzzleHost({
   }, [])
 
   /*
+   * And which arrows Cube's solid could roll along, from the same notice and
+   * for the same reason: it has to be right before the reader has pressed
+   * anything, because the first press is exactly where a control that ignores
+   * a third of them does its damage.
+   *
+   * Null everywhere else, and null here too for a board this side cannot read —
+   * see rolls(), where refusing means leaving all four live. Reading the save
+   * on every change is what the two above already do; this is a third read of
+   * the same string.
+   */
+  const readRolls = useCallback(() => {
+    const api = apiRef.current
+    setRolls(name === 'cube' && api ? rolls(api.saveGame()) : null)
+  }, [name])
+
+  /*
    * This is now the game to come back to, from the moment it is opened — and
    * the one the gallery marks, which is the same fact stored once. What the
    * gallery drops on arrival is the flag beside it, not the name.
@@ -515,6 +541,7 @@ export default function PuzzleHost({
            * press their way out of.
            */
           countLeft()
+          readRolls()
         },
         onError: (message) => {
           if (restoring.current) {
@@ -538,6 +565,7 @@ export default function PuzzleHost({
           // these to stay current.
           queueSave()
           countLeft()
+          readRolls()
         },
         // Both keys, every move, named in the order emcc.c asks for them:
         // CURSOR_SELECT2 first. Turned round here so that the rest of this file
@@ -1279,6 +1307,10 @@ export default function PuzzleHost({
                 // button for. Same step of the ladder as M, H and J above.
                 data-whose="upstream"
                 aria-label={t.play.arrows[dir]}
+                // Cube's, and no other puzzle's — see engine/cube for the line
+                // that keeps it there. A null answer leaves every arrow live,
+                // which is what the other thirty-nine get.
+                disabled={rolling ? !rolling.has(key) : undefined}
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => sendKey(key, where)}
@@ -1300,11 +1332,17 @@ export default function PuzzleHost({
               either, so there is no gesture for the tip to steal.
 
               And they go out when the back end says they would do nothing,
-              which the arrows beside them never do — an arrow always has
-              somewhere to go, and these have somewhere to act only if the
-              cursor has got there. Dimmed the same way Undo is, since it is the
-              same sentence: the button is still what it was, there is just
-              nothing for it to do yet.
+              which the arrows beside them do only in Cube. Not because an arrow
+              always has somewhere to go — it very often does not, and pressing
+              a cursor into the edge of any bounded grid is nothing at all — but
+              because everywhere else the board is already saying so: the cursor
+              is drawn, the edge is drawn, and a reader looking at the two knows
+              which way is shut. Cube is the one puzzle that hides its own
+              answer under the piece. See engine/cube.
+
+              Dimmed the same way Undo is, since it is the same sentence: the
+              button is still what it was, there is just nothing for it to do
+              yet.
 
               Which key a press sends is `wouldSend`'s answer and not the one in
               the table: a button named for a result asks which key reaches it
