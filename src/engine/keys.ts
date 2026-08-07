@@ -472,6 +472,25 @@ export type CursorKey = {
    * "Cancel". Three words each, so a pair would not hold them.
    */
   faces?: Record<string, CursorFace>
+  /**
+   * That this key does its work somewhere other than where the cursor is, so
+   * the mirror in `CURSOR_LIFE` must not gate it.
+   *
+   * The mirror answers one question — is the cursor on screen — and greying a
+   * button while the answer is no is right only for a button that acts *at* the
+   * cursor. Flood's second key is the collection's one exception: `Advance`
+   * replays the solver's next move out of `state->soln` and never reads
+   * `ui->cx, ui->cy` (flood.c:855), so it is as meaningful on an untouched board
+   * as on a walked one. Upstream agrees and says so — its label appears the
+   * moment Solve is pressed, with no arrow in between.
+   *
+   * Measured before and after: press Solve on a fresh Flood board and the button
+   * sat disabled, wearing the same "Play the solver's next move" face it wears
+   * when live, until an arrow woke a cursor it had no use for. Which is the trap
+   * a disabled button always sets — the face is the resting one either way, so
+   * only `disabled` tells you, and only a test reads that.
+   */
+  offCursor?: boolean
 }
 
 /**
@@ -604,10 +623,14 @@ export type KeyLabels = { enter: string; space: string }
  * reads the labels, `marks` replays the save file. A mirror can drift; a
  * derivation cannot. Read the note in docs/keys.md before adding a second one.
  *
- * Why there has to be one at all. Twenty-two of the thirty-four puzzles that
- * implement `current_key_label` open it with a check on their own visibility
- * flag, so an empty pair of labels already means "no cursor" and this side has
- * to keep nothing. Net does not: it reads `tile(state, ui->cur_x, ui->cur_y)`
+ * Why there has to be one at all, and why for exactly these six. Thirty-five
+ * puzzles implement `current_key_label`; twenty-eight of them open it with a
+ * check on their own visibility flag, so an empty pair of labels already means
+ * "no cursor" and this side has to keep nothing. Seven do not — the six here
+ * and Inertia, which drops out because it has no cursor to mirror: its
+ * `game_ui` holds five fields and not one of them is a coordinate.
+ *
+ * Net is the first of the six: it reads `tile(state, ui->cur_x, ui->cur_y)`
  * unconditionally (net.c:2124), so on a board nobody has touched it reports
  * `{Lock, Rotate}` about a tile the reader cannot see is selected — and its
  * select key rotates *and* reveals in the same press (net.c:2330), unlike
@@ -694,7 +717,7 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
           '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
           'd', 'D', 'Backspace', 'h', 'H', '?'],
   /*
-   * And Dominosa, whose list is the shortest of the five and interesting for
+   * And Dominosa, whose list is the shortest here and interesting for
    * what is missing from it.
    *
    * Only the arrows wake this cursor. `move_cursor` is handed `&ui->cur_visible`
@@ -719,12 +742,28 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    *
    * Only the arrows wake it — `move_cursor` has the flag (flood.c:876) and the
    * select keys do not touch it — and a press on the board puts it away.
+   *
+   * And it is the one puzzle here where the mirror covers one key rather than
+   * both. `Advance` does its work out of `state->soln`, nowhere near `ui->cx`,
+   * so gating it on the cursor left it dead from the press of Solve until an
+   * arrow it had no use for. See `offCursor`.
    */
   flood: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
 const mirrorsCursor = (name: string) => name in CURSOR_LIFE
+
+/**
+ * And whether *this key* is one the tracking should stand in front of.
+ *
+ * Not the same question, which is why it is a second one. `mirrorsCursor` asks
+ * whether we are keeping a copy for this puzzle; this asks whether a given
+ * button is one the copy has anything to say about. Every key of the six is,
+ * except Flood's `Advance` — see `offCursor`, where the exception is argued.
+ */
+const gated = (name: string, cursor: CursorKey) =>
+  mirrorsCursor(name) && !cursor.offCursor
 
 /**
  * The puzzles whose cursor can walk off the board, and what they report while
@@ -944,7 +983,8 @@ const SILENT = new Set(['untangle', 'palisade'])
  *
  * `awake` is only consulted for the puzzles in `CURSOR_LIFE`, and only because
  * their labels answer as confidently with the cursor hidden as with it showing.
- * Everywhere else the pair already carries it and this argument is ignored.
+ * Everywhere else the pair already carries it and this argument is ignored — as
+ * it is for a key that does not act at the cursor at all; see `offCursor`.
  */
 export const wouldSend = (
   name: string,
@@ -952,7 +992,7 @@ export const wouldSend = (
   labels: KeyLabels,
   awake: boolean,
 ): string | null => {
-  if (mirrorsCursor(name) && !awake) return null
+  if (gated(name, cursor) && !awake) return null
   if (SILENT.has(name)) return cursor.key
   if (understood(name, labels)) {
     if (cursor.does) {
@@ -1034,7 +1074,7 @@ export const faceOf = (
   // something true about a square nobody is standing on. While the mirror says
   // the cursor is away, that is not a face to wear — the button is out anyway,
   // and its own picture is the honest thing to be out *as*. See CURSOR_LIFE.
-  const known = understood(name, labels) && (awake || !mirrorsCursor(name))
+  const known = understood(name, labels) && (awake || !gated(name, cursor))
   const face = known ? cursor.faces?.[mine(name, cursor, labels)] : undefined
   return face ?? { icon: cursor.icon, says: cursor.says }
 }
@@ -1918,6 +1958,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       key: ' ',
       icon: 'advance',
       says: 'advance',
+      offCursor: true,
       faces: { Advance: { icon: 'advance', says: 'advance' } },
     },
   ],

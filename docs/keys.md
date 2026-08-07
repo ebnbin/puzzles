@@ -198,9 +198,26 @@ square.」中键唯一多出来的是它在盖着的格子上也强制 `validrad
 读后端报的标签，`marks` 把存档 replay 一遍。推导不会漂，副本会。所以这一节是一张**要保持
 几乎空着**的表，加一条之前先读完下面那三行判据。
 
-**四十个做完之后的最终结果：三十九个游戏，六份副本。** net、samegame、flip、guess、dominosa、
-flood 各一个 boolean，全部是同一个 `awake`。其余三十三个一个字节都不记，因为它们的
-`current_key_label` 自己就查了可见性标志。这个比例是这一节存在的意义。
+**四十个做完之后的最终结果：三十九个游戏，六个需要副本。** net、samegame、flip、guess、
+dominosa、flood 各需要一个 boolean——代码里是同一个 `awake`，因为同时只挂着一个谜题。其余
+三十三个一个字节都不记。这个比例是这一节存在的意义。
+
+**为什么恰好是这六个，是数出来的，不是挑出来的。** 四十个游戏的 `current_key_label` 逐个读了
+一遍，分成三堆：
+
+| | 个数 | 要不要副本 |
+| --- | --- | --- |
+| 函数是 `NULL` | 5（cube、fifteen、loopy、untangle、palisade） | 不要——前三个不读这两个键，后两个走 `SILENT` 豁免 |
+| 实现了，而且开头检查自己的可见性标志 | 28 | 不要——「两个词都空」本身就等于「没光标」 |
+| 实现了，但不检查 | 7 | 6 个要，inertia 不要 |
+
+第三堆的 7 个是 net、samegame、flip、guess、dominosa、flood、inertia。**inertia 掉出去是因为
+它根本没有光标**——`game_ui` 里五个字段没一个是坐标，它的 `Advance` 读的是 `state->soln`。所以
+剩下六个，这个数字没有可调的余地。
+
+分类靠的是读，不是 grep：可见性标志有十种拼法（`cur_visible`、`hshow`、`cshow`、`cursor_show`、
+`cursor_active`、`cursor_visible`、`cdisp`、`cursor`、`cdraw`、`displaysel`），检查的位置也各在
+各的地方。
 
 | 名字 | 存什么 | 谁写 | 影响哪些游戏 |
 | --- | --- | --- | --- |
@@ -227,9 +244,8 @@ flood 各一个 boolean，全部是同一个 `awake`。其余三十三个一个�
 
 ### net 的 `awake`
 
-为什么只有它：34 个实现 `current_key_label` 的游戏里有 22 个开头就检查自己的可见性标志
-（`cur_visible` / `hshow` / `cshow`，名字十种写法），所以「两个词都空」本身就等于「没光标」，
-这一侧什么都不用记。net 不检查——它无条件读 `tile(state, ui->cur_x, ui->cur_y)`
+第一个，也是上面那张普查表里第三堆的头一个：net 的 `current_key_label` 不检查可见性标志——它
+无条件读 `tile(state, ui->cur_x, ui->cur_y)`
 （net.c:2124），所以刚发牌、光标还没出现时它就报 `{Lock, Rotate}`，说的是中间那格
 （`new_ui` 把光标放在 `width/2, height/2`，net.c:2043）。而 net 的 select 键是**一边转一边
 才把光标显出来**（net.c:2330），不像 pattern 的先显出来就返回。按钮亮着、按下去转了一块你
@@ -377,6 +393,38 @@ peg」，没说哪一枚。
 清除照旧是「碰棋盘」，但上游只在**产生走子的那条路**上写 `cur_visible = false`（2823）。在数字
 上右键只翻高亮，早在那一行之前就返回了，于是上游留着光标而我们收了起来——过度睡眠，安全的那
 个方向，和 flip 同一笔交易，下一次方向键就纠正回来。
+
+### flood 的 `awake`，以及它教会的一件事：副本盖住的是**键**，不是游戏
+
+第六个，理由和前五个同一条：`current_key_label` 只问光标底下那格颜色和左上角一不一样
+（flood.c:830），从不问光标在不在，所以光标收着的时候它照样提议从上一次停的地方淹一片。唤醒
+键表和 dominosa 一样只有方向键。
+
+**但它的第二个键不该被这份副本盖住，而一开始被盖住了。** `Space` 是 `Advance`——重放求解器的
+下一步，走的是 `state->soln`，`ui->cx, ui->cy` 一个都不读（flood.c:855）。上游自己就是这个态度：
+按下求解那一刻标签立刻变成 "Advance"，中间不需要任何方向键。而我们的门是按游戏名关的
+（`mirrorsCursor(name) && !awake`），于是**按了求解之后那个按钮是死的，直到你按一下对它毫无
+用处的方向键**。
+
+实测，改之前：
+
+```
+fresh board            Fill [disabled]  Advance [disabled]
+after solve, no arrow  Fill [disabled]  Advance [disabled]   ← 应该是活的
+after one arrow        Fill [live]      Advance [live]
+```
+
+**它看不出来，这才是这条值得单独写的原因。** 置灰的按钮仍然戴着自己那张静息脸，而 `Advance`
+的静息脸和它工作时的脸是同一张，所以屏幕上「死的」和「活的」长得一模一样——只有
+`disabled` 属性知道，也就是只有测试知道。这和之前踩过的「测试读标签而不读 `disabled`」是同一个
+坑的两面。
+
+修法是把门从游戏挪到键上：`CursorKey.offCursor` 标记「这个键不在光标那儿干活」，`wouldSend`
+和 `faceOf` 都改问 `gated(name, cursor)`。全集里只有这一个键带这个标记——其余十一个肩键都是在
+光标所在的格子上动手，问的正是这份副本答的那个问题。
+
+改之后：`after solve, no arrow` 那行的 `Advance` 变成 live，`Fill` 仍然 disabled（对的，光标确实
+没显示），六个游戏的「灭 → 一次方向键 → 亮」全部照旧。
 
 ### 后端一个字都不报的两个
 
