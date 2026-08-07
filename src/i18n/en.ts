@@ -120,6 +120,14 @@ export const en = {
       upRight: 'Up and right',
       downLeft: 'Down and left',
       downRight: 'Down and right',
+      /* And what the same four are called while Sixteen has a lock on and
+         they are playing rather than pointing. See shovesTiles. */
+      shove: {
+        up: 'Push up',
+        down: 'Push down',
+        left: 'Push left',
+        right: 'Push right',
+      },
     },
     /**
      * And the keys that act where the arrows have got to, which is what makes

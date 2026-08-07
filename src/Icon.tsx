@@ -73,12 +73,16 @@ export type IconName =
   | 'pencil'
   | 'black'
   | 'white'
-  | 'carryTile'
-  | 'holdPlace'
-  | 'carryTileOn'
-  | 'holdPlaceOn'
   | 'slide'
   | 'slideBack'
+  | 'lockTile'
+  | 'lockTileOn'
+  | 'lockPlace'
+  | 'lockPlaceOn'
+  | 'pushUp'
+  | 'pushDown'
+  | 'pushLeft'
+  | 'pushRight'
   | 'place'
   | 'hold'
   | 'flip'
@@ -474,81 +478,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M4.2 19.8 5.4 15.6 16.2 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L9 19.2Z" />
       <path d="m14.8 6.2 3 3" />
-    </>
-  ),
-  /*
-   * Sixteen's two sticky modifiers, which are the same move told apart by what
-   * the cursor does: a square and an arrow, twice.
-   *
-   * Its chapter describes them as one of the two ways to play — "move the
-   * cursor onto a tile, hold Control and press an arrow key to move the tile
-   * under the cursor and move the cursor along with the tile. Or, hold Shift to
-   * move only the tile." So one carries the square away and the cursor rides
-   * with it, and the other leaves the cursor where it is while tiles go past.
-   *
-   * Drawn as that difference and nothing else, in where the arrow sits rather
-   * than in what it points at. `carryTile` puts it on the square's own line and
-   * against its edge, so the two are one object going somewhere together, and
-   * fills the square because it is a tile. `holdPlace` lifts the square clear
-   * and runs the arrow underneath it, apart: the board goes past, the square
-   * stays, and it is drawn hollow because it is a place and not a tile.
-   *
-   * An earlier pair sent the arrow *through* an outlined square, which is the
-   * more obvious picture of "passes by" and the one thing that cannot be drawn
-   * here — line and outline close into a blot at 20px, the same way the first
-   * `rotate` did. Rendered side by side at 20 light, 20 dark and 56 before this
-   * pair was picked, which is the only way to find that out.
-   *
-   * The square drops to 9 across from the house 17.2, which it has to: these are
-   * the only two glyphs here that put a square and something else on the same 24
-   * grid, and a full-size square leaves no room for an arrow that reads. Each is
-   * centred in its own box rather than sharing the square's position, because
-   * they are 40 pixels apart in separate buttons and never seen edge to edge.
-   */
-  carryTile: (
-    <>
-      <rect x="3.2" y="7.2" width="9" height="9" rx="2" fill="currentColor" />
-      <path d="M14 11.7h6.6" />
-      <path d="m17.6 8.5 3.2 3.2-3.2 3.2" />
-    </>
-  ),
-  holdPlace: (
-    <>
-      <rect x="3.2" y="3.4" width="9" height="9" rx="2" />
-      <path d="M3 19h17.6" />
-      <path d="m17.4 15.8 3.2 3.2-3.2 3.2" />
-    </>
-  ),
-  /*
-   * And the same two with the mode switched on, which they have to have because
-   * Sixteen draws it nowhere else: `cur_mode` lives in its `game_ui` and never
-   * reaches `game_redraw`, so the key is the only place the state exists.
-   *
-   * The square does not move. That is deliberate and it is the whole design:
-   * the reader finds the button by its square — filled for the tile, hollow for
-   * the place — so the thing that identifies it has to survive being pressed.
-   * What changes is the arrow, which becomes a double chevron: the arrows have
-   * stopped walking the cursor and started shoving the board, and that is a
-   * statement about the arrows, not about the square.
-   *
-   * Four pairs were rendered at 20 light, 20 dark on the pressed surface, and 56.
-   * A padlock badge lost its shackle at 20 and read as a second small square;
-   * a ring round the square is the ink-blot shape this file has been caught by
-   * before; and swapping the fill — the obvious "inverted" idea — makes carry-on
-   * identical to hold-off, which is worse than saying nothing.
-   */
-  carryTileOn: (
-    <>
-      <rect x="3.2" y="7.2" width="9" height="9" rx="2" fill="currentColor" />
-      <path d="m14 8.5 3.2 3.2-3.2 3.2" />
-      <path d="m18 8.5 3.2 3.2-3.2 3.2" />
-    </>
-  ),
-  holdPlaceOn: (
-    <>
-      <rect x="3.2" y="3.4" width="9" height="9" rx="2" />
-      <path d="m13.6 15.8 3.2 3.2-3.2 3.2" />
-      <path d="m17.6 15.8 3.2 3.2-3.2 3.2" />
     </>
   ),
   /*
@@ -1131,6 +1060,94 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * cursor is sitting on one of the fat arrows drawn round the edge, and that
    * arrow is the answer. See the note beside `slide` in the string catalogue.
    */
+  /* --- Sixteen's two sticky locks, and the arrows while one is on ---------
+   *
+   * A padlock, because that is what these two keys are: upstream calls them
+   * "Lock tile" and "Lock pos" and the reader presses one to hold something
+   * still. They used to be a tile with an arrow beside it, which drew the
+   * *consequence* — something moves — and so read as a third way to push,
+   * beside the two that really do push. What the key does is lock.
+   *
+   * The pair are told apart by what is being held, in the distinction these
+   * two keys have always used here: a filled square is a tile, an outline is
+   * the place a tile sits in. Locking the tile carries it along with the
+   * cursor; locking the place keeps the cursor still and lets tiles run past.
+   * Open shackle while off, shut while on — which is also when the button
+   * wears its pressed background, so the state is said twice.
+   *
+   * A padlock was tried here once before and rejected, as a small badge stuck
+   * on the corner of the square: at 20px its shackle closed up and it read as a
+   * second little square. The fix is size, not shape. This one is a peer of the
+   * square rather than a mark on it — 8.4 across against the square's 9.2 — and
+   * the shackle survives, which the render at 20 light, 20 dark and 56 is what
+   * settles.
+   */
+  lockTile: (
+    <>
+      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" fill="currentColor" />
+      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
+      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.1-.4" />
+    </>
+  ),
+  lockTileOn: (
+    <>
+      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" fill="currentColor" />
+      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
+      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.2 0v1.9" />
+    </>
+  ),
+  lockPlace: (
+    <>
+      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" />
+      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
+      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.1-.4" />
+    </>
+  ),
+  lockPlaceOn: (
+    <>
+      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" />
+      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
+      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.2 0v1.9" />
+    </>
+  ),
+  /*
+   * And the four arrows while a lock is on, which is the one moment in the
+   * collection when an arrow key stops moving the cursor and starts playing.
+   *
+   * Upstream makes that switch invisible — `cur_mode` never reaches
+   * `game_redraw` — so the arrows have to say it themselves, or the reader is
+   * pressing the same four buttons for two different jobs with nothing to tell
+   * them apart. A tile at the head of the arrow, filled, and the arrow driving
+   * into it: this one shoves, it does not point.
+   */
+  pushUp: (
+    <>
+      <rect x="8.2" y="2.6" width="7.6" height="7.6" rx="1.6" fill="currentColor" />
+      <path d="M12 21v-7.4" />
+      <path d="m8.4 17.2 3.6-3.6 3.6 3.6" />
+    </>
+  ),
+  pushDown: (
+    <>
+      <rect x="8.2" y="13.8" width="7.6" height="7.6" rx="1.6" fill="currentColor" />
+      <path d="M12 3v7.4" />
+      <path d="m8.4 6.8 3.6 3.6 3.6-3.6" />
+    </>
+  ),
+  pushLeft: (
+    <>
+      <rect x="2.6" y="8.2" width="7.6" height="7.6" rx="1.6" fill="currentColor" />
+      <path d="M21 12h-7.4" />
+      <path d="m17.2 8.4-3.6 3.6 3.6 3.6" />
+    </>
+  ),
+  pushRight: (
+    <>
+      <rect x="13.8" y="8.2" width="7.6" height="7.6" rx="1.6" fill="currentColor" />
+      <path d="M3 12h7.4" />
+      <path d="m6.8 8.4 3.6 3.6-3.6 3.6" />
+    </>
+  ),
   slideBack: (
     <>
       <rect x="10" y="9.3" width="5.4" height="5.4" rx="1.2" />

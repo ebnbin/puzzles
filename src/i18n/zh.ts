@@ -54,6 +54,12 @@ export const zh: Strings = {
       upRight: '右上',
       downLeft: '左下',
       downRight: '右下',
+      shove: {
+        up: '向上推',
+        down: '向下推',
+        left: '向左推',
+        right: '向右推',
+      },
     },
     cursor: {
       rotateLeft: '向左旋转',

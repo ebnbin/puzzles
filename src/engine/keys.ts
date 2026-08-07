@@ -766,6 +766,24 @@ const mirrorsCursor = (name: string) => name in CURSOR_LIFE
 const gated = (name: string, cursor: CursorKey) =>
   mirrorsCursor(name) && !cursor.offCursor
 
+/**
+ * Whether the arrows are currently shoving tiles rather than moving the cursor.
+ *
+ * Sixteen alone, and only while one of its two sticky locks is on: from then
+ * until it is pressed again, every arrow plays a move and the cursor cannot be
+ * repositioned at all (sixteen.c:633). Upstream draws nothing for it — a board
+ * with a lock on and the same board without are byte-identical images — so the
+ * buttons are the only place it can be seen, and the four arrows say it as well
+ * as the key that armed it.
+ *
+ * Read from the labels and not remembered. "Unlock" is what a key reports while
+ * its own mode is on, and `cur_mode` holds one of three values, so at most one
+ * key ever says it; every other word either key can report belongs to a mode
+ * that is off or to the rim, where there are no modes.
+ */
+export const shovesTiles = (name: string, labels: KeyLabels) =>
+  name === 'sixteen' && (labels.enter === 'Unlock' || labels.space === 'Unlock')
+
 /** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
 export const wakesCursor = (name: string, key: string) =>
   CURSOR_LIFE[name]?.includes(key) ?? false
@@ -1117,21 +1135,21 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   sixteen: [
     {
       key: 'Enter',
-      icon: 'carryTile',
+      icon: 'lockTile',
       says: 'carryTile',
       faces: {
-        'Lock tile': { icon: 'carryTile', says: 'carryTile' },
-        Unlock: { icon: 'carryTileOn', says: 'carryTile', on: true },
+        'Lock tile': { icon: 'lockTile', says: 'carryTile' },
+        Unlock: { icon: 'lockTileOn', says: 'carryTile', on: true },
         Slide: { icon: 'slide', says: 'slide' },
       },
     },
     {
       key: ' ',
-      icon: 'holdPlace',
+      icon: 'lockPlace',
       says: 'holdPlace',
       faces: {
-        'Lock pos': { icon: 'holdPlace', says: 'holdPlace' },
-        Unlock: { icon: 'holdPlaceOn', says: 'holdPlace', on: true },
+        'Lock pos': { icon: 'lockPlace', says: 'holdPlace' },
+        Unlock: { icon: 'lockPlaceOn', says: 'holdPlace', on: true },
         Back: { icon: 'slideBack', says: 'slideBack' },
       },
     },

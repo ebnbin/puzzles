@@ -17,6 +17,7 @@ import {
   movesEightWays,
   READS_PREFS,
   readsArrows,
+  shovesTiles,
   wakesCursor,
   wouldSend,
 } from './engine/keys'
@@ -99,10 +100,10 @@ const NUMPAD = 3
  * being made with a thumb is visible on the far side.
  */
 const ARROWS = [
-  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp' },
-  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft' },
-  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown' },
-  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight' },
+  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp', shove: 'pushUp' },
+  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft', shove: 'pushLeft' },
+  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown', shove: 'pushDown' },
+  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight', shove: 'pushRight' },
 ] as const
 
 /**
@@ -1262,7 +1263,18 @@ export default function PuzzleHost({
             role="group"
             aria-label={t.play.arrows.group}
           >
-            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map(({ dir, key, where, icon }) => (
+            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map((arrow) => {
+              // Sixteen's arrows have two jobs, and which one is running is
+              // invisible on its board — so they carry it here, glyph and name
+              // both. See shovesTiles; nowhere else does this fire.
+              const { dir, key, where } = arrow
+              // Narrowed to the four rather than tested as a boolean, so the
+              // shoving name is looked up under a direction that has one — the
+              // diagonals are Inertia's and never shove.
+              const shoving =
+                'shove' in arrow && shovesTiles(name, labels) ? arrow : null
+              const icon = shoving ? shoving.shove : arrow.icon
+              return (
               <button
                 key={dir}
                 type="button"
@@ -1271,7 +1283,7 @@ export default function PuzzleHost({
                 // are keys the back end has always read and never offered a
                 // button for. Same step of the ladder as M, H and J above.
                 data-whose="upstream"
-                aria-label={t.play.arrows[dir]}
+                aria-label={shoving ? t.play.arrows.shove[shoving.dir] : t.play.arrows[dir]}
                 // Cube's, and no other puzzle's — see engine/cube for the line
                 // that keeps it there. A null answer leaves every arrow live,
                 // which is what the other thirty-nine get.
@@ -1282,7 +1294,8 @@ export default function PuzzleHost({
               >
                 <Icon name={icon} />
               </button>
-            ))}
+              )
+            })}
 
             {/*
               And what to do where the arrows have got to, in the two cells the
