@@ -1353,9 +1353,19 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * synonym, and a second button would be the same button twice. The reverse
    * direction is the right mouse button's alone — `if (button == RIGHT_BUTTON)`
    * is what flips it, and no key reaches that — so it stays a long press on the
-   * board's own arrow, where it already was.
+   * board's own arrow, where it already was. Nothing is owed to HOLD_BUTTON for
+   * that: a hold is the right button by default, and the table is the list of
+   * puzzles that spend theirs elsewhere.
+   *
+   * It wears Sixteen's rim glyph rather than one of its own, and that is the
+   * point rather than a saving: the two keys perform the same act under the
+   * same ignorance of which rim the cursor is on, so drawing them differently
+   * would claim a difference. The direction it used to show was right one time
+   * in four — `interpret_move` takes it from the edge alone (netslide.c:1097),
+   * and `encode_ui` is NULL (netslide.c:1867), so the cursor is not in the save
+   * either and nothing here can derive it.
    */
-  netslide: [{ key: 'Enter', icon: 'slide', says: 'slide' }],
+  netslide: [{ key: 'Enter', icon: 'pushLine', says: 'slide' }],
 
   /*
    * Two keys that are a colour each, which is not how the puzzle spells them.

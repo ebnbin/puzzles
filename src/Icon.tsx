@@ -73,7 +73,6 @@ export type IconName =
   | 'pencil'
   | 'black'
   | 'white'
-  | 'slide'
   | 'pushLine'
   | 'pullLine'
   | 'lockTile'
@@ -1027,29 +1026,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M8.6 4.6h9.2l-2.6 3.6 2.6 3.6H8.6" />
     </>
   ),
-  /*
-   * Netslide's one key: a couple of tiles, and a push.
-   *
-   * Direction is the one thing it cannot honestly show, because the press has
-   * no fixed one — the cursor lives on the ring of arrows around the grid, and
-   * what it slides is whichever row or column the arrow it is sitting on points
-   * into. So the arrow here is a convention, the way `jumble`'s crossed paths
-   * do not claim a particular shuffle, and the board's own highlighted arrow is
-   * what says which way this press will go.
-   *
-   * Two tiles rather than three: at 20 a third merges the row into a bar. The
-   * two obvious alternatives are both taken — a bar and an arrow reads as a
-   * fifth arrow key beside the four it would sit among, and a filled square
-   * with an arrow is already Sixteen's `carryTile`.
-   */
-  slide: (
-    <>
-      <rect x="2.4" y="9.3" width="5.4" height="5.4" rx="1.2" />
-      <rect x="8.6" y="9.3" width="5.4" height="5.4" rx="1.2" />
-      <path d="M15.4 12h5.2" />
-      <path d="m18 9.4 2.6 2.6-2.6 2.6" />
-    </>
-  ),
   /* --- Sixteen's two sticky locks, and the arrows while one is on ---------
    *
    * A padlock, because that is what these two keys are: upstream calls them
@@ -1153,7 +1129,8 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * same word on all four and means whichever way that edge's arrow points —
    * so we do not know the axis, let alone the direction. An icon should be as
    * specific as its knowledge and no more, and two versions were drawn that
-   * were more: `slide` mirrored, which names left and right outright, and a
+   * were more: a pushed row of tiles and its mirror — the glyph Netslide used
+   * to carry, since deleted — which name left and right outright, and a
    * reference arrow with a smaller one along or against it, defended on the
    * grounds that the reference was only layout. An arrow points; pointing is
    * meaning; on the top rim both of those said "right" for a slide running up.
@@ -1178,6 +1155,14 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * upstream writes these moves `R{y},+1` and `R{y},-1`. One step on, one step
    * back. The square frame rather than a circle because the thing taking the
    * step is a tile, and a rounded square is what a tile is throughout this file.
+   *
+   * Netslide's one key wears `pushLine` too. It is the same act on the same rim
+   * under the same ignorance — the `R{y},+1` it emits is the very move the plus
+   * stands for — and one act drawn two ways would be its own small claim that
+   * they differ. It gets no `pullLine` beside it because its keyboard has no
+   * step back to draw: netslide.c:1113 flips the direction for `RIGHT_BUTTON`
+   * alone, where Sixteen's line reads `RIGHT_BUTTON || CURSOR_SELECT2`. The
+   * absent half is information rather than a hole.
    */
   pushLine: (
     <>
