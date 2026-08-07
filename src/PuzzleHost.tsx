@@ -640,6 +640,17 @@ export default function PuzzleHost({
     [name, permalink, prefs],
   )
 
+  /**
+   * And the ones that stand among the arrows, which a preference can withhold
+   * entirely — Palisade's, in the cursor mode where they would be useless.
+   *
+   * `corners` is a question about the set rather than about any one key: a
+   * puzzle either fills the two cells beside the up arrow or names all four
+   * corners, and which it does decides how tall the block is.
+   */
+  const keys9 = useMemo(() => cursorKeys(name, prefs), [name, prefs])
+  const corners = keys9.some((k) => k.corner)
+
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
   usePuzzleFit(
@@ -1262,10 +1273,15 @@ export default function PuzzleHost({
         {arrows && (
           <div
             className="play-arrows"
-            /* Three rows instead of two, and the corners filled. Only Inertia
-               has anywhere to go in them — see movesEightWays, which is also
-               where the puzzle that looks like it should is written down. */
+            /* Three rows instead of two, and the corners filled — which two
+               puzzles want for opposite reasons. Inertia has somewhere to *go*
+               in the corners (movesEightWays, which is also where the puzzle
+               that looks like it should is written down); Net has something to
+               *do* there, four things, more than a cross has cells for. Either
+               way the block is the same three columns wide and one row taller,
+               and the row comes out of the board. */
             data-ways={movesEightWays(name) ? '8' : undefined}
+            data-tall={movesEightWays(name) || corners ? '' : undefined}
             role="group"
             aria-label={t.play.arrows.group}
           >
@@ -1310,7 +1326,7 @@ export default function PuzzleHost({
               the table: a button named for a result asks which key reaches it
               from where the cursor is, and that is not always the same key.
             */}
-            {cursorKeys(name, prefs).map((cursor, i) => {
+            {keys9.map((cursor, i) => {
               // What the key is right now, which for two puzzles is not what it
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
@@ -1327,7 +1343,10 @@ export default function PuzzleHost({
                   // would collide and React would keep a stale button.
                   key={cursor.key}
                   type="button"
-                  data-act={i === 0 ? 'first' : 'second'}
+                  // One or the other, never both: a puzzle either fills the two
+                  // cells beside the up arrow or names its own corners.
+                  data-act={cursor.corner ? undefined : i === 0 ? 'first' : 'second'}
+                  data-at={cursor.corner}
                   // Enter and Space, which the back end reads as CURSOR_SELECT
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.

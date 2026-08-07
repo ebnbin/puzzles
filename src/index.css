@@ -1489,6 +1489,31 @@ p.notice-intro button:active {
 }
 
 /*
+ * Or all four corners, for the puzzle with more than two things to do where
+ * the cursor is standing. Net is the only one — see CURSOR_KEYS.
+ *
+ * Named corners rather than an index, because these are not a list that
+ * happens to be four long: which corner a key sits in is part of what the
+ * block says. The three turns run along the outside, the lock sits opposite
+ * the first of them, and reading the order off the array would hide that.
+ */
+.play-arrows [data-at='upLeft'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows [data-at='upRight'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows [data-at='downLeft'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows [data-at='downRight'] {
+  grid-area: 3 / 3;
+}
+
+/*
  * Eight ways out of a square rather than four, which is Inertia and nothing
  * else — see movesEightWays.
  *
@@ -1508,7 +1533,12 @@ p.notice-intro button:active {
  * None does: Inertia has no cursor to act at. If one ever arrives, this is the
  * collision to expect.
  */
-.play-arrows[data-ways='8'] [data-dir='down'] {
+/*
+ * Down drops out of the middle to the foot wherever there is a row under it,
+ * which is both of the puzzles that fill their corners — Inertia with places to
+ * go and Net with things to do. Keyed on the height and not on either reason.
+ */
+.play-arrows[data-tall] [data-dir='down'] {
   grid-area: 3 / 2;
 }
 

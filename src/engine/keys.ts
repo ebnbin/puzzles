@@ -473,6 +473,38 @@ export type CursorKey = {
    */
   faces?: Record<string, CursorFace>
   /**
+   * Which key's label answers for this one, when the back end never labels this
+   * one at all.
+   *
+   * `current_key_label` is only ever asked about `CURSOR_SELECT` and
+   * `CURSOR_SELECT2`, so a button that sends a letter has no word of its own to
+   * go dim by. Sometimes another key's word covers it exactly, and then the
+   * button can be as honest as its neighbours instead of always live.
+   *
+   * Net's extra rotations are the case: `d` and `f` turn the tile under the
+   * cursor, and all three rotations are refused by one line, on one condition —
+   * `if (tile(state, tx, ty) & LOCKED) return nullret` (net.c:2359), reached
+   * alike from `a`, `d`, `f` and `CURSOR_SELECT`. And that condition is exactly
+   * what empties Enter's label, since `current_key_label` answers "" for
+   * `CURSOR_SELECT` on a locked tile and "Rotate" otherwise (net.c:2124). So
+   * "Enter is live" and "this tile can be turned" are the same sentence, and
+   * these two buttons ask Enter.
+   *
+   * Only where the two really are one condition. A key whose own answer differs
+   * from every labelled key's has no honest sensor here and should stay live —
+   * a wasted press is cheap, a button that lies is not.
+   */
+  asks?: string
+  /**
+   * Where this key sits, for a puzzle that fills all four corners of the block
+   * rather than the two cells beside the up arrow.
+   *
+   * Net is the only one. Two keys fit in a cross; four need the square, and the
+   * square is the same three columns wide — it costs one row, out of the board,
+   * which is the trade Inertia already makes for its diagonals.
+   */
+  corner?: 'upLeft' | 'upRight' | 'downLeft' | 'downRight'
+  /**
    * That this key does its work somewhere other than where the cursor is, so
    * the mirror in `CURSOR_LIFE` must not gate it.
    *
@@ -502,6 +534,8 @@ export type CursorFace = { icon: IconName; says: CursorWord; on?: boolean }
 /** The words these keys can be called, so a missing translation is a type error. */
 export type CursorWord =
   | 'rotateLeft'
+  | 'rotateRight'
+  | 'rotateHalf'
   | 'lock'
   | 'pencil'
   | 'black'
@@ -1002,7 +1036,8 @@ export const wouldSend = (
     }
     if (cursor.faces) return cursor.faces[mine(name, cursor, labels)] ? cursor.key : null
   }
-  return doesNothing(cursor.key, labels) ? null : cursor.key
+  // `asks` for a key the back end never labels, its own key otherwise.
+  return doesNothing(cursor.asks ?? cursor.key, labels) ? null : cursor.key
 }
 
 /**
@@ -1089,9 +1124,10 @@ export const faceOf = (
  * (`current_key_label`, which all forty implement), but it reports a word and
  * in English; a picture is what fits on a 40 square, and it has to be chosen.
  *
- * At most two, in this order: the first sits left of the up arrow and the
+ * Two by default, in this order: the first sits left of the up arrow and the
  * second right of it, in the two cells the cross leaves empty. A puzzle with
- * one key fills only the left.
+ * one key fills only the left. A puzzle with four says where each goes with
+ * `corner`, and the block becomes the full square — see Net.
  *
  * Being absent is the same bargain the rest of this file strikes: a puzzle
  * nobody has worked through yet shows the four arrows and nothing else, rather
@@ -1101,20 +1137,31 @@ const PENCIL: CursorKey = { key: 'Enter', icon: 'pencil', says: 'pencil' }
 
 const CURSOR_KEYS: Record<string, CursorKey[]> = {
   /*
-   * Rotate, and lock.
+   * All four of Net's tile keys, in the four corners of a full square.
    *
-   * Rotating is the game, so it takes the left cell. Locking is the other
-   * thing a reader does constantly — it is how you record that a tile is
-   * settled — and it had no way in on a touch device at all: net.c gives it to
-   * the middle button, and a finger has no middle button.
+   * Net is the only puzzle with more than two things to do where the cursor is
+   * standing, and it is the reason `corner` exists. Upstream reads four keys
+   * against the cursor's tile — `a` anticlockwise, `d` clockwise, `f` a half
+   * turn, `s` the lock (net.c:2320-2330) — and a cross has two cells.
    *
-   * Rotating the other way is not here and does not need to be. It is three
-   * presses of this one, since a tile turns in quarters, and the cross has only
-   * two cells to give.
+   * The arrangement is the block's own geometry rather than a preference. The
+   * three turns run along the outside of the square in the order a tile passes
+   * through them: a quarter one way at the top left, a quarter the other way at
+   * the top right, and the half turn below, which is what both of them twice
+   * comes to. The lock sits apart from all three, in the corner diagonally
+   * opposite the first, because it is the one key here that does not turn
+   * anything — and because it is the one a reader presses last, when the tile
+   * is finished.
+   *
+   * Two of them send letters rather than `CURSOR_SELECT`, so they have no label
+   * of their own and borrow Enter's — see `asks`, where the one line of C that
+   * makes that honest is quoted.
    */
   net: [
-    { key: 'Enter', icon: 'rotate', says: 'rotateLeft' },
-    { key: ' ', icon: 'lock', says: 'lock' },
+    { key: 'Enter', icon: 'rotate', says: 'rotateLeft', corner: 'upLeft' },
+    { key: 'd', icon: 'rotateBack', says: 'rotateRight', corner: 'upRight', asks: 'Enter' },
+    { key: 'f', icon: 'rotateHalf', says: 'rotateHalf', corner: 'downLeft', asks: 'Enter' },
+    { key: ' ', icon: 'lock', says: 'lock', corner: 'downRight' },
   ],
 
   /*
