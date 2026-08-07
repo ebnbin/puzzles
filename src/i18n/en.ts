@@ -132,8 +132,6 @@ export const en = {
      */
     cursor: {
       rotateLeft: 'Rotate left',
-      rotateRight: 'Rotate right',
-      rotateHalf: 'Turn half way round',
       lock: 'Lock or unlock',
       /**
        * Named as the switch rather than as either side of it, which upstream's

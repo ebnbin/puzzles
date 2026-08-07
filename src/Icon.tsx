@@ -67,8 +67,6 @@ export type IconName =
   | 'arrowDownLeft'
   | 'arrowDownRight'
   | 'rotate'
-  | 'rotateBack'
-  | 'rotateHalf'
   | 'turnLeft'
   | 'turnRight'
   | 'lock'
@@ -434,45 +432,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
       <path d="m9.4 7.2-3.9.6-.6-3.9" />
-      <circle cx="12" cy="12" r="2.2" />
-    </>
-  ),
-  /*
-   * The same turn the other way, drawn as the mirror of `rotate` about x=12.
-   *
-   * Mirrored rather than redrawn, and that is the point: these two sit side by
-   * side in Net's block and the only thing that distinguishes them is which way
-   * round they are, so any difference beyond the reflection would read as a
-   * difference in meaning. Every number below is its partner's, reflected — the
-   * arc's sweep flag flips, the head's x offsets negate, the dot is on the axis
-   * and does not move.
-   */
-  rotateBack: (
-    <>
-      <path d="M18.4 7.5a7.5 7.5 0 1 0 1.1 3.9" />
-      <path d="m14.6 7.2 3.9.6.6-3.9" />
-      <circle cx="12" cy="12" r="2.2" />
-    </>
-  ),
-  /*
-   * Half a turn: `rotate` exactly, plus a second head at the point opposite the
-   * first. Which is what a half turn is — the same turn, arriving at the
-   * antipode — so the glyph is the same drawing with one more mark on it, and
-   * the second path below is the first reflected through the centre.
-   *
-   * Five candidates were rendered at 20 light, 20 dark and 56 before this one.
-   * The three that changed the ring all failed at 20, which is the only size
-   * that counts: a semicircle with a head at each end is an eye, a full ring
-   * with two heads and the dot is a blot, and the same without the dot is the
-   * refresh glyph — which in this collection is `restart`, three keys away and
-   * the one button here that throws the board out. Keeping the ring and adding
-   * a mark was the only change that stayed in the family and stayed legible.
-   */
-  rotateHalf: (
-    <>
-      <path d="M5.6 7.5a7.5 7.5 0 1 1-1.1 3.9" />
-      <path d="m9.4 7.2-3.9.6-.6-3.9" />
-      <path d="m14.6 16.8 3.9-.6.6 3.9" />
       <circle cx="12" cy="12" r="2.2" />
     </>
   ),
