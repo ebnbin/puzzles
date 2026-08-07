@@ -205,7 +205,11 @@ export const en = {
          from the same rim square — "Back" in its own label. Worded as the
          reverse of the arrow rather than as a compass direction, for the
          reason above: which way is the board's to say. */
-      slideBack: 'Slide it the other way',
+      /* Sixteen's rim pair, named for the highlighted arrow rather than for a
+         compass direction: upstream reports the same word on all four edges,
+         so which way it means is the board's to show and ours to refer to. */
+      alongArrow: 'Slide the way this arrow points',
+      againstArrow: 'Slide against this arrow',
       /**
        * Mines' four, in its chapter's words. "Clear around" is the manual's own
        * name for the second — "if you left-click in an uncovered square, it

@@ -75,7 +75,8 @@ export const zh: Strings = {
       /* 手册的说法（doc-zh/sixteen.html，netslide 那章指过去）：「用回车键让该行/列沿所
          指示的方向移动」。方向由棋盘上高亮的那个箭头指示，所以这里只说动哪一条。 */
       slide: '推动这一行或这一列',
-      slideBack: '反方向推动这一行或这一列',
+      alongArrow: '按这个箭头指的方向推',
+      againstArrow: '逆着这个箭头推',
       /* 手册自己的译法（doc-zh/mines.html）：「在覆盖着的方格上按回车键会揭开它，在已揭开
          的方格上按回车键则会清除其周围」。 */
       /* 手册自己的译法（doc-zh/samegame.html）：「选中」「移除」，「区域」也是它自己的词

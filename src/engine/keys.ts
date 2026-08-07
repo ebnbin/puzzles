@@ -511,7 +511,8 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
-  | 'slideBack'
+  | 'alongArrow'
+  | 'againstArrow'
   | 'jump'
   | 'unjump'
   | 'domino'
@@ -1126,11 +1127,13 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * The design that had to be explained was the one being kept.
    *
    * So all four positions are upstream's now, and the faces follow the labels
-   * rather than the reader being steered away from half of them. The rim pair
-   * borrows Netslide's `slide` glyph and its wording, which were drawn for this
-   * exact job on that puzzle's identical rim — and the direction stays the
-   * board's to indicate, because the cursor is sitting on the arrow that gives
-   * it.
+   * rather than the reader being steered away from half of them.
+   *
+   * The rim pair names a relation and not a direction — along the arrow, and
+   * against it — because upstream reports the same word on all four edges and
+   * a left-and-right pair would be describing the wrong axis on two of them.
+   * Which way that is stays the board's to say: the cursor is sitting on the
+   * arrow that gives it. See `alongArrow` in ../Icon for the four pairs tried.
    */
   sixteen: [
     {
@@ -1140,7 +1143,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock tile': { icon: 'lockTile', says: 'carryTile' },
         Unlock: { icon: 'lockTileOn', says: 'carryTile', on: true },
-        Slide: { icon: 'slide', says: 'slide' },
+        Slide: { icon: 'alongArrow', says: 'alongArrow' },
       },
     },
     {
@@ -1150,7 +1153,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock pos': { icon: 'lockPlace', says: 'holdPlace' },
         Unlock: { icon: 'lockPlaceOn', says: 'holdPlace', on: true },
-        Back: { icon: 'slideBack', says: 'slideBack' },
+        Back: { icon: 'againstArrow', says: 'againstArrow' },
       },
     },
   ],

@@ -74,7 +74,8 @@ export type IconName =
   | 'black'
   | 'white'
   | 'slide'
-  | 'slideBack'
+  | 'alongArrow'
+  | 'againstArrow'
   | 'lockTile'
   | 'lockTileOn'
   | 'lockPlace'
@@ -1049,17 +1050,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m18 9.4 2.6 2.6-2.6 2.6" />
     </>
   ),
-  /*
-   * And the same line pushed the other way, drawn as the mirror of `slide`
-   * about x=12.
-   *
-   * Sixteen's rim keys are a pair of opposites — upstream calls them "Slide"
-   * and "Back" — so the only thing that may distinguish them is which way round
-   * they are. Every number here is its partner's, reflected. Which compass
-   * direction either one means is the board's to say, not this glyph's: the
-   * cursor is sitting on one of the fat arrows drawn round the edge, and that
-   * arrow is the answer. See the note beside `slide` in the string catalogue.
-   */
   /* --- Sixteen's two sticky locks, and the arrows while one is on ---------
    *
    * A padlock, because that is what these two keys are: upstream calls them
@@ -1075,39 +1065,44 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * Open shackle while off, shut while on — which is also when the button
    * wears its pressed background, so the state is said twice.
    *
-   * A padlock was tried here once before and rejected, as a small badge stuck
-   * on the corner of the square: at 20px its shackle closed up and it read as a
-   * second little square. The fix is size, not shape. This one is a peer of the
-   * square rather than a mark on it — 8.4 across against the square's 9.2 — and
-   * the shackle survives, which the render at 20 light, 20 dark and 56 is what
-   * settles.
+   * The padlock is the whole glyph and the square is a badge inside it, which
+   * is the second arrangement tried and the reason is the shackle. A padlock
+   * beside a square has to be small, and a small padlock's shackle moves by
+   * about a pixel between open and shut at 20 — so the state, which is the
+   * thing these keys exist to show, was the part that disappeared. Full size
+   * it swings clear and is legible in both themes. An earlier attempt failed
+   * the other way round, as a badge stuck on the corner of the square, where
+   * the shackle closed up entirely and the lock read as a second little square.
+   *
+   * So the square gives up its size to the lock and keeps only its fill, which
+   * is enough: the two buttons sit side by side and are read against each other.
    */
   lockTile: (
     <>
-      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" fill="currentColor" />
-      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
-      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.1-.4" />
+      <rect x="5.4" y="11" width="13.2" height="9.6" rx="2.1" />
+      <path d="M8.6 11V8.2a3.4 3.4 0 0 1 6.6-.9" />
+      <rect x="9.4" y="14.2" width="4.8" height="4.8" rx="1" fill="currentColor" />
     </>
   ),
   lockTileOn: (
     <>
-      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" fill="currentColor" />
-      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
-      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.2 0v1.9" />
+      <rect x="5.4" y="11" width="13.2" height="9.6" rx="2.1" />
+      <path d="M8.6 11V8.2a3.4 3.4 0 0 1 6.8 0V11" />
+      <rect x="9.4" y="14.2" width="4.8" height="4.8" rx="1" fill="currentColor" />
     </>
   ),
   lockPlace: (
     <>
-      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" />
-      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
-      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.1-.4" />
+      <rect x="5.4" y="11" width="13.2" height="9.6" rx="2.1" />
+      <path d="M8.6 11V8.2a3.4 3.4 0 0 1 6.6-.9" />
+      <rect x="9.4" y="14.2" width="4.8" height="4.8" rx="1" />
     </>
   ),
   lockPlaceOn: (
     <>
-      <rect x="2.6" y="4.2" width="9.2" height="9.2" rx="1.9" />
-      <rect x="13.2" y="13.6" width="8.4" height="6.6" rx="1.5" />
-      <path d="M15.3 13.6v-1.9a2.1 2.1 0 0 1 4.2 0v1.9" />
+      <rect x="5.4" y="11" width="13.2" height="9.6" rx="2.1" />
+      <path d="M8.6 11V8.2a3.4 3.4 0 0 1 6.8 0V11" />
+      <rect x="9.4" y="14.2" width="4.8" height="4.8" rx="1" />
     </>
   ),
   /*
@@ -1148,12 +1143,43 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m6.8 8.4 3.6 3.6-3.6 3.6" />
     </>
   ),
-  slideBack: (
+  /* --- Sixteen's rim pair: with the arrow, and against it -------------------
+   *
+   * These two used to be `slide` mirrored, which named an axis — and the axis
+   * was wrong half the time. Upstream's label is the same word on all four
+   * edges ("Slide" and "Back"), and the direction it means is whichever way the
+   * highlighted border arrow points, so on the top and bottom edges a
+   * left-and-right pair of glyphs described a slide that runs up and down.
+   * Knowing which edge would mean tracking the cursor ourselves, which is a
+   * copy of upstream state and not worth one icon.
+   *
+   * So they stop naming a direction and name a *relation* instead. The fat
+   * outline arrow on top is the board's own border arrow — the shape upstream
+   * draws all round the edge and lights one of up under the cursor — and the
+   * thin arrow below is what this press does with it: along, or against. Only
+   * the lower half differs between the pair, which is the whole message. That
+   * the reference happens to be drawn pointing right is decoration; the reader
+   * is looking at the real one, highlighted, and these say which way round.
+   *
+   * Four pairs were rendered at 20 light, 20 dark and 56. Twin chevrons
+   * (`>>` against `><`) are too abstract and the first reads as fast-forward; a
+   * solid triangle below reads as play; a tile riding the arrow is too much ink
+   * at 20. A ring with an arrowhead — truthful, since a slide really is a
+   * rotation of the line — collides with `rotate` and Twiddle's pair, which are
+   * that same drawing on two other puzzles.
+   */
+  alongArrow: (
     <>
-      <rect x="10" y="9.3" width="5.4" height="5.4" rx="1.2" />
-      <rect x="16.2" y="9.3" width="5.4" height="5.4" rx="1.2" />
-      <path d="M8.6 12H3.4" />
-      <path d="m6 9.4-2.6 2.6 2.6 2.6" />
+      <path d="M3.4 4.4h8.2V1.5L17 5.9l-5.4 4.4V7.4H3.4Z" />
+      <path d="M3.6 17h9" />
+      <path d="m9.6 13.8 3.4 3.2-3.4 3.2" />
+    </>
+  ),
+  againstArrow: (
+    <>
+      <path d="M3.4 4.4h8.2V1.5L17 5.9l-5.4 4.4V7.4H3.4Z" />
+      <path d="M20.4 17h-9" />
+      <path d="m14.4 13.8-3.4 3.2 3.4 3.2" />
     </>
   ),
   /*
