@@ -208,8 +208,8 @@ export const en = {
       /* Sixteen's rim pair, named for the highlighted arrow rather than for a
          compass direction: upstream reports the same word on all four edges,
          so which way it means is the board's to show and ours to refer to. */
-      alongArrow: 'Slide the way this arrow points',
-      againstArrow: 'Slide against this arrow',
+      pushLine: 'Push this line along the arrow',
+      pullLine: 'Pull this line back',
       /**
        * Mines' four, in its chapter's words. "Clear around" is the manual's own
        * name for the second — "if you left-click in an uncovered square, it

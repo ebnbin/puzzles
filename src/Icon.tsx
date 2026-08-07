@@ -74,8 +74,8 @@ export type IconName =
   | 'black'
   | 'white'
   | 'slide'
-  | 'cycleAlong'
-  | 'cycleAgainst'
+  | 'pushLine'
+  | 'pullLine'
   | 'lockTile'
   | 'lockTileOn'
   | 'lockPlace'
@@ -1143,45 +1143,53 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m6.8 8.4 3.6 3.6-3.6 3.6" />
     </>
   ),
-  /* --- Sixteen's rim pair: one way round, and the other --------------------
+  /* --- Sixteen's rim pair: one step on, one step back ----------------------
    *
-   * No direction in either of them, and that is the whole design. Upstream
-   * reports the same word on all four edges ("Slide" and "Back") and means
-   * whichever way that edge's arrow points, and this side cannot tell which
-   * edge the cursor is on — knowing would mean keeping a copy of upstream's
-   * cursor, which is not worth an icon. So any arrow drawn here is a guess with
-   * a one-in-two chance, and on the top and bottom edges it names the wrong
-   * axis outright. Two versions were drawn before this one and both did exactly
-   * that: `slide` mirrored, and then a reference arrow with a smaller arrow
-   * along or against it. The second was defended as "the reference is only
-   * layout", which is not a thing a drawn arrow can be — an arrow points, and
-   * pointing is meaning.
+   * A tile with a plus, and a tile with a minus. It is the smallest claim these
+   * two buttons can make, and it is the largest one this side is entitled to.
    *
-   * What is left that is still a pair of inverses is which way round. A slide
-   * is a cyclic shift of one line: the line wrapped into a ring, and the tiles
-   * running round it. Nothing in that says left, right, up or down. The board
-   * says which of the two is which, by the arrow it has lit under the cursor,
-   * and the words say it too.
+   * What we know about them is exactly "a pair of inverse operations". We
+   * cannot tell which edge of the rim the cursor is on — upstream reports the
+   * same word on all four and means whichever way that edge's arrow points —
+   * so we do not know the axis, let alone the direction. An icon should be as
+   * specific as its knowledge and no more, and two versions were drawn that
+   * were more: `slide` mirrored, which names left and right outright, and a
+   * reference arrow with a smaller one along or against it, defended on the
+   * grounds that the reference was only layout. An arrow points; pointing is
+   * meaning; on the top rim both of those said "right" for a slide running up.
    *
-   * The tile riding the ring is what keeps these out of the collection's other
-   * rings, all of which are close by: `restart` is this circle with no tile,
-   * `rotate` is it with a dot at the centre rather than a square on the rim,
-   * and Twiddle's pair is the bare ring. Rendered against all four at 20 light,
-   * 20 dark and 56 before choosing. Three beads instead of one turn to mush at
-   * 20, and a segmented ring loses its head.
+   * A third version dropped arrows for a ring turning each way, on the argument
+   * that a slide wraps — `(cx - dx + w) % w` in execute_move, so a line really
+   * is a cycle. True, and still too much: what a reader sees is a row sliding
+   * sideways, with the wrap a detail at the end of it, and the manual's own
+   * word is "slide". The ring was not chosen because it describes Sixteen. It
+   * was chosen because, having ruled out direction, rotation is nearly the only
+   * direction-free pair of inverses there is — which is searching under a
+   * constraint rather than designing.
+   *
+   * Push and pull were tried too, in nine forms across two rounds: palm against
+   * a block and hook around it, plate and claw, near and far, small and large,
+   * a door handle in and out, a spring squeezed and stretched. None survives 20
+   * and they all fail the same way — push differs from pull by the shape of a
+   * grip or the width of a gap, and 20px has no room for a small feature. The
+   * verbs are good, so they went to the words instead, where there is room.
+   *
+   * That leaves the quantity, and the quantity is exact rather than a metaphor:
+   * upstream writes these moves `R{y},+1` and `R{y},-1`. One step on, one step
+   * back. The square frame rather than a circle because the thing taking the
+   * step is a tile, and a rounded square is what a tile is throughout this file.
    */
-  cycleAlong: (
+  pushLine: (
     <>
-      <path d="M6.6 6.6a7.6 7.6 0 1 1-1.8 3.2" />
-      <path d="m9 5.9-4 .7-.7-4" />
-      <rect x="9.4" y="17" width="5.2" height="5.2" rx="1.1" fill="currentColor" />
+      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3" />
+      <path d="M12 7.8v8.4" />
+      <path d="M7.8 12h8.4" />
     </>
   ),
-  cycleAgainst: (
+  pullLine: (
     <>
-      <path d="M17.4 6.6a7.6 7.6 0 1 0 1.8 3.2" />
-      <path d="m15 5.9 4 .7.7-4" />
-      <rect x="9.4" y="17" width="5.2" height="5.2" rx="1.1" fill="currentColor" />
+      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3" />
+      <path d="M7.8 12h8.4" />
     </>
   ),
   /*

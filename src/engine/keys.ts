@@ -511,8 +511,8 @@ export type CursorWord =
   | 'turnLeft'
   | 'turnRight'
   | 'slide'
-  | 'alongArrow'
-  | 'againstArrow'
+  | 'pushLine'
+  | 'pullLine'
   | 'jump'
   | 'unjump'
   | 'domino'
@@ -1129,12 +1129,12 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * So all four positions are upstream's now, and the faces follow the labels
    * rather than the reader being steered away from half of them.
    *
-   * The rim pair draws no direction at all — a slide is a line wrapped into a
-   * ring, and these are that ring turning one way and the other. Upstream
-   * reports the same word on all four edges, and which way it means is the
-   * board's to show by the arrow it has lit under the cursor. Anything arrow
-   * shaped drawn here would be right half the time and name the wrong axis the
-   * rest. See `cycleAlong` in ../Icon.
+   * The rim pair claims only what this side knows, which is that the two are
+   * inverses: a tile with a plus and a tile with a minus, one step on and one
+   * step back — the moves upstream writes as `R{y},+1` and `R{y},-1`. Which
+   * way that is stays the board's to show, by the arrow it has lit under the
+   * cursor, and the words say push and pull. See `pushLine` in ../Icon for the
+   * three versions that claimed more and why each was wrong.
    */
   sixteen: [
     {
@@ -1144,7 +1144,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock tile': { icon: 'lockTile', says: 'carryTile' },
         Unlock: { icon: 'lockTileOn', says: 'carryTile', on: true },
-        Slide: { icon: 'cycleAlong', says: 'alongArrow' },
+        Slide: { icon: 'pushLine', says: 'pushLine' },
       },
     },
     {
@@ -1154,7 +1154,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock pos': { icon: 'lockPlace', says: 'holdPlace' },
         Unlock: { icon: 'lockPlaceOn', says: 'holdPlace', on: true },
-        Back: { icon: 'cycleAgainst', says: 'againstArrow' },
+        Back: { icon: 'pullLine', says: 'pullLine' },
       },
     },
   ],
