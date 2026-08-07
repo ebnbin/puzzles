@@ -2152,6 +2152,23 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
  *
  * Per puzzle, and it has to be: making this the rule everywhere would take the
  * right click away from the twenty-odd puzzles that are played with it.
+ *
+ * Upstream has an accommodation for a one-button pointer and this is not a
+ * duplicate of it — it is dead code in this build, twice over. `MOD_STYLUS`
+ * makes Net's right click lock (net.c:2299) and does the same kind of thing in
+ * four other games, but the midend only ever sets that bit inside
+ * `#ifdef STYLUS_BASED` (midend.c:991), and `STYLUS_BASED` is defined nowhere
+ * in the tree — it is a Palm/PocketPC-era platform macro. Defining it would
+ * also hand Net `USE_DRAGGING` (net.c:31), replacing click-to-rotate with
+ * drag-to-rotate, which upstream's own comment calls "quite strange and
+ * unintuitive". And it is a claim about the machine, not about the pointer in
+ * use: one wasm binary serves a mouse and a finger at once and cannot make it.
+ *
+ * The second layer is simpler. Upstream's own `emccpre.js` binds only
+ * `onmousedown`/`onmousemove`/`onmouseup`; there is no touch code in it at all,
+ * so on a phone its web build has one button and no hold. A second press on
+ * touch is this side's invention, which is why spending it is this side's
+ * choice to make.
  */
 export const SECOND_PRESS: Record<string, number> = {
   /** The middle button, which is `TOGGLE_LOCK` in net.c. */
