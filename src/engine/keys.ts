@@ -1219,12 +1219,13 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * So all four positions are upstream's now, and the faces follow the labels
    * rather than the reader being steered away from half of them.
    *
-   * The rim pair claims only what this side knows, which is that the two are
-   * inverses: a tile with a plus and a tile with a minus, one step on and one
-   * step back — the moves upstream writes as `R{y},+1` and `R{y},-1`. Which
-   * way that is stays the board's to show, by the arrow it has lit under the
-   * cursor, and the words say push and pull. See `pushLine` in ../Icon for the
-   * three versions that claimed more and why each was wrong.
+   * The rim pair claims only what this side knows, and after four rounds that
+   * turned out to be less than "a pair of inverses": one dot and two dots, which
+   * say which of the two keys this is and stop. Which way either goes stays the
+   * board's to show, by the arrow it has lit under the cursor, and the verbs are
+   * in the words — "push this line along the arrow" and "pull this line back".
+   * See `primary` in ../Icon for the three versions that claimed more, and for
+   * the survey that killed the fourth by finding it already taken.
    */
   sixteen: [
     {
@@ -1234,7 +1235,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock tile': { icon: 'lockTile', says: 'carryTile' },
         Unlock: { icon: 'lockTileOn', says: 'carryTile', on: true },
-        Slide: { icon: 'pushLine', says: 'pushLine' },
+        Slide: { icon: 'primary', says: 'pushLine' },
       },
     },
     {
@@ -1244,7 +1245,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock pos': { icon: 'lockPlace', says: 'holdPlace' },
         Unlock: { icon: 'lockPlaceOn', says: 'holdPlace', on: true },
-        Back: { icon: 'pullLine', says: 'pullLine' },
+        Back: { icon: 'secondary', says: 'pullLine' },
       },
     },
   ],
@@ -1357,15 +1358,15 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * that: a hold is the right button by default, and the table is the list of
    * puzzles that spend theirs elsewhere.
    *
-   * It wears Sixteen's rim glyph rather than one of its own, and that is the
-   * point rather than a saving: the two keys perform the same act under the
-   * same ignorance of which rim the cursor is on, so drawing them differently
-   * would claim a difference. The direction it used to show was right one time
-   * in four — `interpret_move` takes it from the edge alone (netslide.c:1097),
-   * and `encode_ui` is NULL (netslide.c:1867), so the cursor is not in the save
-   * either and nothing here can derive it.
+   * It wears `primary` — Sixteen's first key — rather than a glyph of its own,
+   * and that is the point rather than a saving: the two perform the same act on
+   * the same rim under the same ignorance of which edge the cursor is on, so
+   * drawing them differently would claim a difference. The direction it used to
+   * show was right one time in four: `interpret_move` takes it from the edge
+   * alone (netslide.c:1097), and `encode_ui` is NULL (netslide.c:1867), so the
+   * cursor is not in the save either and nothing here can derive it.
    */
-  netslide: [{ key: 'Enter', icon: 'pushLine', says: 'slide' }],
+  netslide: [{ key: 'Enter', icon: 'primary', says: 'slide' }],
 
   /*
    * Two keys that are a colour each, which is not how the puzzle spells them.

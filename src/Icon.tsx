@@ -73,8 +73,8 @@ export type IconName =
   | 'pencil'
   | 'black'
   | 'white'
-  | 'pushLine'
-  | 'pullLine'
+  | 'primary'
+  | 'secondary'
   | 'lockTile'
   | 'lockTileOn'
   | 'lockPlace'
@@ -1119,10 +1119,11 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m6.8 8.4 3.6 3.6-3.6 3.6" />
     </>
   ),
-  /* --- Sixteen's rim pair: one step on, one step back ----------------------
+  /* --- The generic pair: this is the first key, this is the second ---------
    *
-   * A tile with a plus, and a tile with a minus. It is the smallest claim these
-   * two buttons can make, and it is the largest one this side is entitled to.
+   * One dot and two dots, worn by Sixteen's rim and by the whole of Netslide.
+   * It is the smallest claim these buttons can make, and after the survey below
+   * it is the largest one this side is entitled to.
    *
    * What we know about them is exactly "a pair of inverse operations". We
    * cannot tell which edge of the rim the cursor is on — upstream reports the
@@ -1151,30 +1152,43 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * grip or the width of a gap, and 20px has no room for a small feature. The
    * verbs are good, so they went to the words instead, where there is room.
    *
-   * That leaves the quantity, and the quantity is exact rather than a metaphor:
-   * upstream writes these moves `R{y},+1` and `R{y},-1`. One step on, one step
-   * back. The square frame rather than a circle because the thing taking the
-   * step is a tile, and a rounded square is what a tile is throughout this file.
+   * That left the quantity, and for a while these were a plus and a minus in a
+   * rounded square: upstream writes the moves `R{y},+1` and `R{y},-1`, so the
+   * number was exact rather than a metaphor. Surveying every glyph the game keys
+   * use killed it. "A square with a mark inside" is the most crowded shape in
+   * this file — nine of them, `dotSquare` through `questionSquare` — and a plus
+   * and a minus in a square were already two of the nine: `plusSquare` and
+   * `minusSquare` are Magnets' poles, and the drawings matched to within a few
+   * tenths of a unit. Whatever "one step on" deserves, it cannot be the same
+   * picture as "the positive end of a magnet". Two of the other three rounds
+   * above died the same way and nobody had checked: whole squares filled and
+   * hollow are `black` and `white`, the filled and empty cell of nine puzzles,
+   * and a disc inside a ring is `islandDone`.
    *
-   * Netslide's one key wears `pushLine` too. It is the same act on the same rim
-   * under the same ignorance — the `R{y},+1` it emits is the very move the plus
-   * stands for — and one act drawn two ways would be its own small claim that
-   * they differ. It gets no `pullLine` beside it because its keyboard has no
-   * step back to draw: netslide.c:1113 flips the direction for `RIGHT_BUTTON`
-   * alone, where Sixteen's line reads `RIGHT_BUTTON || CURSOR_SELECT2`. The
-   * absent half is information rather than a hole.
+   * So the rank moved out of the content and into the count. One dot and two
+   * dots say the one thing this side is certain of — which of the two keys this
+   * is — and nothing else. That is less than "a step on and a step back", and
+   * deliberately: the verbs live in the words, where there is room for them, and
+   * the picture now claims nothing that was already spoken for. Bare dots were
+   * the last empty neighbourhood. `cycle` sets four round a ring and `stipple`
+   * five in a square, but one and two, side by side, belong to nobody.
+   *
+   * Netslide's single key is the same `primary`. Its rim is Sixteen's rim and
+   * its key is Sixteen's first key; it simply has no second one to draw, since
+   * netslide.c:1113 flips the direction for `RIGHT_BUTTON` alone where Sixteen's
+   * line reads `RIGHT_BUTTON || CURSOR_SELECT2`. The absent half is information
+   * rather than a hole.
+   *
+   * The names say the rank rather than the shape, which is how `done` and
+   * `cancel` are named too: what a reader needs from these is not "a dot" but
+   * "the first one". A puzzle whose second key has a job worth drawing should
+   * still draw it — this pair is for the ones whose job has no picture.
    */
-  pushLine: (
+  primary: <circle cx="12" cy="12" r="5.4" fill="currentColor" />,
+  secondary: (
     <>
-      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3" />
-      <path d="M12 7.8v8.4" />
-      <path d="M7.8 12h8.4" />
-    </>
-  ),
-  pullLine: (
-    <>
-      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3" />
-      <path d="M7.8 12h8.4" />
+      <circle cx="7.1" cy="12" r="4.1" fill="currentColor" />
+      <circle cx="16.9" cy="12" r="4.1" fill="currentColor" />
     </>
   ),
   /*
