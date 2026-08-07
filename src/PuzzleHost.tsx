@@ -15,6 +15,8 @@ import {
   HOLD_BUTTON,
   keysFor,
   movesEightWays,
+  opener,
+  opens,
   READS_PREFS,
   readsArrows,
   shovesTiles,
@@ -224,6 +226,12 @@ export default function PuzzleHost({
    * bit and it is not the position: where the cursor is stays unreachable.
    */
   const [awake, setAwake] = useState(false)
+  /**
+   * And which key opened Rectangles' drag, for the one state where its two keys
+   * report the same word and the pair needs them apart. See `opener`, which
+   * corrects this from the labels the moment they can say.
+   */
+  const [opened, setOpened] = useState<string | null>(null)
   /*
    * The same two words again, in a ref, because one caller cannot wait for a
    * render: the arrow that has just walked Sixteen's cursor off the board needs
@@ -571,6 +579,7 @@ export default function PuzzleHost({
         // can say `enter` and `space` and mean the keys the buttons send.
         onKeyLabels: (space, enter) => {
           labelsRef.current = { enter, space }
+          setOpened((was) => opener(name, { enter, space }, was))
           setLabels({ enter, space })
         },
         onPermalinks: (desc, seed) => {
@@ -872,6 +881,7 @@ export default function PuzzleHost({
     // Shift and Ctrl and leave the cursor where it was. See CURSOR_LIFE.
     const plain = !e.shiftKey && !e.ctrlKey
     if (plain && wakesCursor(name, e.key)) setAwake(true)
+    if (plain && opens(name, e.key, labelsRef.current)) setOpened(e.key)
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
     // Some of what the board takes changes a preference — undead's `a` — and
@@ -1045,6 +1055,7 @@ export default function PuzzleHost({
     acted()
     // No modifiers ever go out from here, so a waking key always wakes.
     if (wakesCursor(name, key)) setAwake(true)
+    if (opens(name, key, labelsRef.current)) setOpened(key)
     api.key(0, key, '', where, 0, 0)
     canvasRef.current?.focus()
   }, [acted, name])
@@ -1331,9 +1342,9 @@ export default function PuzzleHost({
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
               // faceOf, and `faces` in keys.ts for why the back end decides it.
-              const { icon, says, on } = faceOf(name, cursor, labels, awake)
+              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
               const said = t.play.cursor[says]
-              const key = wouldSend(name, cursor, labels, awake)
+              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
               return (
                 <button
                   // The key it sends, not the word it is showing: two of these

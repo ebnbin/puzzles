@@ -473,36 +473,6 @@ export type CursorKey = {
    */
   faces?: Record<string, CursorFace>
   /**
-   * Words this button hands to its neighbour, because while one of them is
-   * showing the two do the identical thing and one button is enough.
-   *
-   * Upstream has to offer both. It has two keys covering four states, so in the
-   * state where neither can finish there is nothing for them to say but the
-   * same thing twice — Rectangles' open-but-unmoved drag, where Enter and Space
-   * both abandon. Two keys forced into one meaning is a keyboard's constraint;
-   * a pair of buttons has no such constraint, and drawing the same X twice only
-   * asks the reader which of them is the other one.
-   *
-   * The button that stands down is the one that will become "Done". It is the
-   * finisher, and while there is nothing to finish it has nothing to offer; the
-   * one left standing is the abandon button and keeps that job for the whole
-   * drag. Each button then holds one meaning from the first press to the last,
-   * which two identical Xs cannot do.
-   *
-   * Detecting "these two are the same" costs nothing and remembers nothing:
-   * `js_update_key_labels` blanks the first word when the two are equal, so
-   * `labels.space === ''` already says it — the same asymmetry `doesNothing`
-   * and `BOTH` read.
-   *
-   * Which of the pair defers is fixed, and it is Enter's. That is stable for a
-   * Mark drag — Enter stays out and then becomes the tick, while the abandon X
-   * sits on Space throughout — and swaps once on the first arrow of an Erase
-   * drag, which is the rarer of the two. Holding both stable would mean
-   * remembering which key opened the drag, and one owned bit is not worth the
-   * rarer half of one puzzle's transient state.
-   */
-  defers?: readonly string[]
-  /**
    * That this key does its work somewhere other than where the cursor is, so
    * the mirror in `CURSOR_LIFE` must not gate it.
    *
@@ -527,7 +497,22 @@ export type CursorKey = {
  * What a key looks like and is called while it is reporting one particular
  * word. `on` draws it as held down, for the modes that are otherwise invisible.
  */
-export type CursorFace = { icon: IconName; says: CursorWord; on?: boolean }
+export type CursorFace = {
+  icon: IconName
+  says: CursorWord
+  on?: boolean
+  /**
+   * Shown, but out: this is the button's job and it cannot do it yet.
+   *
+   * The alternative is to fall back to the resting face, which is what a button
+   * that is out normally wears — right when the face would otherwise be some
+   * *other* job's, wrong when the button has one job throughout and is merely
+   * waiting. Rectangles' finisher is the latter: a greyed tick says "this is
+   * where the rectangle gets finished, once there is one", and a greyed
+   * rectangle-outline would say it had gone back to being the draw key.
+   */
+  idle?: boolean
+}
 
 /** The words these keys can be called, so a missing translation is a type error. */
 export type CursorWord =
@@ -643,7 +628,27 @@ export type CursorWord =
  * Named for the keys the buttons send rather than for upstream's `csk`/`lsk`,
  * which are a phone's soft keys and not these.
  */
-export type KeyLabels = { enter: string; space: string }
+export type KeyLabels = {
+  enter: string
+  space: string
+  /**
+   * And, for the one puzzle whose two keys can be reporting the same word while
+   * meaning different jobs, which key opened the drag that is running.
+   *
+   * Rectangles' keyboard drag is finished by the key that started it and
+   * abandoned by the other (`erasing == ui->erasing`, rect.c:2511). Until the
+   * drag has moved, neither can finish, so `current_key_label` says "Cancel"
+   * twice — true of both, and silent about which is which. Two keys covering
+   * four states have nothing better to say; a pair of buttons wants to know,
+   * because it is what decides which of them is the finisher.
+   *
+   * Corrected by the labels rather than trusted: the moment the drag moves they
+   * name the finisher outright, and a wrong value is replaced then. Until then
+   * a wrong value costs nothing, since in that state both keys really do
+   * abandon — the button left standing does what it says either way.
+   */
+  opened?: string
+}
 
 /**
  * The puzzles whose labels do not say whether the cursor is on screen, and the
@@ -814,6 +819,34 @@ const gated = (name: string, cursor: CursorKey) =>
  */
 export const shovesTiles = (name: string, labels: KeyLabels) =>
   name === 'sixteen' && (labels.enter === 'Unlock' || labels.space === 'Unlock')
+
+/**
+ * Which key opened the drag now running, as far as anything can say.
+ *
+ * Rectangles only. Three of its four drag states are legible: the two where the
+ * drag has moved name the finisher outright, and the idle one says there is no
+ * drag. The fourth — open but unmoved — says "Cancel" twice, so the answer for
+ * that one has to come from having watched the press that opened it, which is
+ * `sent` below.
+ *
+ * Written as a correction rather than a memory: every call is given what was
+ * believed and returns what the labels now prove, so a value that came from
+ * watching survives only until upstream contradicts it. Being wrong in the
+ * meantime is free — in that state both keys abandon, so whichever button is
+ * left standing does exactly what it says.
+ */
+export function opener(name: string, labels: KeyLabels, was: string | null) {
+  if (name !== 'rect') return null
+  if (labels.enter === 'Done') return 'Enter'
+  if (labels.space === 'Done') return ' '
+  // Idle, or no cursor, or a mouse drag: nothing of ours is open.
+  if (labels.enter !== 'Cancel') return null
+  return was
+}
+
+/** And the press that opens one, which is the only thing the labels miss. */
+export const opens = (name: string, key: string, labels: KeyLabels) =>
+  name === 'rect' && (key === 'Enter' || key === ' ') && labels.enter === 'Mark'
 
 /** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
 export const wakesCursor = (name: string, key: string) =>
@@ -1001,19 +1034,17 @@ export const wouldSend = (
 ): string | null => {
   if (gated(name, cursor) && !awake) return null
   if (SILENT.has(name)) return cursor.key
-  // Ahead of the faces below, which would answer for this button before the
-  // question of whether it is wanted at all has been asked. Both keys saying
-  // the same thing is one button's worth of meaning, and the blanking is what
-  // says they are the same. See `defers`.
-  if (labels.space === '' && cursor.defers?.includes(mine(name, cursor, labels)))
-    return null
   if (understood(name, labels)) {
     if (cursor.does) {
       if (labels.enter === cursor.does) return 'Enter'
       if (labels.space === cursor.does) return ' '
       return null
     }
-    if (cursor.faces) return cursor.faces[mine(name, cursor, labels)] ? cursor.key : null
+    if (cursor.faces) {
+      const face = cursor.faces[mine(name, cursor, labels)]
+      // `idle` is a face worn while the button waits, so it shows and is out.
+      return face && !face.idle ? cursor.key : null
+    }
   }
   return doesNothing(cursor.key, labels) ? null : cursor.key
 }
@@ -1062,10 +1093,32 @@ const BOTH: Record<string, readonly string[]> = {
 }
 
 /** What the back end says about this button's own key, with the blanking undone. */
-const mine = (name: string, cursor: CursorKey, labels: KeyLabels) =>
-  cursor.key === 'Enter'
-    ? labels.enter
-    : labels.space || (BOTH[name]?.includes(labels.enter) ? labels.enter : '')
+const mine = (name: string, cursor: CursorKey, labels: KeyLabels) => {
+  const word =
+    cursor.key === 'Enter'
+      ? labels.enter
+      : labels.space || (BOTH[name]?.includes(labels.enter) ? labels.enter : '')
+  // And one puzzle needs a word the back end has not got round to saying yet.
+  // While Rectangles' drag has not moved both keys report "Cancel", which is
+  // true of both and tells the pair nothing about which of them finishes. The
+  // key that opened it does — so it wears the finisher's face, waiting, and its
+  // neighbour keeps the abandon. See `opened` and `WAITING`.
+  if (WAITING[name] === word && labels.space === '' && labels.opened)
+    return cursor.key === labels.opened ? PENDING : word
+  return word
+}
+
+/**
+ * The word that means "either of us, and neither can finish", per puzzle, and
+ * the word this side substitutes for the one that will be the finisher.
+ *
+ * Only Rectangles, and only in the moment between opening a drag and moving it.
+ * `PENDING` is ours and never comes from upstream, so it can never collide with
+ * a label — the check above requires the blanking as well, which is upstream
+ * saying the two keys are equal.
+ */
+const WAITING: Record<string, string> = { rect: 'Cancel' }
+const PENDING = '\0waiting'
 
 /**
  * The face a key should be wearing: its picture, its word, and whether to draw
@@ -1088,14 +1141,7 @@ export const faceOf = (
   // the cursor is away, that is not a face to wear — the button is out anyway,
   // and its own picture is the honest thing to be out *as*. See CURSOR_LIFE.
   const word = mine(name, cursor, labels)
-  // A button that has handed this word to its neighbour is out, and a button
-  // that is out wears its own resting face rather than the word it stood down
-  // from — otherwise the pair still shows the same picture twice, one of them
-  // greyed, which is the thing `defers` exists to stop. See `defers`.
-  const known =
-    understood(name, labels) &&
-    (awake || !gated(name, cursor)) &&
-    !(labels.space === '' && cursor.defers?.includes(word))
+  const known = understood(name, labels) && (awake || !gated(name, cursor))
   const face = known ? cursor.faces?.[word] : undefined
   return face ?? { icon: cursor.icon, says: cursor.says }
 }
@@ -1274,10 +1320,10 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'mark',
       faces: {
         Mark: { icon: 'mark', says: 'mark' },
-        Done: { icon: 'done', says: 'done', on: true },
-        Cancel: { icon: 'cancel', says: 'cancel', on: true },
+        Done: { icon: 'done', says: 'done' },
+        Cancel: { icon: 'cancel', says: 'cancel' },
+        [PENDING]: { icon: 'done', says: 'done', idle: true },
       },
-      defers: ['Cancel'],
     },
     {
       key: ' ',
@@ -1285,8 +1331,9 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'erase',
       faces: {
         Erase: { icon: 'erase', says: 'erase' },
-        Done: { icon: 'done', says: 'done', on: true },
-        Cancel: { icon: 'cancel', says: 'cancel', on: true },
+        Done: { icon: 'done', says: 'done' },
+        Cancel: { icon: 'cancel', says: 'cancel' },
+        [PENDING]: { icon: 'done', says: 'done', idle: true },
       },
     },
   ],
