@@ -74,8 +74,8 @@ export type IconName =
   | 'black'
   | 'white'
   | 'slide'
-  | 'alongArrow'
-  | 'againstArrow'
+  | 'cycleAlong'
+  | 'cycleAgainst'
   | 'lockTile'
   | 'lockTileOn'
   | 'lockPlace'
@@ -1143,43 +1143,45 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m6.8 8.4 3.6 3.6-3.6 3.6" />
     </>
   ),
-  /* --- Sixteen's rim pair: with the arrow, and against it -------------------
+  /* --- Sixteen's rim pair: one way round, and the other --------------------
    *
-   * These two used to be `slide` mirrored, which named an axis — and the axis
-   * was wrong half the time. Upstream's label is the same word on all four
-   * edges ("Slide" and "Back"), and the direction it means is whichever way the
-   * highlighted border arrow points, so on the top and bottom edges a
-   * left-and-right pair of glyphs described a slide that runs up and down.
-   * Knowing which edge would mean tracking the cursor ourselves, which is a
-   * copy of upstream state and not worth one icon.
+   * No direction in either of them, and that is the whole design. Upstream
+   * reports the same word on all four edges ("Slide" and "Back") and means
+   * whichever way that edge's arrow points, and this side cannot tell which
+   * edge the cursor is on — knowing would mean keeping a copy of upstream's
+   * cursor, which is not worth an icon. So any arrow drawn here is a guess with
+   * a one-in-two chance, and on the top and bottom edges it names the wrong
+   * axis outright. Two versions were drawn before this one and both did exactly
+   * that: `slide` mirrored, and then a reference arrow with a smaller arrow
+   * along or against it. The second was defended as "the reference is only
+   * layout", which is not a thing a drawn arrow can be — an arrow points, and
+   * pointing is meaning.
    *
-   * So they stop naming a direction and name a *relation* instead. The fat
-   * outline arrow on top is the board's own border arrow — the shape upstream
-   * draws all round the edge and lights one of up under the cursor — and the
-   * thin arrow below is what this press does with it: along, or against. Only
-   * the lower half differs between the pair, which is the whole message. That
-   * the reference happens to be drawn pointing right is decoration; the reader
-   * is looking at the real one, highlighted, and these say which way round.
+   * What is left that is still a pair of inverses is which way round. A slide
+   * is a cyclic shift of one line: the line wrapped into a ring, and the tiles
+   * running round it. Nothing in that says left, right, up or down. The board
+   * says which of the two is which, by the arrow it has lit under the cursor,
+   * and the words say it too.
    *
-   * Four pairs were rendered at 20 light, 20 dark and 56. Twin chevrons
-   * (`>>` against `><`) are too abstract and the first reads as fast-forward; a
-   * solid triangle below reads as play; a tile riding the arrow is too much ink
-   * at 20. A ring with an arrowhead — truthful, since a slide really is a
-   * rotation of the line — collides with `rotate` and Twiddle's pair, which are
-   * that same drawing on two other puzzles.
+   * The tile riding the ring is what keeps these out of the collection's other
+   * rings, all of which are close by: `restart` is this circle with no tile,
+   * `rotate` is it with a dot at the centre rather than a square on the rim,
+   * and Twiddle's pair is the bare ring. Rendered against all four at 20 light,
+   * 20 dark and 56 before choosing. Three beads instead of one turn to mush at
+   * 20, and a segmented ring loses its head.
    */
-  alongArrow: (
+  cycleAlong: (
     <>
-      <path d="M3.4 4.4h8.2V1.5L17 5.9l-5.4 4.4V7.4H3.4Z" />
-      <path d="M3.6 17h9" />
-      <path d="m9.6 13.8 3.4 3.2-3.4 3.2" />
+      <path d="M6.6 6.6a7.6 7.6 0 1 1-1.8 3.2" />
+      <path d="m9 5.9-4 .7-.7-4" />
+      <rect x="9.4" y="17" width="5.2" height="5.2" rx="1.1" fill="currentColor" />
     </>
   ),
-  againstArrow: (
+  cycleAgainst: (
     <>
-      <path d="M3.4 4.4h8.2V1.5L17 5.9l-5.4 4.4V7.4H3.4Z" />
-      <path d="M20.4 17h-9" />
-      <path d="m14.4 13.8-3.4 3.2 3.4 3.2" />
+      <path d="M17.4 6.6a7.6 7.6 0 1 0 1.8 3.2" />
+      <path d="m15 5.9 4 .7.7-4" />
+      <rect x="9.4" y="17" width="5.2" height="5.2" rx="1.1" fill="currentColor" />
     </>
   ),
   /*

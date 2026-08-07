@@ -1129,11 +1129,12 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * So all four positions are upstream's now, and the faces follow the labels
    * rather than the reader being steered away from half of them.
    *
-   * The rim pair names a relation and not a direction — along the arrow, and
-   * against it — because upstream reports the same word on all four edges and
-   * a left-and-right pair would be describing the wrong axis on two of them.
-   * Which way that is stays the board's to say: the cursor is sitting on the
-   * arrow that gives it. See `alongArrow` in ../Icon for the four pairs tried.
+   * The rim pair draws no direction at all — a slide is a line wrapped into a
+   * ring, and these are that ring turning one way and the other. Upstream
+   * reports the same word on all four edges, and which way it means is the
+   * board's to show by the arrow it has lit under the cursor. Anything arrow
+   * shaped drawn here would be right half the time and name the wrong axis the
+   * rest. See `cycleAlong` in ../Icon.
    */
   sixteen: [
     {
@@ -1143,7 +1144,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock tile': { icon: 'lockTile', says: 'carryTile' },
         Unlock: { icon: 'lockTileOn', says: 'carryTile', on: true },
-        Slide: { icon: 'alongArrow', says: 'alongArrow' },
+        Slide: { icon: 'cycleAlong', says: 'alongArrow' },
       },
     },
     {
@@ -1153,7 +1154,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'Lock pos': { icon: 'lockPlace', says: 'holdPlace' },
         Unlock: { icon: 'lockPlaceOn', says: 'holdPlace', on: true },
-        Back: { icon: 'againstArrow', says: 'againstArrow' },
+        Back: { icon: 'cycleAgainst', says: 'againstArrow' },
       },
     },
   ],
