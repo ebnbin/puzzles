@@ -12,12 +12,12 @@ import { createPuzzle } from './engine/createPuzzle'
 import {
   cursorKeys,
   faceOf,
+  HOLD_BUTTON,
   isOffBoard,
   keysFor,
   movesEightWays,
   OPPOSITE,
   READS_PREFS,
-  SECOND_PRESS,
   readsArrows,
   wakesCursor,
   wouldSend,
@@ -649,7 +649,7 @@ export default function PuzzleHost({
     ready,
     permalink?.desc.split(':')[0] ?? '',
   )
-  const pointer = usePuzzlePointer(apiRef, rendererRef, SECOND_PRESS[name])
+  const pointer = usePuzzlePointer(apiRef, rendererRef, HOLD_BUTTON[name])
 
   /*
    * Turn the board over with the rest of the page. The back end is not

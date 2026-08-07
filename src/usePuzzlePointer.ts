@@ -6,14 +6,12 @@ import type { PuzzleApi } from './engine/types'
 const LONG_PRESS_MS = 350
 
 /**
- * The second press, unless the puzzle says otherwise: the right button.
+ * What a hold is worth, unless the puzzle says otherwise: the right button.
  *
- * Every pointer here makes two presses — a tap and a hold, a left click and a
- * right one — and this is what the second of them is worth. The right button
- * nearly everywhere, because it is the one half the collection is played with:
- * flagging a mine, pencilling a digit, marking a square impossible. See
- * SECOND_PRESS in engine/keys for the puzzle that spends its second press
- * elsewhere, and why.
+ * The right button nearly everywhere, because it is the one half the collection
+ * is played with: flagging a mine, pencilling a digit, marking a square
+ * impossible. See HOLD_BUTTON in engine/keys for the puzzle that spends its
+ * hold elsewhere, and why.
  */
 const RIGHT_BUTTON = 2
 /** Movement past this many CSS pixels means a drag, not a tap. */
@@ -41,23 +39,34 @@ type Pending = {
  * move and it was a drag all along, replayed from where it started so puzzles
  * that drag still work.
  *
- * Which leaves one thing both pointers share and neither owns: what that second
- * press is worth. A hold and a right click are the same request made two ways,
- * so a puzzle that redefines one must redefine the other — Net's hold locks a
- * tile, and a right click that went on rotating instead would make the mouse
- * and the finger disagree about a board they can both reach. It is one number,
- * applied at both doors below.
+ * Which leaves the question a puzzle can answer for itself: what a hold is
+ * worth. Only a hold — the mouse below is upstream's, button for button, and
+ * this used to be one number covering both.
+ *
+ * The argument for covering both was that a hold and a right click are the same
+ * request made two ways, so answering them differently would make a mouse and a
+ * finger disagree about a board they can both reach. What that missed is that
+ * the two pointers do not have the same repertoire. A finger has two presses; a
+ * mouse has three buttons and two modifiers, so it can reach the middle button
+ * by the wheel or by Shift and does not need the right one spent on it. Net is
+ * the whole of the difference: its hold has to be the lock, because on touch
+ * nothing else can lock, but a mouse that gave up its right click for the lock
+ * would be paying for something it already had — and paying in rotate-right,
+ * which then has no mouse gesture at all.
+ *
+ * So the two disagree in exactly one place, and it is the place where their
+ * hardware disagrees. Everywhere else a hold and a right click still mean the
+ * same thing, because everywhere else HOLD_BUTTON is the right button.
  */
 export function usePuzzlePointer(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   /**
-   * The button a second press stands for — a hold, a right click, or a
-   * Ctrl-click. Defaults to the right one; a puzzle whose right button is
-   * reachable another way, and whose middle button is not, says so instead —
-   * see SECOND_PRESS in engine/keys.
+   * The button a *hold* stands for, and only a hold. Defaults to the right one;
+   * a puzzle whose right button is reachable another way, and whose middle
+   * button is not, says so instead — see HOLD_BUTTON in engine/keys.
    */
-  second: number = RIGHT_BUTTON,
+  hold: number = RIGHT_BUTTON,
 ) {
   // Logical button per physical button, so a release is reported as whatever
   // the press was, and a move with nothing held is not reported at all.
@@ -103,12 +112,11 @@ export function usePuzzlePointer(
 
       if (e.pointerType === 'mouse') {
         if (e.button >= 3) return
-        // Shift is an explicit request for the middle button and is left alone.
-        // What Ctrl and the right button ask for is a second press, and what
-        // that is worth is the puzzle's to say — the same number the hold below
-        // uses, so the two pointers cannot drift apart.
-        const asked = e.shiftKey ? 1 : e.ctrlKey ? 2 : e.button
-        const button = asked === RIGHT_BUTTON ? second : asked
+        // Upstream's own three-button convention, unaltered: Shift asks for the
+        // middle button, Ctrl for the right one, and the rest map straight
+        // through (emccpre.js:360-365). `hold` is deliberately not consulted —
+        // a mouse can already reach every button a puzzle might want.
+        const button = e.shiftKey ? 1 : e.ctrlKey ? 2 : e.button
         const { x, y } = at(e)
         if (api.mousedown(x, y, button)) e.preventDefault()
         held.current.set(e.pointerId, button)
@@ -126,14 +134,14 @@ export function usePuzzlePointer(
         timer: window.setTimeout(() => {
           // Held still long enough: this is the second press. Fire press and
           // release together, since there is nothing sensible to drag now.
-          const p = flush(second)
+          const p = flush(hold)
           if (!p) return
-          apiRef.current?.mouseup(p.x, p.y, second)
+          apiRef.current?.mouseup(p.x, p.y, hold)
           held.current.delete(p.pointerId)
         }, LONG_PRESS_MS),
       }
     },
-    [apiRef, at, flush, second],
+    [apiRef, at, flush, hold],
   )
 
   const onPointerMove = useCallback(
