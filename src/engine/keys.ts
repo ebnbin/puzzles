@@ -1082,9 +1082,24 @@ const SECOND: Record<string, readonly string[]> = {
  * stopped understanding the labels, which is the same bargain as everywhere else
  * here: an upstream rename should cost a button that is offered when it cannot
  * act, not one that has vanished with no way to ask for it back.
+ *
+ * The sleeping cursor comes first and is the one case where the labels are read
+ * and then set aside. A second level is "the reader is standing on the thing",
+ * and with no cursor on the board nobody is standing anywhere — the words are
+ * still describing the square the cursor was last at, which is exactly why
+ * `faceOf` stops believing them here too. Believing them in one place and not
+ * the other is what let Same Game's cancel appear, dimmed, after a press on the
+ * board: the tap had selected a region the hidden cursor happened to be inside,
+ * so "Remove" was on the wire with nothing on screen to justify it.
  */
-export const inMenu = (name: string, cursor: CursorKey, labels: KeyLabels) => {
+export const inMenu = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  awake: boolean,
+) => {
   if (!cursor.level) return true
+  if (gated(name, cursor) && !awake) return false
   if (!understood(name, labels)) return true
   const second = SECOND[name]
   return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))

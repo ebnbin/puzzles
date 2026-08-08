@@ -1359,7 +1359,7 @@ export default function PuzzleHost({
               // before the map so `i` stays the slot's own number: the keys that
               // are always there keep their places when a neighbour empties.
               // See `level` in engine/keys.
-              if (!inMenu(name, cursor, labels)) return null
+              if (!inMenu(name, cursor, labels, awake)) return null
               // What the key is right now, which for two puzzles is not what it
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
