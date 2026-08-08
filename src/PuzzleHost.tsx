@@ -13,6 +13,7 @@ import {
   cursorKeys,
   faceOf,
   inMenu,
+  secondOpen,
   HOLD_BUTTON,
   keysFor,
   movesEightWays,
@@ -139,6 +140,16 @@ const DIAGONALS = [
  */
 const ACT = ['first', 'second', 'third'] as const
 
+/**
+ * The presses that move a cursor and change nothing else, by name.
+ *
+ * Read by `keepPicked`: these are the only inputs allowed to carry a pending
+ * state across, because they are the only ones that provably leave it alone.
+ * Inertia's diagonals are not here and do not need to be — it has no cursor and
+ * no second level — but a puzzle that had both would want them added.
+ */
+const MOVES_ONLY: ReadonlySet<string> = new Set(ARROWS.map((a) => a.key))
+
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
@@ -238,6 +249,44 @@ export default function PuzzleHost({
    * bit and it is not the position: where the cursor is stays unreachable.
    */
   const [awake, setAwake] = useState(false)
+  /**
+   * And whether the puzzle is holding something that the second level of its
+   * keys is about — Same Game's selected region, and nothing else so far.
+   *
+   * Kept because the labels are one-way about it. `secondOpen` reads "Remove"
+   * or "Unselect" and those can only be reported while a region is held, so
+   * hearing one proves it; but standing on *another* selectable region reports
+   * "Select" from both keys with the region still held, so silence proves
+   * nothing. Measured: walking a board with a region selected, 15 of 36 stops
+   * were that square and the cancel key went out at every one of them while the
+   * status line still read "Selected: 2 (0)".
+   *
+   * The rule that fills the gap is one line: **only an arrow press carries this
+   * value forward.** Everything else recomputes it from the labels, which is
+   * right because everything else either changes the selection or is unrelated
+   * to it, and after either the labels are as good as they get. Arrows are the
+   * one input that provably leaves the selection alone — upstream's
+   * `IS_CURSOR_MOVE` branch is `move_cursor` and an immediate return
+   * (samegame.c:1287).
+   *
+   * A press on the board is the blind spot left over, and it is left over
+   * knowingly: a tap can make a selection or clear one, and the labels see
+   * neither, because they describe the square the cursor is on and a mouse
+   * press does not move the cursor. It lands on the recompute side, so the key
+   * goes out — and a board press also puts the cursor away, which stands the
+   * whole row down anyway. Failing toward absent here rather than toward
+   * present keeps the row quiet at exactly the moment nothing in it applies.
+   */
+  const [picked, setPicked] = useState(false)
+  /**
+   * Set for the length of one press, by the presses that must not disturb it.
+   *
+   * A ref rather than state because it is read inside `onKeyLabels`, which the
+   * back end calls synchronously from `api.key` — before React has rendered
+   * anything. Cleared immediately after that call rather than inside the
+   * callback, so a key that somehow reports no labels cannot leave it standing.
+   */
+  const keepPicked = useRef(false)
   /**
    * And which key opened Rectangles' drag, for the one state where its two keys
    * report the same word and the pair needs them apart. See `opener`, which
@@ -592,6 +641,14 @@ export default function PuzzleHost({
         onKeyLabels: (space, enter) => {
           labelsRef.current = { enter, space }
           setOpened((was) => opener(name, { enter, space }, was))
+          // Heard, or carried across an arrow. See `picked` and `keepPicked`.
+          //
+          // Read here rather than inside the updater: React runs an updater
+          // when it processes the queue, which is after `api.key` has returned
+          // and the ref has been put back. Captured at the moment the labels
+          // arrive, it is the value the press set.
+          const keep = keepPicked.current
+          setPicked((was) => secondOpen(name, { enter, space }) || (keep && was))
           setLabels({ enter, space })
         },
         onPermalinks: (desc, seed) => {
@@ -894,8 +951,12 @@ export default function PuzzleHost({
     const plain = !e.shiftKey && !e.ctrlKey
     if (plain && wakesCursor(name, e.key)) setAwake(true)
     if (plain && opens(name, e.key, labelsRef.current)) setOpened(e.key)
-    if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
-      e.preventDefault()
+    // A modified arrow is not a bare move — Pattern paints with one — so this
+    // asks the same question the two lines above do.
+    keepPicked.current = plain && MOVES_ONLY.has(e.key)
+    const took = api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0)
+    keepPicked.current = false
+    if (took) e.preventDefault()
     // Some of what the board takes changes a preference — undead's `a` — and
     // it says nothing when it does, so a puzzle whose keypad follows one is
     // asked again after every press. Which key it was is undead.c's business,
@@ -1068,7 +1129,9 @@ export default function PuzzleHost({
     // No modifiers ever go out from here, so a waking key always wakes.
     if (wakesCursor(name, key)) setAwake(true)
     if (opens(name, key, labelsRef.current)) setOpened(key)
+    keepPicked.current = MOVES_ONLY.has(key)
     api.key(0, key, '', where, 0, 0)
+    keepPicked.current = false
     canvasRef.current?.focus()
   }, [acted, name])
 
@@ -1358,7 +1421,7 @@ export default function PuzzleHost({
               // before the map so `i` stays the slot's own number: the keys that
               // are always there keep their places when a neighbour empties.
               // See `level` in engine/keys.
-              if (!inMenu(name, cursor, labels)) return null
+              if (!inMenu(name, cursor, labels, picked)) return null
               // What the key is right now, which for two puzzles is not what it
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See

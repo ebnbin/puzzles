@@ -1063,20 +1063,37 @@ const SECOND: Record<string, readonly string[]> = {
 }
 
 /**
- * Whether this slot is in the menu the reader is looking at.
+ * Whether the labels are saying, right now, that the second level is open.
  *
- * Everything without a level is always in it. A second-level slot is in it
- * while one of its puzzle's pending words is being reported — and also whenever
- * we have stopped understanding the labels, which is the same bargain as
- * everywhere else here: an upstream rename should cost a button that is offered
- * when it cannot act, not one that has vanished with no way to ask for it back.
+ * One-way, and the direction matters: these words can only be reported while
+ * something is pending, so hearing one proves it — but not hearing one proves
+ * nothing, because `current_key_label` answers "what would this press do" and
+ * not "what is the state". Same Game standing on another selectable region
+ * reports "Select" from both keys with a region still held. `picked` in
+ * PuzzleHost is what covers that gap; this is the signal it is built from.
  */
-export const inMenu = (name: string, cursor: CursorKey, labels: KeyLabels) => {
-  if (!cursor.level) return true
-  if (!understood(name, labels)) return true
+export const secondOpen = (name: string, labels: KeyLabels) => {
   const second = SECOND[name]
   return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
 }
+
+/**
+ * Whether this slot is in the menu the reader is looking at.
+ *
+ * Everything without a level is always in it. A second-level slot is in it
+ * while its puzzle has something pending — `picked`, which is `secondOpen`
+ * above carried across the arrow presses that walk away from it — and also
+ * whenever we have stopped understanding the labels, which is the same bargain
+ * as everywhere else here: an upstream rename should cost a button that is
+ * offered when it cannot act, not one that has vanished with no way to ask for
+ * it back.
+ */
+export const inMenu = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  picked: boolean,
+) => !cursor.level || !understood(name, labels) || picked
 
 /**
  * The puzzles that read the cursor keys and never say a word about them.
