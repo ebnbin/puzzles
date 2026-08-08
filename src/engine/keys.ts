@@ -2047,11 +2047,16 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    *
    * No `WORDS` entry any more, since nothing here reads what the words are —
    * only whether there are any.
+   *
+   * The third key is `bareSquare` and not `white`: what this puzzle's empty
+   * square shows is the board's own ground, which is a glyph with no fill and
+   * not a white one. See Icon.tsx for the measurement — a filled `white` here
+   * came out inverted on the dark theme.
    */
   slant: [
     { key: '\\', icon: 'backslash', says: 'backslash' },
     { key: '/', icon: 'slash', says: 'slash' },
-    { key: '\b', icon: 'white', says: 'noLine' },
+    { key: '\b', icon: 'bareSquare', says: 'noLine' },
   ],
 
   /*

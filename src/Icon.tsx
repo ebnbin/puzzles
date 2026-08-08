@@ -101,6 +101,7 @@ export type IconName =
   | 'unlock'
   | 'slash'
   | 'backslash'
+  | 'bareSquare'
   | 'emptyCell'
   | 'dotSquare'
   | 'circleSquare'
@@ -749,12 +750,28 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * Two puzzles, never on screen together, and folding them into one name would
    * make both call sites read wrong.
    *
-   * `emptyCell` is a square with a dash in it rather than a bare outline,
-   * because three of these puzzles need "white" and "empty" to be different
-   * pictures — Unruly and Mosaic play with both, and a bare outline is already
-   * `white`. The dash is the shortest mark that says "nothing here" without
-   * being a line, a dot or a cross, all three of which mean something else in
-   * this set.
+   * `bareSquare` is Slant's third, and the one glyph here whose whole content is
+   * that it has none. It borrowed `white` until that glyph gained a fill for
+   * Pattern's sake, and the borrowing then read backwards: `--cell-empty` is
+   * #ffffff light and #cccccc dark, while Slant's own empty square measures
+   * rgb(213,213,213) and rgb(44,44,44) — so on the dark theme the key showed a
+   * pale square over a board that paints a near-black one. Unfilled is not an
+   * approximation of that square, it is the same statement: the board shows its
+   * ground where nothing has been drawn, and so does the key.
+   *
+   * Nothing else in the row can be mistaken for it, because Slant's three are
+   * told apart by what is *inside* the square — leaning one way, the other, or
+   * empty. That is also why it is not `emptyCell`: a horizontal dash between two
+   * diagonals reads as a third direction of line, and lines are exactly this
+   * puzzle's vocabulary.
+   *
+   * `emptyCell` keeps its dash for the puzzles where the confusion runs the
+   * other way. Unruly and Mosaic carry "white" and "empty" as two faces of one
+   * key, and `white` is #ffffff on a key whose ground is #f0f0ef — so on the
+   * light theme a white square and a bare outline are very nearly one picture.
+   * The dash is the shortest mark that separates them without being a line, a
+   * dot or a cross, all three of which mean something else in this set. Slant
+   * can afford the bare one because it has no white face to be confused with.
    */
   slash: (
     <>
@@ -768,6 +785,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="m7.4 7.4 9.2 9.2" />
     </>
   ),
+  bareSquare: <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />,
   emptyCell: (
     <>
       <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
