@@ -474,6 +474,34 @@ export type CursorKey = {
    */
   lit?: boolean
   /**
+   * That this slot is only in the menu while the puzzle's second level is open.
+   *
+   * Several puzzles are two levels rather than one: a press picks something out
+   * and leaves it pending — a region highlighted, a rectangle half-drawn — and
+   * only then are "confirm" and "abandon" things that exist. The row of keys is
+   * the menu of whichever level is running, and a level's menu does not list
+   * what belongs to the other one.
+   *
+   * Rectangles is two levels and needs no marking, which is the case worth
+   * understanding before adding more: its first level is Mark and Erase, its
+   * second is Done and Cancel, and those are the *same two buttons* wearing
+   * different faces. Nothing appears or leaves, so `faces` says all of it. Same
+   * Game's levels are one item and two — pick a region, then remove or unselect
+   * it — so its second key belongs to the second level alone, and at the first
+   * there is no selection for "cancel" to be about.
+   *
+   * That is the line between this and dimming, and both are needed. Dim says
+   * the action is in this menu and cannot run here — Same Game's "select" on a
+   * lone square, Rectangles' tick before the drag has moved. Absent says the
+   * action is not in this menu at all, because the thing it acts on does not
+   * exist yet. A dim button invites the reader to work out what would light it;
+   * for a cancel with nothing to cancel there is no answer to find.
+   *
+   * See `SECOND` for how the level is read, and `ACT` in PuzzleHost for why the
+   * slots keep their places when one of them empties.
+   */
+  level?: 2
+  /**
    * Or, for a key that changes job as the puzzle goes along: a face per word
    * its own key can report.
    *
@@ -1004,6 +1032,50 @@ const WORDS: Record<string, readonly string[]> = {
 const understood = (name: string, labels: KeyLabels) => {
   const words = WORDS[name]
   return !!words && [labels.enter, labels.space].every((w) => !w || words.includes(w))
+}
+
+/**
+ * The words that say a puzzle's second level is open — that something has been
+ * picked out and is waiting to be dealt with.
+ *
+ * Declared rather than inferred, and that is the point of the table. The same
+ * effect falls out of `does` for free — a key asking for "Unselect" has nobody
+ * to send to while nothing is selected — but a rule that lives inside another
+ * mechanism is a rule the next puzzle cannot find. This says which words mean
+ * "pending" in so many terms, so a second-level key needs no `does` to be
+ * placed correctly, and reading the table answers what the levels are.
+ *
+ * One entry so far. Eight more puzzles have a second level by their vocabulary
+ * — Pegs, Bridges, Signpost, Pearl, Galaxies, Map, Filling, and Rectangles,
+ * which is the one that needs no entry because both its levels are the same two
+ * buttons. Each will get its own line as its keys are looked at again; guessing
+ * them all now would be filing eight claims about puzzles nobody has measured.
+ */
+const SECOND: Record<string, readonly string[]> = {
+  /*
+   * "Remove" and "Unselect" are exactly the two words Same Game reports once a
+   * region is held (samegame.c:1104), and neither can be reported without one:
+   * the branch is inside `if (ISSEL(...))`, and the lone-square branch that also
+   * says "Unselect" is guarded by `ui->nselected`. So the words *are* the state,
+   * with nothing kept on this side to say so.
+   */
+  samegame: ['Remove', 'Unselect'],
+}
+
+/**
+ * Whether this slot is in the menu the reader is looking at.
+ *
+ * Everything without a level is always in it. A second-level slot is in it
+ * while one of its puzzle's pending words is being reported — and also whenever
+ * we have stopped understanding the labels, which is the same bargain as
+ * everywhere else here: an upstream rename should cost a button that is offered
+ * when it cannot act, not one that has vanished with no way to ask for it back.
+ */
+export const inMenu = (name: string, cursor: CursorKey, labels: KeyLabels) => {
+  if (!cursor.level) return true
+  if (!understood(name, labels)) return true
+  const second = SECOND[name]
+  return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
 }
 
 /**
@@ -1586,7 +1658,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Remove: { icon: 'done', says: 'remove', on: true },
       },
     },
-    { key: ' ', icon: 'cancel', says: 'unselect', does: 'Unselect' },
+    { key: ' ', icon: 'cancel', says: 'unselect', does: 'Unselect', level: 2 },
   ],
 
   /*
