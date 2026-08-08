@@ -319,12 +319,22 @@ const RULES: Record<
         // sends and the character the board shows are the same one, and the
         // tenth peg is labelled 0 on both.
         const button = '0'.charCodeAt(0) + ((i + 1) % 10)
+        // Which end of the bar to count from: the nearer one, since the walk
+        // costs `span` presses to reach an end plus the distance back. Up
+        // clamps `colour_cur` to 0 (misc.c:378), which is the first colour.
+        const fromTop = i <= (n - 1) / 2
         return {
           button,
           ...(labelled ? { label: String.fromCharCode(button) } : {}),
           slot: COL_1 + i,
           ink: COL_FRAME,
           value: i + 1,
+          aims: {
+            home: fromTop ? 'ArrowUp' : 'ArrowDown',
+            step: fromTop ? 'ArrowDown' : 'ArrowUp',
+            span: n,
+            at: fromTop ? i : n - 1 - i,
+          },
         }
       }),
       ERASE,

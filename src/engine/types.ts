@@ -157,6 +157,35 @@ export interface KeyLabel {
    */
   behind?: { step: string; notAt?: readonly string[] }
   /**
+   * Walks the board's own selector onto this key's value before pressing it.
+   *
+   * Guess's alone, and it settles an argument the board was having with itself.
+   * Its colour bar draws a ring round whichever colour `ui->colour_cur` names,
+   * and `Enter` places that one — but a digit key places its own colour and
+   * never moves the ring (guess.c:940). Press 3 and then Enter and the second
+   * peg is the colour the ring still points at, not the one just pressed. On a
+   * keyboard that is invisible: the reader typed the 3. With a row of coloured
+   * buttons on screen there are two things answering "which colour is chosen"
+   * and they disagree.
+   *
+   * The ring cannot be read — `encode_ui` stores the pegs and the holds and not
+   * the cursor (guess.c:467) — but it does not have to be. `move_cursor` clamps
+   * rather than wraps when its `wrap` is false, which is what Guess passes
+   * (guess.c:928), so pressing one arrow `span` times pins the selector at that
+   * end from wherever it was, and `at` presses of the other walks it to a known
+   * place. Derived, like Cube's arrows, rather than remembered.
+   *
+   * Both ends are named because the nearer one is cheaper and which is nearer
+   * depends on the key: this is `span + at` presses, and `at` is the distance
+   * from whichever end `home` is.
+   *
+   * It fails safe if upstream ever passes `wrap = true`: the walk would land
+   * somewhere arbitrary, but the peg is still placed by the key's own digit, so
+   * the loss is the ring disagreeing again — the state this repairs — and never
+   * a peg of the wrong colour.
+   */
+  aims?: { home: string; step: string; span: number; at: number }
+  /**
    * Whose key this is, which is what tells the three looks apart.
    *
    * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a

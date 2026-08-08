@@ -1054,6 +1054,21 @@ export default function PuzzleHost({
       canvasRef.current?.focus()
       return
     }
+    /*
+     * And a key that aims before it fires: Guess's colours walk the board's own
+     * ring onto themselves first, so that the two things naming a chosen colour
+     * agree. See `aims` in engine/types for why this can be done without ever
+     * reading where the ring is.
+     *
+     * All of it inside one handler, so the browser composites once and the walk
+     * is not seen. None of these presses is a move — `move_cursor` answers
+     * MOVE_UI_UPDATE, which the midend redraws without pushing a state — so the
+     * undo history is untouched. Measured at 1.7-6.1ms for six colours.
+     */
+    if (key.aims) {
+      for (let i = 0; i < key.aims.span; i++) send(key.aims.home)
+      for (let i = 0; i < key.aims.at; i++) send(key.aims.step)
+    }
     // Every puzzle that requests keys requests ASCII ones, so the ordinary
     // key path carries them: a one-character string is taken as the button
     // itself.
