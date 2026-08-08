@@ -9,7 +9,24 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { keysFor, READS_PREFS } from './engine/keys'
+import {
+  cursorKeys,
+  faceOf,
+  inMenu,
+  HOLD_BUTTON,
+  keysFor,
+  offersKeys,
+  movesEightWays,
+  opener,
+  opens,
+  READS_PREFS,
+  readsArrows,
+  shovesTiles,
+  wakesCursor,
+  wouldSend,
+} from './engine/keys'
+import type { KeyLabels } from './engine/keys'
+import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import {
   clearSave,
@@ -32,6 +49,8 @@ import type {
 } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
+import { toggleArrows, useArrows } from './useArrows'
+import { toggleKeys, useKeys } from './useKeys'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -72,9 +91,63 @@ const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
   blank: clearMarks,
 }
 
+/** DOM_KEY_LOCATION_NUMPAD, which is how emcc.c is told to set MOD_NUM_KEYPAD. */
+const NUMPAD = 3
+
+/**
+ * The four arrow keys, in the order they are written into the block: the top of
+ * the cross first, then the row under it left to right.
+ *
+ * The name is what goes across the boundary, not the code: emcc.c reads the
+ * `key` string and matches "ArrowUp" and its three neighbours by name before it
+ * ever looks at a key code, so these reach `midend_process_key` as CURSOR_UP
+ * and the rest exactly as a real keyboard's would. Nothing about the press
+ * being made with a thumb is visible on the far side.
+ */
+const ARROWS = [
+  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp', shove: 'pushUp' },
+  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft', shove: 'pushLeft' },
+  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown', shove: 'pushDown' },
+  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight', shove: 'pushRight' },
+] as const
+
+/**
+ * And the four corners, for the puzzle that has somewhere to go in them.
+ *
+ * These have no key of their own to be named by. Upstream reads them as digits
+ * carrying `MOD_NUM_KEYPAD` — the corners of a numeric keypad, which is where
+ * they sit under a hand — so what goes across is the digit and the claim that
+ * it came from the keypad, which is what `where` is. A plain `7` would be the
+ * digit seven and would mean nothing to Inertia at all.
+ *
+ * The digits are the keypad's own geometry and not a code: 7 is up and left of
+ * 5, and it is up and left that it means.
+ */
+const DIAGONALS = [
+  { dir: 'upLeft', key: '7', where: NUMPAD, icon: 'arrowUpLeft' },
+  { dir: 'upRight', key: '9', where: NUMPAD, icon: 'arrowUpRight' },
+  { dir: 'downLeft', key: '1', where: NUMPAD, icon: 'arrowDownLeft' },
+  { dir: 'downRight', key: '3', where: NUMPAD, icon: 'arrowDownRight' },
+] as const
+
+/**
+ * What the stylesheet calls each cursor key, by where it sits in the list.
+ *
+ * Positions rather than names, because where they go is a layout question and
+ * two puzzles can spend the same position on different jobs. Three is the most
+ * any puzzle asks for; a fourth would need a row of its own and a decision
+ * about what the cross does under it, so it is left to arrive rather than
+ * guessed at.
+ */
+const ACT = ['first', 'second', 'third'] as const
+
+
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
+
+/** Shared, so that "this puzzle paints no keys" is one object and not forty. */
+const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
 
 /**
  * Which of the two configurations a sheet is showing without a dialog: the
@@ -147,6 +220,42 @@ export default function PuzzleHost({
   const [standard, setStandard] = useState<number | null>(null)
   const [canSolve, setCanSolve] = useState(true)
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
+  /**
+   * And what the two cursor keys would do, from the same notice. Only the
+   * buttons beside the arrows read it, to stand down when there is nothing
+   * where the cursor is for them to do — see doesNothing.
+   *
+   * Empty to begin with, which is the right answer rather than a placeholder:
+   * every puzzle reports both keys during start-up, and the ones that report
+   * nothing are the ones whose cursor has not been woken yet.
+   */
+  const [labels, setLabels] = useState<KeyLabels>({ enter: '', space: '' })
+  /**
+   * Whether the cursor is on screen — for the six puzzles whose labels do not
+   * say, and only for them. See CURSOR_LIFE, which is where the rules live and
+   * where the case for keeping a copy of anything is argued. Six games need it,
+   * but this is one boolean rather than six: only one puzzle runs at a time,
+   * and the other thirty-three simply never read it.
+   *
+   * The only value in this file the back end does not hand us. It is a single
+   * bit and it is not the position: where the cursor is stays unreachable.
+   */
+  const [awake, setAwake] = useState(false)
+  /**
+   * And which key opened Rectangles' drag, for the one state where its two keys
+   * report the same word and the pair needs them apart. See `opener`, which
+   * corrects this from the labels the moment they can say.
+   */
+  const [opened, setOpened] = useState<string | null>(null)
+  /*
+   * The same two words again, in a ref, because one caller cannot wait for a
+   * render: the arrow that has just walked Sixteen's cursor off the board needs
+   * undoing in the same turn, and `post_move` has already reported the new
+   * labels by the time `api.key` returns while React has not rendered anything.
+   * Measured — the button's `disabled` attribute is still the old one at that
+   * instant. Written in the same breath as the state, never separately.
+   */
+  const labelsRef = useRef<KeyLabels>({ enter: '', space: '' })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   /**
@@ -154,6 +263,22 @@ export default function PuzzleHost({
    * reads them, and only one puzzle's keypad does — see READS_PREFS.
    */
   const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
+  /*
+   * Whether this puzzle is showing the four arrows, and whether it is even
+   * allowed to be asked. Null for Loopy, which reads no cursor key — see
+   * `readsArrows`; everywhere else it is the reader's own answer, off until
+   * they say otherwise.
+   */
+  const chosen = useArrows()
+  const asked = useKeys()
+  const arrows = readsArrows(name) ? chosen.has(name) : null
+  /**
+   * And whether this puzzle's ordinary keys are showing, on the one puzzle
+   * where they are a shortcut rather than the way in. Null for every other
+   * puzzle, and null is not false, exactly as above: false is an offer
+   * declined, null is no offer to make.
+   */
+  const ownKeys = offersKeys(name) ? asked.has(name) : null
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -163,6 +288,15 @@ export default function PuzzleHost({
    * engine/marks.
    */
   const [left, setLeft] = useState<Map<number, number> | null>(null)
+  /**
+   * And which of the four arrows would move Cube's solid, for the one puzzle
+   * where an arrow can be dead without the board saying so — see engine/cube.
+   *
+   * Null means "do not answer", which is what every other puzzle gets and what
+   * this one got before: all four live. It is not the empty set, which would
+   * mean the solid is stuck and cannot be.
+   */
+  const [rolling, setRolls] = useState<Set<string> | null>(null)
   // A message from the back end, or the sentinel for the one failure that is
   // ours to describe. Kept as a sentinel rather than as the sentence itself so
   // that it is still in the reader's language if they change it afterwards.
@@ -300,6 +434,22 @@ export default function PuzzleHost({
   }, [])
 
   /*
+   * And which arrows Cube's solid could roll along, from the same notice and
+   * for the same reason: it has to be right before the reader has pressed
+   * anything, because the first press is exactly where a control that ignores
+   * a third of them does its damage.
+   *
+   * Null everywhere else, and null here too for a board this side cannot read —
+   * see rolls(), where refusing means leaving all four live. Reading the save
+   * on every change is what the two above already do; this is a third read of
+   * the same string.
+   */
+  const readRolls = useCallback(() => {
+    const api = apiRef.current
+    setRolls(name === 'cube' && api ? rolls(api.saveGame()) : null)
+  }, [name])
+
+  /*
    * This is now the game to come back to, from the moment it is opened — and
    * the one the gallery marks, which is the same fact stored once. What the
    * gallery drops on arrival is the flag beside it, not the name.
@@ -421,6 +571,7 @@ export default function PuzzleHost({
            * press their way out of.
            */
           countLeft()
+          readRolls()
         },
         onError: (message) => {
           if (restoring.current) {
@@ -444,11 +595,35 @@ export default function PuzzleHost({
           // these to stay current.
           queueSave()
           countLeft()
+          readRolls()
         },
-        onKeyLabels: () => {},
+        // Both keys, every move, named in the order emcc.c asks for them:
+        // CURSOR_SELECT2 first. Turned round here so that the rest of this file
+        // can say `enter` and `space` and mean the keys the buttons send.
+        onKeyLabels: (space, enter) => {
+          labelsRef.current = { enter, space }
+          setOpened((was) => opener(name, { enter, space }, was))
+          setLabels({ enter, space })
+        },
         onPermalinks: (desc, seed) => {
           setPermalink({ desc, seed })
           queueSave()
+          /*
+           * And the cursor is gone, for the puzzle that keeps one here.
+           *
+           * This is the back end announcing that it rebuilt its `game_ui`, not
+           * us listing the ways to make it: `game_id_change_notify` fires from
+           * `midend_new_game` (midend.c:664) and `midend_deserialise` (2722),
+           * which are the only two places `new_ui` runs, and both are five
+           * lines from it. So a new game, a preset, a typed game id or seed, a
+           * restored save and the marks keys are all covered by one line, and
+           * an eighth way to deal a board would be too.
+           *
+           * `midend_supersede_game_desc` fires it as well and does not rebuild
+           * the ui — Mines' first click. Harmless twice over: that press has
+           * already put the cursor away, and Mines keeps none here.
+           */
+          setAwake(false)
         },
         onPresetSelected: (index) => {
           setStandard((first) => first ?? index)
@@ -519,10 +694,14 @@ export default function PuzzleHost({
    * arriving. And, for the one puzzle that draws its pieces two ways, the
    * preferences — see READS_PREFS in keys.ts.
    */
-  const keys = useMemo(
-    () => (permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []),
-    [name, permalink, prefs],
-  )
+  const keys = useMemo(() => {
+    const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
+    // And, where the board can already do what they do, only if asked. What
+    // goes is the keys with no `whose` — the ones that put something in a
+    // square, which is the same set a finger reaches by touching the square.
+    // See offersKeys for why the list is one name long.
+    return offersKeys(name) && !ownKeys ? all.filter((k) => k.whose) : all
+  }, [name, ownKeys, permalink, prefs])
 
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
@@ -533,7 +712,7 @@ export default function PuzzleHost({
     ready,
     permalink?.desc.split(':')[0] ?? '',
   )
-  const pointer = usePuzzlePointer(apiRef, rendererRef)
+  const pointer = usePuzzlePointer(apiRef, rendererRef, HOLD_BUTTON[name])
 
   /*
    * Turn the board over with the rest of the page. The back end is not
@@ -550,6 +729,33 @@ export default function PuzzleHost({
     // works out differs from the one already set, and here it will not.
     apiRef.current?.rescale()
   }, [theme, ready])
+
+  /*
+   * The board colours the keypad is painting keys out of — Guess's pegs, and
+   * nothing else so far. See `slot` on KeyLabel.
+   *
+   * An effect rather than a memo, and written after the one above rather than
+   * before it, both for the same reason: on a theme change it is that effect
+   * that turns the renderer's table over. Memos run during render and effects
+   * after it, in the order they are declared, so this is the first moment the
+   * new colours exist. As a memo it would have painted the last theme's pegs
+   * and had no reason to run again.
+   */
+  const [swatches, setSwatches] = useState<ReadonlyMap<number, string>>(NO_SWATCHES)
+  useEffect(() => {
+    const renderer = rendererRef.current
+    if (!renderer || !ready) return
+    const next = new Map<number, string>()
+    for (const key of keys)
+      for (const slot of [key.slot, key.ink]) {
+        if (slot === undefined) continue
+        const css = renderer.colour(slot)
+        if (css) next.set(slot, css)
+      }
+    // Thirty-nine puzzles ask for none, and handing them a fresh empty map
+    // every time the keypad changes would be a second render for nothing.
+    setSwatches((was) => (was.size === 0 && next.size === 0 ? was : next))
+  }, [keys, theme, ready])
 
   /** A dialog is modal to the game; the C side is waiting for its answer. */
   const act = useCallback(
@@ -698,6 +904,11 @@ export default function PuzzleHost({
     const api = apiRef.current
     if (!api) return
     acted()
+    // Unmodified, because Net's arrows carry the origin and the source under
+    // Shift and Ctrl and leave the cursor where it was. See CURSOR_LIFE.
+    const plain = !e.shiftKey && !e.ctrlKey
+    if (plain && wakesCursor(name, e.key)) setAwake(true)
+    if (plain && opens(name, e.key, labelsRef.current)) setOpened(e.key)
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
     // Some of what the board takes changes a preference — undead's `a` — and
@@ -805,15 +1016,99 @@ export default function PuzzleHost({
       return
     }
     acted()
+    const send = (sent: string, code = 0) => {
+      // A keypad key can show the cursor, on the one puzzle where the two
+      // blocks overlap: every one of Guess's keys acts where the cursor is, and
+      // even `H` reveals it on the hinter's way past (guess.c:799). Without
+      // this the mirror would sleep through a press the back end acted on, and
+      // the two keys beside the arrows would sit grey next to a cursor the
+      // board is drawing. See CURSOR_LIFE.
+      if (wakesCursor(name, sent)) setAwake(true)
+      return api.key(code, sent, '', 0, 0, 0)
+    }
+    /*
+     * A key that erases backwards, which takes two presses to say — see
+     * `behind` in engine/types for what it means and keys.ts for who asks.
+     *
+     * It rests on the one piece of news the back end sends back other than the
+     * two labels: `key()` returns false when a press was understood and came
+     * to nothing, and it does that for exactly one key — the one spelled
+     * `Backspace`, a KaiOS accommodation at emcc.c:456. So this is sent under
+     * that name rather than as its character, and the midend folds 8, 127 and
+     * `\b` into the same button anyway (midend.c:1261). Measured on Guess: the
+     * call answers false on an empty cell with the cursor showing and true on
+     * a full one, which is exactly the question being asked.
+     *
+     * Two presses at most. Stepping until something gives would walk the whole
+     * row on a press that should have done nothing.
+     */
+    if (key.behind) {
+      const back = () => send('Backspace', 8)
+      if (key.behind.notAt?.includes(labelsRef.current.enter)) {
+        send(key.behind.step)
+        back()
+      } else if (!back()) {
+        send(key.behind.step)
+        back()
+      }
+      canvasRef.current?.focus()
+      return
+    }
+    /*
+     * And a key that aims before it fires: Guess's colours walk the board's own
+     * ring onto themselves first, so that the two things naming a chosen colour
+     * agree. See `aims` in engine/types for why this can be done without ever
+     * reading where the ring is.
+     *
+     * All of it inside one handler, so the browser composites once and the walk
+     * is not seen. None of these presses is a move — `move_cursor` answers
+     * MOVE_UI_UPDATE, which the midend redraws without pushing a state — so the
+     * undo history is untouched. Measured at 1.7-6.1ms for six colours.
+     */
+    if (key.aims) {
+      for (let i = 0; i < key.aims.span; i++) send(key.aims.home)
+      for (let i = 0; i < key.aims.at; i++) send(key.aims.step)
+    }
     // Every puzzle that requests keys requests ASCII ones, so the ordinary
     // key path carries them: a one-character string is taken as the button
-    // itself, and the midend folds 8 and 127 together into backspace.
-    api.key(0, String.fromCharCode(key.button), '', 0, 0, 0)
+    // itself.
+    send(String.fromCharCode(key.button))
     canvasRef.current?.focus()
-  }, [acted, markAction])
+  }, [acted, markAction, name])
+
+  /*
+   * A key from the block around the arrows, sent as the keypress it is — the
+   * four directions, and the one or two beside them that act where the arrows
+   * have got to.
+   *
+   * The focus call is the whole reason this is not just `api.key`. Pressing a
+   * button moves focus to that button, and the board reads the keyboard from
+   * itself — so without this, one tap on an arrow would leave every *physical*
+   * arrow press going to a button that does nothing with it. Giving the board
+   * its focus back after each press is what lets the two be used in the same
+   * sitting, which on a laptop is exactly how they will be. Preventing the
+   * default on mousedown stops the focus leaving in the first place; both,
+   * because between them they also cover the case this feature exists for —
+   * a board that never had focus, because on a touch device nothing has.
+   */
+  const sendKey = useCallback((key: string, where = 0) => {
+    const api = apiRef.current
+    if (!api) return
+    acted()
+    // No modifiers ever go out from here, so a waking key always wakes.
+    if (wakesCursor(name, key)) setAwake(true)
+    if (opens(name, key, labelsRef.current)) setOpened(key)
+    api.key(0, key, '', where, 0, 0)
+    canvasRef.current?.focus()
+  }, [acted, name])
 
   return (
-    <div className="play" data-ready={ready}>
+    /* The flag goes here rather than on the row that grows, because two rows
+       answer to it: the four buttons pair off into a 2×2 to make room for the
+       cross beside them, and in the landscape rail the keys above go from three
+       across to six — which is exactly the width the 2×2 and the cross come to
+       together. See the arithmetic in index.css. */
+    <div className="play" data-ready={ready} data-arrows={arrows ? 'true' : undefined}>
       <header className="play-bar">
         {/* The name is the way to the other thirty-nine, and the only way off
             this screen. There is no back arrow because there is nothing behind
@@ -902,7 +1197,12 @@ export default function PuzzleHost({
         )}
         <canvas
           ref={canvasRef}
-          onPointerDownCapture={acted}
+          onPointerDownCapture={() => {
+            acted()
+            // A press on the board puts the cursor away, wherever it lands —
+            // net.c:2172 does it before it checks the press was on the grid.
+            setAwake(false)
+          }}
           className="host-board"
           tabIndex={0}
           onContextMenu={(e) => e.preventDefault()}
@@ -911,7 +1211,7 @@ export default function PuzzleHost({
         />
       </div>
 
-      <PuzzleKeypad keys={keys} left={left} onPress={pressKey} />
+      <PuzzleKeypad keys={keys} left={left} swatches={swatches} onPress={pressKey} />
 
       {/* Four, and each of them a glyph. Undo and Redo are the two arrows
           everything else in the world uses for the same thing; the grid and
@@ -920,71 +1220,222 @@ export default function PuzzleHost({
           reader's language — so the words come on a long press instead, the
           same way the keys above answer the same question. */}
       <nav className="play-actions">
-        <button
-          type="button"
-          aria-label={t.play.undo}
-          disabled={!undoRedo.undo}
-          {...holdToAsk(t.play.undo)}
-          onClick={() => {
-            if (wasHeld()) return
-            act((a) => a.undo())
-          }}
-        >
-          <Icon name="undo" />
-        </button>
-        <button
-          type="button"
-          aria-label={t.play.redo}
-          disabled={!undoRedo.redo}
-          {...holdToAsk(t.play.redo)}
-          onClick={() => {
-            if (wasHeld()) return
-            act((a) => a.redo())
-          }}
-        >
-          <Icon name="redo" />
-        </button>
-        {/* Its own way in, beside the menu rather than inside it: how big a
-            board you want is asked far more often than anything the menu
-            holds, and on some puzzles the list of answers is longer than the
-            menu itself. */}
-        {presets && (
+        {/* A group of their own, so the arrows can sit beside them as a second
+            one. In a row of four this changes nothing; once there is a cross to
+            its right it is what pairs them off two by two, and the order they
+            are written in is the order they fill it — undo and redo above, the
+            two that open something below. A puzzle whose back end offers no
+            presets has no Type, and then the lower row is Menu alone, on the
+            left, rather than a gap kept for a button that does not exist. */}
+        <div className="play-acts">
           <button
             type="button"
-            aria-label={t.types.title}
-            aria-haspopup="dialog"
-            aria-expanded={typesOpen}
-            {...holdToAsk(t.types.title)}
+            aria-label={t.play.undo}
+            disabled={!undoRedo.undo}
+            {...holdToAsk(t.play.undo)}
             onClick={() => {
               if (wasHeld()) return
-              closeMenu()
-              setTypesOpen(true)
+              act((a) => a.undo())
             }}
           >
-            <Icon name="type" />
+            <Icon name="undo" />
           </button>
+          <button
+            type="button"
+            aria-label={t.play.redo}
+            disabled={!undoRedo.redo}
+            {...holdToAsk(t.play.redo)}
+            onClick={() => {
+              if (wasHeld()) return
+              act((a) => a.redo())
+            }}
+          >
+            <Icon name="redo" />
+          </button>
+          {/* Its own way in, beside the menu rather than inside it: how big a
+              board you want is asked far more often than anything the menu
+              holds, and on some puzzles the list of answers is longer than the
+              menu itself. */}
+          {presets && (
+            <button
+              type="button"
+              aria-label={t.types.title}
+              aria-haspopup="dialog"
+              aria-expanded={typesOpen}
+              {...holdToAsk(t.types.title)}
+              onClick={() => {
+                if (wasHeld()) return
+                closeMenu()
+                setTypesOpen(true)
+              }}
+            >
+              <Icon name="type" />
+            </button>
+          )}
+          {/* The one press in this row the puzzle has never heard of: undo and
+              redo are the midend's own, the type list is its parameters, and
+              this opens a sheet that is entirely ours. So it takes the filled
+              step of the ladder the keypad already climbs — see index.css. */}
+          <button
+            type="button"
+            data-whose="ours"
+            aria-label={t.play.menu}
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            {...holdToAsk(t.play.menu)}
+            onClick={() => {
+              if (wasHeld()) return
+              closeTypes()
+              // Whatever the back end said about a typed id was said to a sheet
+              // that is no longer up. Opening a fresh one starts clean.
+              setTextError(null)
+              setMenuOpen(true)
+            }}
+          >
+            <Icon name="menu" />
+          </button>
+        </div>
+
+        {/*
+          The four the puzzle never asks for and almost always takes.
+
+          No hold tip, alone among the buttons on this screen, and that is
+          deliberate twice over. An arrow is the one glyph that needs no word —
+          it points — so there is nothing a tip would add; and an arrow is also
+          the one button here anybody would press by holding it down, which is
+          exactly the gesture a tip steals. Held keys still get their name, in
+          `aria-label`, where it is read out rather than shown.
+        */}
+        {arrows && (
+          <div
+            className="play-arrows"
+            /* Three rows instead of two, and the corners filled. Only Inertia
+               has anywhere to go in them — see movesEightWays, which is also
+               where the puzzle that looks like it should is written down. */
+            data-ways={movesEightWays(name) ? '8' : undefined}
+            /* And three rows the other way round: a full row of keys with the
+               cross under it, for the one puzzle whose keys are three. */
+            data-keys={cursorKeys(name, prefs).length === 3 ? '3' : undefined}
+            role="group"
+            aria-label={t.play.arrows.group}
+          >
+            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map((arrow) => {
+              // Sixteen's arrows have two jobs, and which one is running is
+              // invisible on its board — so they carry it here, glyph and name
+              // both. See shovesTiles; nowhere else does this fire.
+              const { dir, key, where } = arrow
+              // Narrowed to the four rather than tested as a boolean, so the
+              // shoving name is looked up under a direction that has one — the
+              // diagonals are Inertia's and never shove.
+              const shoving =
+                'shove' in arrow && shovesTiles(name, labels) ? arrow : null
+              const icon = shoving ? shoving.shove : arrow.icon
+              return (
+              <button
+                key={dir}
+                type="button"
+                data-dir={dir}
+                // Upstream's, every one of them: CURSOR_UP and its neighbours
+                // are keys the back end has always read and never offered a
+                // button for. Same step of the ladder as M, H and J above.
+                data-whose="upstream"
+                aria-label={shoving ? t.play.arrows.shove[shoving.dir] : t.play.arrows[dir]}
+                // Cube's, and no other puzzle's — see engine/cube for the line
+                // that keeps it there. A null answer leaves every arrow live,
+                // which is what the other thirty-nine get.
+                disabled={rolling ? !rolling.has(key) : undefined}
+                // Keep focus on the board, the same way the keypad does.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => sendKey(key, where)}
+              >
+                <Icon name={icon} />
+              </button>
+              )
+            })}
+
+            {/*
+              And what to do where the arrows have got to, in the two cells the
+              cross leaves empty either side of the up key. Nothing is wider or
+              taller for them — a cross is three across and its top row was
+              carrying one key.
+
+              These do get a hold tip, unlike the arrows above. A padlock is a
+              picture of a thing, not of an action: it says "lock" but not
+              "lock what", and in Net the answer — a tile you have finished
+              turning — is worth a word. Nobody holds one down to repeat it,
+              either, so there is no gesture for the tip to steal.
+
+              And they go out when the back end says they would do nothing,
+              which the arrows beside them do only in Cube. Not because an arrow
+              always has somewhere to go — it very often does not, and pressing
+              a cursor into the edge of any bounded grid is nothing at all — but
+              because everywhere else the board is already saying so: the cursor
+              is drawn, the edge is drawn, and a reader looking at the two knows
+              which way is shut. Cube is the one puzzle that hides its own
+              answer under the piece. See engine/cube.
+
+              Dimmed the same way Undo is, since it is the same sentence: the
+              button is still what it was, there is just nothing for it to do
+              yet.
+
+              Which key a press sends is `wouldSend`'s answer and not the one in
+              the table: a button named for a result asks which key reaches it
+              from where the cursor is, and that is not always the same key.
+            */}
+            {cursorKeys(name, prefs).map((cursor, i) => {
+              // The list is slots rather than buttons, and a slot is empty while
+              // its level is not the one running. Filtered here rather than
+              // before the map so `i` stays the slot's own number: the keys that
+              // are always there keep their places when a neighbour empties.
+              // See `level` in engine/keys.
+              if (!inMenu(name, cursor, labels, awake)) return null
+              // What the key is right now, which for two puzzles is not what it
+              // was a press ago: Sixteen's turn into the mode they have switched
+              // on, Rectangles' into Done and Cancel once a drag is open. See
+              // faceOf, and `faces` in keys.ts for why the back end decides it.
+              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
+              const said = t.play.cursor[says]
+              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
+              return (
+                <button
+                  // The key it sends, not the word it is showing: two of these
+                  // change face as the puzzle goes along, and Rectangles' pair
+                  // can be showing the *same* word — a drag that has been opened
+                  // and not moved says "Cancel" on both — so a face-derived key
+                  // would collide and React would keep a stale button.
+                  //
+                  // The result it is named for comes first, for the puzzle whose
+                  // three buttons are three colours: two of them fall back to
+                  // `Enter` and the key alone would no longer be unique.
+                  key={cursor.does ?? cursor.key}
+                  type="button"
+                  data-act={ACT[i]}
+                  // Enter and Space, which the back end reads as CURSOR_SELECT
+                  // and CURSOR_SELECT2 — upstream's keys like the arrows they
+                  // stand among, whatever each puzzle spends them on.
+                  data-whose="upstream"
+                  // Held down, where the face says so — for a mode the board
+                  // draws nowhere, and for a drag that is waiting to be closed.
+                  data-on={on || undefined}
+                  aria-pressed={cursor.faces ? !!on : undefined}
+                  aria-label={said}
+                  // Pattern's three stay lit even with nothing to send, which
+                  // the click below already handles by doing nothing. See `lit`
+                  // in engine/keys for the one puzzle this is right for.
+                  disabled={key === null && !cursor.lit}
+                  {...holdToAsk(said)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (wasHeld() || key === null) return
+                    sendKey(key)
+                  }}
+                >
+                  <Icon name={icon} />
+                </button>
+              )
+            })}
+          </div>
         )}
-        {/* The one in the row that opens something rather than doing something,
-            drawn in the accent to say so — the same distinction the keypad makes
-            between a key that fills a square and a key that acts on the board. */}
-        <button
-          type="button"
-          className="is-menu"
-          aria-label={t.play.menu}
-          aria-haspopup="dialog"
-          aria-expanded={menuOpen}
-          {...holdToAsk(t.play.menu)}
-          onClick={() => {
-            if (wasHeld()) return
-            closeTypes()
-            // Whatever the back end said about a typed id was said to a sheet
-            // that is no longer up. Opening a fresh one starts clean.
-            setTextError(null)
-            setMenuOpen(true)
-          }}
-        >
-          <Icon name="menu" />
-        </button>
       </nav>
 
       {/* Outside the row it belongs to, and it has to be: `.play-actions` is a
@@ -1089,6 +1540,10 @@ export default function PuzzleHost({
           permalink={permalink}
           prefs={inline?.kind === 'prefs' ? inline.spec : null}
           prefsError={inlineError}
+          arrows={arrows}
+          onToggleArrows={() => toggleArrows(name)}
+          ownKeys={ownKeys}
+          onToggleKeys={() => toggleKeys(name)}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           textError={textError}

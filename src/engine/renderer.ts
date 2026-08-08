@@ -102,15 +102,35 @@ export class CanvasRenderer {
     return m ? [+m[1] / 255, +m[2] / 255, +m[3] / 255] : null
   }
 
-  // --- frame ---------------------------------------------------------------
-
-  startDraw() {
+  /** The table actually drawn with, rebuilt if the board has turned over. */
+  private palette(): string[] {
     if (this.repalette) {
       this.colours = this.dark
         ? forDarkBoard(this.named, this.game)
         : this.named.slice()
       this.repalette = false
     }
+    return this.colours
+  }
+
+  /**
+   * What the board is drawing colour `n` in, or undefined for a number the
+   * back end never named.
+   *
+   * One caller, outside every drawing path: a key that is a picture of a board
+   * colour rather than of a glyph — Guess's pegs. Asking the renderer rather
+   * than keeping a table of the game's constants on this side is the whole
+   * point of it being here, since half of what makes that colour is the dark
+   * rewrite above, which nothing else can reproduce.
+   */
+  colour(n: number): string | undefined {
+    return this.palette()[n]
+  }
+
+  // --- frame ---------------------------------------------------------------
+
+  startDraw() {
+    this.palette()
     this.dirty = null
   }
 

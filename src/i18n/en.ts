@@ -97,6 +97,301 @@ export const en = {
     switcher: 'All puzzles',
     keypad: 'Puzzle keys',
     error: 'Something went wrong starting this puzzle.',
+    /**
+     * The four that move the board's own cursor, for the reader who asked for
+     * them. Named as what they are and not as what they do, because what they
+     * do is each puzzle's own answer — in Cube the arrow rolls the cube, in
+     * Fifteen it slides a tile, in Sixteen it walks the rim — and a name that
+     * tried to cover all thirty-nine would say nothing about any of them.
+     */
+    arrows: {
+      group: 'Arrow keys',
+      up: 'Up',
+      down: 'Down',
+      left: 'Left',
+      right: 'Right',
+      /**
+       * And the corners, for the one puzzle that has them. Named as compounds
+       * of the four above rather than as compass points: a reader who has just
+       * read "Up" and "Left" off the two keys beside this one should not have
+       * to work out that "north-west" is the same idea again.
+       */
+      upLeft: 'Up and left',
+      upRight: 'Up and right',
+      downLeft: 'Down and left',
+      downRight: 'Down and right',
+      /* And what the same four are called while Sixteen has a lock on and
+         they are playing rather than pointing. See shovesTiles. */
+      shove: {
+        up: 'Push up',
+        down: 'Push down',
+        left: 'Push left',
+        right: 'Push right',
+      },
+    },
+    /**
+     * And the keys that act where the arrows have got to, which is what makes
+     * moving a cursor worth doing. Named per puzzle — see CURSOR_KEYS — because
+     * what Enter does is the puzzle's own answer.
+     *
+     * These say the word on a long press where the arrows do not. An arrow
+     * points, so it needs no gloss; a padlock says "lock" but not "lock what,
+     * in this puzzle", and Net's is a tile you have finished with.
+     */
+    cursor: {
+      rotateLeft: 'Rotate left',
+      lock: 'Lock or unlock',
+      /**
+       * Named as the switch rather than as either side of it, which upstream's
+       * own label is not: `current_key_label` says "Ink" when you are
+       * pencilling and "Pencil" when you are not, because it names where the
+       * press will take you. A word on a button that is only shown when the
+       * button is held cannot move like that, so it names the pair.
+       */
+      pencil: 'Switch between ink and pencil',
+      /**
+       * Pattern's three, which say what the picture says and nothing more.
+       *
+       * They named the whole cycle once — "Black, then white, then grey" —
+       * because upstream's two keys step round one and the square on the button
+       * was only the first press. There are three buttons now, one per colour,
+       * each of them the same colour for the whole game, so there is no second
+       * press left to describe. A tip that repeats the picture would be worth
+       * removing if these were the only ones; they are not, and a row where some
+       * buttons answer a long press and others ignore it is worse than a short
+       * answer.
+       */
+      black: 'Black',
+      white: 'White',
+      grey: 'Grey',
+      /**
+       * Sixteen's two, named for what the arrows will do next rather than for
+       * the mode being switched on, because the mode is not a thing the reader
+       * can see — Sixteen never draws it. Upstream's own soft-key words are
+       * "Lock tile" and "Lock pos", which say what is being held rather than
+       * what that buys, and a reader holding the button down is asking the
+       * second question.
+       *
+       * They differ in one clause and it is the whole difference, so the two
+       * lines are built to be read against each other.
+       */
+      carryTile: 'Arrows carry this tile along',
+      holdPlace: 'Arrows slide tiles past this square',
+      /**
+       * Twiddle's pair, in its chapter's words rather than in the back end's.
+       * `current_key_label` says "Turn left" and "Turn right", which are short
+       * because they are soft-key captions and ambiguous because turning left
+       * is not a direction of rotation in most people's hands. The manual says
+       * "rotate the current square anticlockwise or clockwise respectively",
+       * and a long press has room for the word that cannot be misread.
+       */
+      turnLeft: 'Turn anticlockwise',
+      turnRight: 'Turn clockwise',
+      /**
+       * Rectangles' four, which are two buttons through one flow rather than
+       * four keys. The first two open a drag and are named for what they will
+       * draw; the last two close one and are named for the press, because by
+       * then the rectangle is on the board in front of the reader and what is
+       * in question is only whether to keep it.
+       */
+      /**
+       * Netslide's one, in the words its chapter borrows from Sixteen's: "use
+       * the return key to move the row/column in the direction indicated". The
+       * direction is the board's to indicate — the cursor is sitting on the
+       * arrow that gives it — so this says which line moves and leaves which
+       * way to the highlighted arrow the reader is looking at.
+       */
+      slide: 'Slide this row or column',
+      /* And the same line the other way, which upstream's second key offers
+         from the same rim square — "Back" in its own label. Worded as the
+         reverse of the arrow rather than as a compass direction, for the
+         reason above: which way is the board's to say. */
+      /* Sixteen's rim pair, named for the highlighted arrow rather than for a
+         compass direction: upstream reports the same word on all four edges,
+         so which way it means is the board's to show and ours to refer to. */
+      pushLine: 'Push this line along the arrow',
+      pullLine: 'Pull this line back',
+      /**
+       * Mines' four, in its chapter's words. "Clear around" is the manual's own
+       * name for the second — "if you left-click in an uncovered square, it
+       * will clear around the square" — and it is worth the longer line, since
+       * it is the one press here that opens squares the reader did not point at.
+       *
+       * The flag says which direction it is going, where Net's padlock cannot:
+       * upstream reports "Mark" or "Unmark" from the square under the cursor,
+       * so this only repeats it. The picture stays the same either way.
+       */
+      /**
+       * Same Game's two, in its chapter's words. "Region" is the puzzle's own
+       * noun for a run of touching squares of one colour, and it is worth
+       * keeping: what is picked and removed is never a single square, which is
+       * exactly why a lone one cannot be selected at all — and why the button
+       * has nothing to say when the cursor is on one.
+       */
+      /**
+       * Flip's one, in its chapter's words: "flip it and its associated
+       * squares". "Associated" is doing real work there — which squares come
+       * along is a parameter, a cross on one setting and an arbitrary shape on
+       * the other — so the vaguer word is the accurate one.
+       */
+      /**
+       * Guess's three, in its chapter's words. "Hold" is the puzzle's own noun
+       * for the mark that carries a peg into the next guess, so it is kept as
+       * the verb; "submit" is not the manual's word — it says "mark the current
+       * guess" — but the back end's own label is "Submit", and a reader about to
+       * commit a finished row is better served by the shorter one.
+       */
+      /**
+       * Pegs' two, named for what the arrows will do rather than for the mode
+       * being switched on — Sixteen's pair are named the same way, and for the
+       * same reason: a reader holding the button down is asking what happens
+       * next, and what happens next is that the arrows stop walking.
+       *
+       * The second is upstream's own word. It could have been the first one
+       * again, the way Sixteen's are, but there the two faces describe one
+       * action and here they are two: arming and abandoning. "Cancel this jump"
+       * is the only line on this list that tells the reader a press undoes
+       * rather than does.
+       */
+      jump: 'Arrows jump this peg',
+      unjump: 'Cancel this jump',
+      /**
+       * Dominosa's four, in its chapter's words. "Line" is the manual's own
+       * noun — "a line between them, which you can use to remind yourself that
+       * you know those two numbers are not covered by a single domino" — and
+       * that sentence is why the second half is worth saying on the key: a bare
+       * "Draw a line" would be the one label here that names a drawing rather
+       * than a deduction.
+       */
+      /**
+       * Untangle's two. The first names the switch rather than either side of
+       * it, the way Net's padlock does and for the same reason — a press picks
+       * a point up as readily as it puts one down, and upstream's own sentence
+       * is "toggle dragging". This is also the one word here that has to carry
+       * its own weight: that back end reports nothing, so a long press is the
+       * only thing that will ever say what the button is for.
+       */
+      drag: 'Pick up or put down this point',
+      cycle: 'Go to the next point',
+      /**
+       * Black Box's six, in its chapter's words. "Lock a cell, row, or column"
+       * is upstream's own list and it is kept whole rather than split by where
+       * the cursor is: one key does all three, and which one it is doing is
+       * plain from what the cursor is standing on.
+       */
+      fire: 'Fire a laser from here',
+      ball: 'Guess a ball here',
+      unball: 'Take this guess off',
+      check: 'Check these guesses',
+      lockCell: 'Lock this cell, row or column',
+      unlockCell: 'Unlock this cell, row or column',
+      /**
+       * And the nine puzzles that put one of three or four things in a square,
+       * each in its own chapter's words. Slant's two are the characters the
+       * manual itself uses; Tents' "green" is the colour that chapter names,
+       * not a euphemism for "no tent"; Singles' circle and Range's dot are
+       * different marks in different puzzles and are kept apart on purpose.
+       *
+       * Every one of these names the *result* rather than the press, because
+       * that is what the back end reports and what the picture on the key
+       * shows.
+       */
+      backslash: 'Put a \\ here',
+      slash: 'Put a / here',
+      noLine: 'Leave this square blank',
+      light: 'Put a light here',
+      unlight: 'Take this light away',
+      cannot: 'Mark this square as unlit',
+      uncannot: 'Take this mark off',
+      tent: 'Pitch a tent here',
+      grass: 'Colour this green: no tent here',
+      clearSquare: 'Clear this square',
+      blackSquare: 'Colour this square black',
+      restore: 'Show the number again',
+      circle: 'Circle this: definitely not black',
+      uncircle: 'Take this circle off',
+      whiteSquare: 'Colour this square white',
+      emptySquare: 'Empty this square',
+      fillSquare: 'Paint this square black',
+      dotSquare: 'Dot this: definitely not black',
+      /**
+       * Magnets names its markers after what upstream draws on the domino, not
+       * after what they mean, because what they mean takes a sentence: a blank
+       * domino is a claim that neither half holds a pole, and the pair of
+       * question marks is the opposite claim. Both sentences are here.
+       */
+      plus: 'Put a + here',
+      minus: 'Put a − here',
+      blankDomino: 'Mark this domino as blank',
+      notBlankDomino: 'Mark this domino as not blank',
+      track: 'Lay track here',
+      noTrack: 'Cross this off: no track here',
+      /**
+       * Filling's two are about the selection rather than the board — the
+       * digits on its keypad are what fill squares, and these choose which
+       * squares they fill.
+       */
+      multiselect: 'Select squares with the arrows',
+      stopSelect: 'Stop selecting',
+      selectSquare: 'Add this square to the selection',
+      deselectSquare: 'Take this square out of the selection',
+      floodFill: 'Flood the corner with this colour',
+      advance: 'Play the solver’s next move',
+      /**
+       * Palisade's two name the switch rather than either side of it, the way
+       * Untangle's does and for the same reason: that back end reports nothing,
+       * so there is no word to follow and a press undoes as readily as it does.
+       */
+      edge: 'Draw or rub out this wall',
+      noEdge: 'Mark or unmark this as no wall',
+      /**
+       * The last five, whose keys open something and close it again. Each is in
+       * its chapter's words: Bridges' "finished" is what that manual calls an
+       * island you have done with, Map's "stipple" is its own verb for a colour
+       * you are not yet sure of, and Galaxies' "arrow" is the marker it drops in
+       * a square to say which dot owns it.
+       */
+      startBridge: 'Start a bridge from this island',
+      endBridge: 'Land the bridge here',
+      islandDone: 'Mark this island as finished',
+      linkFrom: 'Link this square to the next one',
+      linkTo: 'Link this square to the one before',
+      cancelLink: 'Drop this link',
+      startLoop: 'Start drawing the loop here',
+      endLoop: 'Stop drawing here',
+      cancelLoop: 'Drop what you were drawing',
+      newArrow: 'Pick up an arrow from this dot',
+      moveArrow: 'Pick this arrow up',
+      dropArrow: 'Drop the arrow here',
+      removeArrow: 'Throw this arrow away',
+      cancelArrow: 'Put the arrow back',
+      drawEdge: 'Draw an edge here',
+      clearEdge: 'Rub this edge out',
+      pickColour: 'Pick up the colour under the cursor',
+      fillRegion: 'Fill this region with it',
+      stippleRegion: 'Stipple this region: it might be that colour',
+      clearRegion: 'Clear this region',
+      cancelFill: 'Drop the colour you were carrying',
+      domino: 'Place a domino across these two',
+      undomino: 'Take this domino off',
+      line: 'Draw a line: no domino crosses here',
+      unline: 'Take this line off',
+      place: 'Place a peg of the chosen colour',
+      submit: 'Submit this guess',
+      hold: 'Hold this peg for the next guess',
+      flip: 'Flip this square and the ones tied to it',
+      select: 'Select this region',
+      remove: 'Remove the selected region',
+      unselect: 'Clear the selection',
+      uncover: 'Uncover this square',
+      chord: 'Clear around this square',
+      flag: 'Flag this as a mine',
+      unflag: 'Take the flag off',
+      mark: 'Draw a rectangle',
+      erase: 'Clear a rectangle, keeping its edges',
+      done: 'Finish here',
+      cancel: 'Cancel',
+    },
   },
 
   /**
@@ -149,6 +444,13 @@ export const en = {
     left: (digit: string, count: number) => `${digit}, ${count} left to place`,
     /** Dominosa: light up every domino carrying this number. */
     highlight: (n: string) => `Highlight dominoes with ${n}`,
+    /*
+     * Guess: put this colour where the cursor is. Named by its number because
+     * that is the only name it has — guess.c calls them COL_1 to COL_10 and
+     * offers to write those numbers on them, and the colours themselves are
+     * ten unnamed swatches rather than a palette anyone has agreed words for.
+     */
+    peg: (n: number) => `Colour ${n}`,
   },
 
   menu: {
@@ -157,6 +459,33 @@ export const en = {
     restart: 'Restart',
     solve: 'Solve',
     preferences: 'Preferences',
+    /**
+     * Ours, and the only rows in that section that are: everything above them
+     * comes out of the compiled back end and is in English whatever the reader
+     * has chosen. Last in the list for that reason as well as by request — the
+     * puzzle's own settings are what the heading promises, and these are the app
+     * adding two of its own underneath them.
+     */
+    arrows: 'Show arrow keys',
+    /**
+     * Named for Guess's own word rather than for the general rule, because
+     * Guess is the whole of the list that offers this — see `offersKeys`. The
+     * general rule is "the keys that put something in a square", which is true
+     * and says nothing to somebody looking at a row of coloured pegs. A second
+     * puzzle joining the list would want its own string, and a string is cheap.
+     *
+     * The erase key goes with them and is not named. It takes off what they put
+     * on, so a reader who has asked for one has asked for the other, and a
+     * label listing both would be longer than the row it describes.
+     *
+     * "Colour" lands a row under one of Guess's own preferences, "Label colours
+     * with numbers", and the repetition is accepted rather than missed. It is
+     * the puzzle's word for these pieces — its blurb says to drag a colour from
+     * the left — so any synonym would be this app inventing a name for
+     * something the manual has already named. The two rows still read apart:
+     * one labels what is on the board, the other puts keys under it.
+     */
+    keys: 'Show colour keys',
     gameId: 'Game ID',
     seed: 'Random seed',
   },

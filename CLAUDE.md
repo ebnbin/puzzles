@@ -116,6 +116,16 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 不在 `build-games.sh` 里,net/cube 的缩略图或画廊的样子变了要自己补跑。只有升级
 `vendor/sgtpuzzles`(见 `vendor/UPSTREAM`)或改构建参数时才需要 `build-games.sh`。
 
+还有一个不生成任何东西、只做检查的:
+
+```bash
+node scripts/check-cube.mjs       # src/engine/cube.ts 和引擎对不对得上,同样要 preview + playwright
+```
+
+`src/engine/cube.ts` 把上游的网格几何在这一侧重写了一遍(为了给 cube 滚不过去的那个方向置灰,
+理由见 `docs/keys.md`),所以**升级 `vendor/sgtpuzzles` 之后要跑它**。模型漂了会把能按的键灰掉,
+而那是唯一一种读者报不上来的故障:错灰的按钮和该灰的按钮长得一模一样。
+
 ## 架构
 
 ### 一条契约把 C 和 React 隔开
@@ -264,7 +274,10 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 ### 前端约定
 
 - **模块级 store + `useSyncExternalStore`**,不用 Context:主题(`useTheme`)、语言
-  (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、当前屏幕(`view.ts`)都是这个形状。
+  (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、要不要方向键(`useArrows`)、要不要那个游戏
+  自己的按键(`useKeys`)、当前屏幕(`view.ts`)都是这个形状。中间三个还共用一个更小的形状:
+  一组游戏名存在一个 key 下,presence 即真——四十个只会被一起问到的布尔值是一件事,不是四十
+  件。三份同形的 store 现在是三个文件,各自的注释才是它们的内容;要合成一个工厂也说得过去。
 - 主题和语言在 `index.html` 的内联脚本里先解析一次,避免首帧闪白/闪英文;改了那段就要
   同步改 `useTheme` / `i18n`(以及 `build-doc.mjs` 里给手册用的同一段)。
 - 设计 token 全在 `src/tokens.css`,`data-theme` 属性切换,样式表里没有 media query。
@@ -281,6 +294,9 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。Undead 是唯一一个
   光看 id 不够的:键面画怪物还是写字母得问偏好设置,所以它列在 `READS_PREFS` 里——
   `PuzzleHost` 见到这个名字,才会在偏好可能动过之后回去重读一遍。
+- **把「键盘上能做、触摸屏上做不到」的事补成按钮,是一件正在一个一个游戏做下去的事。**
+  每个游戏读哪些键、哪些已经有落点、还差什么,记在 **`docs/keys.md`**,判据和踩过的坑也在
+  那里。改到这一块就同步改它——那份文档没有脚本会替你更新。
 - **键盘上有三种键,画法不同**,分法是 `KeyLabel.aid`:不带这个字段的是往一个格子里放
   东西的普通键(数字、怪物、Clear);`'upstream'` 是后端自己就读、但从来没给过按钮的字母
   ——`M`、`H`、`J`,加上 Dominosa 那排高亮数字;`'ours'` 是后端根本不认识、由这一侧回答的
@@ -299,10 +315,11 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
 改之前先想清楚代价:
 
 - **localStorage 的 key**(`src/engine/saves.ts` 列全了,外加 `puzzles.theme`、
-  `puzzles.lang`、`puzzles.hidden`、`puzzles.prefs.<name>`)。改名字 = 用户的存档、
-  设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验 `SAVEFILE` 开头、
-  主题只认 `dark`、其余一律当 light 并写回 `light`、集合类过滤非字符串),所以**加**东西
-  是安全的,**改**和**删**不是。
+  `puzzles.lang`、`puzzles.hidden`、`puzzles.arrows`、`puzzles.keys`、
+  `puzzles.prefs.<name>`)。改名字 =
+  用户的存档、设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验
+  `SAVEFILE` 开头、主题只认 `dark`、其余一律当 light 并写回 `light`、集合类过滤非字符串),
+  所以**加**东西是安全的,**改**和**删**不是。
 
   「其余一律当 light」这条是**值**的语义改过一次而 key 没改的例子:主题曾经有第三档
   「跟随系统」,老用户存着 `system`。因为读的时候本来就容忍垃圾值,去掉那一档不需要动

@@ -1218,6 +1218,32 @@ p.notice-intro button:active {
  * --surface-2 clears 7:1 in both themes, which is more than a number this small
  * needs and about what it wants.
  */
+/*
+ * A key that is a picture of a board colour: Guess's pegs.
+ *
+ * A disc rather than the square the key already is, because it is a photograph
+ * of the board and the board draws a peg with `draw_circle`. 22px inside a 40px
+ * key — two more than the 20px a glyph gets, since a flat disc has no interior
+ * detail to lose and the colour is the whole message; the rim is the board's
+ * COL_FRAME, which is what keeps a pale peg off a pale key.
+ *
+ * The number, when the reader has asked for numbers, sits inside it exactly as
+ * it does on the board. 0.75rem is the largest that fits two digits — there are
+ * none, the tenth colour is drawn as 0 — and clears the rim at one digit.
+ */
+.key-peg {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
 .key-left {
   position: absolute;
   top: 2px;
@@ -1230,21 +1256,34 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* --- the three kinds of key --------------------------------------------
+/* --- the three kinds of press ------------------------------------------
  *
- * A ladder, and it climbs by how far a press reaches rather than by how much
- * anything matters:
+ * A ladder, spent on both rows along the foot of the board — the keys and the
+ * buttons under them — and it climbs by whose the press is:
  *
- *   1. Plain — a digit, a monster, clear. Acts on one square. `--text` on
- *      `--surface-2`, which is what every button in the app is.
- *   2. The accent — acts on the whole board. This is the step the reader has
- *      to notice, because it is the difference between the press you make
- *      forty times and the one you make once.
- *   3. The accent, filled — the same reach, and ours rather than the game's.
+ *   1. Plain — the ordinary press. A digit, a monster, clear; and below them
+ *      undo, redo and the type list, which are the midend's own commands
+ *      rather than keys at all. `--text` on `--surface-2`, which is what every
+ *      button in the app is.
+ *   2. The accent — a key the back end reads and has never offered a button
+ *      for, here only because a finger cannot type it. M, H and J on the
+ *      keypad; the four arrows and the two beside them below. This is the step
+ *      the reader has to notice, because it is the difference between the
+ *      press you make forty times and the one you make once.
+ *   3. The accent, filled — ours rather than the game's. The three answered
+ *      through the save file, and the menu, which is a sheet of this app's and
+ *      the one button down there the puzzle knows nothing about.
  *
- * The row is laid out in that order too (engine/keys.ts), so the ladder is
- * climbed left to right rather than described in one place and shuffled in
- * another.
+ * That the two rows agree is the point of doing it twice: a reader who has
+ * learnt the tint on the keypad reads the arrows below it without being told
+ * again. It also settles what the bottom row could never say before — the
+ * arrows are the game's keyboard and the menu is not, and until now both were
+ * simply buttons in a row.
+ *
+ * The keypad is laid out in that order too (engine/keys.ts), so up there the
+ * ladder is climbed left to right rather than described in one place and
+ * shuffled in another. The row below cannot be: its order is fixed by which
+ * button a thumb should find without looking.
  *
  * Which of the last two gets the filled step is the only real choice here, and
  * it went to ours for a reason about the row rather than about the keys: our
@@ -1266,22 +1305,48 @@ p.notice-intro button:active {
  * `--accent-soft` is spent once elsewhere, on the selected preset chip. Two
  * meanings for one tint, in two places that are never on screen together.
  */
-.keypad button[data-aid] {
+.keypad button[data-whose],
+.play-actions button[data-whose] {
   color: var(--accent);
 }
 
-.keypad button[data-aid='ours'] {
+/* Except when it has nothing to do, where the dim from further up wins. It has
+   to be said again rather than left to the cascade: the two selectors weigh the
+   same, and this block is the later one, so an accented key would have kept its
+   colour while disabled. Only the cursor keys can be both — see doesNothing. */
+.play-actions button[data-whose]:disabled {
+  color: var(--text-3);
+}
+
+/*
+ * And a cursor key that is a mode rather than a move, while its mode is on.
+ *
+ * The surface every button on this screen already goes to under a finger, which
+ * is the whole argument for it: these two are sticky modifiers — Sixteen's own
+ * chapter says Enter "simulates holding down Control" — so a key that looks
+ * held down is not a metaphor, it is what the key is. `--accent-soft` was the
+ * other candidate and is spoken for: it means "ours" one button along, and the
+ * menu is on screen at the same time.
+ */
+.play-actions button[data-on] {
+  background: var(--surface-3);
+}
+
+.keypad button[data-whose='ours'],
+.play-actions button[data-whose='ours'] {
   background: var(--accent-soft);
   color: var(--accent-soft-text);
 }
 
 @media (hover: hover) {
-  .keypad button[data-aid='ours']:hover {
+  .keypad button[data-whose='ours']:hover,
+  .play-actions button[data-whose='ours']:hover:not(:disabled) {
     background: var(--accent-soft-hover);
   }
 }
 
-.keypad button[data-aid='ours']:active {
+.keypad button[data-whose='ours']:active,
+.play-actions button[data-whose='ours']:active {
   background: var(--accent-soft-hover);
 }
 
@@ -1334,6 +1399,12 @@ p.notice-intro button:active {
   display: flex;
   flex: none;
   justify-content: center;
+  /* Along the bottom, not the middle: the two blocks are the same height until
+     Inertia makes its own three keys tall, and the four buttons should stay
+     where a thumb has learnt to find them rather than drift down half a key.
+     What grows is the top of the block, which is the end nothing is reaching
+     for. */
+  align-items: end;
   gap: var(--key-gap);
   width: 100%;
   max-width: 26rem;
@@ -1341,19 +1412,192 @@ p.notice-intro button:active {
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
-.play-actions button {
+/* The four themselves, which are a row until something needs to stand beside
+   them. Grouped rather than left as children of the row above so that the
+   arrows can be the second group; with nothing beside them the two rules come
+   to the same picture they always did. */
+.play-acts {
+  display: flex;
+  gap: var(--key-gap);
+}
+
+.play-acts button {
   flex: none;
   width: var(--act-w);
   height: var(--tap-w);
 }
 
-/* Everything else in this row acts on the board and can be greyed out when
-   there is nothing to act on; this one opens the rest of the puzzle and is never
-   unavailable. Drawn in the accent for the same reason the keypad's board-wide
-   keys are: a different kind of press, said in colour rather than in shape. */
-.play-actions .is-menu {
-  color: var(--accent);
+/*
+ * The four arrow keys, as the cross they are drawn as everywhere else.
+ *
+ * Three columns, two rows, and every one placed by the direction it points
+ * rather than by the order it was written in: a cross has a shape, and reading
+ * that shape off `nth-child` would mean the markup could not be reordered
+ * without the up key ending up on the left.
+ *
+ * Keys and not actions: each is exactly the square every puzzle key is, because
+ * that is what they are — a keyboard's four keys, offered to a device that has
+ * no keyboard.
+ */
+.play-arrows {
+  display: grid;
+  grid-template-columns: repeat(3, var(--tap-w));
+  gap: var(--key-gap);
 }
+
+.play-arrows button {
+  width: var(--tap-w);
+  height: var(--tap-w);
+}
+
+.play-arrows [data-dir='up'] {
+  grid-area: 1 / 2;
+}
+
+.play-arrows [data-dir='left'] {
+  grid-area: 2 / 1;
+}
+
+.play-arrows [data-dir='down'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows [data-dir='right'] {
+  grid-area: 2 / 3;
+}
+
+/*
+ * The two cells a cross leaves over, either side of the key at the top.
+ *
+ * They are what the arrows are for: something has to happen where the cursor
+ * stops. Placing them here rather than in a row of their own is the whole
+ * reason this costs nothing — the block is the same three keys across and two
+ * keys tall it was with only the arrows in it, so the landscape rail's width
+ * identity above is untouched.
+ *
+ * First on the left, second on the right, in the order engine/keys lists them:
+ * the left of a pair is read first, and the first is the one a puzzle is played
+ * with. A puzzle offering one key fills the left cell and leaves the right
+ * empty, which is a gap in a cross rather than a hole in a row.
+ */
+.play-arrows [data-act='first'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows [data-act='second'] {
+  grid-area: 1 / 3;
+}
+
+/*
+ * Three keys, and the cross moves down to make room for them.
+ *
+ * Pattern only, and the reason is that its three are one choice rather than
+ * three jobs: a square is black, white or grey, and any of the three is one
+ * press away from any other. Two buttons cannot say that. They can say it by
+ * changing face — which is what upstream's two keys do, and what this replaced
+ * — but a face that turns over on every press means the black button is no
+ * longer a place your thumb knows, and this is a puzzle played by painting long
+ * runs.
+ *
+ * So the block becomes the same three-by-three Inertia uses, filled the other
+ * way round: a full row of keys at the top, the cross beneath it. It is a key
+ * taller than the two-row form, which comes out of the board — the same trade
+ * `[data-ways='8']` makes above, for the same reason, and the width the
+ * landscape rail depends on is again untouched.
+ *
+ * Left to right in the order engine/keys lists them, which for Pattern is the
+ * order its own chapter names the colours in.
+ */
+.play-arrows[data-keys='3'] [data-act='first'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows[data-keys='3'] [data-act='second'] {
+  grid-area: 1 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-act='third'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-keys='3'] [data-dir='up'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-dir='left'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows[data-keys='3'] [data-dir='down'] {
+  grid-area: 3 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-dir='right'] {
+  grid-area: 3 / 3;
+}
+
+/*
+ * Eight ways out of a square rather than four, which is Inertia and nothing
+ * else — see movesEightWays.
+ *
+ * The cross becomes the full three by three it was always a piece of: the four
+ * corners fill in, and down drops out of the middle to the foot, where it
+ * belongs once there is a row under it. Nothing sits in the centre. A key there
+ * would have to mean "stay", and a ball that rolls until it hits something has
+ * no such move.
+ *
+ * The block is no wider — still three keys — so the landscape rail's width is
+ * untouched. It is a key taller, and that comes out of the board, which is the
+ * trade this puzzle has no way around: half its directions were unreachable
+ * without a numeric keypad.
+ *
+ * The two cells either side of the up key are the corners now, so a puzzle
+ * wanting both these and a pair of cursor keys would have nowhere to put them.
+ * None does: Inertia has no cursor to act at. If one ever arrives, this is the
+ * collision to expect.
+ */
+.play-arrows[data-ways='8'] [data-dir='down'] {
+  grid-area: 3 / 2;
+}
+
+.play-arrows[data-ways='8'] [data-dir='upLeft'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='upRight'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-ways='8'] [data-dir='downLeft'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='downRight'] {
+  grid-area: 3 / 3;
+}
+
+/*
+ * With a cross beside them the four buttons pair off, and the row becomes two.
+ *
+ * Written in the order they are read — undo and redo above, the two that open
+ * something below — which is what the grid gives for free by filling rows
+ * first. Nothing is kept for a Type button that is not there: a puzzle whose
+ * back end offers no presets simply has Menu at the start of the second row.
+ *
+ * The height this costs comes out of the board, which refits itself: the area
+ * the board sits in is watched by a ResizeObserver (usePuzzleFit), so turning
+ * the arrows on and off is a resize like any other.
+ */
+.play[data-arrows='true'] .play-acts {
+  display: grid;
+  grid-template-columns: repeat(2, var(--act-w));
+}
+
+/* The menu used to be the one button in this row drawn differently, in the
+   accent, on the grounds that it opens something rather than doing something.
+   That reading survives and is now said in the same three steps the keypad
+   uses — it takes the filled one, as the only press down here the puzzle has
+   never heard of. See the ladder above; there is no rule of its own left. */
 
 /* --- the menu, over the board rather than under it --- */
 
@@ -2157,19 +2401,47 @@ p.notice-intro button:active {
     padding: 0.3rem 0;
   }
 
+  /*
+   * Six across once the arrows are in, because six is what the row below now
+   * comes to. The identity is exact and is the reason for both numbers:
+   *
+   *   6 keys      6 × 2.5    + 5 × 0.25                = 16.25rem
+   *   2×2 + cross (2 × 3.875 + 3 × 2.5) + 4 × 0.25     = 16.25rem
+   *
+   * which is the same trick `--act-w` was defined for one width down, where
+   * two of those buttons span exactly three keys. The rail has one width at a
+   * time and every row in it fills that width; a row that came up short would
+   * read as a mistake rather than as a smaller row.
+   *
+   * All of it is width taken off the board, and in this layout that is the one
+   * cost there is no way to spread — the rail is beside the puzzle, not under
+   * it. Which is why this is a thing the reader asks for rather than a thing
+   * they are given.
+   */
+  .play[data-arrows='true'] .keypad {
+    max-width: calc(6 * var(--tap-w) + 5 * var(--key-gap));
+  }
+
   /* Two by two at the foot of the rail, each row exactly as wide as the
      keypad's three keys above. Four across would be a rail a third wider;
-     two rows cost height, which down here is the dimension going spare. */
+     two rows cost height, which down here is the dimension going spare.
+
+     Always paired off here, arrows or no arrows: the rail is narrow by design,
+     and the 2×2 is what makes it so. The portrait rule that pairs them is the
+     conditional one. */
   .play-actions {
     grid-area: 3 / 2 / 4 / 3;
-    display: grid;
-    grid-template-columns: repeat(2, var(--act-w));
     justify-self: center;
     width: max-content;
     max-width: none;
     margin: 0;
     gap: var(--key-gap);
     padding: 0.3rem 0;
+  }
+
+  .play-acts {
+    display: grid;
+    grid-template-columns: repeat(2, var(--act-w));
   }
 
   /*

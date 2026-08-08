@@ -113,8 +113,9 @@ export interface KeyLabel {
    * passes nine, so its `0` key places a 1. Only the puzzle that owns the
    * encoding can say, and keys.ts is where that lives.
    *
-   * Absent on a key that puts nothing in a square — every aid, and Dominosa's
-   * digits, which light dominoes up rather than filling anything in.
+   * Absent on a key that puts nothing in a square — everything with a `whose`,
+   * and Dominosa's digits, which light dominoes up rather than filling anything
+   * in.
    */
   value?: number
   /**
@@ -125,8 +126,67 @@ export interface KeyLabel {
    */
   icon?: KeyIcon
   /**
-   * Set on a key that acts on the whole board rather than on one square, and
-   * saying whose idea the key is.
+   * The board's own colour number this key is a picture of, and the number to
+   * draw its rim and its digit in — for the keys that put a colour rather than
+   * a symbol into a square. Guess's pegs are all of them.
+   *
+   * Numbers rather than colour strings, because the string is not knowable
+   * here: what the board draws with is the game's own palette put through the
+   * dark-board rewrite, and only the renderer holds the result. PuzzleHost
+   * looks these up and PuzzleKeypad paints them, so a swatch cannot agree with
+   * the board in one theme and disagree in the other.
+   *
+   * Which slot is which is the game's business, so it is stated in keys.ts
+   * beside the rule that builds these keys.
+   */
+  slot?: number
+  ink?: number
+  /**
+   * Turns a key that clears what is *under* the cursor into one that clears
+   * what is *behind* it, which is what a key drawn as a backspace has to mean.
+   *
+   * `step` is the arrow that means "behind". The press is tried where the
+   * cursor is first and the step only happens if it was wasted, so a reader
+   * who has walked the cursor onto something and pressed this still takes that
+   * one — the two readings only differ on an empty cell, where upstream's does
+   * nothing at all. `notAt` lists the labels at which the cursor is not on
+   * anything this key may touch, and there the step comes first instead.
+   *
+   * PuzzleHost is where this is carried out, and where the one back end
+   * message that makes it possible is written down.
+   */
+  behind?: { step: string; notAt?: readonly string[] }
+  /**
+   * Walks the board's own selector onto this key's value before pressing it.
+   *
+   * Guess's alone, and it settles an argument the board was having with itself.
+   * Its colour bar draws a ring round whichever colour `ui->colour_cur` names,
+   * and `Enter` places that one — but a digit key places its own colour and
+   * never moves the ring (guess.c:940). Press 3 and then Enter and the second
+   * peg is the colour the ring still points at, not the one just pressed. On a
+   * keyboard that is invisible: the reader typed the 3. With a row of coloured
+   * buttons on screen there are two things answering "which colour is chosen"
+   * and they disagree.
+   *
+   * The ring cannot be read — `encode_ui` stores the pegs and the holds and not
+   * the cursor (guess.c:467) — but it does not have to be. `move_cursor` clamps
+   * rather than wraps when its `wrap` is false, which is what Guess passes
+   * (guess.c:928), so pressing one arrow `span` times pins the selector at that
+   * end from wherever it was, and `at` presses of the other walks it to a known
+   * place. Derived, like Cube's arrows, rather than remembered.
+   *
+   * Both ends are named because the nearer one is cheaper and which is nearer
+   * depends on the key: this is `span + at` presses, and `at` is the distance
+   * from whichever end `home` is.
+   *
+   * It fails safe if upstream ever passes `wrap = true`: the walk would land
+   * somewhere arbitrary, but the peg is still placed by the key's own digit, so
+   * the loss is the ring disagreeing again — the state this repairs — and never
+   * a peg of the wrong colour.
+   */
+  aims?: { home: string; step: string; span: number; at: number }
+  /**
+   * Whose key this is, which is what tells the three looks apart.
    *
    * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a
    * letter the back end already reads and has never offered a button for — M,
@@ -135,11 +195,17 @@ export interface KeyLabel {
    * the save file; there are three, and engine/marks is all of them.
    *
    * It is three values rather than a flag because it is three things on the
-   * screen: the keypad draws each kind differently, and the reader is owed the
-   * difference between a key the game has always had and one this front end
-   * made up. See index.css, where the ladder is set out.
+   * screen, and the same three are now spent on the row of buttons below the
+   * keypad as well — see index.css, where the ladder is set out once for both.
+   *
+   * It was called `aid` while the keypad was the only place it applied, and
+   * that word meant "acts on the whole board rather than on one square". True
+   * of M and of H; false of an arrow key and false of the menu, both of which
+   * wear the same two looks down there. What is left once those arrived is the
+   * axis the two rows really share, which is whose the press is — and which
+   * this field was already sorting by.
    */
-  aid?: 'upstream' | 'ours'
+  whose?: 'upstream' | 'ours'
 }
 
 /** Everything the running game wants the interface to show. */

@@ -1,3 +1,4 @@
+import type { IconName } from '../Icon'
 import type { DialogControl, KeyLabel } from './types'
 
 /**
@@ -46,8 +47,13 @@ const MAX_SYMBOLS = 36
  *
  * The widest real keypad is Unequal's: solo.c stops at 31 symbols and
  * unequal.c at 32, so nothing legal comes anywhere near 36 + this.
+ *
+ * Named for what it counts rather than for what those keys are, because they
+ * are not one thing any more: of the six, clear is a plain key, M and H are
+ * upstream's and the last three are ours. It was `MAX_AIDS` while "aid" was
+ * the word for all of them — see `whose` in ./types, where that word ran out.
  */
-const MAX_AIDS = 6
+const MAX_EXTRAS = 6
 
 /**
  * `count` consecutive values, spelled the way the puzzles spell them: as
@@ -86,9 +92,9 @@ const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
  * fills marks the reader has spent the game crossing off. It is upstream's key,
  * with upstream's meaning and upstream's word for it, and it is back.
  */
-const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', aid: 'upstream' }
-const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', aid: 'upstream' }
-const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upstream' }
+const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', whose: 'upstream' }
+const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', whose: 'upstream' }
+const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', whose: 'upstream' }
 
 /**
  * And the three keys no puzzle reads, because they are not the puzzle's: work
@@ -102,9 +108,9 @@ const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', aid: 'upst
  * alternates and the third is the one they reach for rarely: it is how the first
  * is made to fill again rather than subtract.
  */
-const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', aid: 'ours' }
-const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', aid: 'ours' }
-const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', aid: 'ours' }
+const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', whose: 'ours' }
+const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', whose: 'ours' }
+const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', whose: 'ours' }
 
 /**
  * The parameter prefix of a game id — everything before the first colon. For
@@ -149,6 +155,23 @@ function preference(
   return null
 }
 
+/**
+ * Whether a boolean preference is on. False when the box on offer does not
+ * hold it at all, which is the same answer as off — a keypad drawn from a
+ * setting nobody has is the plain one.
+ *
+ * Matched on the label, which `preference` above goes out of its way not to
+ * do. There is no choice here: a boolean has no answers to match on, and the
+ * keyword never crosses the boundary. So this is the one place where a
+ * sentence rewritten upstream would quietly take a face off a key, rather than
+ * putting the wrong one on it.
+ */
+function flag(prefs: readonly DialogControl[], label: string): boolean {
+  for (const control of prefs)
+    if (control.kind === 'boolean' && control.label === label) return control.value
+  return false
+}
+
 /** undead.c's "Monster representation", by its two answers. */
 const MONSTERS = ['Pictures', 'Letters']
 
@@ -158,6 +181,37 @@ const UNDEAD = [
   { letter: 'V', icon: 'vampire' },
   { letter: 'Z', icon: 'zombie' },
 ] as const
+
+/**
+ * The two colour numbers Guess's keys are pictures of: the first peg colour,
+ * which the other nine follow, and the ink the board rims a peg and writes its
+ * digit in. Counted off the `COL_*` enum at guess.c:21-25, where COL_BACKGROUND
+ * is 0 — the same counting the back end reports its colours by.
+ */
+const COL_FRAME = 1
+const COL_1 = 6
+
+/** guess.c's own name for the setting that writes numbers on the pegs. */
+const LABELLED = 'Label colours with numbers'
+
+/**
+ * Clear, sent backwards: it takes the peg the cursor has just gone past rather
+ * than the empty place it is standing on.
+ *
+ * Upstream's key clears where the cursor is (guess.c:948), and a colour key
+ * moves the cursor on after placing (946) — so a reader who has just put four
+ * pegs down and wants the last one back finds the key does nothing, and has to
+ * press left first. That is not what a key drawn as a backspace means anywhere
+ * else, and the row of colour keys above it is a row of characters being typed.
+ *
+ * `notAt` is the one place the cursor can stand where this key must not be
+ * pressed at all. Past the last peg the label reads "Submit", and upstream's
+ * clear branch is the only one in that function that does not bound-check
+ * `peg_cur` first — it would read, and possibly write, one int past the row.
+ * So there the step comes first and the press lands on the last peg, which is
+ * what the reader meant anyway.
+ */
+const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft', notAt: ['Submit'] } }
 
 const RULES: Record<
   string,
@@ -236,6 +290,57 @@ const RULES: Record<
       BLANK,
     ]
   },
+  /*
+   * Guess's colour bar, as keys: one per colour, drawn as the peg it puts down
+   * where the cursor is.
+   *
+   * These are the one set here that draws itself from the board's palette
+   * rather than from a glyph or a character — see `slot`, and the renderer's
+   * `colour`. A digit would need the reader to have turned the labels on and
+   * learnt the numbering; a swatch is the thing they are already looking at.
+   *
+   * And when the labels *are* on, the key wears the number too, because the
+   * board does. Same trade as Undead's monsters: the key has to agree with the
+   * square it fills, and the setting that decides one decides the other. Which
+   * is why guess is the second name in READS_PREFS.
+   */
+  guess(p, prefs) {
+    const m = p.match(/^c(\d+)p\d+g\d+/)
+    if (!m) return null
+    const n = +m[1]
+    // guess.c:219-224: under two colours is not a puzzle, and ten is as many
+    // as game_colours defines.
+    if (n < 2 || n > 10) return null
+    const labelled = flag(prefs, LABELLED)
+    return [
+      ...Array.from({ length: n }, (_, i): KeyLabel => {
+        // guess.c:940 takes '1'..'9' and then '0' for the tenth, and draw_peg
+        // writes `'0' + col % 10` inside the peg — so the character the key
+        // sends and the character the board shows are the same one, and the
+        // tenth peg is labelled 0 on both.
+        const button = '0'.charCodeAt(0) + ((i + 1) % 10)
+        // Which end of the bar to count from: the nearer one, since the walk
+        // costs `span` presses to reach an end plus the distance back. Up
+        // clamps `colour_cur` to 0 (misc.c:378), which is the first colour.
+        const fromTop = i <= (n - 1) / 2
+        return {
+          button,
+          ...(labelled ? { label: String.fromCharCode(button) } : {}),
+          slot: COL_1 + i,
+          ink: COL_FRAME,
+          value: i + 1,
+          aims: {
+            home: fromTop ? 'ArrowUp' : 'ArrowDown',
+            step: fromTop ? 'ArrowDown' : 'ArrowUp',
+            span: n,
+            at: fromTop ? i : n - 1 - i,
+          },
+        }
+      }),
+      ERASE,
+      HINT,
+    ]
+  },
 
   // Nothing to put in a square — only the key that was out of reach.
   net: () => [JUMBLE],
@@ -243,7 +348,6 @@ const RULES: Record<
   bridges: () => [HINT],
   range: () => [HINT],
   pearl: () => [HINT],
-  guess: () => [HINT],
   // 0..n lights up every domino carrying that number, two at a time. The
   // parameter is the highest face, so a default board wants 0-6.
   //
@@ -255,7 +359,7 @@ const RULES: Record<
     if (n === null) return null
     return digits(n + 1, true).map(({ value: _, ...key }): KeyLabel => ({
       ...key,
-      aid: 'upstream',
+      whose: 'upstream',
     }))
   },
 }
@@ -264,8 +368,2188 @@ const RULES: Record<
  * Puzzles whose keypad is not settled by the game id alone. Everything else
  * here is worked out once per deal; these have to be worked out again whenever
  * a preference might have moved, which is what tells the host to go and look.
+ *
+ * Both are here for the same reason and answer it differently: the board draws
+ * a thing two ways, and the key that puts that thing down has to be drawn the
+ * way the board is. Undead's `a` moves the setting without touching the box,
+ * so the box is asked again after every press; Guess's `l` does the same
+ * (guess.c:825), which is why asking is on the key rather than on the box.
  */
-export const READS_PREFS = new Set(['undead'])
+export const READS_PREFS = new Set(['undead', 'guess', 'palisade'])
+
+/**
+ * The one puzzle that does not read the cursor keys.
+ *
+ * Everything above is about the keys a puzzle asks for. This is about the four
+ * it is never asked about and almost always takes: the arrows, which the
+ * midend hands over as CURSOR_UP and its three neighbours, and which
+ * thirty-nine of the forty do something with — move a cursor, roll a cube,
+ * slide a tile, walk the rim of the grid.
+ *
+ * Loopy is the exception, and it is an explicit one rather than an oversight.
+ * Its `interpret_move` switches on the three mouse buttons and returns NULL for
+ * everything else; the comment above that switch reads "I think it's only
+ * possible to play this game with mouse clicks, sorry". Its
+ * `game_get_cursor_location` is an empty function, because it has no cursor to
+ * report, and its chapter of the manual describes no keyboard control at all.
+ * Three independent ways of saying the same thing.
+ *
+ * Stated as the exception rather than as a list of thirty-nine because that is
+ * what it is: a puzzle added upstream will read the arrows unless it says
+ * otherwise, and the cost of being wrong here is small and self-correcting —
+ * four keys that do nothing, which the reader turns off again. That is the
+ * opposite of the bargain `keysFor` strikes below, where a misread id would put
+ * a *wrong* key on screen, and the answer is to show none.
+ */
+const NO_ARROWS = new Set(['loopy'])
+
+/** Whether this puzzle does anything at all with the arrow keys. */
+export const readsArrows = (name: string) => !NO_ARROWS.has(name)
+
+/**
+ * The puzzles whose ordinary keys are a shortcut rather than the only way in,
+ * and which are therefore worth offering as a switch.
+ *
+ * "Ordinary" is `whose` being absent — the keys that put something in a square.
+ * For nearly every puzzle those are the whole reason the keypad exists: nothing
+ * on a phone can type a digit into Solo or a monster into Undead, so taking
+ * them away would take the game away. Guess is the exception its own board
+ * makes. Every colour is on the bar it draws and can be dragged into a hole
+ * (guess.c:858), a peg comes off by being dragged out (guess.c:891), and the
+ * keypad's `⌫` is the same act; so the swatches save a drag rather than making
+ * one possible.
+ *
+ * Named as an offer and not as a behaviour, because the switch and the filter
+ * are two different questions. *Which* keys go is general — the ones with no
+ * `whose`, which is exactly the set a touch can reach by touching the square.
+ * *Whether to ask* is a judgement about one puzzle's board, and it is wrong for
+ * every other puzzle in the collection, which is why this is a list and not a
+ * rule. Each name earns its place by someone reading that game's mouse
+ * handling; guessing would strand a reader with no way to enter anything.
+ *
+ * `H` stays either way, and that is the line: it is `whose: 'upstream'`, and
+ * `compute_hint` hangs off 'h', 'H' and '?' alone (guess.c:929) with no mouse
+ * path anywhere. Hiding it would take back the one thing on that row a touch
+ * device cannot otherwise have — which is the thing this whole keypad is for.
+ */
+const OPTIONAL_KEYS = new Set(['guess'])
+
+/** Whether this puzzle offers the switch for its ordinary keys. */
+export const offersKeys = (name: string) => OPTIONAL_KEYS.has(name)
+
+/**
+ * The puzzle whose board has eight ways out of a square rather than four.
+ *
+ * Inertia's ball rolls until it hits something, and it rolls diagonally as
+ * readily as it rolls straight: `DX`/`DY` in inertia.c turn its eight
+ * directions into the eight unit steps, corners included. Four of those are the
+ * arrow keys and the other four have no key at all — upstream puts them on the
+ * corners of the numeric keypad, which is a device this app's readers largely
+ * do not have.
+ *
+ * So this is the one place the four arrows really are half a control, and the
+ * cross grows into a full three by three to hold the rest.
+ *
+ * Cube is the puzzle that looks like it belongs here and does not, which is
+ * worth writing down because reading the key handler alone says otherwise: it
+ * takes the same four numpad corners, but on its square grid all four are
+ * `0` — "no diagonals in a square", cube.c says — and on its triangular grids
+ * they are aliases, `UP_LEFT` wired to `LEFT` and both down diagonals to
+ * `DOWN` (cube.c:408-411, 453-456). A triangle has three exits, not eight.
+ * Measured over four presets and sixteen positions, no numpad corner in Cube
+ * ever reached a square one of the four arrows had not already reached.
+ */
+const EIGHT_WAY = new Set(['inertia'])
+
+/** Whether the four arrows are the whole of this puzzle's directions. */
+export const movesEightWays = (name: string) => EIGHT_WAY.has(name)
+
+/**
+ * A key that acts on the square the cursor is sitting on, offered beside the
+ * arrows because it is the half of them that does anything.
+ *
+ * Moving a cursor is not playing: something has to happen where it stops, and
+ * in almost every puzzle here that something is Enter or Space —
+ * `CURSOR_SELECT` and `CURSOR_SELECT2` once midend.c has translated them
+ * (midend.c:1255). Thirty-seven of the forty read the first and twenty-nine the
+ * second, so without them the arrows move a cursor that can never do anything,
+ * which is most of a keyboard's worth of play still out of reach on a phone.
+ *
+ * Sent by name rather than by code, the way the arrows are: emcc.c matches
+ * "Enter" and a bare space against the key string before it consults any key
+ * code, so these arrive as the same button a keyboard would produce.
+ */
+export type CursorKey = {
+  /** The key name, as emcc.c matches it: "Enter" or " ". */
+  key: string
+  icon: IconName
+  /** Which of the words under `play.cursor` this key is called. */
+  says: CursorWord
+  /**
+   * Upstream's own word for the thing this button is for, when the button is
+   * named for a result rather than for a press.
+   *
+   * With it, the button stops meaning "send this key" and starts meaning "get
+   * me this": it sends whichever of the two keys currently offers the word, and
+   * stands down when neither does, which is what already having it looks like.
+   * See `wouldSend`, and `WORDS` for the vocabulary that makes it safe.
+   */
+  does?: string
+  /**
+   * That this key is a place before it is a state, so it is never drawn dim.
+   *
+   * Dimming is the house rule and it is the right one nearly everywhere: a
+   * button that cannot act says so rather than swallowing the press. Pattern's
+   * three are the exception, and for a reason that only shows up in how it is
+   * played. A run of squares gets painted one colour in one sweep, and some of
+   * them are already that colour; a button that goes out part way through the
+   * sweep changes shape under a thumb that is not looking at it, which is worse
+   * than the press it saves.
+   *
+   * It is also the one place where a press with nothing to send is not a failed
+   * press. Asking for black on a square that is already black leaves it black —
+   * the postcondition holds, so the button did its job and has nothing to
+   * report. That is idempotent rather than inert, and it is why this exemption
+   * does not generalise: everywhere else a dead key means the reader wanted
+   * something they did not get.
+   */
+  lit?: boolean
+  /**
+   * That this slot is only in the menu while the puzzle's second level is open.
+   *
+   * Several puzzles are two levels rather than one: a press picks something out
+   * and leaves it pending — a region highlighted, a rectangle half-drawn — and
+   * only then are "confirm" and "abandon" things that exist. The row of keys is
+   * the menu of whichever level is running, and a level's menu does not list
+   * what belongs to the other one.
+   *
+   * Rectangles is two levels and needs no marking, which is the case worth
+   * understanding before adding more: its first level is Mark and Erase, its
+   * second is Done and Cancel, and those are the *same two buttons* wearing
+   * different faces. Nothing appears or leaves, so `faces` says all of it. Same
+   * Game's levels are one item and two — pick a region, then remove or unselect
+   * it — so its second key belongs to the second level alone, and at the first
+   * there is no selection for "cancel" to be about.
+   *
+   * That is the line between this and dimming, and both are needed. Dim says
+   * the action is in this menu and cannot run here — Same Game's "select" on a
+   * lone square, Rectangles' tick before the drag has moved. Absent says the
+   * action is not in this menu at all, because the thing it acts on does not
+   * exist yet. A dim button invites the reader to work out what would light it;
+   * for a cancel with nothing to cancel there is no answer to find.
+   *
+   * See `SECOND` for how the level is read, and `ACT` in PuzzleHost for why the
+   * slots keep their places when one of them empties.
+   */
+  level?: 2
+  /**
+   * Or, for a key that changes job as the puzzle goes along: a face per word
+   * its own key can report.
+   *
+   * `does` cannot describe these, because they are not a result to be asked
+   * for — they are the same key meaning different things at different moments,
+   * and the back end says which. Such a button always sends its own key, is
+   * live exactly while the word it is reporting is one of these, and wears the
+   * face filed under it.
+   *
+   * Two puzzles need it and they need it for opposite reasons. Sixteen's keys
+   * are modes, and the mode is invisible — `cur_mode` lives in its `game_ui`
+   * and never reaches `game_redraw` — so the button is the only place a reader
+   * can see it, which is what `on` is for. Rectangles' keys are a flow: "Mark"
+   * or "Erase" starts a drag, and mid-drag the same two become "Done" and
+   * "Cancel". Three words each, so a pair would not hold them.
+   */
+  faces?: Record<string, CursorFace>
+  /**
+   * That this key does its work somewhere other than where the cursor is, so
+   * the mirror in `CURSOR_LIFE` must not gate it.
+   *
+   * The mirror answers one question — is the cursor on screen — and greying a
+   * button while the answer is no is right only for a button that acts *at* the
+   * cursor. Flood's second key is the collection's one exception: `Advance`
+   * replays the solver's next move out of `state->soln` and never reads
+   * `ui->cx, ui->cy` (flood.c:855), so it is as meaningful on an untouched board
+   * as on a walked one. Upstream agrees and says so — its label appears the
+   * moment Solve is pressed, with no arrow in between.
+   *
+   * Measured before and after: press Solve on a fresh Flood board and the button
+   * sat disabled, wearing the same "Play the solver's next move" face it wears
+   * when live, until an arrow woke a cursor it had no use for. Which is the trap
+   * a disabled button always sets — the face is the resting one either way, so
+   * only `disabled` tells you, and only a test reads that.
+   */
+  offCursor?: boolean
+}
+
+/**
+ * What a key looks like and is called while it is reporting one particular
+ * word. `on` draws it as held down, for the modes that are otherwise invisible.
+ */
+export type CursorFace = {
+  icon: IconName
+  says: CursorWord
+  on?: boolean
+  /**
+   * Shown, but out: this is the button's job and it cannot do it yet.
+   *
+   * The alternative is to fall back to the resting face, which is what a button
+   * that is out normally wears — right when the face would otherwise be some
+   * *other* job's, wrong when the button has one job throughout and is merely
+   * waiting. Rectangles' finisher is the latter: a greyed tick says "this is
+   * where the rectangle gets finished, once there is one", and a greyed
+   * rectangle-outline would say it had gone back to being the draw key.
+   */
+  idle?: boolean
+}
+
+/** The words these keys can be called, so a missing translation is a type error. */
+export type CursorWord =
+  | 'rotateLeft'
+  | 'lock'
+  | 'pencil'
+  | 'black'
+  | 'white'
+  | 'grey'
+  | 'carryTile'
+  | 'holdPlace'
+  | 'turnLeft'
+  | 'turnRight'
+  | 'slide'
+  | 'pushLine'
+  | 'pullLine'
+  | 'jump'
+  | 'unjump'
+  | 'domino'
+  | 'undomino'
+  | 'line'
+  | 'unline'
+  | 'drag'
+  | 'cycle'
+  | 'fire'
+  | 'ball'
+  | 'unball'
+  | 'check'
+  | 'lockCell'
+  | 'unlockCell'
+  | 'slash'
+  | 'backslash'
+  | 'noLine'
+  | 'light'
+  | 'unlight'
+  | 'cannot'
+  | 'uncannot'
+  | 'tent'
+  | 'grass'
+  | 'clearSquare'
+  | 'blackSquare'
+  | 'restore'
+  | 'circle'
+  | 'uncircle'
+  | 'whiteSquare'
+  | 'emptySquare'
+  | 'fillSquare'
+  | 'dotSquare'
+  | 'plus'
+  | 'minus'
+  | 'blankDomino'
+  | 'notBlankDomino'
+  | 'track'
+  | 'noTrack'
+  | 'multiselect'
+  | 'stopSelect'
+  | 'selectSquare'
+  | 'deselectSquare'
+  | 'floodFill'
+  | 'advance'
+  | 'edge'
+  | 'noEdge'
+  | 'startBridge'
+  | 'endBridge'
+  | 'islandDone'
+  | 'linkFrom'
+  | 'linkTo'
+  | 'cancelLink'
+  | 'startLoop'
+  | 'endLoop'
+  | 'cancelLoop'
+  | 'newArrow'
+  | 'moveArrow'
+  | 'dropArrow'
+  | 'removeArrow'
+  | 'cancelArrow'
+  | 'drawEdge'
+  | 'clearEdge'
+  | 'pickColour'
+  | 'fillRegion'
+  | 'stippleRegion'
+  | 'clearRegion'
+  | 'cancelFill'
+  | 'place'
+  | 'submit'
+  | 'hold'
+  | 'flip'
+  | 'select'
+  | 'unselect'
+  | 'remove'
+  | 'uncover'
+  | 'chord'
+  | 'flag'
+  | 'unflag'
+  | 'mark'
+  | 'erase'
+  | 'done'
+  | 'cancel'
+
+/**
+ * What the back end says its two cursor keys would do, right now.
+ *
+ * `post_move` asks for both after every input event and pushes them out
+ * (emcc.c:310) — the same notice that carries undo and redo — and each puzzle
+ * answers from wherever its cursor is standing. Net says "Rotate" on a tile you
+ * can turn and nothing at all on one you have locked; Solo says "Pencil" only
+ * once a square is highlighted.
+ *
+ * This is the only thing this side ever learns about the cursor.
+ * `midend_get_cursor_location` exists and would say where it is, but emcc.c
+ * neither calls nor exports it, so the position is unreachable without changing
+ * the C. Two words about what the keys would do turn out to be enough for what
+ * the keys need, which is to know when to stand down.
+ *
+ * Named for the keys the buttons send rather than for upstream's `csk`/`lsk`,
+ * which are a phone's soft keys and not these.
+ */
+export type KeyLabels = {
+  enter: string
+  space: string
+  /**
+   * And, for the one puzzle whose two keys can be reporting the same word while
+   * meaning different jobs, which key opened the drag that is running.
+   *
+   * Rectangles' keyboard drag is finished by the key that started it and
+   * abandoned by the other (`erasing == ui->erasing`, rect.c:2511). Until the
+   * drag has moved, neither can finish, so `current_key_label` says "Cancel"
+   * twice — true of both, and silent about which is which. Two keys covering
+   * four states have nothing better to say; a pair of buttons wants to know,
+   * because it is what decides which of them is the finisher.
+   *
+   * Corrected by the labels rather than trusted: the moment the drag moves they
+   * name the finisher outright, and a wrong value is replaced then. Until then
+   * a wrong value costs nothing, since in that state both keys really do
+   * abandon — the button left standing does what it says either way.
+   */
+  opened?: string
+}
+
+/**
+ * The puzzles whose labels do not say whether the cursor is on screen, and the
+ * keys that put it there.
+ *
+ * This table is the one place in the app that keeps a copy of something the
+ * back end knows and will not tell us, so it is meant to stay nearly empty.
+ * Everything else here is derived: `keysFor` reads the game id, `wouldSend`
+ * reads the labels, `marks` replays the save file. A mirror can drift; a
+ * derivation cannot. Read the note in docs/keys.md before adding a second one.
+ *
+ * Why there has to be one at all, and why for exactly these six. Thirty-five
+ * puzzles implement `current_key_label`; twenty-eight of them open it with a
+ * check on their own visibility flag, so an empty pair of labels already means
+ * "no cursor" and this side has to keep nothing. Seven do not — the six here
+ * and Inertia, which drops out because it has no cursor to mirror: its
+ * `game_ui` holds five fields and not one of them is a coordinate.
+ *
+ * Net is the first of the six: it reads `tile(state, ui->cur_x, ui->cur_y)`
+ * unconditionally (net.c:2124), so on a board nobody has touched it reports
+ * `{Lock, Rotate}` about a tile the reader cannot see is selected — and its
+ * select key rotates *and* reveals in the same press (net.c:2330), unlike
+ * Pattern's, which reveals and returns. A live button that turns a tile you are
+ * not looking at is the thing being fixed.
+ *
+ * The rules, all four of them read out of the C:
+ *
+ *   - It starts hidden. `new_ui` sets the flag from `PUZZLES_SHOW_CURSOR`,
+ *     which no wasm build has.
+ *   - A press on the board hides it (net.c:2172), before any bounds check, so
+ *     a press outside the grid counts too.
+ *   - A key in this list shows it — arrows through `action = MOVE_CURSOR`
+ *     (net.c:2415), the rest through the select branch (net.c:2330). Modifiers
+ *     suppress the arrows: Shift and Ctrl turn them into `MOVE_ORIGIN` and
+ *     `MOVE_SOURCE`, which move something else and leave the flag alone.
+ *   - A rebuilt `game_ui` hides it — `midend_new_game` (midend.c:659) and
+ *     `midend_deserialise` (midend.c:2623). Restart does *not*: it keeps the
+ *     ui and only calls `changed_state` (midend.c:939), which Net leaves empty.
+ *
+ * Every input reaching `interpret_move` passes through this side — PuzzleHost's
+ * `onKeyDown` forwards each keystroke, `usePuzzlePointer` each board press, our
+ * own buttons go through `sendKey` — so the mirror sees everything it needs to.
+ *
+ * And it fails safe. Believing it hidden when it is not greys a button for one
+ * press, and the next arrow puts both sides back in step; believing it shown
+ * when it is not is the behaviour this replaces. Neither error sticks, which is
+ * what makes a mirror tolerable here and not in `marks`, where a wrong guess
+ * rubs out something the reader wrote.
+ */
+const CURSOR_LIFE: Record<string, readonly string[]> = {
+  net: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+        'Enter', ' ', 'a', 's', 'd', 'f', 'A', 'S', 'D', 'F'],
+  /*
+   * And Same Game, for the same reason and with a shorter list. Its
+   * `current_key_label` reads `ui->xsel, ui->ysel` without ever asking whether
+   * the cursor is on screen (samegame.c:1098), so on an untouched board it
+   * reports what the top-left region would do; and its select keys act at once
+   * rather than merely revealing — `ui->displaysel = true` and straight on to
+   * the selection (samegame.c:1291) — so a press with the cursor hidden picks a
+   * region nobody pointed at. Same trade as Net's, four rules and all of them
+   * self-correcting.
+   *
+   * Its flag is called `displaysel`, which is why the audit that swept the
+   * collection for one missed it: `cur_visible`, `hshow`, `cshow`,
+   * `cursor_active`, `cdisp`, `cdraw`, `displaysel` — ten spellings for one
+   * boolean, and no way to find them but to read each `game_ui`.
+   */
+  samegame: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
+  /*
+   * And Flip, which needs one for a starker reason than either. Net and Same
+   * Game answer about a square nobody is standing on; Flip's
+   * `current_key_label` is `if (IS_CURSOR_SELECT(button)) return "Flip";` and
+   * nothing else (flip.c:934) — a constant. It says the same word on a hidden
+   * cursor, a shown one, a finished board. So the labels carry no news at all
+   * here and the mirror is the only thing between a press and a blind flip of
+   * the top-left square.
+   *
+   * Its flag is `cdraw`, and its rules are Same Game's four with one wrinkle:
+   * only `LEFT_BUTTON` clears it (flip.c:959), because Flip reads no other
+   * button. A long press therefore puts the cursor away on this side while
+   * upstream keeps it — over-sleeping, which is the safe direction, and it
+   * clears on the next arrow. A long press does nothing in Flip anyway.
+   */
+  flip: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
+  /*
+   * And Guess, whose label leaves out `ui->display_cur` like the other three,
+   * and whose select key places a peg the instant it is pressed (guess.c:933).
+   *
+   * The longest list here, because Guess reads the most keys and nearly every
+   * one of them shows the cursor: the digits insert a colour (guess.c:943), D
+   * and Backspace clear a peg (952), and `h` runs the hinter, which shows the
+   * cursor as a side effect of the "visually indicate futility" hack at
+   * guess.c:799. Most of this list matters to us and not only to a keyboard:
+   * the digits, Clear and `h` are all on this puzzle's keypad, so a thumb can
+   * reach them, which is why `pressKey` asks about waking too.
+   *
+   * Backspace is spelled the way both paths spell it, which is the same way:
+   * a physical press arrives as `KeyboardEvent.key`, and the keypad's clear key
+   * is sent under that name too rather than as its character — see `behind` in
+   * ./types for the reason, which is about the answer the back end gives back.
+   */
+  guess: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ',
+          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+          'd', 'D', 'Backspace', 'h', 'H', '?'],
+  /*
+   * And Dominosa, whose list is the shortest here and interesting for
+   * what is missing from it.
+   *
+   * Only the arrows wake this cursor. `move_cursor` is handed `&ui->cur_visible`
+   * (dominosa.c:2831) and nothing else in that function sets it — not the select
+   * keys, which place a domino or a line without showing where, and not the
+   * digits, which only light numbers up. So a physical Enter on a hidden cursor
+   * makes a move nobody can see; the board does not draw the cursor either, and
+   * the button beside the arrows stays out, which is the two of us agreeing.
+   *
+   * It clears the way the others do — a press on the board — but only on the
+   * path that ends in a move (2823). A right-click on a *number* toggles a
+   * highlight and returns before that line, so upstream keeps the cursor and we
+   * put it away. Over-sleeping, which is the safe direction and the same trade
+   * Flip makes; the next arrow puts it right.
+   */
+  dominosa: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
+  /*
+   * And Flood, the last of them and the only one whose label never mentions the
+   * cursor at all: `current_key_label` asks whether the square under it is a
+   * different colour from the corner and nothing else (flood.c:830), so with
+   * the cursor away it would still offer to flood from wherever it was left.
+   *
+   * Only the arrows wake it — `move_cursor` has the flag (flood.c:876) and the
+   * select keys do not touch it — and a press on the board puts it away.
+   *
+   * And it is the one puzzle here where the mirror covers one key rather than
+   * both. `Advance` does its work out of `state->soln`, nowhere near `ui->cx`,
+   * so gating it on the cursor left it dead from the press of Solve until an
+   * arrow it had no use for. See `offCursor`.
+   */
+  flood: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
+}
+
+/** Whether this puzzle's cursor has to be tracked on this side. */
+const mirrorsCursor = (name: string) => name in CURSOR_LIFE
+
+/**
+ * And whether *this key* is one the tracking should stand in front of.
+ *
+ * Not the same question, which is why it is a second one. `mirrorsCursor` asks
+ * whether we are keeping a copy for this puzzle; this asks whether a given
+ * button is one the copy has anything to say about. Every key of the six is,
+ * except Flood's `Advance` — see `offCursor`, where the exception is argued.
+ */
+const gated = (name: string, cursor: CursorKey) =>
+  mirrorsCursor(name) && !cursor.offCursor
+
+/**
+ * Whether the arrows are currently shoving tiles rather than moving the cursor.
+ *
+ * Sixteen alone, and only while one of its two sticky locks is on: from then
+ * until it is pressed again, every arrow plays a move and the cursor cannot be
+ * repositioned at all (sixteen.c:633). Upstream draws nothing for it — a board
+ * with a lock on and the same board without are byte-identical images — so the
+ * buttons are the only place it can be seen, and the four arrows say it as well
+ * as the key that armed it.
+ *
+ * Read from the labels and not remembered. "Unlock" is what a key reports while
+ * its own mode is on, and `cur_mode` holds one of three values, so at most one
+ * key ever says it; every other word either key can report belongs to a mode
+ * that is off or to the rim, where there are no modes.
+ */
+export const shovesTiles = (name: string, labels: KeyLabels) =>
+  name === 'sixteen' && (labels.enter === 'Unlock' || labels.space === 'Unlock')
+
+/**
+ * Which key opened the drag now running, as far as anything can say.
+ *
+ * Rectangles only. Three of its four drag states are legible: the two where the
+ * drag has moved name the finisher outright, and the idle one says there is no
+ * drag. The fourth — open but unmoved — says "Cancel" twice, so the answer for
+ * that one has to come from having watched the press that opened it, which is
+ * `sent` below.
+ *
+ * Written as a correction rather than a memory: every call is given what was
+ * believed and returns what the labels now prove, so a value that came from
+ * watching survives only until upstream contradicts it. Being wrong in the
+ * meantime is free — in that state both keys abandon, so whichever button is
+ * left standing does exactly what it says.
+ */
+export function opener(name: string, labels: KeyLabels, was: string | null) {
+  if (name !== 'rect') return null
+  if (labels.enter === 'Done') return 'Enter'
+  if (labels.space === 'Done') return ' '
+  // Idle, or no cursor, or a mouse drag: nothing of ours is open.
+  if (labels.enter !== 'Cancel') return null
+  return was
+}
+
+/** And the press that opens one, which is the only thing the labels miss. */
+export const opens = (name: string, key: string, labels: KeyLabels) =>
+  name === 'rect' && (key === 'Enter' || key === ' ') && labels.enter === 'Mark'
+
+/** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
+export const wakesCursor = (name: string, key: string) =>
+  CURSOR_LIFE[name]?.includes(key) ?? false
+
+/**
+ * Whether a cursor key would do nothing where the cursor is standing.
+ *
+ * Enter is idle exactly when its own label is empty. Space is idle only when
+ * *both* are, and the asymmetry is forced rather than chosen:
+ * `js_update_key_labels` blanks `lsk` when it equals `csk`, so an empty Space
+ * beside a named Enter has two meanings this side cannot tell apart. Measured,
+ * Solo and Unequal both report `{"", "Pencil"}` from a highlighted square — and
+ * in Solo that Space really is dead (`current_key_label` answers only
+ * `CURSOR_SELECT`), while in Unequal it does exactly what Enter does
+ * (`IS_CURSOR_SELECT`, which covers both). One reading grants a key that would
+ * do nothing; the other takes away a key that works. A press that turns out to
+ * be wasted is cheap, and a button greyed out for good is a feature nobody can
+ * find, so the tie goes to alive.
+ *
+ * "Nothing" here means nothing to the board. Two puzzles would still wake a
+ * sleeping cursor from a key whose label is empty: Pattern's select shows the
+ * cursor and returns before touching a square (pattern.c:1423), and Net's sets
+ * `cur_visible` on its way to a rotation the lock will refuse (net.c:2330).
+ * Both are greyed here anyway. The arrows are in the same group, they wake the
+ * cursor too, and unlike these they say where it went.
+ */
+const doesNothing = (key: string, labels: KeyLabels) =>
+  key === 'Enter' ? !labels.enter : !labels.enter && !labels.space
+
+/**
+ * Every word a puzzle's two keys are known to report, for the puzzles whose
+ * buttons are named for a result.
+ *
+ * This is the whole of what keeps `does` honest, and it is worth the extra
+ * table. Matching one word would tell a renamed label apart from nothing at
+ * all: if upstream ever calls Pattern's states something else, "no key offers
+ * Black" would read as "the square is already black" and the button would grey
+ * itself out for good. Recognising the *pair* answers instead — a word outside
+ * this list means we are no longer reading the labels, and `wouldSend` falls
+ * back to the key the button has always sent, which is upstream's cycle and
+ * still plays the game.
+ *
+ * Pattern's three, measured from a running board: a grey square reports
+ * `{Space: "White", Enter: "Black"}`, a black one `{"Grey", "White"}`, a white
+ * one `{"Black", "Grey"}` (pattern.c:1269). No pair repeats a word, so the
+ * blanking above never fires here.
+ */
+const WORDS: Record<string, readonly string[]> = {
+  pattern: ['Black', 'White', 'Grey'],
+  /*
+   * Sixteen's five, and there are five because its two keys hold two different
+   * jobs at once. On the rim they play — "Slide" one way, "Back" the other. On
+   * a tile they are sticky modifiers, and each says "Lock tile" / "Lock pos"
+   * while off and "Unlock" while on. All five have a face; see CURSOR_KEYS.
+   */
+  sixteen: ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock'],
+  /*
+   * Rectangles' four, which are a flow rather than a set of choices: "Mark" and
+   * "Erase" open a drag and "Done" and "Cancel" close one. The empty string is
+   * a fifth state and needs no entry — it is what a hidden cursor reports, and
+   * what upstream reports while a *mouse* drag is running, where it wants the
+   * keys ignored (rect.c:2377).
+   */
+  rect: ['Mark', 'Erase', 'Done', 'Cancel'],
+  /*
+   * Mines' four. "Mark" is Rectangles' word too and means something else there,
+   * which costs nothing: these tables are per puzzle and never consulted across
+   * one.
+   */
+  mines: ['Uncover', 'Clear', 'Mark', 'Unmark'],
+  samegame: ['Select', 'Remove', 'Unselect'],
+  guess: ['Place', 'Submit', 'Hold'],
+  /*
+   * Pegs' two, and the shortest list here. "Select" is offered on a peg,
+   * "Cancel" once one is armed, and the third state — a hole, or a hidden
+   * cursor — is the empty string, which needs no entry (pegs.c:836).
+   */
+  pegs: ['Select', 'Cancel'],
+  /*
+   * Dominosa's three, and it is the first puzzle here whose two keys share one.
+   * "Remove" is Enter's word for a domino that is down and Space's for a line
+   * that is drawn, and the two can never be offered together — a line may not
+   * be marked beside a domino (dominosa.c:2762), which is also what makes the
+   * blanking unreadable here. See `BOTH`.
+   */
+  dominosa: ['Place', 'Remove', 'Line'],
+  /*
+   * Black Box's six, the longest list here and the only one where a single key
+   * carries four. Enter's word comes from which of three regions the cursor is
+   * standing in — the check button in the corner, the arena, the ring of laser
+   * squares — and Space's from whether what is under it is already locked.
+   *
+   * Disjoint between the keys, so there is nothing here for `BOTH`: an empty
+   * Space beside a named Enter is an empty Space.
+   */
+  blackbox: ['Fire', 'Ball', 'Clear', 'Check', 'Lock', 'Unlock'],
+
+  /*
+   * And the nine that put one of three or four things in a square. Every one of
+   * these labels names *what the press will produce*, not what is there now, so
+   * the face on the button is a picture of the result — which is the whole
+   * reason these were cheap to do once the machinery existed.
+   */
+  lightup: ['Light', 'Mark', 'Clear'],
+  tents: ['Tent', 'Green', 'Clear'],
+  singles: ['Black', 'Circle', 'Restore', 'Remove'],
+  unruly: ['Black', 'White', 'Empty'],
+  mosaic: ['Black', 'White', 'Empty'],
+  range: ['Fill', 'Dot', 'Empty'],
+  /* Magnets' six. The two markers are upstream's own characters — a blank
+     domino and a pair of question marks — and it names them by what it draws. */
+  magnets: ['+', '-', 'X', '?', 'Clear'],
+  tracks: ['Track', 'X', 'Clear'],
+  filling: ['Multiselect', 'Stop', 'Select', 'Deselect'],
+  /* Flood's two do not share a state at all: one is a move on the board and
+     the other replays the solver, which only exists after Solve. */
+  flood: ['Fill', 'Advance'],
+  /* Bridges' two. "Finished" comes from both keys and means two things — end
+     the bridge you are drawing, or say you have done with this island — which
+     `faces` keeps apart because each key reads only its own word. */
+  bridges: ['Select', 'Finished'],
+  signpost: ['From here', 'To here', 'Cancel'],
+  pearl: ['Start', 'Stop', 'Cancel'],
+  /* Galaxies' seven, the longest label vocabulary in the collection. Its
+     `current_key_label` never looks at which key it was asked about, so both
+     report the same word and there is one button. */
+  galaxies: ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear'],
+  map: ['Pick', 'Fill', 'Stipple', 'Clear', 'Cancel'],
+}
+
+/** Whether we are still reading a puzzle's labels rather than guessing at them. */
+const understood = (name: string, labels: KeyLabels) => {
+  const words = WORDS[name]
+  return !!words && [labels.enter, labels.space].every((w) => !w || words.includes(w))
+}
+
+/**
+ * The words that say a puzzle's second level is open — that something has been
+ * picked out and is waiting to be dealt with.
+ *
+ * Declared rather than inferred, and that is the point of the table. The same
+ * effect falls out of `does` for free — a key asking for "Unselect" has nobody
+ * to send to while nothing is selected — but a rule that lives inside another
+ * mechanism is a rule the next puzzle cannot find. This says which words mean
+ * "pending" in so many terms, so a second-level key needs no `does` to be
+ * placed correctly, and reading the table answers what the levels are.
+ *
+ * One entry so far. Eight more puzzles have a second level by their vocabulary
+ * — Pegs, Bridges, Signpost, Pearl, Galaxies, Map, Filling, and Rectangles,
+ * which is the one that needs no entry because both its levels are the same two
+ * buttons. Each will get its own line as its keys are looked at again; guessing
+ * them all now would be filing eight claims about puzzles nobody has measured.
+ */
+const SECOND: Record<string, readonly string[]> = {
+  /*
+   * "Remove", and only that word, because it is the one that means the cursor
+   * is standing on the thing (samegame.c:1104). Its branch is inside
+   * `if (ISSEL(ui->xsel, ui->ysel))` and no other branch can produce it, so the
+   * word and the position are the same fact read two ways.
+   *
+   * "Unselect" was in this list for a day and it is what made the whole thing
+   * need a stored bit. That word comes from two places — `Space` on the region,
+   * and *either* key on a lone square while something is held — so counting it
+   * dragged "the reader has walked away from the selection" into the second
+   * level, where the labels then could not say when they had walked back out.
+   *
+   * The mistake underneath was reading the second level as "something is
+   * pending", which is a fact about the whole board and one the labels really
+   * cannot report. A menu is about where the cursor is standing: its two items
+   * are confirm *this* and cancel *this*, so the thing has to be under the
+   * cursor for either to mean anything. Read that way the level is a function
+   * of position, and position is exactly what `current_key_label` describes.
+   */
+  samegame: ['Remove'],
+}
+
+/**
+ * Whether this slot is in the menu the reader is looking at.
+ *
+ * Everything without a level is always in it. A second-level slot is in it while
+ * one of its puzzle's words is being reported — and also whenever we have
+ * stopped understanding the labels, which is the same bargain as everywhere else
+ * here: an upstream rename should cost a button that is offered when it cannot
+ * act, not one that has vanished with no way to ask for it back.
+ *
+ * The sleeping cursor comes first and is the one case where the labels are read
+ * and then set aside. A second level is "the reader is standing on the thing",
+ * and with no cursor on the board nobody is standing anywhere — the words are
+ * still describing the square the cursor was last at, which is exactly why
+ * `faceOf` stops believing them here too. Believing them in one place and not
+ * the other is what let Same Game's cancel appear, dimmed, after a press on the
+ * board: the tap had selected a region the hidden cursor happened to be inside,
+ * so "Remove" was on the wire with nothing on screen to justify it.
+ */
+export const inMenu = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  awake: boolean,
+) => {
+  if (!cursor.level) return true
+  if (gated(name, cursor) && !awake) return false
+  if (!understood(name, labels)) return true
+  const second = SECOND[name]
+  return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
+}
+
+/**
+ * The puzzles that read the cursor keys and never say a word about them.
+ *
+ * `current_key_label` is optional and five back ends leave it NULL. Three of
+ * those do not read the keys at all; these two read them and report nothing, so
+ * `midend_current_key_label` hands back "" for both, forever. Read literally
+ * that is "neither key does anything", and both buttons would sit out the whole
+ * game.
+ *
+ * So they are exempted rather than fixed. Their buttons are always live, which
+ * is very nearly true of them: every press Untangle's Enter can make does
+ * something — pick a point up, put it down, or show the highlight for the first
+ * time — and its Space does nothing only while a point is in the air. A dead
+ * press there is the price of not keeping a copy of a state upstream will not
+ * report, and it costs nothing that is not immediately visible: the board draws
+ * the point being carried.
+ *
+ * Nothing else changes for them. `faceOf` already falls back to a key's own
+ * picture when there are no words to read, which is the right face when there
+ * never will be any.
+ */
+const SILENT = new Set(['untangle', 'palisade'])
+
+/** Palisade's cursor walks a half-grid; only the borders are worth a press. */
+
+/**
+ * Which key a cursor button should send, or null when it should stand down.
+ *
+ * Three kinds of button come through here. Most send the key they were built
+ * with, and go quiet when its label is empty — Net's rotate, the five pencil
+ * keys. A `does` button is named for a result instead, and asks the back end
+ * which key currently reaches it; nobody offering it is what "you already have
+ * it" looks like from out here, since a puzzle does not label a press that
+ * would change nothing. A `faces` button always sends its own key, and is out
+ * whenever the word it is reporting is not one it has a face for.
+ *
+ * `awake` is only consulted for the puzzles in `CURSOR_LIFE`, and only because
+ * their labels answer as confidently with the cursor hidden as with it showing.
+ * Everywhere else the pair already carries it and this argument is ignored — as
+ * it is for a key that does not act at the cursor at all; see `offCursor`.
+ */
+export const wouldSend = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  awake: boolean,
+): string | null => {
+  if (gated(name, cursor) && !awake) return null
+  if (SILENT.has(name)) return cursor.key
+  if (understood(name, labels)) {
+    if (cursor.does) {
+      if (labels.enter === cursor.does) return 'Enter'
+      if (labels.space === cursor.does) return ' '
+      return null
+    }
+    if (cursor.faces) {
+      const face = cursor.faces[mine(name, cursor, labels)]
+      // `idle` is a face worn while the button waits, so it shows and is out.
+      return face && !face.idle ? cursor.key : null
+    }
+  }
+  return doesNothing(cursor.key, labels) ? null : cursor.key
+}
+
+/**
+ * The words a puzzle's two keys can be reporting *at the same moment*, for the
+ * puzzles where there are any. This is the whole of what the blanking can ever
+ * have eaten, and the only reason to undo it.
+ *
+ * Rectangles is the one entry. A drag that has been opened and not moved has
+ * both keys saying "Cancel" (rect.c:2374), so it arrives as {"", "Cancel"} —
+ * and read literally the Space button would go out still wearing the face it
+ * had before the drag started, telling the reader it would erase something when
+ * a press would abandon the drag.
+ *
+ * Everywhere else an empty Space means an empty Space, and reading it as
+ * Enter's word is wrong rather than merely cautious. Dominosa is where that
+ * showed: a square covered by a domino reports {"", "Remove"} — Enter takes the
+ * domino off and Space genuinely cannot act, since a line may not be drawn
+ * beside a domino — and both keys *have* a "Remove" face, so the fallback lit
+ * the second button up and offered to remove a line that was not there. Four of
+ * the five puzzles with `faces` were only safe from this by accident: their two
+ * keys share no word at all, so an inherited one never matched a face.
+ *
+ * Checked one function at a time rather than assumed. Sixteen looks like a
+ * second entry and is not: its `cur_mode` is one enum with three values
+ * (sixteen.c:569), so "Unlock" is on offer from one key or the other but never
+ * both.
+ */
+const BOTH: Record<string, readonly string[]> = {
+  rect: ['Cancel'],
+  /* An occupied square answers "Clear" to both keys (tents.c:2035): either one
+     empties it, so there is nothing to tell them apart with and nothing to. */
+  tents: ['Clear'],
+  /* Same shape twice over — a black square restores and a circled one is
+     rubbed out, whichever key is asked (singles.c:1141). */
+  singles: ['Restore', 'Remove'],
+  /* While a bridge is being drawn both keys answer "Finished": Enter lands it,
+     Space drops it. Without this line the second button would go dark in the
+     middle of the one flow it is there to get out of. */
+  bridges: ['Finished'],
+  /* Both of Signpost's keys cancel the same half-built link, and both of Map's
+     abandon the same drag. */
+  signpost: ['Cancel'],
+  map: ['Cancel'],
+}
+
+/** What the back end says about this button's own key, with the blanking undone. */
+const mine = (name: string, cursor: CursorKey, labels: KeyLabels) => {
+  const word =
+    cursor.key === 'Enter'
+      ? labels.enter
+      : labels.space || (BOTH[name]?.includes(labels.enter) ? labels.enter : '')
+  // And one puzzle needs a word the back end has not got round to saying yet.
+  // While Rectangles' drag has not moved both keys report "Cancel", which is
+  // true of both and tells the pair nothing about which of them finishes. The
+  // key that opened it does — so it wears the finisher's face, waiting, and its
+  // neighbour keeps the abandon. See `opened` and `WAITING`.
+  if (WAITING[name] === word && labels.space === '' && labels.opened)
+    return cursor.key === labels.opened ? PENDING : word
+  return word
+}
+
+/**
+ * The word that means "either of us, and neither can finish", per puzzle, and
+ * the word this side substitutes for the one that will be the finisher.
+ *
+ * Only Rectangles, and only in the moment between opening a drag and moving it.
+ * `PENDING` is ours and never comes from upstream, so it can never collide with
+ * a label — the check above requires the blanking as well, which is upstream
+ * saying the two keys are equal.
+ */
+const WAITING: Record<string, string> = { rect: 'Cancel' }
+const PENDING = '\0waiting'
+
+/**
+ * The face a key should be wearing: its picture, its word, and whether to draw
+ * it held down.
+ *
+ * The entry in `faces` for whatever the back end is reporting right now, and
+ * the key's own picture when it has no `faces` or we have stopped recognising
+ * the words. That fallback is the same bargain as everywhere else here — an
+ * upstream rename costs a button that shows its resting face and still works,
+ * rather than a button that vanishes.
+ */
+export const faceOf = (
+  name: string,
+  cursor: CursorKey,
+  labels: KeyLabels,
+  awake: boolean,
+): CursorFace => {
+  // A puzzle whose labels answer without being asked where the cursor is says
+  // something true about a square nobody is standing on. While the mirror says
+  // the cursor is away, that is not a face to wear — the button is out anyway,
+  // and its own picture is the honest thing to be out *as*. See CURSOR_LIFE.
+  const word = mine(name, cursor, labels)
+  const known = understood(name, labels) && (awake || !gated(name, cursor))
+  const face = known ? cursor.faces?.[word] : undefined
+  return face ?? { icon: cursor.icon, says: cursor.says }
+}
+
+/**
+ * Which puzzles have been given theirs, and what they do.
+ *
+ * One entry per puzzle rather than one rule for all of them, because what Enter
+ * does is each puzzle's own answer and the picture on the key has to agree with
+ * it — a padlock that rotated something would be a second puzzle on top of the
+ * first. The back end will happily report what its two keys do right now
+ * (`current_key_label`, which all forty implement), but it reports a word and
+ * in English; a picture is what fits on a 40 square, and it has to be chosen.
+ *
+ * At most two, in this order: the first sits left of the up arrow and the
+ * second right of it, in the two cells the cross leaves empty. A puzzle with
+ * one key fills only the left.
+ *
+ * Being absent is the same bargain the rest of this file strikes: a puzzle
+ * nobody has worked through yet shows the four arrows and nothing else, rather
+ * than a guessed pair.
+ */
+const PENCIL: CursorKey = { key: 'Enter', icon: 'pencil', says: 'pencil' }
+
+const CURSOR_KEYS: Record<string, CursorKey[]> = {
+  /*
+   * Rotate, and lock.
+   *
+   * Rotating is the game, so it takes the left cell. Locking is the other
+   * thing a reader does constantly — it is how you record that a tile is
+   * settled — and it had no way in on a touch device at all: net.c gives it to
+   * the middle button, and a finger has no middle button.
+   *
+   * Rotating the other way is not here and does not need to be. It is three
+   * presses of this one, since a tile turns in quarters, and the cross has only
+   * two cells to give.
+   */
+  net: [
+    { key: 'Enter', icon: 'rotate', says: 'rotateLeft' },
+    { key: ' ', icon: 'lock', says: 'lock' },
+  ],
+
+  /*
+   * The half of Sixteen a finger has never been able to reach.
+   *
+   * Tapping an arrow in the rim slides that row or column, and that is a whole
+   * game — Sixteen has always been playable on a phone. But its chapter
+   * describes a second way to play beside it: "move the cursor onto a tile,
+   * hold Control and press an arrow key to move the tile under the cursor and
+   * move the cursor along with the tile. Or, hold Shift to move only the tile."
+   * A touch screen has no Control and no Shift, so that paragraph has been
+   * describing something nobody here could do.
+   *
+   * The same paragraph gives the way in: "pressing Enter simulates holding down
+   * Control (press Enter again to release), while pressing Space simulates
+   * holding down Shift". Sticky modifiers, and a sticky modifier is a button.
+   *
+   * They are the first keys here that are a mode rather than a move, and they
+   * show a pressed state for it, because `cur_mode` lives in Sixteen's
+   * `game_ui` and is never drawn. Measured: a board with a mode on and the same
+   * board with it off are byte-identical images. So the key is the only place a
+   * reader can find out that their arrows have stopped moving the cursor and
+   * started shoving tiles — hence the `on` face.
+   *
+   * And there is a third face each, because upstream's cursor also walks out
+   * into the rim of arrows, where the same two keys slide a row — one way and
+   * the other. Two faces used to be the whole of it, and the cursor was kept
+   * off the rim by undoing any arrow that landed there. That was the wrong
+   * trade, and looking at the board says why: on the rim the cursor lights up
+   * one of the fat arrows upstream has drawn all round the edge, and pressing a
+   * key then does what that arrow says — nothing to learn. On a tile it shades
+   * a number, which announces nothing at all, and the mode it arms is invisible.
+   * The design that had to be explained was the one being kept.
+   *
+   * So all four positions are upstream's now, and the faces follow the labels
+   * rather than the reader being steered away from half of them.
+   *
+   * The rim pair claims only what this side knows, and after four rounds that
+   * turned out to be less than "a pair of inverses": one dot and two dots, which
+   * say which of the two keys this is and stop. Which way either goes stays the
+   * board's to show, by the arrow it has lit under the cursor, and the verbs are
+   * in the words — "push this line along the arrow" and "pull this line back".
+   * See `primary` in ../Icon for the three versions that claimed more, and for
+   * the survey that killed the fourth by finding it already taken.
+   */
+  sixteen: [
+    {
+      key: 'Enter',
+      icon: 'lockTile',
+      says: 'carryTile',
+      faces: {
+        'Lock tile': { icon: 'lockTile', says: 'carryTile' },
+        Unlock: { icon: 'lockTileOn', says: 'carryTile', on: true },
+        Slide: { icon: 'primary', says: 'pushLine' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'lockPlace',
+      says: 'holdPlace',
+      faces: {
+        'Lock pos': { icon: 'lockPlace', says: 'holdPlace' },
+        Unlock: { icon: 'lockPlaceOn', says: 'holdPlace', on: true },
+        Back: { icon: 'secondary', says: 'pullLine' },
+      },
+    },
+  ],
+
+  /*
+   * The pair that makes Twiddle's outline square worth moving.
+   *
+   * Nothing new is reachable here and that is the point: a tap already turns a
+   * block anticlockwise and a long press turns it clockwise, so by the rule this
+   * file usually applies — a key earns a button when no gesture does its job —
+   * neither of these would qualify. They are in the other category. Twiddle's
+   * arrows walk an outline square around the grid, and without something to
+   * press when it arrives that square is a marker with no use; a puzzle that
+   * offers the arrows and not these offers a decoration.
+   *
+   * The simplest entry in this table, because Twiddle asks for nothing special.
+   * Its `current_key_label` opens with `if (!ui->cur_visible) return ""`
+   * (twiddle.c:633), so both keys go out on their own until the cursor is up.
+   * `move_cursor` walks a grid of block corners, `w-n+1` by `h-n+1`
+   * (twiddle.c:661), so there is nowhere off the board to fall. And the first
+   * select press only reveals — it returns before computing a move
+   * (twiddle.c:678) — so nothing turns under a cursor the reader cannot see.
+   *
+   * Left turns left. `CURSOR_SELECT` is `dir = +1`, the same as the left mouse
+   * button, which its chapter calls anticlockwise; `CURSOR_SELECT2` is `-1`.
+   * So the two land either side of the up arrow in the order they read.
+   */
+  twiddle: [
+    { key: 'Enter', icon: 'turnLeft', says: 'turnLeft' },
+    { key: ' ', icon: 'turnRight', says: 'turnRight' },
+  ],
+
+  /*
+   * Rectangles, where the two keys are a flow rather than two actions.
+   *
+   * Its chapter: "use the cursor keys to move the position indicator around the
+   * board. Pressing the return key then allows you to use the cursor keys to
+   * drag a rectangle out from that position, and pressing the return key again
+   * completes the rectangle. Using the space bar instead of the return key
+   * allows you to erase the contents of a rectangle without affecting its
+   * edges. Pressing escape cancels a drag." So each key opens a drag, and while
+   * one is open both keys mean something else — which is why these have `faces`
+   * and not a picture apiece.
+   *
+   * The whole of that state machine comes back in the labels (rect.c:2374), and
+   * it is worth writing out because the button is only ever repeating it:
+   *
+   *   idle                 {Mark, Erase}    either key opens a drag
+   *   opened, not moved    {Cancel, Cancel} nothing to finish yet
+   *   marking, moved       {Done, Cancel}   Enter finishes, Space abandons
+   *   erasing, moved       {Cancel, Done}   and the other way round
+   *   a mouse drag is on   {"", ""}         upstream ignores the keys entirely
+   *
+   * "Cancel" is not decoration in that second row: a drag that has not moved
+   * builds no rectangle, because the cursor path rounds to the middle of a
+   * square and only an edge midpoint makes a move (rect.c:2523). Pressing the
+   * key that does not match the drag's mode abandons it too — `erasing ==
+   * ui->erasing` guards the only branch that produces one (rect.c:2509). Both
+   * are exactly what upstream's own word says, which is the argument for
+   * repeating the word rather than inventing a fixed pair.
+   *
+   * Nothing else is needed. `current_key_label` opens on `ui->cur_visible`, so
+   * both keys go out until the cursor is up; `move_cursor` walks the plain w×h
+   * grid, so there is nowhere off the board; and the first select press only
+   * reveals (rect.c:2432). Escape and backspace also cancel, and neither has a
+   * button — the Cancel face is the way out, and it is the same key the reader
+   * already has a finger on.
+   */
+  rect: [
+    {
+      key: 'Enter',
+      icon: 'mark',
+      says: 'mark',
+      faces: {
+        Mark: { icon: 'mark', says: 'mark' },
+        Done: { icon: 'done', says: 'done' },
+        Cancel: { icon: 'cancel', says: 'cancel' },
+        [PENDING]: { icon: 'done', says: 'done', idle: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'erase',
+      says: 'erase',
+      faces: {
+        Erase: { icon: 'erase', says: 'erase' },
+        Done: { icon: 'done', says: 'done' },
+        Cancel: { icon: 'cancel', says: 'cancel' },
+        [PENDING]: { icon: 'done', says: 'done', idle: true },
+      },
+    },
+  ],
+
+  /*
+   * Netslide, which needs one key and gets one.
+   *
+   * It is Sixteen's rim with none of Sixteen's modes: its whole `game_ui` is
+   * `cur_x, cur_y, cur_visible` (netslide.c:965), and the cursor lives only on
+   * the ring of arrows, walked by the shared `c2pos`/`pos2c` pair that exists
+   * for these two puzzles. There is no interior to stand on, so nothing here
+   * needs keeping off it.
+   *
+   * One key because upstream gives one job: `current_key_label` answers
+   * `IS_CURSOR_SELECT` with "Slide" and nothing else (netslide.c:1047), and
+   * `interpret_move` takes both keys down the same branch. Space is Enter's
+   * synonym, and a second button would be the same button twice. The reverse
+   * direction is the right mouse button's alone — `if (button == RIGHT_BUTTON)`
+   * is what flips it, and no key reaches that — so it stays a long press on the
+   * board's own arrow, where it already was. Nothing is owed to HOLD_BUTTON for
+   * that: a hold is the right button by default, and the table is the list of
+   * puzzles that spend theirs elsewhere.
+   *
+   * It wears `primary` — Sixteen's first key — rather than a glyph of its own,
+   * and that is the point rather than a saving: the two perform the same act on
+   * the same rim under the same ignorance of which edge the cursor is on, so
+   * drawing them differently would claim a difference. The direction it used to
+   * show was right one time in four: `interpret_move` takes it from the edge
+   * alone (netslide.c:1097), and `encode_ui` is NULL (netslide.c:1867), so the
+   * cursor is not in the save either and nothing here can derive it.
+   */
+  netslide: [{ key: 'Enter', icon: 'primary', says: 'slide' }],
+
+  /*
+   * Three keys for three colours, which is what the board has and what the
+   * mouse has: left black, right white, middle grey (pattern.c:1330).
+   *
+   * Upstream's keyboard has two, and they are one cycle wound opposite ways —
+   * `Enter` steps grey→black→white→grey and `Space` steps it back, "the space
+   * bar does the same cycle in reverse", as its chapter puts it. Neither key
+   * *sets* a colour. `does` is what turns that into three that do: a button
+   * asking for "Black" reads `current_key_label` (pattern.c:1269) for whichever
+   * key reaches black from this square and sends that one — `Enter` from grey,
+   * `Space` from white, neither from a square already black, where it goes out.
+   *
+   * The two shapes this went through are both worth keeping, because each was
+   * wrong in a way the other was not.
+   *
+   * Two fixed colours, black and white, was the first. Each button meant one
+   * thing all game, which is the property being bought here, and it cost the
+   * third state outright: neither button ever asked for "Grey", so a square
+   * could be painted and never unpainted. Measured through the buttons, the
+   * moves that came out were `F` and `E` for ever and no `U`, and a finger has
+   * none of the other ways in — the middle button, `Ctrl+Shift` with an arrow
+   * (pattern.c:1408), or a cycle key pressed from the right square. A hold on
+   * the board is the right button here, which is white. Undo was the only way
+   * back, and undo takes back whatever came with it.
+   *
+   * Upstream's own two keys, cycling, was the second. That reaches everything
+   * in one press and is exactly what the back end does, but the face turns over
+   * with every press, so "the black button" stops being a place and starts
+   * being something to read. Pattern is played by painting long runs, and a
+   * button that moves under a repeated press is the wrong kind of true.
+   *
+   * Three fixed keys is both properties at once, and the only thing it spends
+   * is a row: the block goes from two keys tall to three, which comes out of
+   * the board. See `[data-keys='3']` in index.css.
+   *
+   * A near miss worth recording, since it looks like the obvious middle way:
+   * keeping "Black" fixed on the left and letting only the right key cycle
+   * *duplicates* the pair on a white square. `Enter` reports "Grey" and `Space`
+   * "Black" there, so `does: 'Black'` resolves to `Space` — both buttons then
+   * send the same key, produce the same colour and wear the same face.
+   *
+   * The fallback `key` on each is the one that reaches its colour from an
+   * untouched square, which is where nearly every press happens. It is only
+   * ever used if upstream renames these labels, and then the three become two
+   * useful buttons and one dead one rather than three dead ones.
+   */
+  pattern: [
+    { key: 'Enter', icon: 'black', says: 'black', does: 'Black', lit: true },
+    { key: ' ', icon: 'white', says: 'white', does: 'White', lit: true },
+    { key: 'Enter', icon: 'grey', says: 'grey', does: 'Grey', lit: true },
+  ],
+
+  /*
+   * And one key, the same one, on all five puzzles that keep pencil marks.
+   *
+   * Whether the next digit goes in as an answer or as a pencil mark is a mode,
+   * and `Enter` is how the mode is turned over — `ui->hpencil = !ui->hpencil`
+   * in every one of the five. On a keyboard that is the whole of it; on a
+   * phone, where the digits are already buttons, it was the one thing about
+   * them nobody could say, so the digits could only ever write answers.
+   *
+   * Nothing goes in the cell beside it, and that is not an omission. `Space` in
+   * four of the five is clear — the same branch as `\b`, which is on the keypad
+   * as its own key already — and in Unequal it is `Enter` again, since that one
+   * matches with `IS_CURSOR_SELECT`, which is both. A second button would be a
+   * key these puzzles already have, twice.
+   */
+  /*
+   * Mines, where the two keys are worth more for what they refuse than for what
+   * they do.
+   *
+   * Nothing here is out of reach without them. A tap uncovers a covered square,
+   * and a tap on an uncovered one clears around it — `ui->hradius` is 1 exactly
+   * when the square is already open, and `LEFT_BUTTON` copies it into
+   * `validradius` (mines.c:2616), which is the whole of what makes a click a
+   * chord. A long press flags. The middle button adds no move at all; it only
+   * refuses to uncover, which is a safety variant of the left button and not a
+   * capability. So docs/keys.md was wrong to file the chord as unreachable, and
+   * these are cursor companions like Twiddle's.
+   *
+   * What they add is upstream's own arithmetic, shown as a live button.
+   * `current_key_label` (mines.c:2516) counts the flags around the cursor and
+   * answers "Clear" only when the count matches the number, so Enter lights up
+   * exactly when a chord is available and goes out when it is not. It also goes
+   * out on a flagged square, which is upstream's safety rule made visible — you
+   * must take the flag off before you can open it — and both go out once the
+   * board is dead or won, until an undo brings them back.
+   *
+   * Lit is not the same as safe, and this is the one place in the collection
+   * where that distinction has teeth. The flags are the reader's own; if they
+   * are on the wrong squares the chord still lights, and pressing it opens
+   * precisely the mined ones among the squares it would have cleared
+   * (mines.c:2723). That is the move's own risk and the same one a tap on the
+   * number already carries — nothing here makes it worse — but a button is more
+   * of an endorsement than a tap, so it is worth having said.
+   */
+  mines: [
+    {
+      key: 'Enter',
+      icon: 'uncover',
+      says: 'uncover',
+      faces: {
+        Uncover: { icon: 'uncover', says: 'uncover' },
+        Clear: { icon: 'chord', says: 'chord' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'flag',
+      says: 'flag',
+      faces: {
+        Mark: { icon: 'flag', says: 'flag' },
+        Unmark: { icon: 'flag', says: 'unflag' },
+      },
+    },
+  ],
+
+  /*
+   * Same Game, whose two keys are a flow with a third state in the middle.
+   *
+   * Its chapter: "if you left-click an unselected region, it becomes selected";
+   * "if you left-click the selected region, it will be removed"; "if you
+   * right-click the selected region, it will be unselected". The cursor keys
+   * reach all three, and `current_key_label` (samegame.c:1098) names whichever
+   * applies where the cursor stands:
+   *
+   *   an unselected region      {Select, Select}      either key picks it
+   *   the selected region       {Remove, Unselect}    Enter does it, Space drops it
+   *   a lone square, selection  {Unselect, Unselect}  no region to pick, so it drops
+   *   a lone square, nothing    {"", ""}              and then there is nothing to do
+   *   an already-cleared square {"", ""}
+   *
+   * Both keys report "Select" on the first row, so the fold blanks Space and
+   * both buttons end up showing the same face — which is the truth, since both
+   * keys do select. Rectangles' pair does the same with "Cancel".
+   *
+   * One place the manual is looser than the code, and the labels are right: it
+   * says "pressing Space or Enter again removes it", but `interpret_move` sends
+   * `CURSOR_SELECT2` to `sel_clear` and only Enter to `sel_movedesc`
+   * (samegame.c:1302-1306). Space unselects; it does not remove.
+   *
+   * And it gets one key, not two, which took a second look to see. Space is
+   * Enter's synonym in three of those four rows — the fold is what says so, and
+   * says it for free: `lsk` arrives blank exactly when the two words agree. The
+   * one row where it differs offers "Unselect", and that is the second button.
+   *
+   * It had none for a while, and the argument for that is worth keeping because
+   * it was the wrong argument rather than a wrong fact. Every fact in it holds:
+   * unselecting changes no game — moving onto another region and pressing once
+   * switches the selection, since that branch clears before it expands
+   * (samegame.c:1307, whose own comment reads "might be no-op"), and measured, a
+   * two-square selection became a four-square one in a single press with no move
+   * committed. Its only effect is to put the highlight out and take the status
+   * line back from "Selected: 4 (4)" to "Score: 0". A hold on the board reaches
+   * it too, since a hold is the right button and upstream's line reads
+   * `RIGHT_BUTTON || CURSOR_SELECT2`; measured, that clears the selection and
+   * commits nothing.
+   *
+   * What was wrong was the test. "A finger can reach it another way" is not the
+   * rule this keypad is built on — Mines' flag is on `Space` and on the right
+   * button both, and has a button anyway, as does every other key in that
+   * position. The rule is whether upstream's *keyboard* does it, which is what
+   * decided Netslide the other way: its reverse slide is the right mouse button
+   * alone, so no button is owed. Same Game's unselect is `CURSOR_SELECT2`, so
+   * one is.
+   *
+   * `does` is what keeps it from being Enter again three rows out of four. The
+   * button asks for "Unselect" and is live exactly where that word is on offer:
+   * on a selected region, where `Space` has it and `Enter` says "Remove"; and on
+   * a lone square with something selected, where both keys have it and the fold
+   * hands us {"", "Unselect"}, so it sends `Enter`. On a region waiting to be
+   * picked both keys say "Select", nobody offers "Unselect", and it goes out.
+   *
+   * That second case also closes a gap this side had opened by itself. On a lone
+   * square upstream's own `Enter` clears the selection, and our one button greyed
+   * out there — less than the key it stands for. Walked over a board with a
+   * region selected, 47 of 144 stops were that square.
+   *
+   * The first button still has no "Unselect" face, and now for a reason rather
+   * than for want of somewhere to put it: it is one job in two steps — pick a
+   * region, then press again to take it — and a key that changed jobs under the
+   * reader's finger is worse than one that waits. Sixteen's pair make the same
+   * call on the rim. So on a square where nothing can be picked it greys out
+   * still wearing its own face, which falls out of `faces` without a special
+   * case, while the button beside it lights up with the thing that *can* be
+   * done.
+   */
+  samegame: [
+    {
+      key: 'Enter',
+      icon: 'select',
+      says: 'select',
+      faces: {
+        Select: { icon: 'select', says: 'select' },
+        Remove: { icon: 'done', says: 'remove', on: true },
+      },
+    },
+    { key: ' ', icon: 'cancel', says: 'unselect', does: 'Unselect', level: 2 },
+  ],
+
+  /*
+   * Flip, one key, and the plainest entry in this table.
+   *
+   * Its chapter: "left-click in a square to flip it and its associated squares,
+   * or use the cursor keys to choose a square and the space bar or Enter key to
+   * flip". Both keys, one job — `IS_CURSOR_SELECT` covers them and
+   * `interpret_move` sends them down the same branch (flip.c:955) — so a second
+   * button would be the first one again.
+   *
+   * And no `faces`, because there is nothing for them to follow: the label is a
+   * constant. Whatever the board is doing, `current_key_label` answers "Flip".
+   * That is also why this is the only puzzle so far whose button is live from
+   * the moment the cursor is up and never goes out again: nothing upstream ever
+   * says it would do nothing, and the mirror is all that gates it.
+   */
+  flip: [{ key: 'Enter', icon: 'flip', says: 'flip' }],
+
+  /*
+   * Guess, where the arrows are two dials rather than one cursor.
+   *
+   * Its chapter: "the up and down cursor keys can be used to select a peg
+   * colour, the left and right keys to select a peg position, and the Enter key
+   * to place a peg of the selected colour in the chosen position... Space adds a
+   * hold marker." So up and down pick *what*, left and right pick *where*, and
+   * these two act on the pair — `move_cursor` is handed `&ui->peg_cur` for x and
+   * `&ui->colour_cur` for y (guess.c:925), which is the whole of that.
+   *
+   * Enter has a second job at the end of the row and `current_key_label` names
+   * it (guess.c:542): walk one step past the last peg and it becomes "Submit",
+   * which marks the guess. That position only exists when the guess is
+   * finished — `maxcur` is `npegs + ui->markable` — so the word appears exactly
+   * when there is something to submit, and Space reports nothing there, since
+   * holding a feedback slot means nothing.
+   *
+   * A hold is what carries a peg into the next guess, and it is the one thing
+   * here the mouse reaches by a button rather than a drag — right-click, which
+   * is a long press on the board already. This button is the keyboard's way to
+   * the same mark.
+   *
+   * The colour digits and the backspace act where the cursor is too, but there
+   * are up to ten of them and this cross has two cells, so they are on the
+   * keypad instead — drawn as the pegs they insert, above. They are the one
+   * place in this file where a key was given despite being reachable by a
+   * gesture; docs/keys.md argues both sides of it.
+   */
+  guess: [
+    {
+      key: 'Enter',
+      icon: 'place',
+      says: 'place',
+      faces: {
+        Place: { icon: 'place', says: 'place' },
+        Submit: { icon: 'done', says: 'submit', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'hold',
+      says: 'hold',
+      faces: { Hold: { icon: 'hold', says: 'hold' } },
+    },
+  ],
+
+  /*
+   * Pegs, where the button arms the arrows rather than moving anything itself.
+   *
+   * Its chapter: "Pressing the return key while over a peg, followed by a
+   * cursor key, will jump the peg in that direction (if that is a legal move)."
+   * So the press sets `cur_jumping` (pegs.c:993) and the *next* arrow is the
+   * move — pegs.c:960 takes the arrow branch apart and sends a jump instead of
+   * walking the cursor. Without this button the arrows in this puzzle can only
+   * ever move a marker about, which is the second criterion exactly.
+   *
+   * One button. `current_key_label` answers `IS_CURSOR_SELECT`, so Enter and
+   * Space always report the same word, the blanking empties the left one, and a
+   * second button would be the first one again.
+   *
+   * And no mirror: this is one of the twenty-two that check the flag —
+   * `if (!ui->cur_visible) return ""` is the first line of it (pegs.c:838) — so
+   * a hidden cursor greys the button out with nothing kept on this side. The
+   * same line greys it on a hole, where upstream answers MOVE_NO_EFFECT.
+   *
+   * Two words and two pictures, which is a reversal: this key wore one picture
+   * under both words for a while, and the argument for that is worth keeping
+   * beside the reason it lost.
+   *
+   * The facts have not changed. Pegs *draws* the mode — pointed at, a peg is a
+   * solid disc in the cursor colour; armed, it is a ring of that colour around
+   * its own (pegs.c:1150-1155), measured at 3249 cursor-coloured pixels against
+   * 1214, and 509 pixels of the board turn over on the press. And Sixteen's
+   * rule stands: the thing that identifies a button has to survive being
+   * pressed.
+   *
+   * What was wrong was the conclusion drawn from them, twice over. "It would
+   * stop being findable in a block of five" does not follow: the block is four
+   * arrows and this, the arrows never move, and a cross is not an arrow — the
+   * reader looks for the one that is not pointing anywhere and finds it in the
+   * same corner either way. And "the state is on the board already" was
+   * answered in the sentence before it, which calls that difference quiet: same
+   * hue, thirty-two identical discs. A quiet board is a reason for the button to
+   * speak up, not to stay silent.
+   *
+   * The thing that settled it arrived later. Pegs is two levels — a press picks
+   * a peg up, and then the arrows jump it and this key puts it down again
+   * (pegs.c:987) — and every other two-level puzzle here shows the second one
+   * with a different face: Rectangles turns Mark and Erase into a tick and a
+   * cross, Same Game's second key is a cross. Pegs wearing one picture in both
+   * was the odd one out, and it was odd in the direction of saying less.
+   *
+   * `cancel` rather than a picture of its own, because that is what this is:
+   * the same abandon-the-pending-thing that five other puzzles spend it on. The
+   * tint from `on` stays, as it does on Same Game's, and now says the same thing
+   * a third time rather than a second.
+   */
+  pegs: [
+    {
+      key: 'Enter',
+      icon: 'jump',
+      says: 'jump',
+      faces: {
+        Select: { icon: 'jump', says: 'jump' },
+        Cancel: { icon: 'cancel', says: 'unjump', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Dominosa, where the cursor stands between two squares rather than on one.
+   *
+   * Its chapter: "when the cursor is half way between two adjacent numbers,
+   * pressing the return key will place a domino covering those numbers, or
+   * pressing the space bar will lay a line between the two squares. Repeating
+   * either action removes the domino or line." So the arrows walk a grid of
+   * `2w-1` by `2h-1` (dominosa.c:2831) and only the positions with exactly one
+   * odd coordinate are between two squares; on a square's own centre, and on the
+   * corner where four meet, both keys report nothing and both buttons go out.
+   *
+   * Two buttons, and they are the clearest case of it so far: one says these two
+   * are a domino, the other says they are not, and a reader deducing their way
+   * through a board wants the second at least as often as the first. Upstream
+   * spends its right-click on the same mark.
+   *
+   * Both keys can say "Remove" — of a domino, and of a line — and they are the
+   * reason `BOTH` exists. They are never on offer together, so an empty Space
+   * beside "Remove" is a real empty, not a folded one.
+   */
+  dominosa: [
+    {
+      key: 'Enter',
+      icon: 'domino',
+      says: 'domino',
+      faces: {
+        Place: { icon: 'domino', says: 'domino' },
+        Remove: { icon: 'dominoOn', says: 'undomino', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'line',
+      says: 'line',
+      faces: {
+        Line: { icon: 'line', says: 'line' },
+        Remove: { icon: 'lineOn', says: 'unline', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Untangle, the first puzzle here whose back end says nothing at all — its
+   * `current_key_label` is NULL. See `SILENT` for what that costs.
+   *
+   * Its chapter: "the cursor keys may also be used to navigate amongst the
+   * points. Pressing the Enter key will toggle dragging the currently-
+   * highlighted point. Pressing Tab or Space will cycle through all the points."
+   * Three sentences, three keys, and the two here are the two that are not
+   * arrows.
+   *
+   * The arrows are unlike every other puzzle's: they do not step a grid, they
+   * search for the nearest point in the quadrant they point at
+   * (untangle.c:2287-2350) — and once a point is in the air the same four keys
+   * shove it half a tile at a time instead. So Enter is not merely what makes
+   * the arrows worth having, it is what changes what they are.
+   *
+   * `drag` is named as the switch rather than as either side of it, which is
+   * upstream's own framing — "toggle dragging" — and Net's padlock all over
+   * again. There is nothing to gate it on and nothing needs gating: with no
+   * point highlighted a press highlights the first one rather than moving
+   * anything, so there is no state in which this button acts unseen. That makes
+   * Untangle the one puzzle so far that keeps no copy and needs no label.
+   *
+   * `cycle` is the second key and it earns the cell. It is not a synonym for
+   * Enter the way Netslide's and Flip's Space is, and the quadrant search is
+   * exactly the kind of thing that leaves a point unreachable — two points in
+   * the same place are skipped on purpose (2313), and upstream's own answer to
+   * that is this key.
+   */
+  untangle: [
+    { key: 'Enter', icon: 'vertex', says: 'drag' },
+    { key: ' ', icon: 'cycle', says: 'cycle' },
+  ],
+
+  /*
+   * Black Box, whose Enter means three different things depending on which part
+   * of the board the cursor has got to.
+   *
+   * Its chapter puts two of them in one sentence — "pressing the Enter key will
+   * fire a laser or add a new ball-location guess, and pressing Space will lock
+   * a cell, row, or column" — and the third a paragraph later: "when an
+   * appropriate number of balls have been guessed, a button will appear at the
+   * top-left corner of the grid; clicking that (with mouse or cursor) will check
+   * your guesses". The cursor roams a grid two wider and two taller than the
+   * arena (blackbox.c:934), so those three regions are three places it can
+   * stand, and `current_key_label` names which one it is in.
+   *
+   * Four faces on one key looks like the thing the Same Game note warns
+   * against, and it is the other side of that line. The rule there is that a
+   * button keeps one job and greys out when upstream spends the key on
+   * something else; here every one of the four *is* the job — do what this
+   * square offers — and each is the only thing the cursor could mean while it
+   * stands where it stands. Rectangles' pair is the same shape with fewer
+   * regions.
+   *
+   * Nothing is kept on this side. The label checks `ui->cur_visible` and
+   * `!state->reveal` before it says anything (blackbox.c:1170), so a hidden
+   * cursor and a revealed board both grey the pair out on their own. It greys
+   * them in two more places worth knowing: a laser square that has already been
+   * fired, where a press only replays the beam — reachable by tapping it, which
+   * is what the manual describes — and an arena square that is locked, which is
+   * what locking is for.
+   *
+   * Space says "Lock" or "Unlock" for a single square, and for a whole row or
+   * column from the ring, where upstream picks the word by majority (1183-1194).
+   * That is the case for reading it rather than printing one padlock the way Net
+   * does: nobody can see at a glance which way a row of eight will go.
+   */
+  blackbox: [
+    {
+      key: 'Enter',
+      icon: 'ball',
+      says: 'ball',
+      faces: {
+        Fire: { icon: 'laser', says: 'fire' },
+        Ball: { icon: 'ball', says: 'ball' },
+        Clear: { icon: 'ballOn', says: 'unball', on: true },
+        Check: { icon: 'done', says: 'check' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'lock',
+      says: 'lockCell',
+      faces: {
+        Lock: { icon: 'lock', says: 'lockCell' },
+        Unlock: { icon: 'unlock', says: 'unlockCell', on: true },
+      },
+    },
+  ],
+
+  /*
+   * The nine that cycle one square through three or four contents, and the
+   * plainest entries in this table: two keys, a face per word, and the word is
+   * already a name for what the press produces.
+   *
+   * That last part is what makes them plain, and it is worth saying because
+   * Pattern is the exception that had to be built by hand. There the labels are
+   * upstream's cycle — press Enter on a grey square and you get "Black", press
+   * it on a black one and you get "Grey" — so a button named for a colour has
+   * to hunt for the key that currently reaches it (`does`). These nine report
+   * the same way, but their two keys between them cover every state a square
+   * can be in, so nothing has to be hunted for: whatever the label says, that
+   * is what this key does here, and the picture says it.
+   *
+   * Where a square goes back to nothing the face is `emptyCell` rather than a
+   * bare outline. Unruly and Mosaic need "white" and "empty" to be two
+   * pictures; the rest are given the same one for the sake of the reader who
+   * plays more than one of them.
+   */
+  /*
+   * Slant's three, and the only entry here that sends neither Enter nor Space.
+   *
+   * Its two cursor keys are one cycle wound both ways, exactly Pattern's shape:
+   * blank steps to `\` steps to `/` steps back to blank, and Space steps round
+   * the other way (slant.c:1742). Pattern's answer to that was three buttons
+   * named for a result, hunting for whichever key reaches it — and Pattern had
+   * to be built that way because upstream gives it nothing else.
+   *
+   * Slant gives something else. `\`, `/` and `\b` set the square outright and
+   * answer MOVE_NO_EFFECT when it is already that (slant.c:1832), so three
+   * buttons here are not three names for a synthesis: they are three keys the
+   * back end has always read and never offered a button for. That is the
+   * original definition of what this keypad is for, and it is why these send
+   * their own characters rather than going through `does`.
+   *
+   * The cycle keys lose their buttons and nothing goes with them: any state is
+   * one press from any other on the three, which is all the cycle bought.
+   *
+   * No `lit`, and the reason is worth keeping because these three look so much
+   * like Pattern's. Pattern needs it because its buttons are named for a result
+   * and `does` answers null when the square already has that colour — the same
+   * null it answers when there is no cursor, so the two had to be told apart by
+   * hand. Nothing is named for a result here. A square that already holds a `\`
+   * still has non-empty labels, so the key goes out and *upstream* answers
+   * MOVE_NO_EFFECT, which is the idempotent case settled by the side that knows.
+   * The only null left is the one meaning "no cursor", and dimming is exactly
+   * what that one is for. `lit` was written in first and measured: all three
+   * stayed live with the cursor away, which is the state the house rule reserves
+   * the dimming for.
+   *
+   * Liveness comes from the labels going empty, which for this puzzle means
+   * exactly one thing. `current_key_label` opens with `ui->cur_visible` and its
+   * switch answers both keys in all three cases, so both words are non-empty
+   * whenever the cursor is on screen and both are empty when it is not — and
+   * `doesNothing` already asks for both to be empty when the key is not Enter.
+   * The gate matters: these three do *not* check `cur_visible` themselves, and
+   * measured, one pressed after a tap on the board writes to wherever the
+   * hidden cursor was left.
+   *
+   * No `WORDS` entry any more, since nothing here reads what the words are —
+   * only whether there are any.
+   *
+   * The third key is `bareSquare` and not `white`: what this puzzle's empty
+   * square shows is the board's own ground, which is a glyph with no fill and
+   * not a white one. See Icon.tsx for the measurement — a filled `white` here
+   * came out inverted on the dark theme.
+   */
+  slant: [
+    { key: '\\', icon: 'backslash', says: 'backslash' },
+    { key: '/', icon: 'slash', says: 'slash' },
+    { key: '\b', icon: 'bareSquare', says: 'noLine' },
+  ],
+
+  /*
+   * Light Up, whose two keys are mutually exclusive rather than a cycle: a lit
+   * square cannot be marked and a marked one cannot be lit (lightup.c:1500), so
+   * whichever one is in use puts the other button out. Both spell their undo
+   * "Clear", and they can never say it together, which is why there is no
+   * `BOTH` line for it.
+   */
+  lightup: [
+    {
+      key: 'Enter',
+      icon: 'lamp',
+      says: 'light',
+      faces: {
+        Light: { icon: 'lamp', says: 'light' },
+        Clear: { icon: 'white', says: 'unlight', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'dotSquare',
+      says: 'cannot',
+      faces: {
+        Mark: { icon: 'dotSquare', says: 'cannot' },
+        Clear: { icon: 'white', says: 'uncannot', on: true },
+      },
+    },
+  ],
+
+  tents: [
+    {
+      key: 'Enter',
+      icon: 'tent',
+      says: 'tent',
+      faces: {
+        Tent: { icon: 'tent', says: 'tent' },
+        Clear: { icon: 'white', says: 'clearSquare', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'grass',
+      says: 'grass',
+      faces: {
+        Green: { icon: 'grass', says: 'grass' },
+        Clear: { icon: 'white', says: 'clearSquare', on: true },
+      },
+    },
+  ],
+
+  singles: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        Restore: { icon: 'white', says: 'restore', on: true },
+        Remove: { icon: 'white', says: 'uncircle', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'circleSquare',
+      says: 'circle',
+      faces: {
+        Circle: { icon: 'circleSquare', says: 'circle' },
+        Restore: { icon: 'white', says: 'restore', on: true },
+        Remove: { icon: 'white', says: 'uncircle', on: true },
+      },
+    },
+  ],
+
+  unruly: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'white',
+      says: 'whiteSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+  ],
+
+  mosaic: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'white',
+      says: 'whiteSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+  ],
+
+  range: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'fillSquare',
+      faces: {
+        Fill: { icon: 'black', says: 'fillSquare' },
+        Dot: { icon: 'dotSquare', says: 'dotSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'dotSquare',
+      says: 'dotSquare',
+      faces: {
+        Fill: { icon: 'black', says: 'fillSquare' },
+        Dot: { icon: 'dotSquare', says: 'dotSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+  ],
+
+  /*
+   * Magnets, where a press works on half a domino and the other half follows.
+   * Enter cycles the poles, Space the two markers upstream draws for "this
+   * domino is blank" and "this one is definitely not" — six words between
+   * them, and each names what the press will leave behind.
+   */
+  magnets: [
+    {
+      key: 'Enter',
+      icon: 'plusSquare',
+      says: 'plus',
+      faces: {
+        '+': { icon: 'plusSquare', says: 'plus' },
+        '-': { icon: 'minusSquare', says: 'minus' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'crossSquare',
+      says: 'blankDomino',
+      faces: {
+        X: { icon: 'crossSquare', says: 'blankDomino' },
+        '?': { icon: 'questionSquare', says: 'notBlankDomino' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare' },
+      },
+    },
+  ],
+
+  /*
+   * Tracks, whose cursor walks a half-grid like Dominosa's: the even stops are
+   * squares and the odd ones the edges between them, and both keys work on
+   * whichever it is standing on. Upstream's `ui_can_flip_*` decides whether
+   * there is anything to do at all (tracks.c:1268), and where there is not the
+   * label is empty and the button goes out — which is how a clue square, whose
+   * track is given, keeps its answer.
+   */
+  tracks: [
+    {
+      key: 'Enter',
+      icon: 'track',
+      says: 'track',
+      faces: {
+        Track: { icon: 'track', says: 'track' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'crossSquare',
+      says: 'noTrack',
+      faces: {
+        X: { icon: 'crossSquare', says: 'noTrack' },
+        Clear: { icon: 'emptyCell', says: 'clearSquare', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Filling, whose two keys are both about the selection rather than about the
+   * board: the digits on its keypad are what actually fill squares, and these
+   * choose which squares they fill. Enter runs a selection along with the
+   * arrows and stops it; Space adds and removes the one square under the
+   * cursor. A clue square cannot be selected, and upstream says so by falling
+   * silent (filling.c:1462).
+   */
+  filling: [
+    {
+      key: 'Enter',
+      icon: 'select',
+      says: 'multiselect',
+      faces: {
+        Multiselect: { icon: 'select', says: 'multiselect' },
+        Stop: { icon: 'done', says: 'stopSelect', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'pickCell',
+      says: 'selectSquare',
+      faces: {
+        Select: { icon: 'pickCell', says: 'selectSquare' },
+        Deselect: { icon: 'white', says: 'deselectSquare', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Flood, whose two keys have nothing to do with each other. Enter floods the
+   * top-left corner with the colour under the cursor — the only move this game
+   * has — and Space replays the solver's next step, which exists only after
+   * Solve has been pressed and which upstream reports exactly then.
+   *
+   * This is the one puzzle in the collection whose label does not check the
+   * cursor flag, so it needs a mirror. See CURSOR_LIFE.
+   */
+  flood: [
+    {
+      key: 'Enter',
+      icon: 'floodFill',
+      says: 'floodFill',
+      faces: { Fill: { icon: 'floodFill', says: 'floodFill' } },
+    },
+    {
+      key: ' ',
+      icon: 'advance',
+      says: 'advance',
+      offCursor: true,
+      faces: { Advance: { icon: 'advance', says: 'advance' } },
+    },
+  ],
+
+  /*
+   * Palisade, the second back end that reports nothing (see SILENT) and the
+   * only puzzle where a preference decides whether these buttons exist at all
+   * — see `cursorKeys`.
+   *
+   * In its half-grid mode the cursor stands on the border between two squares
+   * and these two draw a wall there or cross it off; on a square's own centre
+   * or corner both do nothing, which is the same shape as Dominosa's half-grid
+   * and the same cost. Both words name the switch rather than either side of
+   * it, because with no label there is nothing to follow: a press draws a wall
+   * as readily as it rubs one out, and the board shows which.
+   */
+  palisade: [
+    { key: 'Enter', icon: 'edge', says: 'edge' },
+    { key: ' ', icon: 'noEdge', says: 'noEdge' },
+  ],
+
+  /*
+   * Bridges, whose two keys are two different jobs that happen to share a word.
+   * Enter opens a bridge from the island under the cursor and lands it where
+   * the arrows have got to; Space says you have finished with this island, and
+   * upstream then refuses to let you disturb its bridges. Mid-drag both report
+   * "Finished" — Enter lands it, Space drops it — which is what `BOTH` is for.
+   */
+  bridges: [
+    {
+      key: 'Enter',
+      icon: 'island',
+      says: 'startBridge',
+      faces: {
+        Select: { icon: 'island', says: 'startBridge' },
+        Finished: { icon: 'done', says: 'endBridge', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'islandDone',
+      says: 'islandDone',
+      faces: { Finished: { icon: 'islandDone', says: 'islandDone' } },
+    },
+  ],
+
+  /*
+   * Signpost, where a press starts a link and the next one lands it. The two
+   * keys differ in which end the cursor is: Enter links this square to its
+   * successor, Space to its predecessor, and once a link is open each key says
+   * whether the square under the cursor can be the other end of it.
+   */
+  signpost: [
+    {
+      key: 'Enter',
+      icon: 'linkFrom',
+      says: 'linkFrom',
+      faces: {
+        'From here': { icon: 'linkFrom', says: 'linkFrom' },
+        'To here': { icon: 'linkTo', says: 'linkTo', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'linkTo',
+      says: 'linkTo',
+      faces: {
+        'From here': { icon: 'linkFrom', says: 'linkFrom', on: true },
+        'To here': { icon: 'linkTo', says: 'linkTo' },
+        Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Pearl, whose Enter is a keyboard drag: press once to start drawing the
+   * loop, walk it with the arrows, press again to leave it. Space exists only
+   * to abandon one, which is why it has a single face and is out the rest of
+   * the time — upstream reports nothing for it until a drag is open.
+   */
+  pearl: [
+    {
+      key: 'Enter',
+      icon: 'drawLine',
+      says: 'startLoop',
+      faces: {
+        Start: { icon: 'drawLine', says: 'startLoop' },
+        Stop: { icon: 'done', says: 'endLoop', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'cancel',
+      says: 'cancelLoop',
+      faces: { Cancel: { icon: 'cancel', says: 'cancelLoop', on: true } },
+    },
+  ],
+
+  /*
+   * Galaxies, which has the longest label vocabulary in the collection and one
+   * button to spend it on: its `current_key_label` never asks which key it was
+   * called about, so both report the same word and a second button would be
+   * the first one again.
+   *
+   * Seven words, three jobs. On a grid line the key draws an edge or rubs one
+   * out. On a dot it picks up an arrow — the marker that says "this square
+   * belongs to that dot" — and on a square holding one it picks that up
+   * instead; the next press drops it, removes it, or abandons the whole thing,
+   * and upstream works out which and says so.
+   */
+  galaxies: [
+    {
+      key: 'Enter',
+      icon: 'edge',
+      says: 'drawEdge',
+      faces: {
+        Edge: { icon: 'edge', says: 'drawEdge' },
+        Clear: { icon: 'noEdge', says: 'clearEdge', on: true },
+        'New arrow': { icon: 'galaxyArrow', says: 'newArrow' },
+        'Move arrow': { icon: 'galaxyArrow', says: 'moveArrow' },
+        Place: { icon: 'done', says: 'dropArrow', on: true },
+        Remove: { icon: 'cancel', says: 'removeArrow', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelArrow', on: true },
+      },
+    },
+  ],
+
+  /*
+   * Map, whose keys carry a colour about. Enter picks up whatever is under the
+   * cursor and the arrows take it to a region; pressing again drops it in.
+   * Space does the same with a stipple, which is upstream's word for "this
+   * region might be that colour".
+   *
+   * "Pick" is the state before a colour has been chosen at all — upstream says
+   * it when `drag_colour` is still -2 — and "Clear" empties a region, which is
+   * what dragging from an empty one does.
+   */
+  map: [
+    {
+      key: 'Enter',
+      icon: 'pickCell',
+      says: 'pickColour',
+      faces: {
+        Pick: { icon: 'pickCell', says: 'pickColour' },
+        Fill: { icon: 'black', says: 'fillRegion', on: true },
+        Stipple: { icon: 'stipple', says: 'stippleRegion', on: true },
+        Clear: { icon: 'emptyCell', says: 'clearRegion', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelFill', on: true },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'stipple',
+      says: 'stippleRegion',
+      faces: {
+        Pick: { icon: 'pickCell', says: 'pickColour' },
+        Stipple: { icon: 'stipple', says: 'stippleRegion', on: true },
+        Clear: { icon: 'emptyCell', says: 'clearRegion', on: true },
+        Cancel: { icon: 'cancel', says: 'cancelFill', on: true },
+      },
+    },
+  ],
+
+  solo: [PENCIL],
+  unequal: [PENCIL],
+  keen: [PENCIL],
+  towers: [PENCIL],
+  undead: [PENCIL],
+}
+
+/**
+ * The button a *hold* stands for, where it is not the right one.
+ *
+ * A finger makes two presses and no more: a tap and a hold. `usePuzzlePointer`
+ * spends the second of them on the right button, which is the correct trade
+ * almost everywhere — half the collection needs a right click for something,
+ * flagging a mine or pencilling a digit — but it leaves the middle button with
+ * no gesture at all, and in Net the middle button is the lock.
+ *
+ * So Net spends its hold differently. What it gives up is rotating the other
+ * way, which is three presses of the ordinary rotate; what it buys is the only
+ * gesture on touch that can lock a tile, and locking has no substitute there.
+ *
+ * A hold only, and not the mouse's right click with it. That is a change from
+ * how this started, and the reason is that the trade above is a trade a finger
+ * has to make and a mouse does not: the wheel button and Shift-click both reach
+ * the middle button already, so charging the right click for it takes away
+ * rotate-right and returns nothing. A mouse therefore gets upstream's three
+ * buttons unaltered — left rotates one way, right the other, wheel or Shift
+ * locks — and only the hold is ours to spend.
+ *
+ * Per puzzle, and it has to be: making this the rule everywhere would take the
+ * hold away from the twenty-odd puzzles whose second press is a right click.
+ *
+ * Upstream has an accommodation for a one-button pointer and this is not a
+ * duplicate of it — it is dead code in this build, twice over. `MOD_STYLUS`
+ * makes Net's right click lock (net.c:2299) and does the same kind of thing in
+ * four other games, but the midend only ever sets that bit inside
+ * `#ifdef STYLUS_BASED` (midend.c:991), and `STYLUS_BASED` is defined nowhere
+ * in the tree — it is a Palm/PocketPC-era platform macro. Defining it would
+ * also hand Net `USE_DRAGGING` (net.c:31), replacing click-to-rotate with
+ * drag-to-rotate, which upstream's own comment calls "quite strange and
+ * unintuitive". And it is a claim about the machine, not about the pointer in
+ * use: one wasm binary serves a mouse and a finger at once and cannot make it.
+ *
+ * The second layer is simpler. Upstream's own `emccpre.js` binds only
+ * `onmousedown`/`onmousemove`/`onmouseup`; there is no touch code in it at all,
+ * so on a phone its web build has one button and no hold. A second press on
+ * touch is this side's invention, which is why spending it is this side's
+ * choice to make.
+ */
+export const HOLD_BUTTON: Record<string, number> = {
+  /** The middle button, which is `TOGGLE_LOCK` in net.c. */
+  net: 1,
+}
+
+/** palisade.c's "Cursor mode", by its two answers (palisade.c:906). */
+const CURSOR_MODE = ['Half-grid', 'Full-grid']
+
+/**
+ * The keys to put either side of the arrows, for a puzzle whose answer is not
+ * settled by its name alone.
+ *
+ * Palisade is the only one, and it is the one place where a preference decides
+ * whether a button exists at all rather than what it looks like. Its cursor has
+ * two modes: on the borders, where Enter and Space place and unplace an edge,
+ * and on the squares, where the same job is Ctrl and Shift held with an arrow
+ * (palisade.c:1013). We cannot send a modifier, so in the second mode these two
+ * buttons would be live and do nothing — and Palisade reports no labels at all,
+ * so nothing else would ever put them out. Better to have no buttons than two
+ * that lie.
+ *
+ * Half-grid is upstream's default (892), so the ordinary reader gets them.
+ */
+export function cursorKeys(
+  name: string,
+  prefs: readonly DialogControl[] = [],
+): CursorKey[] {
+  if (name === 'palisade' && preference(prefs, CURSOR_MODE) === 1) return []
+  return CURSOR_KEYS[name] ?? []
+}
 
 export function keysFor(
   name: string,
@@ -278,6 +2562,6 @@ export function keysFor(
   // A misread game id would put a keypad of the wrong length on screen, which
   // is worse than none: better to show nothing than to offer a digit the
   // puzzle will not take, or to leave one out that it needs.
-  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + MAX_AIDS) return []
+  if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + MAX_EXTRAS) return []
   return keys
 }

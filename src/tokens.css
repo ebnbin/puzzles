@@ -43,6 +43,35 @@
      be findable at all. */
   --edge-strong: #8a8a90;
 
+  /*
+   * The three fills of a square on a board that has black, white and neither.
+   *
+   * These are the only colours in the app taken from a board rather than chosen
+   * for the interface, and they are here because Pattern's keys are *about*
+   * colour: a key drawn in the accent says "filled or not", which is one bit
+   * short of what that puzzle asks. Measured off the running board, light and
+   * dark: full is rgb(0,0,0) / rgb(13,13,13), empty rgb(255,255,255) /
+   * rgb(204,204,204), unknown rgb(128,128,128) / rgb(109,109,109). Pattern's
+   * black and white are in palette.ts's SEMANTIC, so the dark board keeps them
+   * the way round they started rather than flipping — which is what lets these
+   * be the same three ideas in both themes.
+   *
+   * Unknown is a real mid grey rather than "no fill" on purpose. Transparent
+   * would be the key's own surface, and the key sits on `--surface-2`: #f0f0ef
+   * on light, which is white, so an unfilled square and a white one would be
+   * one picture. A mid grey is the one value that stays apart from both
+   * surfaces at once.
+   *
+   * Each glyph keeps its accent outline, so the shape is legible even where the
+   * fill nearly matches what it sits on — black on the dark key, white on the
+   * light one. That the fill goes quiet exactly there is not a bug: it is the
+   * board's own answer, where a white square on a pale page is also barely a
+   * square.
+   */
+  --cell-full: #000000;
+  --cell-empty: #ffffff;
+  --cell-unknown: #808080;
+
   --text: #17171a;
   --text-2: #5b5b64;
   /* Dim, but it carries 11px section labels and the footer, so it still has
@@ -147,6 +176,11 @@
   --raised: #2c2c34;
   --edge: #26262d;
   --edge-strong: #6b6b7d;
+
+  /* The same three, as palette.ts leaves them on the dark board. */
+  --cell-full: #0d0d0d;
+  --cell-empty: #cccccc;
+  --cell-unknown: #6d6d6d;
 
   --text: #ececef;
   --text-2: #a2a2ad;
