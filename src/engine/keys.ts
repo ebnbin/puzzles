@@ -455,6 +455,25 @@ export type CursorKey = {
    */
   does?: string
   /**
+   * That this key is a place before it is a state, so it is never drawn dim.
+   *
+   * Dimming is the house rule and it is the right one nearly everywhere: a
+   * button that cannot act says so rather than swallowing the press. Pattern's
+   * three are the exception, and for a reason that only shows up in how it is
+   * played. A run of squares gets painted one colour in one sweep, and some of
+   * them are already that colour; a button that goes out part way through the
+   * sweep changes shape under a thumb that is not looking at it, which is worse
+   * than the press it saves.
+   *
+   * It is also the one place where a press with nothing to send is not a failed
+   * press. Asking for black on a square that is already black leaves it black —
+   * the postcondition holds, so the button did its job and has nothing to
+   * report. That is idempotent rather than inert, and it is why this exemption
+   * does not generalise: everywhere else a dead key means the reader wanted
+   * something they did not get.
+   */
+  lit?: boolean
+  /**
    * Or, for a key that changes job as the puzzle goes along: a face per word
    * its own key can report.
    *
@@ -1416,9 +1435,9 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * useful buttons and one dead one rather than three dead ones.
    */
   pattern: [
-    { key: 'Enter', icon: 'black', says: 'black', does: 'Black' },
-    { key: ' ', icon: 'white', says: 'white', does: 'White' },
-    { key: 'Enter', icon: 'grey', says: 'grey', does: 'Grey' },
+    { key: 'Enter', icon: 'black', says: 'black', does: 'Black', lit: true },
+    { key: ' ', icon: 'white', says: 'white', does: 'White', lit: true },
+    { key: 'Enter', icon: 'grey', says: 'grey', does: 'Grey', lit: true },
   ],
 
   /*

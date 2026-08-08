@@ -1382,7 +1382,10 @@ export default function PuzzleHost({
                   data-on={on || undefined}
                   aria-pressed={cursor.faces ? !!on : undefined}
                   aria-label={said}
-                  disabled={key === null}
+                  // Pattern's three stay lit even with nothing to send, which
+                  // the click below already handles by doing nothing. See `lit`
+                  // in engine/keys for the one puzzle this is right for.
+                  disabled={key === null && !cursor.lit}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
