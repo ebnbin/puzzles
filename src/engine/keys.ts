@@ -1041,7 +1041,6 @@ const WORDS: Record<string, readonly string[]> = {
    * the face on the button is a picture of the result — which is the whole
    * reason these were cheap to do once the machinery existed.
    */
-  slant: ['\\', '/', 'Blank'],
   lightup: ['Light', 'Mark', 'Clear'],
   tents: ['Tent', 'Green', 'Clear'],
   singles: ['Black', 'Circle', 'Restore', 'Remove'],
@@ -2006,27 +2005,53 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * pictures; the rest are given the same one for the sake of the reader who
    * plays more than one of them.
    */
+  /*
+   * Slant's three, and the only entry here that sends neither Enter nor Space.
+   *
+   * Its two cursor keys are one cycle wound both ways, exactly Pattern's shape:
+   * blank steps to `\` steps to `/` steps back to blank, and Space steps round
+   * the other way (slant.c:1742). Pattern's answer to that was three buttons
+   * named for a result, hunting for whichever key reaches it — and Pattern had
+   * to be built that way because upstream gives it nothing else.
+   *
+   * Slant gives something else. `\`, `/` and `\b` set the square outright and
+   * answer MOVE_NO_EFFECT when it is already that (slant.c:1832), so three
+   * buttons here are not three names for a synthesis: they are three keys the
+   * back end has always read and never offered a button for. That is the
+   * original definition of what this keypad is for, and it is why these send
+   * their own characters rather than going through `does`.
+   *
+   * The cycle keys lose their buttons and nothing goes with them: any state is
+   * one press from any other on the three, which is all the cycle bought.
+   *
+   * No `lit`, and the reason is worth keeping because these three look so much
+   * like Pattern's. Pattern needs it because its buttons are named for a result
+   * and `does` answers null when the square already has that colour — the same
+   * null it answers when there is no cursor, so the two had to be told apart by
+   * hand. Nothing is named for a result here. A square that already holds a `\`
+   * still has non-empty labels, so the key goes out and *upstream* answers
+   * MOVE_NO_EFFECT, which is the idempotent case settled by the side that knows.
+   * The only null left is the one meaning "no cursor", and dimming is exactly
+   * what that one is for. `lit` was written in first and measured: all three
+   * stayed live with the cursor away, which is the state the house rule reserves
+   * the dimming for.
+   *
+   * Liveness comes from the labels going empty, which for this puzzle means
+   * exactly one thing. `current_key_label` opens with `ui->cur_visible` and its
+   * switch answers both keys in all three cases, so both words are non-empty
+   * whenever the cursor is on screen and both are empty when it is not — and
+   * `doesNothing` already asks for both to be empty when the key is not Enter.
+   * The gate matters: these three do *not* check `cur_visible` themselves, and
+   * measured, one pressed after a tap on the board writes to wherever the
+   * hidden cursor was left.
+   *
+   * No `WORDS` entry any more, since nothing here reads what the words are —
+   * only whether there are any.
+   */
   slant: [
-    {
-      key: 'Enter',
-      icon: 'backslash',
-      says: 'backslash',
-      faces: {
-        '\\': { icon: 'backslash', says: 'backslash' },
-        '/': { icon: 'slash', says: 'slash' },
-        Blank: { icon: 'white', says: 'noLine' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'slash',
-      says: 'slash',
-      faces: {
-        '\\': { icon: 'backslash', says: 'backslash' },
-        '/': { icon: 'slash', says: 'slash' },
-        Blank: { icon: 'white', says: 'noLine' },
-      },
-    },
+    { key: '\\', icon: 'backslash', says: 'backslash' },
+    { key: '/', icon: 'slash', says: 'slash' },
+    { key: '\b', icon: 'white', says: 'noLine' },
   ],
 
   /*
