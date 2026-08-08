@@ -15,6 +15,7 @@ import {
   inMenu,
   HOLD_BUTTON,
   keysFor,
+  offersKeys,
   movesEightWays,
   opener,
   opens,
@@ -49,6 +50,7 @@ import type {
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { toggleArrows, useArrows } from './useArrows'
+import { toggleKeys, useKeys } from './useKeys'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -268,7 +270,15 @@ export default function PuzzleHost({
    * they say otherwise.
    */
   const chosen = useArrows()
+  const asked = useKeys()
   const arrows = readsArrows(name) ? chosen.has(name) : null
+  /**
+   * And whether this puzzle's ordinary keys are showing, on the one puzzle
+   * where they are a shortcut rather than the way in. Null for every other
+   * puzzle, and null is not false, exactly as above: false is an offer
+   * declined, null is no offer to make.
+   */
+  const ownKeys = offersKeys(name) ? asked.has(name) : null
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -684,10 +694,14 @@ export default function PuzzleHost({
    * arriving. And, for the one puzzle that draws its pieces two ways, the
    * preferences — see READS_PREFS in keys.ts.
    */
-  const keys = useMemo(
-    () => (permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []),
-    [name, permalink, prefs],
-  )
+  const keys = useMemo(() => {
+    const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
+    // And, where the board can already do what they do, only if asked. What
+    // goes is the keys with no `whose` — the ones that put something in a
+    // square, which is the same set a finger reaches by touching the square.
+    // See offersKeys for why the list is one name long.
+    return offersKeys(name) && !ownKeys ? all.filter((k) => k.whose) : all
+  }, [name, ownKeys, permalink, prefs])
 
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
@@ -1513,6 +1527,8 @@ export default function PuzzleHost({
           prefsError={inlineError}
           arrows={arrows}
           onToggleArrows={() => toggleArrows(name)}
+          ownKeys={ownKeys}
+          onToggleKeys={() => toggleKeys(name)}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           textError={textError}

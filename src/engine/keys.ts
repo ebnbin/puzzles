@@ -397,6 +397,37 @@ const NO_ARROWS = new Set(['loopy'])
 export const readsArrows = (name: string) => !NO_ARROWS.has(name)
 
 /**
+ * The puzzles whose ordinary keys are a shortcut rather than the only way in,
+ * and which are therefore worth offering as a switch.
+ *
+ * "Ordinary" is `whose` being absent — the keys that put something in a square.
+ * For nearly every puzzle those are the whole reason the keypad exists: nothing
+ * on a phone can type a digit into Solo or a monster into Undead, so taking
+ * them away would take the game away. Guess is the exception its own board
+ * makes. Every colour is on the bar it draws and can be dragged into a hole
+ * (guess.c:858), a peg comes off by being dragged out (guess.c:891), and the
+ * keypad's `⌫` is the same act; so the swatches save a drag rather than making
+ * one possible.
+ *
+ * Named as an offer and not as a behaviour, because the switch and the filter
+ * are two different questions. *Which* keys go is general — the ones with no
+ * `whose`, which is exactly the set a touch can reach by touching the square.
+ * *Whether to ask* is a judgement about one puzzle's board, and it is wrong for
+ * every other puzzle in the collection, which is why this is a list and not a
+ * rule. Each name earns its place by someone reading that game's mouse
+ * handling; guessing would strand a reader with no way to enter anything.
+ *
+ * `H` stays either way, and that is the line: it is `whose: 'upstream'`, and
+ * `compute_hint` hangs off 'h', 'H' and '?' alone (guess.c:929) with no mouse
+ * path anywhere. Hiding it would take back the one thing on that row a touch
+ * device cannot otherwise have — which is the thing this whole keypad is for.
+ */
+const OPTIONAL_KEYS = new Set(['guess'])
+
+/** Whether this puzzle offers the switch for its ordinary keys. */
+export const offersKeys = (name: string) => OPTIONAL_KEYS.has(name)
+
+/**
  * The puzzle whose board has eight ways out of a square rather than four.
  *
  * Inertia's ball rolls until it hits something, and it rolls diagonally as

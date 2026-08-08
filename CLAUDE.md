@@ -274,9 +274,10 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 ### 前端约定
 
 - **模块级 store + `useSyncExternalStore`**,不用 Context:主题(`useTheme`)、语言
-  (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、要不要方向键(`useArrows`)、当前屏幕
-  (`view.ts`)都是这个形状。后两个还共用一个更小的形状:一组游戏名存在一个 key 下,presence
-  即真——四十个只会被一起问到的布尔值是一件事,不是四十件。
+  (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、要不要方向键(`useArrows`)、要不要那个游戏
+  自己的按键(`useKeys`)、当前屏幕(`view.ts`)都是这个形状。中间三个还共用一个更小的形状:
+  一组游戏名存在一个 key 下,presence 即真——四十个只会被一起问到的布尔值是一件事,不是四十
+  件。三份同形的 store 现在是三个文件,各自的注释才是它们的内容;要合成一个工厂也说得过去。
 - 主题和语言在 `index.html` 的内联脚本里先解析一次,避免首帧闪白/闪英文;改了那段就要
   同步改 `useTheme` / `i18n`(以及 `build-doc.mjs` 里给手册用的同一段)。
 - 设计 token 全在 `src/tokens.css`,`data-theme` 属性切换,样式表里没有 media query。
@@ -314,7 +315,8 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
 改之前先想清楚代价:
 
 - **localStorage 的 key**(`src/engine/saves.ts` 列全了,外加 `puzzles.theme`、
-  `puzzles.lang`、`puzzles.hidden`、`puzzles.arrows`、`puzzles.prefs.<name>`)。改名字 =
+  `puzzles.lang`、`puzzles.hidden`、`puzzles.arrows`、`puzzles.keys`、
+  `puzzles.prefs.<name>`)。改名字 =
   用户的存档、设置、隐藏列表全部作废。每个 key 现在读的时候都容忍垃圾值(存档校验
   `SAVEFILE` 开头、主题只认 `dark`、其余一律当 light 并写回 `light`、集合类过滤非字符串),
   所以**加**东西是安全的,**改**和**删**不是。

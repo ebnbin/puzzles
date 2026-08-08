@@ -460,13 +460,32 @@ export const en = {
     solve: 'Solve',
     preferences: 'Preferences',
     /**
-     * Ours, and the only row in that section that is: everything above it comes
-     * out of the compiled back end and is in English whatever the reader has
-     * chosen. Last in the list for that reason as well as by request — the
-     * puzzle's own settings are what the heading promises, and this is the app
-     * adding one of its own underneath them.
+     * Ours, and the only rows in that section that are: everything above them
+     * comes out of the compiled back end and is in English whatever the reader
+     * has chosen. Last in the list for that reason as well as by request — the
+     * puzzle's own settings are what the heading promises, and these are the app
+     * adding two of its own underneath them.
      */
     arrows: 'Show arrow keys',
+    /**
+     * Named for Guess's own word rather than for the general rule, because
+     * Guess is the whole of the list that offers this — see `offersKeys`. The
+     * general rule is "the keys that put something in a square", which is true
+     * and says nothing to somebody looking at a row of coloured pegs. A second
+     * puzzle joining the list would want its own string, and a string is cheap.
+     *
+     * The erase key goes with them and is not named. It takes off what they put
+     * on, so a reader who has asked for one has asked for the other, and a
+     * label listing both would be longer than the row it describes.
+     *
+     * "Colour" lands a row under one of Guess's own preferences, "Label colours
+     * with numbers", and the repetition is accepted rather than missed. It is
+     * the puzzle's word for these pieces — its blurb says to drag a colour from
+     * the left — so any synonym would be this app inventing a name for
+     * something the manual has already named. The two rows still read apart:
+     * one labels what is on the board, the other puts keys under it.
+     */
+    keys: 'Show colour keys',
     gameId: 'Game ID',
     seed: 'Random seed',
   },
