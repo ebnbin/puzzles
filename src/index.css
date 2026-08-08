@@ -1489,6 +1489,54 @@ p.notice-intro button:active {
 }
 
 /*
+ * Three keys, and the cross moves down to make room for them.
+ *
+ * Pattern only, and the reason is that its three are one choice rather than
+ * three jobs: a square is black, white or grey, and any of the three is one
+ * press away from any other. Two buttons cannot say that. They can say it by
+ * changing face — which is what upstream's two keys do, and what this replaced
+ * — but a face that turns over on every press means the black button is no
+ * longer a place your thumb knows, and this is a puzzle played by painting long
+ * runs.
+ *
+ * So the block becomes the same three-by-three Inertia uses, filled the other
+ * way round: a full row of keys at the top, the cross beneath it. It is a key
+ * taller than the two-row form, which comes out of the board — the same trade
+ * `[data-ways='8']` makes above, for the same reason, and the width the
+ * landscape rail depends on is again untouched.
+ *
+ * Left to right in the order engine/keys lists them, which for Pattern is the
+ * order its own chapter names the colours in.
+ */
+.play-arrows[data-keys='3'] [data-act='first'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows[data-keys='3'] [data-act='second'] {
+  grid-area: 1 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-act='third'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-keys='3'] [data-dir='up'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-dir='left'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows[data-keys='3'] [data-dir='down'] {
+  grid-area: 3 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-dir='right'] {
+  grid-area: 3 / 3;
+}
+
+/*
  * Eight ways out of a square rather than four, which is Inertia and nothing
  * else — see movesEightWays.
  *

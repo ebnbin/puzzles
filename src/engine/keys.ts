@@ -1370,63 +1370,55 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   netslide: [{ key: 'Enter', icon: 'primary', says: 'slide' }],
 
   /*
-   * Two keys that are upstream's cycle, wound the two ways upstream winds it.
+   * Three keys for three colours, which is what the board has and what the
+   * mouse has: left black, right white, middle grey (pattern.c:1330).
    *
-   * A Pattern square is grey, black or white, and `Enter` steps it
-   * grey→black→white→grey while `Space` steps it back — "the space bar does the
-   * same cycle in reverse", as its chapter puts it. Each key wears the colour it
-   * is about to produce, read off `current_key_label` (pattern.c:1269), so the
-   * face turns over with every press and is never a promise about only the
-   * first one.
+   * Upstream's keyboard has two, and they are one cycle wound opposite ways —
+   * `Enter` steps grey→black→white→grey and `Space` steps it back, "the space
+   * bar does the same cycle in reverse", as its chapter puts it. Neither key
+   * *sets* a colour. `does` is what turns that into three that do: a button
+   * asking for "Black" reads `current_key_label` (pattern.c:1269) for whichever
+   * key reaches black from this square and sends that one — `Enter` from grey,
+   * `Space` from white, neither from a square already black, where it goes out.
    *
-   * These were two fixed colours for a while, built on `does`: a button asking
-   * for "Black" looked up whichever key reached black from here and sent that
-   * one, which made each button mean one thing for the whole game. It cost the
-   * third state. Neither button ever asked for "Grey", so on a touch device a
-   * square could be painted and never unpainted — measured through the buttons,
-   * the moves that came out were `F` and `E` for ever and no `U` — and a finger
-   * has none of the other three ways in: upstream's middle button
-   * (pattern.c:1330), `Ctrl+Shift` with an arrow (pattern.c:1408), or a cycle
-   * key pressed from the right square. A hold on the board is the right button
-   * here, which is white. Undo was the only way back, and undo takes back
-   * whatever else came with it.
+   * The two shapes this went through are both worth keeping, because each was
+   * wrong in a way the other was not.
    *
-   * Turning the cycle back on buys that for nothing. Every state is one press
-   * from every other, and no press is wasted: on a black square `Enter` gives
-   * white and `Space` gives grey, on a white one they give grey and black. The
-   * price is that neither button holds a fixed meaning, so a reader painting a
-   * long run has to read the face rather than remember a position — which is
-   * why the alternative of a third `does: 'Grey'` button is still the better
-   * shape if that ever grates, and why the pictures below are worth the colour
-   * they are drawn in.
+   * Two fixed colours, black and white, was the first. Each button meant one
+   * thing all game, which is the property being bought here, and it cost the
+   * third state outright: neither button ever asked for "Grey", so a square
+   * could be painted and never unpainted. Measured through the buttons, the
+   * moves that came out were `F` and `E` for ever and no `U`, and a finger has
+   * none of the other ways in — the middle button, `Ctrl+Shift` with an arrow
+   * (pattern.c:1408), or a cycle key pressed from the right square. A hold on
+   * the board is the right button here, which is white. Undo was the only way
+   * back, and undo takes back whatever came with it.
+   *
+   * Upstream's own two keys, cycling, was the second. That reaches everything
+   * in one press and is exactly what the back end does, but the face turns over
+   * with every press, so "the black button" stops being a place and starts
+   * being something to read. Pattern is played by painting long runs, and a
+   * button that moves under a repeated press is the wrong kind of true.
+   *
+   * Three fixed keys is both properties at once, and the only thing it spends
+   * is a row: the block goes from two keys tall to three, which comes out of
+   * the board. See `[data-keys='3']` in index.css.
    *
    * A near miss worth recording, since it looks like the obvious middle way:
    * keeping "Black" fixed on the left and letting only the right key cycle
    * *duplicates* the pair on a white square. `Enter` reports "Grey" and `Space`
    * "Black" there, so `does: 'Black'` resolves to `Space` — both buttons then
    * send the same key, produce the same colour and wear the same face.
+   *
+   * The fallback `key` on each is the one that reaches its colour from an
+   * untouched square, which is where nearly every press happens. It is only
+   * ever used if upstream renames these labels, and then the three become two
+   * useful buttons and one dead one rather than three dead ones.
    */
   pattern: [
-    {
-      key: 'Enter',
-      icon: 'black',
-      says: 'black',
-      faces: {
-        Black: { icon: 'black', says: 'black' },
-        White: { icon: 'white', says: 'white' },
-        Grey: { icon: 'grey', says: 'grey' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'white',
-      says: 'white',
-      faces: {
-        Black: { icon: 'black', says: 'black' },
-        White: { icon: 'white', says: 'white' },
-        Grey: { icon: 'grey', says: 'grey' },
-      },
-    },
+    { key: 'Enter', icon: 'black', says: 'black', does: 'Black' },
+    { key: ' ', icon: 'white', says: 'white', does: 'White' },
+    { key: 'Enter', icon: 'grey', says: 'grey', does: 'Grey' },
   ],
 
   /*

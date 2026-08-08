@@ -127,6 +127,17 @@ const DIAGONALS = [
   { dir: 'downRight', key: '3', where: NUMPAD, icon: 'arrowDownRight' },
 ] as const
 
+/**
+ * What the stylesheet calls each cursor key, by where it sits in the list.
+ *
+ * Positions rather than names, because where they go is a layout question and
+ * two puzzles can spend the same position on different jobs. Three is the most
+ * any puzzle asks for; a fourth would need a row of its own and a decision
+ * about what the cross does under it, so it is left to arrive rather than
+ * guessed at.
+ */
+const ACT = ['first', 'second', 'third'] as const
+
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
@@ -1271,6 +1282,9 @@ export default function PuzzleHost({
                has anywhere to go in them — see movesEightWays, which is also
                where the puzzle that looks like it should is written down. */
             data-ways={movesEightWays(name) ? '8' : undefined}
+            /* And three rows the other way round: a full row of keys with the
+               cross under it, for the one puzzle whose keys are three. */
+            data-keys={cursorKeys(name, prefs).length === 3 ? '3' : undefined}
             role="group"
             aria-label={t.play.arrows.group}
           >
@@ -1352,9 +1366,13 @@ export default function PuzzleHost({
                   // can be showing the *same* word — a drag that has been opened
                   // and not moved says "Cancel" on both — so a face-derived key
                   // would collide and React would keep a stale button.
-                  key={cursor.key}
+                  //
+                  // The result it is named for comes first, for the puzzle whose
+                  // three buttons are three colours: two of them fall back to
+                  // `Enter` and the key alone would no longer be unique.
+                  key={cursor.does ?? cursor.key}
                   type="button"
-                  data-act={i === 0 ? 'first' : 'second'}
+                  data-act={ACT[i]}
                   // Enter and Space, which the back end reads as CURSOR_SELECT
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.

@@ -153,11 +153,11 @@ export const en = {
        * Pattern's three, which say what the picture says and nothing more.
        *
        * They named the whole cycle once — "Black, then white, then grey" —
-       * because a picture cannot show a cycle and the square on the button was
-       * only ever the first press. Both keys now wear the colour they are about
-       * to produce, which changes with every press, so the word has nothing to
-       * add beyond naming it. A tip that repeats the picture would be worth
-       * removing if these were the only two; they are not, and a row where some
+       * because upstream's two keys step round one and the square on the button
+       * was only the first press. There are three buttons now, one per colour,
+       * each of them the same colour for the whole game, so there is no second
+       * press left to describe. A tip that repeats the picture would be worth
+       * removing if these were the only ones; they are not, and a row where some
        * buttons answer a long press and others ignore it is worse than a short
        * answer.
        */
