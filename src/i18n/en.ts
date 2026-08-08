@@ -150,19 +150,20 @@ export const en = {
        */
       pencil: 'Switch between ink and pencil',
       /**
-       * Pattern's pair, which say what the picture says and nothing more.
+       * Pattern's three, which say what the picture says and nothing more.
        *
-       * They used to name the whole cycle — "Black, then white, then grey" —
-       * because upstream's keys step round one and the square on the button was
-       * only the first press. They are named for a colour now and reach it in
-       * one press from anywhere (see `does` in keys.ts), so there is no second
-       * press left to describe. A tip that repeated the picture would be worth
+       * They named the whole cycle once — "Black, then white, then grey" —
+       * because a picture cannot show a cycle and the square on the button was
+       * only ever the first press. Both keys now wear the colour they are about
+       * to produce, which changes with every press, so the word has nothing to
+       * add beyond naming it. A tip that repeats the picture would be worth
        * removing if these were the only two; they are not, and a row where some
        * buttons answer a long press and others ignore it is worse than a short
        * answer.
        */
       black: 'Black',
       white: 'White',
+      grey: 'Grey',
       /**
        * Sixteen's two, named for what the arrows will do next rather than for
        * the mode being switched on, because the mode is not a thing the reader

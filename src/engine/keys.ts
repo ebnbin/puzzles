@@ -521,6 +521,7 @@ export type CursorWord =
   | 'pencil'
   | 'black'
   | 'white'
+  | 'grey'
   | 'carryTile'
   | 'holdPlace'
   | 'turnLeft'
@@ -1369,35 +1370,63 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   netslide: [{ key: 'Enter', icon: 'primary', says: 'slide' }],
 
   /*
-   * Two keys that are a colour each, which is not how the puzzle spells them.
+   * Two keys that are upstream's cycle, wound the two ways upstream winds it.
    *
-   * A Pattern square is grey, black or white, and upstream's two keys are one
-   * cycle wound opposite ways: `Enter` steps grey→black→white→grey and `Space`
-   * steps it back — "the space bar does the same cycle in reverse", as its
-   * chapter puts it. Neither key *sets* a colour, so a black square on a button
-   * would have been a promise about the first press only, and a lie about the
-   * second.
+   * A Pattern square is grey, black or white, and `Enter` steps it
+   * grey→black→white→grey while `Space` steps it back — "the space bar does the
+   * same cycle in reverse", as its chapter puts it. Each key wears the colour it
+   * is about to produce, read off `current_key_label` (pattern.c:1269), so the
+   * face turns over with every press and is never a promise about only the
+   * first one.
    *
-   * `does` is how they become a promise about every press. The back end reports
-   * what each key would do from where the cursor is standing, and the words are
-   * the colours themselves, so a button asking for "Black" can look up which
-   * key reaches black right now and send that one. On a grey square that is
-   * `Enter`; on a white square it is `Space`; on a square already black it is
-   * neither, and the button goes out. The picture on the key is now the whole
-   * of what it does, so the long press has nothing left to explain and says the
-   * colour.
+   * These were two fixed colours for a while, built on `does`: a button asking
+   * for "Black" looked up whichever key reached black from here and sent that
+   * one, which made each button mean one thing for the whole game. It cost the
+   * third state. Neither button ever asked for "Grey", so on a touch device a
+   * square could be painted and never unpainted — measured through the buttons,
+   * the moves that came out were `F` and `E` for ever and no `U` — and a finger
+   * has none of the other three ways in: upstream's middle button
+   * (pattern.c:1330), `Ctrl+Shift` with an arrow (pattern.c:1408), or a cycle
+   * key pressed from the right square. A hold on the board is the right button
+   * here, which is white. Undo was the only way back, and undo takes back
+   * whatever else came with it.
    *
-   * Grey is the one thing this costs, and it is worth saying where it went.
-   * Grey is upstream's middle button — or Shift with any button — and a finger
-   * has neither, so on a touch device a square could be painted and never
-   * unpainted; the cycle reached it in two or three presses, which was the hole
-   * these keys quietly closed when they arrived. Naming the colours takes it
-   * away again: neither button ever asks for "Grey". Undo is the way back for
-   * now.
+   * Turning the cycle back on buys that for nothing. Every state is one press
+   * from every other, and no press is wasted: on a black square `Enter` gives
+   * white and `Space` gives grey, on a white one they give grey and black. The
+   * price is that neither button holds a fixed meaning, so a reader painting a
+   * long run has to read the face rather than remember a position — which is
+   * why the alternative of a third `does: 'Grey'` button is still the better
+   * shape if that ever grates, and why the pictures below are worth the colour
+   * they are drawn in.
+   *
+   * A near miss worth recording, since it looks like the obvious middle way:
+   * keeping "Black" fixed on the left and letting only the right key cycle
+   * *duplicates* the pair on a white square. `Enter` reports "Grey" and `Space`
+   * "Black" there, so `does: 'Black'` resolves to `Space` — both buttons then
+   * send the same key, produce the same colour and wear the same face.
    */
   pattern: [
-    { key: 'Enter', icon: 'black', says: 'black', does: 'Black' },
-    { key: ' ', icon: 'white', says: 'white', does: 'White' },
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'black',
+      faces: {
+        Black: { icon: 'black', says: 'black' },
+        White: { icon: 'white', says: 'white' },
+        Grey: { icon: 'grey', says: 'grey' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'white',
+      says: 'white',
+      faces: {
+        Black: { icon: 'black', says: 'black' },
+        White: { icon: 'white', says: 'white' },
+        Grey: { icon: 'grey', says: 'grey' },
+      },
+    },
   ],
 
   /*

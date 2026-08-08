@@ -73,6 +73,7 @@ export type IconName =
   | 'pencil'
   | 'black'
   | 'white'
+  | 'grey'
   | 'primary'
   | 'secondary'
   | 'lockTile'
@@ -455,12 +456,27 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * them, and a filled key still means the darker square on either theme.
    *
    * The house square, the same 17.2 with the same 2.6 corner as every other
-   * square glyph here, so the pair reads as this app's squares and not as two
-   * new shapes. Told apart by fill alone, which is the one difference that
-   * survives being 20 pixels across.
+   * square glyph here, so the three read as this app's squares and not as new
+   * shapes. Told apart by fill alone, which is the one difference that survives
+   * being 20 pixels across.
+   *
+   * And the fill is the board's colour rather than the accent, which is the
+   * whole reason these three are the only glyphs in the file that are not drawn
+   * in `currentColor`. An accent square filled or hollow says "filled or not",
+   * and a puzzle whose squares are black, white and neither needs the third. See
+   * `--cell-full` in tokens.css for the measurements and for why unknown is a
+   * real grey rather than no fill at all. The outline stays `currentColor`, so
+   * the shape survives the theme where the fill goes quiet.
    */
-  black: <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" fill="currentColor" />,
-  white: <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />,
+  black: (
+    <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" fill="var(--cell-full)" />
+  ),
+  white: (
+    <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" fill="var(--cell-empty)" />
+  ),
+  grey: (
+    <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" fill="var(--cell-unknown)" />
+  ),
   /*
    * A pencil, for the key that switches between writing in ink and pencilling.
    *
