@@ -1053,47 +1053,42 @@ const understood = (name: string, labels: KeyLabels) => {
  */
 const SECOND: Record<string, readonly string[]> = {
   /*
-   * "Remove" and "Unselect" are exactly the two words Same Game reports once a
-   * region is held (samegame.c:1104), and neither can be reported without one:
-   * the branch is inside `if (ISSEL(...))`, and the lone-square branch that also
-   * says "Unselect" is guarded by `ui->nselected`. So the words *are* the state,
-   * with nothing kept on this side to say so.
+   * "Remove", and only that word, because it is the one that means the cursor
+   * is standing on the thing (samegame.c:1104). Its branch is inside
+   * `if (ISSEL(ui->xsel, ui->ysel))` and no other branch can produce it, so the
+   * word and the position are the same fact read two ways.
+   *
+   * "Unselect" was in this list for a day and it is what made the whole thing
+   * need a stored bit. That word comes from two places — `Space` on the region,
+   * and *either* key on a lone square while something is held — so counting it
+   * dragged "the reader has walked away from the selection" into the second
+   * level, where the labels then could not say when they had walked back out.
+   *
+   * The mistake underneath was reading the second level as "something is
+   * pending", which is a fact about the whole board and one the labels really
+   * cannot report. A menu is about where the cursor is standing: its two items
+   * are confirm *this* and cancel *this*, so the thing has to be under the
+   * cursor for either to mean anything. Read that way the level is a function
+   * of position, and position is exactly what `current_key_label` describes.
    */
-  samegame: ['Remove', 'Unselect'],
-}
-
-/**
- * Whether the labels are saying, right now, that the second level is open.
- *
- * One-way, and the direction matters: these words can only be reported while
- * something is pending, so hearing one proves it — but not hearing one proves
- * nothing, because `current_key_label` answers "what would this press do" and
- * not "what is the state". Same Game standing on another selectable region
- * reports "Select" from both keys with a region still held. `picked` in
- * PuzzleHost is what covers that gap; this is the signal it is built from.
- */
-export const secondOpen = (name: string, labels: KeyLabels) => {
-  const second = SECOND[name]
-  return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
+  samegame: ['Remove'],
 }
 
 /**
  * Whether this slot is in the menu the reader is looking at.
  *
- * Everything without a level is always in it. A second-level slot is in it
- * while its puzzle has something pending — `picked`, which is `secondOpen`
- * above carried across the arrow presses that walk away from it — and also
- * whenever we have stopped understanding the labels, which is the same bargain
- * as everywhere else here: an upstream rename should cost a button that is
- * offered when it cannot act, not one that has vanished with no way to ask for
- * it back.
+ * Everything without a level is always in it. A second-level slot is in it while
+ * one of its puzzle's words is being reported — and also whenever we have
+ * stopped understanding the labels, which is the same bargain as everywhere else
+ * here: an upstream rename should cost a button that is offered when it cannot
+ * act, not one that has vanished with no way to ask for it back.
  */
-export const inMenu = (
-  name: string,
-  cursor: CursorKey,
-  labels: KeyLabels,
-  picked: boolean,
-) => !cursor.level || !understood(name, labels) || picked
+export const inMenu = (name: string, cursor: CursorKey, labels: KeyLabels) => {
+  if (!cursor.level) return true
+  if (!understood(name, labels)) return true
+  const second = SECOND[name]
+  return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
+}
 
 /**
  * The puzzles that read the cursor keys and never say a word about them.
