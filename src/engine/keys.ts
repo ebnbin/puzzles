@@ -1811,19 +1811,37 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * a hidden cursor greys the button out with nothing kept on this side. The
    * same line greys it on a hole, where upstream answers MOVE_NO_EFFECT.
    *
-   * Two words for one toggle, and the same picture under both. Sixteen's rule
-   * — the thing that identifies a button has to survive being pressed — with
-   * one fact on top of it that Sixteen did not have: pegs *draws* the mode.
-   * Pointed at, a peg is a solid disc in the cursor colour; armed, it is a ring
-   * of that colour around its own (pegs.c:1150-1155). Measured on a fresh
-   * board, 3249 cursor-coloured pixels against 1214.
+   * Two words and two pictures, which is a reversal: this key wore one picture
+   * under both words for a while, and the argument for that is worth keeping
+   * beside the reason it lost.
    *
-   * That is a real difference but a quiet one — same hue, and the reader is
-   * looking at thirty-two identical discs — so the tint from `on` is carrying
-   * its share rather than repeating something obvious. What the key must not do
-   * is change shape: it would stop being findable in a block of five, and the
-   * state is on the board already. The word changes instead, because upstream's
-   * second word is news: the press undoes.
+   * The facts have not changed. Pegs *draws* the mode — pointed at, a peg is a
+   * solid disc in the cursor colour; armed, it is a ring of that colour around
+   * its own (pegs.c:1150-1155), measured at 3249 cursor-coloured pixels against
+   * 1214, and 509 pixels of the board turn over on the press. And Sixteen's
+   * rule stands: the thing that identifies a button has to survive being
+   * pressed.
+   *
+   * What was wrong was the conclusion drawn from them, twice over. "It would
+   * stop being findable in a block of five" does not follow: the block is four
+   * arrows and this, the arrows never move, and a cross is not an arrow — the
+   * reader looks for the one that is not pointing anywhere and finds it in the
+   * same corner either way. And "the state is on the board already" was
+   * answered in the sentence before it, which calls that difference quiet: same
+   * hue, thirty-two identical discs. A quiet board is a reason for the button to
+   * speak up, not to stay silent.
+   *
+   * The thing that settled it arrived later. Pegs is two levels — a press picks
+   * a peg up, and then the arrows jump it and this key puts it down again
+   * (pegs.c:987) — and every other two-level puzzle here shows the second one
+   * with a different face: Rectangles turns Mark and Erase into a tick and a
+   * cross, Same Game's second key is a cross. Pegs wearing one picture in both
+   * was the odd one out, and it was odd in the direction of saying less.
+   *
+   * `cancel` rather than a picture of its own, because that is what this is:
+   * the same abandon-the-pending-thing that five other puzzles spend it on. The
+   * tint from `on` stays, as it does on Same Game's, and now says the same thing
+   * a third time rather than a second.
    */
   pegs: [
     {
@@ -1832,7 +1850,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'jump',
       faces: {
         Select: { icon: 'jump', says: 'jump' },
-        Cancel: { icon: 'jump', says: 'unjump', on: true },
+        Cancel: { icon: 'cancel', says: 'unjump', on: true },
       },
     },
   ],
