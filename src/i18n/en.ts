@@ -382,6 +382,7 @@ export const en = {
       flip: 'Flip this square and the ones tied to it',
       select: 'Select this region',
       remove: 'Remove the selected region',
+      unselect: 'Clear the selection',
       uncover: 'Uncover this square',
       chord: 'Clear around this square',
       flag: 'Flag this as a mine',

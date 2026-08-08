@@ -620,6 +620,7 @@ export type CursorWord =
   | 'hold'
   | 'flip'
   | 'select'
+  | 'unselect'
   | 'remove'
   | 'uncover'
   | 'chord'
@@ -1532,27 +1533,48 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * And it gets one key, not two, which took a second look to see. Space is
    * Enter's synonym in three of those four rows — the fold is what says so, and
    * says it for free: `lsk` arrives blank exactly when the two words agree. The
-   * one row where it differs offers "Unselect", and nothing in a game of Same
-   * Game needs it. Moving onto another region and pressing once switches the
-   * selection, because that branch clears before it expands (samegame.c:1307,
-   * whose own comment reads "might be no-op"); measured, a two-square selection
-   * became a four-square one in a single press with no move committed. So the
-   * second button was the same button again three times out of four, and on the
-   * fourth it offered to tidy a status line.
+   * one row where it differs offers "Unselect", and that is the second button.
    *
-   * "Unselect" gets no face at all, which is the reason there are only two here.
-   * This button is one job in two steps — pick a region, then press again to
-   * take it — and unselecting is a third thing that is neither. Where upstream
-   * offers it, the reader is standing on a lone square, which is to say they
-   * tried to pick something and there was nothing pickable; the button that
-   * says "select" going quiet is what that looks like. Sixteen's pair make the
-   * same call on the rim, where the keys really would slide a row: a key that
-   * changed jobs under the reader's finger is worse than one that waits.
+   * It had none for a while, and the argument for that is worth keeping because
+   * it was the wrong argument rather than a wrong fact. Every fact in it holds:
+   * unselecting changes no game — moving onto another region and pressing once
+   * switches the selection, since that branch clears before it expands
+   * (samegame.c:1307, whose own comment reads "might be no-op"), and measured, a
+   * two-square selection became a four-square one in a single press with no move
+   * committed. Its only effect is to put the highlight out and take the status
+   * line back from "Selected: 4 (4)" to "Score: 0". A hold on the board reaches
+   * it too, since a hold is the right button and upstream's line reads
+   * `RIGHT_BUTTON || CURSOR_SELECT2`; measured, that clears the selection and
+   * commits nothing.
    *
-   * So on any square where nothing can be picked the button greys out still
-   * wearing its own face, which falls out of `faces` without a special case —
-   * an unlisted word is not live, and `faceOf` drops back to the key's own
-   * picture.
+   * What was wrong was the test. "A finger can reach it another way" is not the
+   * rule this keypad is built on — Mines' flag is on `Space` and on the right
+   * button both, and has a button anyway, as does every other key in that
+   * position. The rule is whether upstream's *keyboard* does it, which is what
+   * decided Netslide the other way: its reverse slide is the right mouse button
+   * alone, so no button is owed. Same Game's unselect is `CURSOR_SELECT2`, so
+   * one is.
+   *
+   * `does` is what keeps it from being Enter again three rows out of four. The
+   * button asks for "Unselect" and is live exactly where that word is on offer:
+   * on a selected region, where `Space` has it and `Enter` says "Remove"; and on
+   * a lone square with something selected, where both keys have it and the fold
+   * hands us {"", "Unselect"}, so it sends `Enter`. On a region waiting to be
+   * picked both keys say "Select", nobody offers "Unselect", and it goes out.
+   *
+   * That second case also closes a gap this side had opened by itself. On a lone
+   * square upstream's own `Enter` clears the selection, and our one button greyed
+   * out there — less than the key it stands for. Walked over a board with a
+   * region selected, 47 of 144 stops were that square.
+   *
+   * The first button still has no "Unselect" face, and now for a reason rather
+   * than for want of somewhere to put it: it is one job in two steps — pick a
+   * region, then press again to take it — and a key that changed jobs under the
+   * reader's finger is worse than one that waits. Sixteen's pair make the same
+   * call on the rim. So on a square where nothing can be picked it greys out
+   * still wearing its own face, which falls out of `faces` without a special
+   * case, while the button beside it lights up with the thing that *can* be
+   * done.
    */
   samegame: [
     {
@@ -1564,6 +1586,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Remove: { icon: 'done', says: 'remove', on: true },
       },
     },
+    { key: ' ', icon: 'cancel', says: 'unselect', does: 'Unselect' },
   ],
 
   /*

@@ -176,6 +176,7 @@ export const zh: Strings = {
       flip: '翻转这一格及其关联的方格',
       select: '选中这个区域',
       remove: '移除选中的区域',
+      unselect: '取消选择',
       uncover: '揭开这一格',
       chord: '清除这一格周围',
       flag: '插旗，标记为地雷',
