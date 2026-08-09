@@ -1244,6 +1244,22 @@ p.notice-intro button:active {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * The same swatch said as a maybe, for Map's second row — see `dotted` on
+ * KeyLabel, and map.c:2872, where the board draws a stipple as a scatter of
+ * dots rather than as a fill.
+ *
+ * 5px between dots and a 1.6px radius, which at 22 across gives sixteen of them
+ * in the circle: enough that it reads as a texture and not as a pattern anybody
+ * counts, and coarse enough to survive the smallest colour difference the four
+ * have. The colour arrives as `color` rather than `background` so the gradient
+ * can use it and the ground can stay the key's, which is the region's ground on
+ * the board too.
+ */
+.key-peg[data-dotted] {
+  background: radial-gradient(currentColor 1.6px, transparent 1.7px) 0 0 / 5px 5px;
+}
+
 .key-left {
   position: absolute;
   top: 2px;

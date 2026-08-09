@@ -29,6 +29,8 @@ import {
 import type { KeyLabels } from './engine/keys'
 import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
+import { mapSize, paintRegion, stepCursor } from './engine/map'
+import type { Spot } from './engine/map'
 import {
   clearSave,
   isPlayed,
@@ -270,6 +272,23 @@ export default function PuzzleHost({
    */
   const chosen = useArrows()
   const arrows = readsArrows(name) ? chosen.has(name) : null
+  /*
+   * Where Map's cursor is, which is the one thing its palette needs and the one
+   * thing no save file can say — `encode_ui` is NULL there (map.c:3347). Null
+   * for the other thirty-nine.
+   *
+   * A copy rather than a reading, and it survives because so little disturbs it:
+   * only the arrows move it, a press on the board hides it without moving it,
+   * and undo and redo never reach the ui at all. It is put back to the origin
+   * whenever the back end says it rebuilt the ui — see `onPermalinks` — which is
+   * every press of a swatch, so drift cannot build up across presses. See
+   * engine/map.
+   */
+  const spot = useRef<Spot>({ x: 0, y: 0 })
+  const grid = useMemo(
+    () => (name === 'map' && permalink ? mapSize(permalink.desc.split(':')[0]) : null),
+    [name, permalink],
+  )
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -615,6 +634,11 @@ export default function PuzzleHost({
            * already put the cursor away, and Mines keeps none here.
            */
           setAwake(false)
+          // And with it Map's cursor, which lives in that same rebuilt ui. This
+          // is what keeps the copy from drifting: every press of a swatch goes
+          // through the save file and so comes back through here, so the copy is
+          // re-anchored at the origin as often as it is used. See engine/map.
+          spot.current = { x: 0, y: 0 }
         },
         onPresetSelected: (index) => {
           setStandard((first) => first ?? index)
@@ -900,6 +924,9 @@ export default function PuzzleHost({
     const plain = !e.shiftKey && !e.ctrlKey
     if (plain && wakesCursor(name, e.key)) setAwake(true)
     if (plain && opens(name, e.key, labelsRef.current)) setOpened(e.key)
+    // And the copy of Map's cursor follows a physical arrow as readily as one of
+    // ours: this is the only other place a key reaches the back end.
+    if (grid && plain) spot.current = stepCursor(spot.current, e.key, grid)
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
     // Some of what the board takes changes a preference — undead's `a` — and
@@ -907,7 +934,7 @@ export default function PuzzleHost({
     // asked again after every press. Which key it was is undead.c's business,
     // not ours, and asking is cheap: one config box, built and freed.
     if (READS_PREFS.has(name)) readPrefs()
-  }, [acted, name, readPrefs])
+  }, [acted, grid, name, readPrefs])
 
   // Shortcuts on the page rather than the board, so they work wherever focus
   // is. Skipped while a dialog is up or a field has focus.
@@ -1007,6 +1034,41 @@ export default function PuzzleHost({
       return
     }
     acted()
+    /*
+     * A key that paints a region: Map's palette, and the second thing to go
+     * through the save file — see engine/map for why it has to.
+     *
+     * The wake comes first and is upstream's own answer to a select key pressed
+     * on a hidden cursor (map.c:2515): show it, and stop. These act where the
+     * cursor is, and acting where the reader cannot see is the fault this shape
+     * exists to avoid — Slant's three absolute keys are dimmed for the same
+     * reason, and Map's copy of the flag is in CURSOR_LIFE.
+     *
+     * Then the load, which rebuilds the ui and puts the cursor back at the
+     * origin with it (midend.c:2623, and `onPermalinks` below, which is where
+     * this side hears about it). So the walk out to where it was is not
+     * housekeeping, it is the second half of the press: one clamped arrow to
+     * bring it back on screen, then the distance. All of it inside this handler,
+     * so the browser composites once and the walk is not seen — the same trade
+     * `aims` makes on Guess — and none of it is a move, since `move_cursor`
+     * answers MOVE_UI_UPDATE.
+     */
+    if (key.paints) {
+      if (!awake) {
+        setAwake(true)
+        api.key(0, 'ArrowLeft', '', 0, 0, 0)
+        canvasRef.current?.focus()
+        return
+      }
+      const at = spot.current
+      paintRegion(api, at, key.paints)
+      // It walks the cursor back itself, since finding the region is done by
+      // walking; the copy and the flag follow it home.
+      spot.current = at
+      setAwake(true)
+      canvasRef.current?.focus()
+      return
+    }
     const send = (sent: string, code = 0) => {
       // A keypad key can show the cursor, on the one puzzle where the two
       // blocks overlap: every one of Guess's keys acts where the cursor is, and
@@ -1065,7 +1127,7 @@ export default function PuzzleHost({
     // itself.
     send(String.fromCharCode(key.button))
     canvasRef.current?.focus()
-  }, [acted, markAction, name])
+  }, [acted, awake, markAction, name])
 
   /*
    * A key from the block around the arrows, sent as the keypress it is — the
@@ -1089,9 +1151,10 @@ export default function PuzzleHost({
     // No modifiers ever go out from here, so a waking key always wakes.
     if (wakesCursor(name, key)) setAwake(true)
     if (opens(name, key, labelsRef.current)) setOpened(key)
+    if (grid) spot.current = stepCursor(spot.current, key, grid)
     api.key(0, key, '', where, 0, 0)
     canvasRef.current?.focus()
-  }, [acted, name])
+  }, [acted, grid, name])
 
   return (
     /* The flag goes here rather than on the row that grows, because two rows

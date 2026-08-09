@@ -142,6 +142,22 @@ export interface KeyLabel {
   slot?: number
   ink?: number
   /**
+   * Drawn as marks rather than as a fill, for a key that offers a colour as a
+   * maybe. Map's stipples are the only ones: its board scatters a dot per
+   * candidate colour across the region (map.c:2872), so the key is dots too.
+   */
+  dotted?: boolean
+  /**
+   * What this key puts in the region under the cursor, answered on this side
+   * through the save file — see engine/map, which is the second thing to use
+   * that door and the first to need to know where the cursor is.
+   *
+   * `colour` is the game's own numbering, 0 to 3, and -1 empties the region.
+   * `pencil` turns one bit of the stipple over instead of setting the colour,
+   * which is what upstream's right-drag does.
+   */
+  paints?: { colour: number; pencil?: boolean }
+  /**
    * Turns a key that clears what is *under* the cursor into one that clears
    * what is *behind* it, which is what a key drawn as a backspace has to mean.
    *

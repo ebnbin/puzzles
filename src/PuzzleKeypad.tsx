@@ -74,7 +74,17 @@ const peg = (key: KeyLabel, swatches: ReadonlyMap<number, string>) => {
   return (
     <span
       className="key-peg"
-      style={{ background: fill, borderColor: ink ?? 'transparent', color: ink }}
+      // Map's second row of swatches is the same colour said as a maybe, and
+      // the board says it the same way: a stipple is drawn as a scatter of dots
+      // in the region rather than as a fill (map.c:2872). The dots are the
+      // colour and the ground is the key's, which is what the region looks
+      // like. See `dotted` on KeyLabel.
+      data-dotted={key.dotted ? '' : undefined}
+      style={{
+        [key.dotted ? 'color' : 'background']: fill,
+        borderColor: ink ?? 'transparent',
+        ...(key.dotted ? {} : { color: ink }),
+      }}
     >
       {key.label}
     </span>
@@ -127,13 +137,22 @@ export default function PuzzleKeypad({
    * are "the third colour", which is what the board's own numbering calls it.
    */
   const describe = (key: KeyLabel) =>
-    key.icon
-      ? t.keys[key.icon]
-      : key.slot !== undefined
-        ? t.keys.peg(key.value ?? 0)
-        : key.whose
-          ? t.keys.highlight(key.label ?? '')
-          : undefined
+    // Map's first, because its palette is the one place a swatch and a glyph
+    // are the same kind of key and have to be named together: two of these
+    // carry a colour and the third is a picture of an empty region.
+    key.paints
+      ? key.paints.colour < 0
+        ? t.keys.clearRegion
+        : key.paints.pencil
+          ? t.keys.maybeRegion(key.paints.colour + 1)
+          : t.keys.fillRegion(key.paints.colour + 1)
+      : key.icon
+        ? t.keys[key.icon]
+        : key.slot !== undefined
+          ? t.keys.peg(key.value ?? 0)
+          : key.whose
+            ? t.keys.highlight(key.label ?? '')
+            : undefined
 
   /*
    * Hold a key to be told what it is, rather than press it. The word is what

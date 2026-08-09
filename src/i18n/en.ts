@@ -451,6 +451,21 @@ export const en = {
      * ten unnamed swatches rather than a palette anyone has agreed words for.
      */
     peg: (n: number) => `Colour ${n}`,
+    /*
+     * Map's palette, which needs three strings where Guess needed one: its
+     * swatches come in two kinds and there is a key that empties a region.
+     *
+     * Numbered for the same reason Guess's are — map.c calls them COL_0 to
+     * COL_3 and the manual names no colours — but counted from one, because a
+     * reader counting swatches starts there and the number is not in any move
+     * they will ever see.
+     *
+     * "Might be" is upstream's own reading of a stipple: its manual describes
+     * the right-drag as marking a region with the colours it could still take.
+     */
+    fillRegion: (n: number) => `Fill this region with colour ${n}`,
+    maybeRegion: (n: number) => `Mark this region as possibly colour ${n}`,
+    clearRegion: 'Empty this region',
   },
 
   menu: {

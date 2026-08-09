@@ -120,11 +120,17 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 
 ```bash
 node scripts/check-cube.mjs       # src/engine/cube.ts 和引擎对不对得上,同样要 preview + playwright
+node scripts/check-map.mjs        # map 的调色板落色落在光标那一格,同上
 ```
 
 `src/engine/cube.ts` 把上游的网格几何在这一侧重写了一遍(为了给 cube 滚不过去的那个方向置灰,
 理由见 `docs/keys.md`),所以**升级 `vendor/sgtpuzzles` 之后要跑它**。模型漂了会把能按的键灰掉,
 而那是唯一一种读者报不上来的故障:错灰的按钮和该灰的按钮长得一模一样。
+
+`check-map.mjs` 检查的是另一种东西。`src/engine/map.ts` **没有**重写上游几何——它试过,而且错
+了(见 `docs/keys.md`),现在改成让引擎自己说出光标下是哪个区域。所以那个脚本不比对模型,它按
+真按钮再从外面问一遍光标站在哪,两个读数对不上就报。改 `engine/map`、改 `PuzzleHost` 那份光标
+副本、或者升级上游之后跑它。
 
 ## 架构
 

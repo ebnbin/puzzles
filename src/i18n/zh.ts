@@ -205,6 +205,11 @@ export const zh: Strings = {
     highlight: (n: string) => `高亮含 ${n} 的骨牌`,
     /* 手册（doc-zh/guess.html）把它们叫「颜色」，编号是 guess.c 自己的 COL_1..COL_10。 */
     peg: (n: number) => `颜色 ${n}`,
+    /* map 的调色板。编号从 1 起：数按钮的人从 1 数起，而这个号码不会出现在读者
+       看得到的任何地方。「可能是」是上游对点画的说法（手册里右键拖拽那一段）。 */
+    fillRegion: (n: number) => `把这个区域填成颜色 ${n}`,
+    maybeRegion: (n: number) => `标记这个区域可能是颜色 ${n}`,
+    clearRegion: '清空这个区域',
   },
 
   menu: {

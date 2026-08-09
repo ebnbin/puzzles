@@ -1,4 +1,5 @@
 import type { IconName } from '../Icon'
+import { COLOURS } from './map'
 import type { DialogControl, KeyLabel } from './types'
 
 /**
@@ -191,6 +192,12 @@ const UNDEAD = [
 const COL_FRAME = 1
 const COL_1 = 6
 
+/**
+ * And Map's first region colour, off its own enum (map.c:68-74), where
+ * COL_BACKGROUND is 0 and COL_GRID is 1. Its four run from here.
+ */
+const COL_MAP = 2
+
 /** guess.c's own name for the setting that writes numbers on the pegs. */
 const LABELLED = 'Label colours with numbers'
 
@@ -341,6 +348,48 @@ const RULES: Record<
       HINT,
     ]
   },
+
+  /*
+   * Map's palette, which upstream has not got and could not have.
+   *
+   * Its four colours have numbers — `FOUR` is 4 and map.c:1301 asserts it at
+   * compile time, the move language is `'0' + colour` (map.c:2609), and the
+   * board draws colour i in slot `COL_0 + i` (map.c:68-74). So the keys can be
+   * written down once and are the same on every deal. What they cannot be is
+   * built out of upstream keys: `drag_colour` only ever becomes a colour by
+   * being read off a region already on the board (map.c:2521 and 2542), so
+   * there is no key, and no sequence of keys, that means "red". These go
+   * through the save file instead — see engine/map for the whole argument, and
+   * for what it costs.
+   *
+   * Eight and not four, because a region takes two kinds of answer and the
+   * board draws them differently: filled is "this region is red", and a scatter
+   * of dots is "it might be" (map.c:2872). A mode key would have been four
+   * fewer buttons and a bit of state to remember; two rows of swatches is
+   * neither, and the second row is drawn the way the board draws what it puts
+   * down. Solid ones first, since deciding is the game and stippling is the
+   * working out.
+   *
+   * Then Clear, which is one key rather than five: a colour move takes the
+   * stipple under it away too (map.c:2653), so `C` empties a region whatever
+   * was in it.
+   */
+  map: () => [
+    ...Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
+      button: 0,
+      slot: COL_MAP + i,
+      paints: { colour: i },
+      whose: 'ours',
+    })),
+    ...Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
+      button: 0,
+      slot: COL_MAP + i,
+      dotted: true,
+      paints: { colour: i, pencil: true },
+      whose: 'ours',
+    })),
+    { button: 0, icon: 'clear', paints: { colour: -1 }, whose: 'ours' },
+  ],
 
   // Nothing to put in a square — only the key that was out of reach.
   net: () => [JUMBLE],
@@ -905,6 +954,25 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    * arrow it had no use for. See `offCursor`.
    */
   flood: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
+  /*
+   * And Map, which is the seventh and the first to keep the copy for its own
+   * sake rather than for a button's.
+   *
+   * The other six mirror the flag so a key beside the arrows can stand down.
+   * Map has no such keys any more; what reads this is the palette, which acts
+   * where the cursor is and therefore must not act while the reader cannot see
+   * where that is. On a sleeping cursor a swatch wakes it and stops, which is
+   * upstream's own answer to the same press (map.c:2515) and the behaviour the
+   * pick-up key had before it went.
+   *
+   * The four rules read the same as Net's. `move_cursor` is not handed the flag
+   * here (map.c:2506), but the line after it sets the flag outright, so the
+   * arrows show the cursor all the same; a press on the board hides it
+   * (map.c:2552) without moving it; and a rebuilt ui hides it, which for this
+   * puzzle happens on every press of a swatch — see engine/map, where that turn
+   * of events is put to work.
+   */
+  map: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
 }
 
 /** Whether this puzzle's cursor has to be tracked on this side. */
@@ -1094,7 +1162,6 @@ const WORDS: Record<string, readonly string[]> = {
      `current_key_label` never looks at which key it was asked about, so both
      report the same word and there is one button. */
   galaxies: ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear'],
-  map: ['Pick', 'Fill', 'Stipple', 'Clear', 'Cancel'],
 }
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
@@ -1114,11 +1181,15 @@ const understood = (name: string, labels: KeyLabels) => {
  * "pending" in so many terms, so a second-level key needs no `does` to be
  * placed correctly, and reading the table answers what the levels are.
  *
- * One entry so far. Eight more puzzles have a second level by their vocabulary
- * — Pegs, Bridges, Signpost, Pearl, Galaxies, Map, Filling, and Rectangles,
- * which is the one that needs no entry because both its levels are the same two
- * buttons. Each will get its own line as its keys are looked at again; guessing
- * them all now would be filing eight claims about puzzles nobody has measured.
+ * One entry so far. Seven more puzzles have a second level by their vocabulary
+ * — Pegs, Bridges, Signpost, Pearl, Galaxies, Filling, and Rectangles, which is
+ * the one that needs no entry because both its levels are the same two buttons.
+ * Each will get its own line as its keys are looked at again; guessing them all
+ * now would be filing seven claims about puzzles nobody has measured.
+ *
+ * Map was on that list and came off it a different way: its second level was a
+ * colour in hand, and the palette in `keysFor` means there is never one — see
+ * CURSOR_KEYS, where its two keys used to be.
  */
 const SECOND: Record<string, readonly string[]> = {
   /*
@@ -1275,10 +1346,8 @@ const BOTH: Record<string, readonly string[]> = {
      Space drops it. Without this line the second button would go dark in the
      middle of the one flow it is there to get out of. */
   bridges: ['Finished'],
-  /* Both of Signpost's keys cancel the same half-built link, and both of Map's
-     abandon the same drag. */
+  /* Both of Signpost's keys cancel the same half-built link. */
   signpost: ['Cancel'],
-  map: ['Cancel'],
 }
 
 /** What the back end says about this button's own key, with the blanking undone. */
@@ -2466,40 +2535,18 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Map, whose keys carry a colour about. Enter picks up whatever is under the
-   * cursor and the arrows take it to a region; pressing again drops it in.
-   * Space does the same with a stipple, which is upstream's word for "this
-   * region might be that colour".
+   * Map has none, and that is the change rather than an omission. Both of its
+   * keys were halves of a pick-up: Enter took the colour under the cursor and
+   * put it down again somewhere else, Space did the same with a stipple, and
+   * every word either of them reported — Pick, Fill, Stipple, Clear, Cancel —
+   * was about a colour in hand. The palette in `keysFor` says the colour
+   * outright, so there is nothing to be carrying, and a button offering to pick
+   * one up would be offering the journey the palette exists to remove.
    *
-   * "Pick" is the state before a colour has been chosen at all — upstream says
-   * it when `drag_colour` is still -2 — and "Clear" empties a region, which is
-   * what dragging from an empty one does.
+   * Clearing came with them and went to the keypad, where the rest of the
+   * answers now are. So Map's block is the four arrows and nothing beside them,
+   * which is what Dominosa's and Flood's are.
    */
-  map: [
-    {
-      key: 'Enter',
-      icon: 'pickCell',
-      says: 'pickColour',
-      faces: {
-        Pick: { icon: 'pickCell', says: 'pickColour' },
-        Fill: { icon: 'black', says: 'fillRegion', on: true },
-        Stipple: { icon: 'stipple', says: 'stippleRegion', on: true },
-        Clear: { icon: 'emptyCell', says: 'clearRegion', on: true },
-        Cancel: { icon: 'cancel', says: 'cancelFill', on: true },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'stipple',
-      says: 'stippleRegion',
-      faces: {
-        Pick: { icon: 'pickCell', says: 'pickColour' },
-        Stipple: { icon: 'stipple', says: 'stippleRegion', on: true },
-        Clear: { icon: 'emptyCell', says: 'clearRegion', on: true },
-        Cancel: { icon: 'cancel', says: 'cancelFill', on: true },
-      },
-    },
-  ],
 
   solo: [PENCIL],
   unequal: [PENCIL],
