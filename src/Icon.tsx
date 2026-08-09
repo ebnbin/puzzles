@@ -24,12 +24,14 @@ export type KeyGlyph =
   | 'single'
   | 'blank'
   | 'jumble'
-  // Two that were only ever wanted beside the arrows until Guess's row became
-  // the whole of its keyboard: the tick it is submitted with, and the padlock
-  // that keeps a peg for the next go. Both are still `IconName` through this
-  // union, so nothing else has to move.
+  // Three that were only ever wanted beside the arrows until a row of keys
+  // turned out to be the right place for them: Guess's tick and padlock, and
+  // the skip-forward Inertia replays a solved game with — which Flood keeps in
+  // the block, having a free cell there, and Inertia has not. All three are
+  // still `IconName` through this union, so nothing else has to move.
   | 'done'
   | 'lock'
+  | 'advance'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -121,7 +123,6 @@ export type IconName =
   | 'track'
   | 'pickCell'
   | 'floodFill'
-  | 'advance'
   | 'edge'
   | 'noEdge'
   | 'island'

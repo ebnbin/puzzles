@@ -460,6 +460,14 @@ export const en = {
      */
     done: 'Submit this guess',
     lock: 'Keep this peg for the next guess',
+    /*
+     * Inertia's, and upstream's own word: `current_key_label` calls it
+     * "Advance" (inertia.c:1547). Named for the answer rather than for the key
+     * because that is what makes it worth a press — the button is out until
+     * Solve has been asked for, and a reader who sees it live has an answer on
+     * the board and is watching it play.
+     */
+    advance: "Play the next step of the answer",
     /** Dominosa: light up every domino carrying this number. */
     highlight: (n: string) => `Highlight dominoes with ${n}`,
     /*
