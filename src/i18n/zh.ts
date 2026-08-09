@@ -202,6 +202,10 @@ export const zh: Strings = {
     vampire: '吸血鬼',
     zombie: '僵尸',
     left: (digit: string, count: number) => `${digit}，还有 ${count} 个没填`,
+    /* guess 的两个。「提交」是上游自己的词（guess.c:547）；「保留」写成一句指令
+       而不是一个状态，因为它就是指令——先按它再按数字，说的是接下来这一枚怎么处理。 */
+    done: '提交这次猜测',
+    lock: '把这一格保留到下次猜测',
     highlight: (n: string) => `高亮含 ${n} 的骨牌`,
     /* 手册（doc-zh/guess.html）把它们叫「颜色」，编号是 guess.c 自己的 COL_1..COL_10。 */
     peg: (n: number) => `颜色 ${n}`,

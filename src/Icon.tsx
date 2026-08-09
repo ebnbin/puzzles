@@ -24,6 +24,12 @@ export type KeyGlyph =
   | 'single'
   | 'blank'
   | 'jumble'
+  // Two that were only ever wanted beside the arrows until Guess's row became
+  // the whole of its keyboard: the tick it is submitted with, and the padlock
+  // that keeps a peg for the next go. Both are still `IconName` through this
+  // union, so nothing else has to move.
+  | 'done'
+  | 'lock'
 
 /**
  * And the three that are not glyphs at all but pictures, because the thing
@@ -130,7 +136,6 @@ export type IconName =
   | 'flag'
   | 'mark'
   | 'erase'
-  | 'done'
   | 'cancel'
 
 const PATHS: Record<IconName, React.ReactNode> = {

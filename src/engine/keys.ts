@@ -220,6 +220,36 @@ const LABELLED = 'Label colours with numbers'
  */
 const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft', notAt: ['Submit'] } }
 
+/**
+ * And the two that came off the arrows block when Guess stopped having one.
+ *
+ * Both are upstream's own select keys, which is why they are `upstream` rather
+ * than ours: `Enter` marks the guess (guess.c:934) and `Space` turns the hold on
+ * the peg the write head is on (961). Neither is anything new — they have moved
+ * from one row to the other, because that other row is now the whole keyboard.
+ *
+ * `HOLD` goes *first*, ahead of the digits, and that is the one place this file
+ * puts an `upstream` key before the ordinary ones. The ladder it breaks is about
+ * how far a press reaches; this is about the order two presses are made in. A
+ * digit puts a peg down and moves the head on (guess.c:946), so a hold has to be
+ * asked for before the digit that fills the peg — and a key you press first
+ * reads first. Left of the digits is where it is pressed from.
+ *
+ * `SUBMIT` is drawn always and dimmed until the guess is whole, which upstream
+ * says outright: its Enter reports "Submit" only at the end of the row
+ * (guess.c:547), and reports "Place" everywhere else. See `needs`.
+ */
+const HOLD: KeyLabel = { button: ' '.charCodeAt(0), icon: 'lock', whose: 'upstream' }
+const SUBMIT: KeyLabel = {
+  // 13 rather than the name: a one-character key string is passed straight
+  // through (emcc.c:402) and `midend_process_key` turns 13 into CURSOR_SELECT
+  // (midend.c:1255), so the ordinary keypad path carries it.
+  button: 13,
+  icon: 'done',
+  needs: 'Submit',
+  whose: 'upstream',
+}
+
 const RULES: Record<
   string,
   (p: string, prefs: readonly DialogControl[]) => KeyLabel[] | null
@@ -320,6 +350,7 @@ const RULES: Record<
     if (n < 2 || n > 10) return null
     const labelled = flag(prefs, LABELLED)
     return [
+      HOLD,
       ...Array.from({ length: n }, (_, i): KeyLabel => {
         // guess.c:940 takes '1'..'9' and then '0' for the tenth, and draw_peg
         // writes `'0' + col % 10` inside the peg — so the character the key
@@ -345,6 +376,7 @@ const RULES: Record<
         }
       }),
       ERASE,
+      SUBMIT,
       HINT,
     ]
   },
@@ -379,6 +411,7 @@ const RULES: Record<
       button: 0,
       slot: COL_MAP + i,
       paints: { colour: i },
+      aimed: true,
       whose: 'ours',
     })),
     ...Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
@@ -386,9 +419,10 @@ const RULES: Record<
       slot: COL_MAP + i,
       dotted: true,
       paints: { colour: i, pencil: true },
+      aimed: true,
       whose: 'ours',
     })),
-    { button: 0, icon: 'clear', paints: { colour: -1 }, whose: 'ours' },
+    { button: 0, icon: 'clear', paints: { colour: -1 }, aimed: true, whose: 'ours' },
   ],
 
   // Nothing to put in a square — only the key that was out of reach.
@@ -452,68 +486,67 @@ export const READS_PREFS = new Set(['undead', 'guess', 'palisade'])
  */
 const NO_ARROWS = new Set(['loopy'])
 
-/** Whether this puzzle does anything at all with the arrow keys. */
-export const readsArrows = (name: string) => !NO_ARROWS.has(name)
+/**
+ * The puzzle whose keyboard is the keypad alone.
+ *
+ * Guess. Its arrows were never one cursor: `move_cursor` is handed
+ * `&ui->peg_cur` for x and `&ui->colour_cur` for y (guess.c:925), so Left and
+ * Right walk the holes of the guess being built and Up and Down walk the colour
+ * bar. Half a cross that travels and half that is a one-dimensional menu.
+ *
+ * The menu half is answered better by the swatches, which are upstream's own
+ * number keys (guess.c:940) and exist for exactly that reason. The travelling
+ * half turned out not to be needed either: a digit puts a peg down and moves the
+ * head on by itself (946), so a guess is typed left to right the way a code is
+ * typed anywhere, backspace is the edit, and the last digit walks the head onto
+ * the Submit slot without being asked. What is left for an arrow to do is jump
+ * to a peg out of order — and a finger reaches that by dragging a colour onto
+ * the peg, which is what the board is for (guess.c:858).
+ *
+ * So the block is not drawn at all, rather than drawn with two of its four keys
+ * dead. A button that can never be pressed is a fourth kind of "no" beside
+ * absent, dim and lit-but-inert, and each of those three already means something
+ * exact. Dim promises "somewhere else this works"; a permanently dim arrow would
+ * be that promise broken on every board.
+ *
+ * What it costs is written down rather than waved past. A held peg carries into
+ * the next guess and the head goes back to zero (guess.c:525-535), so a reader
+ * types over the held pegs with the same values rather than skipping them: the
+ * hold key saves no presses, and is left as a way to say "keep this one" while
+ * typing. Holding after the fact — the natural moment, once the feedback is on
+ * screen — is a long press on the peg itself, which is upstream's right button
+ * (guess.c:912) and reads better there than on any key.
+ */
+const PAD_ONLY = new Set(['guess'])
 
 /**
- * The puzzles whose ordinary keys arrive with the arrows rather than on their
- * own switch, because for those puzzles the two are one piece of equipment.
- *
- * "Ordinary" is `whose` being absent — the keys that put something in a square.
- * For nearly every puzzle those are the whole reason the keypad exists: nothing
- * on a phone can type a digit into Solo or a monster into Undead, so they are
- * unconditional. Guess is the exception its own board makes. Every colour is on
- * the bar it draws and can be dragged into a hole (guess.c:858), a peg comes off
- * by being dragged out (guess.c:891), and the keypad's `⌫` is the same act; so
- * the swatches save a drag rather than making one possible, and there is a real
- * question about whether to spend the height on them.
- *
- * That question used to have a switch of its own, and the switch was built on a
- * misreading. The swatches send `'1'`..`'9'` and `'0'` — upstream's own keys
- * (guess.c:940), the same characters a physical keyboard would send, and there
- * for exactly the reason we want them: walking a colour ring with Up and Down is
- * a bad way to name the eighth colour. They are not something this side added,
- * so asking permission for them separately was asking about the wrong thing.
- *
- * They belong to the arrows because Guess's arrows are only half a cursor. Up
- * and Down are `&ui->colour_cur` (guess.c:925) and nothing else — see
- * `movesSideways`, which is why those two buttons are not drawn. Take the
- * swatches away and the arrows are left steering a ring with no way to say which
- * colour; take the arrows away and the swatches have nothing to walk. One
- * switch, one piece of equipment.
- *
- * `H` stays either way, and that is the line: it is `whose: 'upstream'`, and
- * `compute_hint` hangs off 'h', 'H' and '?' alone (guess.c:929) with no mouse
- * path anywhere. Hiding it would take back the one thing on that row a touch
- * device cannot otherwise have — which is the thing this whole keypad is for.
+ * Whether this puzzle is offered the arrows block: it must read the keys, and
+ * it must be one whose keyboard is not the keypad alone.
  */
-const KEYS_WITH_ARROWS = new Set(['guess'])
+export const offersArrows = (name: string) => !NO_ARROWS.has(name) && !PAD_ONLY.has(name)
 
-/** Whether this puzzle's ordinary keys come and go with its arrows. */
+/**
+ * The puzzles whose keypad arrives with the arrows, because without them the
+ * keys have no way to be aimed.
+ *
+ * Map, and so far only Map. Nearly every keypad in the collection acts where the
+ * cursor is, and nearly every one is fine without the arrow buttons, because a
+ * tap on the board puts the cursor where the reader wants: that is how a digit
+ * gets into Solo on a phone. Map has no such path — a press on its board starts
+ * a drag and hides the cursor without moving it (map.c:2552) — so with the
+ * arrows off its palette can only ever paint whichever region the cursor was
+ * last left on, which is the top-left one and stays the top-left one.
+ *
+ * Which keys go is `aimed` on each key rather than a rule about `whose`, and
+ * that distinction was got wrong once: the first version dropped the keys with
+ * no `whose`, which was right for the puzzle it was written for and exactly
+ * backwards for Map, whose nine keys are all `ours` and would all have stayed.
+ * A key says for itself whether it needs aiming.
+ */
+const KEYS_WITH_ARROWS = new Set(['map'])
+
+/** Whether this puzzle's aimed keys come and go with its arrows. */
 export const keysFollowArrows = (name: string) => KEYS_WITH_ARROWS.has(name)
-
-/**
- * The puzzle whose cursor is offered two ways out of a square rather than four.
- *
- * Guess, and the reason is that its Up and Down are not travel. `move_cursor` is
- * handed `&ui->peg_cur` for x and `&ui->colour_cur` for y (guess.c:925): Left
- * and Right walk the holes of the guess being built, one of which is the Submit
- * slot at the end, and Up and Down walk the colour bar. So half the cross moves
- * about the board and half of it is a one-dimensional menu — the same menu the
- * swatches are, drawn as a ring you have to count your way around.
- *
- * The swatches say it in one press, and upstream agrees: its own number keys
- * (guess.c:940) exist to skip that walk. So the two buttons are not drawn, and
- * `colour_cur` is moved by the swatch that was pressed instead — see `aims`.
- *
- * Nothing is lost by dropping them. A swatch places the peg itself, so the ring
- * decides only what Enter would place and which swatch the board draws its
- * highlight on; and Left and Right still reach every hole, Submit included.
- */
-const SIDEWAYS = new Set(['guess'])
-
-/** Whether this puzzle is offered only the two arrows that travel. */
-export const movesSideways = (name: string) => SIDEWAYS.has(name)
 
 /**
  * The puzzle whose board has eight ways out of a square rather than four.
@@ -902,26 +935,6 @@ const CURSOR_LIFE: Record<string, readonly string[]> = {
    */
   flip: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '],
   /*
-   * And Guess, whose label leaves out `ui->display_cur` like the other three,
-   * and whose select key places a peg the instant it is pressed (guess.c:933).
-   *
-   * The longest list here, because Guess reads the most keys and nearly every
-   * one of them shows the cursor: the digits insert a colour (guess.c:943), D
-   * and Backspace clear a peg (952), and `h` runs the hinter, which shows the
-   * cursor as a side effect of the "visually indicate futility" hack at
-   * guess.c:799. Most of this list matters to us and not only to a keyboard:
-   * the digits, Clear and `h` are all on this puzzle's keypad, so a thumb can
-   * reach them, which is why `pressKey` asks about waking too.
-   *
-   * Backspace is spelled the way both paths spell it, which is the same way:
-   * a physical press arrives as `KeyboardEvent.key`, and the keypad's clear key
-   * is sent under that name too rather than as its character — see `behind` in
-   * ./types for the reason, which is about the answer the back end gives back.
-   */
-  guess: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ',
-          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-          'd', 'D', 'Backspace', 'h', 'H', '?'],
-  /*
    * And Dominosa, whose list is the shortest here and interesting for
    * what is missing from it.
    *
@@ -1106,7 +1119,6 @@ const WORDS: Record<string, readonly string[]> = {
    */
   mines: ['Uncover', 'Clear', 'Mark', 'Unmark'],
   samegame: ['Select', 'Remove', 'Unselect'],
-  guess: ['Place', 'Submit', 'Hold'],
   /*
    * Pegs' two, and the shortest list here. "Select" is offered on a peg,
    * "Cancel" once one is armed, and the third state — a hole, or a hidden
@@ -1844,50 +1856,10 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   flip: [{ key: 'Enter', icon: 'flip', says: 'flip' }],
 
   /*
-   * Guess, where the arrows are two dials rather than one cursor.
-   *
-   * Its chapter: "the up and down cursor keys can be used to select a peg
-   * colour, the left and right keys to select a peg position, and the Enter key
-   * to place a peg of the selected colour in the chosen position... Space adds a
-   * hold marker." So up and down pick *what*, left and right pick *where*, and
-   * these two act on the pair — `move_cursor` is handed `&ui->peg_cur` for x and
-   * `&ui->colour_cur` for y (guess.c:925), which is the whole of that.
-   *
-   * Enter has a second job at the end of the row and `current_key_label` names
-   * it (guess.c:542): walk one step past the last peg and it becomes "Submit",
-   * which marks the guess. That position only exists when the guess is
-   * finished — `maxcur` is `npegs + ui->markable` — so the word appears exactly
-   * when there is something to submit, and Space reports nothing there, since
-   * holding a feedback slot means nothing.
-   *
-   * A hold is what carries a peg into the next guess, and it is the one thing
-   * here the mouse reaches by a button rather than a drag — right-click, which
-   * is a long press on the board already. This button is the keyboard's way to
-   * the same mark.
-   *
-   * The colour digits and the backspace act where the cursor is too, but there
-   * are up to ten of them and this cross has two cells, so they are on the
-   * keypad instead — drawn as the pegs they insert, above. They are the one
-   * place in this file where a key was given despite being reachable by a
-   * gesture; docs/keys.md argues both sides of it.
+   * Guess has none, and no arrows either — its whole keyboard is the keypad
+   * above. See `PAD_ONLY`, and `keysFor`, where the two keys that used to be
+   * here now live as the tick and the padlock.
    */
-  guess: [
-    {
-      key: 'Enter',
-      icon: 'place',
-      says: 'place',
-      faces: {
-        Place: { icon: 'place', says: 'place' },
-        Submit: { icon: 'done', says: 'submit', on: true },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'hold',
-      says: 'hold',
-      faces: { Hold: { icon: 'hold', says: 'hold' } },
-    },
-  ],
 
   /*
    * Pegs, where the button arms the arrows rather than moving anything itself.

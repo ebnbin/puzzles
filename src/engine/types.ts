@@ -148,6 +148,30 @@ export interface KeyLabel {
    */
   dotted?: boolean
   /**
+   * Acts where the arrow buttons put the cursor, and is therefore worth nothing
+   * without them.
+   *
+   * Nearly every key in the collection acts at a cursor, so this is not that
+   * question — it is whether a *touch* can put the cursor where the reader
+   * wants. In Solo a tap on the square does it, so the digits work with the
+   * arrows off. Map has no such path at all: a press on its board starts a drag
+   * and hides the cursor without moving it (map.c:2552), so the palette can only
+   * ever reach whichever region the cursor was last left on. See
+   * `keysFollowArrows`, which is what reads this.
+   */
+  aimed?: boolean
+  /**
+   * The word the back end's own Enter key must be reporting for this key to be
+   * live, for a key that is otherwise always drawn.
+   *
+   * Guess's tick, and so far only that. `current_key_label` says "Submit" only
+   * once the guess is complete (guess.c:547), so the key can be dimmed from the
+   * same channel that names it — and a tick that greys out is the honest
+   * picture: this is where the guess gets marked, once there is a whole one.
+   * The same argument as `CursorFace.idle`, one row down.
+   */
+  needs?: string
+  /**
    * What this key puts in the region under the cursor, answered on this side
    * through the save file — see engine/map, which is the second thing to use
    * that door and the first to need to know where the cursor is.

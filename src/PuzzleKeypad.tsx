@@ -115,11 +115,17 @@ export default function PuzzleKeypad({
   keys,
   left,
   swatches,
+  labels,
   onPress,
 }: {
   keys: KeyLabel[]
   left: Map<number, number> | null
   swatches: ReadonlyMap<number, string>
+  /**
+   * What the back end says its own two keys would do, for the one key here that
+   * is drawn always and live only sometimes — see `needs` on KeyLabel.
+   */
+  labels: { enter: string; space: string }
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
@@ -167,16 +173,23 @@ export default function PuzzleKeypad({
   return (
     <>
       <div className="keypad" role="group" aria-label={t.play.keypad}>
-        {keys.map((key) => {
+        {keys.map((key, i) => {
           const said = describe(key)
           const count = countOn(key, left)
           const swatch = peg(key, swatches)
           return (
             <button
-              // A key this side answers has no button value to be told apart by.
-              key={key.action ?? key.button}
+              // By position, because a button value is not an identity here:
+              // every key this side answers sends nothing, so Map's nine would
+              // all be zero. The list is rebuilt whole for each deal and never
+              // reordered within one, so the index is as stable as the row is.
+              key={i}
               type="button"
               data-whose={key.whose}
+              // Out, but still its own picture: this key has one job and is
+              // waiting to be able to do it. See `needs`, and CursorFace.idle,
+              // which argues the same shape for the row below.
+              disabled={key.needs !== undefined && labels.enter !== key.needs}
               // A digit says what it is, so it needs no name — until it carries a
               // count, which would otherwise be read out beside it as a second
               // digit, and "9 1" is not what the key says.

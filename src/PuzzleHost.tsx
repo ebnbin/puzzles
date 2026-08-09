@@ -17,11 +17,10 @@ import {
   keysFor,
   keysFollowArrows,
   movesEightWays,
-  movesSideways,
   opener,
   opens,
   READS_PREFS,
-  readsArrows,
+  offersArrows,
   shovesTiles,
   wakesCursor,
   wouldSend,
@@ -267,11 +266,12 @@ export default function PuzzleHost({
   /*
    * Whether this puzzle is showing the four arrows, and whether it is even
    * allowed to be asked. Null for Loopy, which reads no cursor key — see
-   * `readsArrows`; everywhere else it is the reader's own answer, off until
-   * they say otherwise.
+   * `offersArrows` — Loopy, which reads no cursor key, and Guess, whose keyboard
+   * is the keypad alone. Everywhere else it is the reader's own answer, off
+   * until they say otherwise.
    */
   const chosen = useArrows()
-  const arrows = readsArrows(name) ? chosen.has(name) : null
+  const arrows = offersArrows(name) ? chosen.has(name) : null
   /*
    * Where Map's cursor is, which is the one thing its palette needs and the one
    * thing no save file can say — `encode_ui` is NULL there (map.c:3347). Null
@@ -711,11 +711,10 @@ export default function PuzzleHost({
    */
   const keys = useMemo(() => {
     const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
-    // And, on the one puzzle where they are half of the same equipment, whether
-    // the arrows are out. What goes is the keys with no `whose` — the ones that
-    // put something in a square, which is the same set a finger reaches by
-    // touching the square. See keysFollowArrows for why the list is one name.
-    return keysFollowArrows(name) && !arrows ? all.filter((k) => k.whose) : all
+    // And, on the one puzzle whose keys have no other way to be aimed, whether
+    // the arrows are out. Each key says for itself whether it needs them — see
+    // `aimed` in engine/types, and keysFollowArrows for why the list is one name.
+    return keysFollowArrows(name) && !arrows ? all.filter((k) => !k.aimed) : all
   }, [arrows, name, permalink, prefs])
 
   // The parameters, which is the part of the game id before the colon: a new
@@ -1265,7 +1264,13 @@ export default function PuzzleHost({
         />
       </div>
 
-      <PuzzleKeypad keys={keys} left={left} swatches={swatches} onPress={pressKey} />
+      <PuzzleKeypad
+        keys={keys}
+        left={left}
+        swatches={swatches}
+        labels={labels}
+        onPress={pressKey}
+      />
 
       {/* Four, and each of them a glyph. Undo and Redo are the two arrows
           everything else in the world uses for the same thing; the grid and
@@ -1365,20 +1370,15 @@ export default function PuzzleHost({
             className="play-arrows"
             /* Three rows instead of two, and the corners filled. Only Inertia
                has anywhere to go in them — see movesEightWays, which is also
-               where the puzzle that looks like it should is written down. And
-               two instead of four, for the one puzzle whose other two arrows
-               are a menu the keypad states better — see movesSideways. */
-            data-ways={movesEightWays(name) ? '8' : movesSideways(name) ? '2' : undefined}
+               where the puzzle that looks like it should is written down. */
+            data-ways={movesEightWays(name) ? '8' : undefined}
             /* And three rows the other way round: a full row of keys with the
                cross under it, for the one puzzle whose keys are three. */
             data-keys={cursorKeys(name, prefs).length === 3 ? '3' : undefined}
             role="group"
             aria-label={t.play.arrows.group}
           >
-            {[
-              ...ARROWS.filter((a) => !movesSideways(name) || a.dir === 'left' || a.dir === 'right'),
-              ...(movesEightWays(name) ? DIAGONALS : []),
-            ].map((arrow) => {
+            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map((arrow) => {
               // Sixteen's arrows have two jobs, and which one is running is
               // invisible on its board — so they carry it here, glyph and name
               // both. See shovesTiles; nowhere else does this fire.

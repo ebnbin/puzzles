@@ -442,6 +442,20 @@ export const en = {
      * beside it as a second digit.
      */
     left: (digit: string, count: number) => `${digit}, ${count} left to place`,
+    /*
+     * Guess's two, now that its row is the whole of its keyboard.
+     *
+     * `done` is the tick that marks the guess. Upstream calls the act "Submit"
+     * on its own key (guess.c:547) and the manual calls the row a guess, so the
+     * word is its and the object is its.
+     *
+     * `lock` is the peg kept for the next go. It reads as an instruction rather
+     * than a state because that is what the key is: pressed before the digit,
+     * it says what to do with the peg about to be put down. The board draws
+     * which pegs are actually held.
+     */
+    done: 'Submit this guess',
+    lock: 'Keep this peg for the next guess',
     /** Dominosa: light up every domino carrying this number. */
     highlight: (n: string) => `Highlight dominoes with ${n}`,
     /*

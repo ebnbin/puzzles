@@ -1329,7 +1329,13 @@ p.notice-intro button:active {
 /* Except when it has nothing to do, where the dim from further up wins. It has
    to be said again rather than left to the cascade: the two selectors weigh the
    same, and this block is the later one, so an accented key would have kept its
-   colour while disabled. Only the cursor keys can be both — see doesNothing. */
+   colour while disabled.
+
+   The cursor keys were the only ones that could be both until Guess's keyboard
+   became its keypad: its tick is drawn always and live only once there is a
+   whole guess to submit — see `needs` on KeyLabel — so a key up here can be out
+   now too. */
+.keypad button[data-whose]:disabled,
 .play-actions button[data-whose]:disabled {
   color: var(--text-3);
 }
@@ -1502,37 +1508,6 @@ p.notice-intro button:active {
 
 .play-arrows [data-act='second'] {
   grid-area: 1 / 3;
-}
-
-/*
- * Two ways out of a square rather than four, which is Guess and nothing else —
- * see movesSideways.
- *
- * Its Up and Down are a colour ring, not travel, and the bar of swatches in the
- * keypad says the same thing in one press; so those two buttons are not drawn
- * and what is left is a pair. Laid out as the same cross with its middle column
- * taken out rather than as a new shape: the keys keep the corners they have on
- * every other puzzle, and the arrows keep the row under them, so a reader who
- * has played anything else finds both where they were.
- *
- * Two columns wide instead of three, because the middle column would be two
- * empty cells. That makes this the one block narrower than the rail — which is
- * allowed, since the rail is sized by the widest block and this is not it.
- */
-.play-arrows[data-ways='2'] {
-  grid-template-columns: repeat(2, var(--tap-w));
-}
-
-.play-arrows[data-ways='2'] [data-act='second'] {
-  grid-area: 1 / 2;
-}
-
-.play-arrows[data-ways='2'] [data-dir='left'] {
-  grid-area: 2 / 1;
-}
-
-.play-arrows[data-ways='2'] [data-dir='right'] {
-  grid-area: 2 / 2;
 }
 
 /*
