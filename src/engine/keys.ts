@@ -652,6 +652,20 @@ export type CursorKey = {
    */
   does?: string
   /**
+   * That a second press takes the first one back.
+   *
+   * The key still goes out as itself and still sets the square to its own
+   * value. What this adds is the other half of a switch: when the square
+   * already held that value the press changed nothing, and the button undoes
+   * itself and empties the square instead.
+   *
+   * Whether it changed anything is not something the labels can say — see
+   * `engine/tents`, which is where the deciding is done and where the reasons
+   * are. Marked here rather than inferred because the deciding costs a save
+   * file read per press, and a key that wants one should have to say so.
+   */
+  toggles?: boolean
+  /**
    * That this key is a place before it is a state, so it is never drawn dim.
    *
    * Dimming is the house rule and it is the right one nearly everywhere: a
@@ -2235,53 +2249,44 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Tents' three, Slant's shape reached from the other direction: not a cycle
-   * wound both ways, but a pair of keys that will not do the one thing this
-   * puzzle is played by.
+   * Tents' two, and the only pair here that are switches rather than keys.
    *
-   * Enter gives `v == BLANK ? 'T' : 'B'` and Space `v == BLANK ? 'N' : 'B'`
-   * (tents.c:1702), so neither key can put grass where a tent stands — it has
-   * to be cleared first — and while it stands both buttons wear "Clear" and
-   * neither shows what it would place. Two presses and a face that changes
-   * under the thumb, for the one move a reader makes over and over.
+   * Each one is its own value's switch: press it on an empty square and the
+   * square becomes that, press it again and the square is empty, press it on
+   * the *other* value and it takes over. Three outcomes per button, covering
+   * every state a square can be in from either button, in one press each way.
    *
-   * `'T'`, `'N'` and `'B'` set the square outright and are read on the very
-   * next line (tents.c:1706). So all three faces are fixed, every state is one
-   * press from every other, and the cycle keys lose nothing by losing their
-   * buttons.
+   * Upstream's own two keys cannot do the third. Enter is
+   * `v == BLANK ? 'T' : 'B'` and Space `v == BLANK ? 'N' : 'B'` (tents.c:1702),
+   * so neither will put grass where a tent stands — the tent has to be cleared
+   * first, two presses — and while it stands both keys report "Clear", so both
+   * buttons wear it and neither shows what it would place. That is the one move
+   * this puzzle is played by, and it is the move upstream's pair is worst at.
    *
-   * Liveness is free and exact, more exact than anywhere else in this table.
-   * `interpret_move` refuses all three when the cursor is hidden or the square
+   * `'T'`, `'N'` and `'B'` set the square outright, read on the very next line
+   * (tents.c:1706). Three keys, two buttons: the third is what the other two
+   * turn into on a second press, which is why these two send through
+   * `engine/tents` rather than going out as themselves. The whole of the
+   * difficulty is that nothing the back end says tells a tent from grass — both
+   * answer "Clear" — so the button reads the save file to find out, and that
+   * file is also where the cursor's coordinates come from. See there.
+   *
+   * A third button that only clears was built first and thrown away. It made
+   * every state reachable in one press too, and by fewer moving parts, but it
+   * spends a button on the rarest of the three intentions and leaves the reader
+   * with two buttons whose second press does nothing.
+   *
+   * Liveness is free and exact, more so than anywhere else in this table.
+   * `interpret_move` refuses these keys when the cursor is hidden or the square
    * is a tree, and `current_key_label` returns "" under precisely those two
    * conditions — its switch covers BLANK, TENT and NONTENT and lets TREE fall
    * out (tents.c:1482). The labels going empty *is* the refusal, which is what
    * `doesNothing` already reads. No `WORDS` and no `BOTH` any more: nothing
    * here reads what the words are, only whether there are any.
-   *
-   * What it costs, and it is upstream's to fix rather than ours: there is no
-   * MOVE_NO_EFFECT on this path, so asking for what is already there writes the
-   * move anyway and pushes an undo step that changes nothing on screen. Press
-   * Clear on a blank square and the next Undo appears to do nothing. Slant is
-   * spared because its three answer MOVE_NO_EFFECT (slant.c:1832).
-   *
-   * A third of it could be caught out here and is deliberately not. The label
-   * pair tells a blank square from an occupied one, so a `does: 'Clear'` button
-   * would stand down where there is nothing to clear — but nothing tells a tent
-   * from grass, so the other two presses would stay redundant. That buys one
-   * button that reacts to what is under the cursor, sitting beside two that do
-   * not, in a change whose whole point is that these buttons stop reacting.
-   *
-   * `bareSquare` and not `white` for the third, for Slant's reason and on
-   * Slant's measurement: a blank square here is COL_BACKGROUND (tents.c:2349),
-   * the ground the board leaves showing, rgb(213,213,213) light and rgb(44,44,44)
-   * dark, while `white` fills with `--cell-empty`, #ffffff and #cccccc. As a
-   * face worn now and then that was merely pale; as a fixed one it would be a
-   * white square standing for a near-black one all game.
    */
   tents: [
-    { key: 'T', icon: 'tent', says: 'tent' },
-    { key: 'N', icon: 'grass', says: 'grass' },
-    { key: 'B', icon: 'bareSquare', says: 'clearSquare' },
+    { key: 'T', icon: 'tent', says: 'tent', toggles: true },
+    { key: 'N', icon: 'grass', says: 'grass', toggles: true },
   ],
 
   singles: [
