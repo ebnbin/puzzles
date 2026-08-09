@@ -256,17 +256,6 @@ const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft' } }
  */
 const HOLD: KeyLabel = { button: ' '.charCodeAt(0), icon: 'lock', whose: 'upstream' }
 
-/**
- * And Inertia's, which is the same select key spent on something else: one step
- * of the solver's answer, replayed. Out until there is an answer, which
- * `current_key_label` says outright (inertia.c:1544).
- */
-const ADVANCE: KeyLabel = {
-  button: 13,
-  icon: 'advance',
-  needs: 'Advance',
-  whose: 'upstream',
-}
 const SUBMIT: KeyLabel = {
   restarts: true,
   // 13 rather than the name: a one-character key string is passed straight
@@ -442,30 +431,7 @@ const RULES: Record<
       whose: 'ours',
     })),
 
-    /*
-   * Inertia's one, and the last key in the collection the back end reads with
-   * no button anywhere.
-   *
-   * `IS_CURSOR_SELECT` plays the next step of the solver's answer, and only
-   * while there is one left to play — `state->soln && state->solnpos <
-   * state->soln->len` (inertia.c:1621). Both select keys reach it and both
-   * report the same word, so it is one button.
-   *
-   * It is on the keypad rather than beside the arrows because Inertia is the
-   * one puzzle with nowhere to put it up there: the two cells either side of
-   * the up key are its diagonals, and the centre of a direction pad reads as a
-   * direction, which this is not. Flood's key of the same name keeps its place
-   * in the block because Flood's block has one to spare.
-   *
-   * The last key without a button, and the reason it was the last is that it is
-   * the one thing here nobody needs until they have given up: every one of the
-   * eight directions is already a tap on the board, since a press anywhere but
-   * the ball's own square is read as an octant (inertia.c:1591). Out until the
-   * answer exists, which upstream says in as many words — see `needs`.
-   */
-  inertia: () => [ADVANCE],
-
-  // Nothing to put in a square — only the key that was out of reach.
+    // Nothing to put in a square — only the key that was out of reach.
   net: () => [JUMBLE],
   fifteen: () => [HINT],
   bridges: () => [HINT],
@@ -2581,6 +2547,35 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       },
     },
   ],
+
+  /*
+   * Inertia's one, and the only key in this table that sits in the middle of
+   * the cross rather than beside it.
+   *
+   * `IS_CURSOR_SELECT` plays the next step of the solver's answer, and only
+   * while there is one left to play — `state->soln && state->solnpos <
+   * state->soln->len` (inertia.c:1621). Both select keys reach it and both
+   * report the same word, so it is one button; and `current_key_label` reports
+   * "Advance" or nothing (1544), so the ordinary rule dims it — see
+   * `doesNothing`, which is all `wouldSend` needs here.
+   *
+   * The centre is where it goes because Inertia is the one puzzle whose two
+   * usual cells are taken: eight ways out of a square fills the corners. That
+   * cell was left empty on the grounds that a key in the middle of a direction
+   * pad would have to mean "stay", and a ball that rolls until it hits
+   * something has no such move — which is true of *directions* and is the
+   * argument for what may go there rather than against anything going there.
+   * This is not a direction. It is the one press on this screen that is not
+   * about where to go, and the middle of a pad of directions is where a thing
+   * that is not one is unmistakable.
+   *
+   * The last key in the collection the back end read with no button anywhere,
+   * and the one that most clearly earned one: all eight directions are already
+   * a tap on the board, since a press on any square but the ball's own is read
+   * as an octant (inertia.c:1591), and the solver's replay has no gesture at
+   * all.
+   */
+  inertia: [{ key: 'Enter', icon: 'advance', says: 'advance' }],
 
   /*
    * Map's two, and the first pair in this table that the back end has never

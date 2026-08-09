@@ -1581,22 +1581,31 @@ p.notice-intro button:active {
  *
  * The cross becomes the full three by three it was always a piece of: the four
  * corners fill in, and down drops out of the middle to the foot, where it
- * belongs once there is a row under it. Nothing sits in the centre. A key there
- * would have to mean "stay", and a ball that rolls until it hits something has
- * no such move.
+ * belongs once there is a row under it.
+ *
+ * The centre was empty on the grounds that a key there would have to mean
+ * "stay", and a ball that rolls until it hits something has no such move. That
+ * was an argument about *directions*, and it settles what may go there rather
+ * than whether anything may: Inertia's one other key is the solver's replay,
+ * which is not a direction at all, and the middle of a pad of directions is
+ * where a thing that is not one is unmistakable. See CURSOR_KEYS.
  *
  * The block is no wider — still three keys — so the landscape rail's width is
  * untouched. It is a key taller, and that comes out of the board, which is the
  * trade this puzzle has no way around: half its directions were unreachable
  * without a numeric keypad.
  *
- * The two cells either side of the up key are the corners now, so a puzzle
- * wanting both these and a pair of cursor keys would have nowhere to put them.
- * None does: Inertia has no cursor to act at. If one ever arrives, this is the
- * collision to expect.
+ * The two cells either side of the up key are the corners now, so the slot the
+ * other thirty-nine puzzles put their first key in is spoken for; here it is
+ * the middle instead. A puzzle wanting *two* keys and eight ways would have
+ * nowhere to put the second. None does.
  */
 .play-arrows[data-ways='8'] [data-dir='down'] {
   grid-area: 3 / 2;
+}
+
+.play-arrows[data-ways='8'] [data-act='first'] {
+  grid-area: 2 / 2;
 }
 
 .play-arrows[data-ways='8'] [data-dir='upLeft'] {
