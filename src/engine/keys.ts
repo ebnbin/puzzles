@@ -1193,7 +1193,6 @@ const WORDS: Record<string, readonly string[]> = {
    * reason these were cheap to do once the machinery existed.
    */
   lightup: ['Light', 'Mark', 'Clear'],
-  tents: ['Tent', 'Green', 'Clear'],
   singles: ['Black', 'Circle', 'Restore', 'Remove'],
   unruly: ['Black', 'White', 'Empty'],
   mosaic: ['Black', 'White', 'Empty'],
@@ -1426,9 +1425,6 @@ export const wouldSend = (
  */
 const BOTH: Record<string, readonly string[]> = {
   rect: ['Cancel'],
-  /* An occupied square answers "Clear" to both keys (tents.c:2035): either one
-     empties it, so there is nothing to tell them apart with and nothing to. */
-  tents: ['Clear'],
   /* Same shape twice over — a black square restores and a circled one is
      rubbed out, whichever key is asked (singles.c:1141). */
   singles: ['Restore', 'Remove'],
@@ -2135,7 +2131,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * The nine that cycle one square through three or four contents, and the
+   * The eight that cycle one square through three or four contents, and the
    * plainest entries in this table: two keys, a face per word, and the word is
    * already a name for what the press produces.
    *
@@ -2143,7 +2139,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * Pattern is the exception that had to be built by hand. There the labels are
    * upstream's cycle — press Enter on a grey square and you get "Black", press
    * it on a black one and you get "Grey" — so a button named for a colour has
-   * to hunt for the key that currently reaches it (`does`). These nine report
+   * to hunt for the key that currently reaches it (`does`). These eight report
    * the same way, but their two keys between them cover every state a square
    * can be in, so nothing has to be hunted for: whatever the label says, that
    * is what this key does here, and the picture says it.
@@ -2154,7 +2150,10 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * plays more than one of them.
    */
   /*
-   * Slant's three, and the only entry here that sends neither Enter nor Space.
+   * Slant's three, the first entry here to send neither Enter nor Space. Tents
+   * is the other, and reading them together is worth the two minutes: the same
+   * three buttons, arrived at from opposite complaints, and only one of the two
+   * puzzles hands back a MOVE_NO_EFFECT to make the idempotent press free.
    *
    * Its two cursor keys are one cycle wound both ways, exactly Pattern's shape:
    * blank steps to `\` steps to `/` steps back to blank, and Space steps round
@@ -2235,25 +2234,54 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     },
   ],
 
+  /*
+   * Tents' three, Slant's shape reached from the other direction: not a cycle
+   * wound both ways, but a pair of keys that will not do the one thing this
+   * puzzle is played by.
+   *
+   * Enter gives `v == BLANK ? 'T' : 'B'` and Space `v == BLANK ? 'N' : 'B'`
+   * (tents.c:1702), so neither key can put grass where a tent stands — it has
+   * to be cleared first — and while it stands both buttons wear "Clear" and
+   * neither shows what it would place. Two presses and a face that changes
+   * under the thumb, for the one move a reader makes over and over.
+   *
+   * `'T'`, `'N'` and `'B'` set the square outright and are read on the very
+   * next line (tents.c:1706). So all three faces are fixed, every state is one
+   * press from every other, and the cycle keys lose nothing by losing their
+   * buttons.
+   *
+   * Liveness is free and exact, more exact than anywhere else in this table.
+   * `interpret_move` refuses all three when the cursor is hidden or the square
+   * is a tree, and `current_key_label` returns "" under precisely those two
+   * conditions — its switch covers BLANK, TENT and NONTENT and lets TREE fall
+   * out (tents.c:1482). The labels going empty *is* the refusal, which is what
+   * `doesNothing` already reads. No `WORDS` and no `BOTH` any more: nothing
+   * here reads what the words are, only whether there are any.
+   *
+   * What it costs, and it is upstream's to fix rather than ours: there is no
+   * MOVE_NO_EFFECT on this path, so asking for what is already there writes the
+   * move anyway and pushes an undo step that changes nothing on screen. Press
+   * Clear on a blank square and the next Undo appears to do nothing. Slant is
+   * spared because its three answer MOVE_NO_EFFECT (slant.c:1832).
+   *
+   * A third of it could be caught out here and is deliberately not. The label
+   * pair tells a blank square from an occupied one, so a `does: 'Clear'` button
+   * would stand down where there is nothing to clear — but nothing tells a tent
+   * from grass, so the other two presses would stay redundant. That buys one
+   * button that reacts to what is under the cursor, sitting beside two that do
+   * not, in a change whose whole point is that these buttons stop reacting.
+   *
+   * `bareSquare` and not `white` for the third, for Slant's reason and on
+   * Slant's measurement: a blank square here is COL_BACKGROUND (tents.c:2349),
+   * the ground the board leaves showing, rgb(213,213,213) light and rgb(44,44,44)
+   * dark, while `white` fills with `--cell-empty`, #ffffff and #cccccc. As a
+   * face worn now and then that was merely pale; as a fixed one it would be a
+   * white square standing for a near-black one all game.
+   */
   tents: [
-    {
-      key: 'Enter',
-      icon: 'tent',
-      says: 'tent',
-      faces: {
-        Tent: { icon: 'tent', says: 'tent' },
-        Clear: { icon: 'white', says: 'clearSquare', on: true },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'grass',
-      says: 'grass',
-      faces: {
-        Green: { icon: 'grass', says: 'grass' },
-        Clear: { icon: 'white', says: 'clearSquare', on: true },
-      },
-    },
+    { key: 'T', icon: 'tent', says: 'tent' },
+    { key: 'N', icon: 'grass', says: 'grass' },
+    { key: 'B', icon: 'bareSquare', says: 'clearSquare' },
   ],
 
   singles: [
