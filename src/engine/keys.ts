@@ -1294,6 +1294,14 @@ const SECOND: Record<string, readonly string[]> = {
    * a reader towards.
    */
   inertia: ['Advance'],
+  /*
+   * And Flood's, which is Inertia's word doing Inertia's job in a puzzle that
+   * also has a real move. Its two keys never share a word — Enter reports
+   * "Fill" off the square under the cursor, Space reports "Advance" off
+   * `state->soln` (flood.c:807) — so the level is read off Space alone and the
+   * flooding key beside it is untouched.
+   */
+  flood: ['Advance'],
 }
 
 /**
@@ -2433,6 +2441,11 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * has — and Space replays the solver's next step, which exists only after
    * Solve has been pressed and which upstream reports exactly then.
    *
+   * That second one is a level rather than a state, the same as Inertia's key
+   * of the same name and for the same reason: before Solve there is no route,
+   * so the slot is not in this menu. It sat dim through every game nobody asked
+   * for the answer to until that was noticed. See `level`, and `SECOND`.
+   *
    * This is the one puzzle in the collection whose label does not check the
    * cursor flag, so it needs a mirror. See CURSOR_LIFE.
    */
@@ -2448,6 +2461,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       icon: 'advance',
       says: 'advance',
       offCursor: true,
+      level: 2,
       faces: { Advance: { icon: 'advance', says: 'advance' } },
     },
   ],
