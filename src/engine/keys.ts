@@ -1206,6 +1206,10 @@ const WORDS: Record<string, readonly string[]> = {
   /* Flood's two do not share a state at all: one is a move on the board and
      the other replays the solver, which only exists after Solve. */
   flood: ['Fill', 'Advance'],
+  /* And Inertia's one, which is the same replay and the whole of its
+     vocabulary: every other key it reads is a direction, and a direction is
+     never labelled. */
+  inertia: ['Advance'],
   /* Bridges' two. "Finished" comes from both keys and means two things — end
      the bridge you are drawing, or say you have done with this island — which
      `faces` keeps apart because each key reads only its own word. */
@@ -1235,7 +1239,13 @@ const understood = (name: string, labels: KeyLabels) => {
  * "pending" in so many terms, so a second-level key needs no `does` to be
  * placed correctly, and reading the table answers what the levels are.
  *
- * One entry so far. Seven more puzzles have a second level by their vocabulary
+ * Two entries, and they are two different shapes of level, which is worth
+ * seeing before adding a third. Same Game's is a selection: the menu is about
+ * the thing under the cursor, and confirm and cancel exist only while there is
+ * one. Inertia's is a mode: before Solve the reader is playing and after it
+ * they are walking a route, and the key belongs to the second of those.
+ *
+ * Seven more puzzles have a second level by their vocabulary
  * — Pegs, Bridges, Signpost, Pearl, Galaxies, Filling, and Rectangles, which is
  * the one that needs no entry because both its levels are the same two buttons.
  * Each will get its own line as its keys are looked at again; guessing them all
@@ -1266,6 +1276,24 @@ const SECOND: Record<string, readonly string[]> = {
    * of position, and position is exactly what `current_key_label` describes.
    */
   samegame: ['Remove'],
+  /*
+   * Inertia's, and the level here is not a selection but a mode: before Solve
+   * the reader is playing, after it they are walking a route the solver worked
+   * out. The key belongs to the second of those and to nothing else.
+   *
+   * "Advance" is the only word this puzzle ever reports (inertia.c:1544), and
+   * it reports it exactly while `state->soln` holds a route with steps left.
+   * That route does not exist until Solve installs one and is thrown away the
+   * moment the game ends, either way (inertia.c:1735) — so the word and "there
+   * is an answer to walk" are the same fact.
+   *
+   * Dimming was wrong here for the reason `level` is set out with: a key that
+   * cannot act because the thing it acts on does not exist yet is not in this
+   * menu. It sat grey through every game nobody asked for the answer to, and
+   * the only way to light it was to press Solve, which is not a thing to invite
+   * a reader towards.
+   */
+  inertia: ['Advance'],
 }
 
 /**
@@ -2575,7 +2603,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * as an octant (inertia.c:1591), and the solver's replay has no gesture at
    * all.
    */
-  inertia: [{ key: 'Enter', icon: 'advance', says: 'advance' }],
+  inertia: [{ key: 'Enter', icon: 'advance', says: 'advance', level: 2 }],
 
   /*
    * Map's two, and the first pair in this table that the back end has never
