@@ -115,17 +115,19 @@ export default function PuzzleKeypad({
   keys,
   left,
   swatches,
-  labels,
+  dead,
   onPress,
 }: {
   keys: KeyLabel[]
   left: Map<number, number> | null
   swatches: ReadonlyMap<number, string>
   /**
-   * What the back end says its own two keys would do, for the one key here that
-   * is drawn always and live only sometimes — see `needs` on KeyLabel.
+   * Whether a key is drawn out. Asked rather than worked out here, because what
+   * makes a key out is the puzzle's business and PuzzleHost is where the two
+   * answers live — the back end's own label, and the count of what has been
+   * typed. See `needs` and `behind` on KeyLabel.
    */
-  labels: { enter: string; space: string }
+  dead: (key: KeyLabel) => boolean
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
@@ -186,10 +188,10 @@ export default function PuzzleKeypad({
               key={i}
               type="button"
               data-whose={key.whose}
-              // Out, but still its own picture: this key has one job and is
-              // waiting to be able to do it. See `needs`, and CursorFace.idle,
-              // which argues the same shape for the row below.
-              disabled={key.needs !== undefined && labels.enter !== key.needs}
+              // Out, but still its own picture: these keys have one job and are
+              // waiting to be able to do it. See CursorFace.idle, which argues
+              // the same shape for the row below.
+              disabled={dead(key)}
               // A digit says what it is, so it needs no name — until it carries a
               // count, which would otherwise be read out beside it as a second
               // digit, and "9 1" is not what the key says.

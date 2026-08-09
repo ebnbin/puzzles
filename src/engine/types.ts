@@ -182,20 +182,38 @@ export interface KeyLabel {
    */
   paints?: { colour: number; pencil?: boolean }
   /**
-   * Turns a key that clears what is *under* the cursor into one that clears
+   * Turns a key that clears what is *under* the write head into one that clears
    * what is *behind* it, which is what a key drawn as a backspace has to mean.
    *
-   * `step` is the arrow that means "behind". The press is tried where the
-   * cursor is first and the step only happens if it was wasted, so a reader
-   * who has walked the cursor onto something and pressed this still takes that
-   * one — the two readings only differ on an empty cell, where upstream's does
-   * nothing at all. `notAt` lists the labels at which the cursor is not on
-   * anything this key may touch, and there the step comes first instead.
+   * `step` is the arrow that means "behind", and it is always taken: a guess is
+   * typed left to right, so the head is always one past the last thing typed and
+   * clearing in place would always be the wrong peg. engine/keys carries the
+   * measurement that settled it, and the reading this replaced.
    *
-   * PuzzleHost is where this is carried out, and where the one back end
-   * message that makes it possible is written down.
+   * PuzzleHost is where this is carried out, and where the count that stops it
+   * at the start of a row lives — see `advances`.
    */
-  behind?: { step: string; notAt?: readonly string[] }
+  behind?: { step: string }
+  /**
+   * Writes at the write head and moves it on, and how many places the head has
+   * to run through — which is what tells the backspace beside it how far back it
+   * may go.
+   *
+   * Guess's swatches, and the number is its pegs. The head is `ui->peg_cur` and
+   * a digit advances it (guess.c:946), stopping at the Submit slot past the last
+   * peg; nothing on this side can read it, since `encode_ui` writes the row and
+   * the holds and not the head. So PuzzleHost keeps a count, and this is the
+   * ceiling that count is held to.
+   */
+  advances?: number
+  /**
+   * And the key that ends the row, so the count goes back to zero.
+   *
+   * Guess's tick. Stated rather than inferred from `needs`, which happens to be
+   * on the same key: one says when the key is live and the other says what it
+   * does to the head, and a later key could want either without the other.
+   */
+  restarts?: boolean
   /**
    * Walks the board's own selector onto this key's value before pressing it.
    *

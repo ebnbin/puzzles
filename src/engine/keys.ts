@@ -202,23 +202,38 @@ const COL_MAP = 2
 const LABELLED = 'Label colours with numbers'
 
 /**
- * Clear, sent backwards: it takes the peg the cursor has just gone past rather
- * than the empty place it is standing on.
+ * Clear, sent backwards: it takes the peg behind the write head rather than the
+ * one under it.
  *
- * Upstream's key clears where the cursor is (guess.c:948), and a colour key
- * moves the cursor on after placing (946) — so a reader who has just put four
- * pegs down and wants the last one back finds the key does nothing, and has to
- * press left first. That is not what a key drawn as a backspace means anywhere
- * else, and the row of colour keys above it is a row of characters being typed.
+ * Upstream's key clears where the head is (guess.c:948) and a digit moves the
+ * head on after placing (946), so a reader who has just typed a peg and wants it
+ * back finds the key does nothing where it stands. That is not what a key drawn
+ * as a backspace means anywhere else, and the row above it is a row of
+ * characters being typed.
  *
- * `notAt` is the one place the cursor can stand where this key must not be
- * pressed at all. Past the last peg the label reads "Submit", and upstream's
- * clear branch is the only one in that function that does not bound-check
- * `peg_cur` first — it would read, and possibly write, one int past the row.
- * So there the step comes first and the press lands on the last peg, which is
- * what the reader meant anyway.
+ * It steps *always*, and the version that did not is worth keeping as a lesson.
+ * It used to try in place first and step only if that press was wasted, which is
+ * right when the reader can put the head anywhere: standing on a peg then means
+ * "this one". Once a guess is typed left to right the head is always one past
+ * the last thing typed, so in place is always the wrong peg — and it stayed
+ * hidden until holds began pre-filling pegs *ahead* of the head. Measured: with
+ * the second peg held, the row `5,2_,0,0` came back `5,0_,0,0`, which is the
+ * held peg gone and the typed one untouched.
+ *
+ * Stepping always also retires the case that had to be written for the Submit
+ * slot. Upstream's clear branch is the only one in that function that does not
+ * bound-check `peg_cur` first — it would read, and possibly write, one int past
+ * the row — and a key that steps before it presses is never pressed there.
+ *
+ * What it cannot do by itself is stop at the start of a row: `move_cursor`
+ * clamps, so the step is silently wasted and the clear lands on the first peg,
+ * which with a held first peg is a peg nobody typed. The back end will not say
+ * — `move_cursor` does answer MOVE_NO_EFFECT when it clamps (misc.c:387), but
+ * emcc turns that into a false return only for the key spelled "Backspace"
+ * (emcc.c:456), so an arrow answers true either way, measured. So PuzzleHost
+ * counts what has been typed instead; see `advances`.
  */
-const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft', notAt: ['Submit'] } }
+const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft' } }
 
 /**
  * And the two that came off the arrows block when Guess stopped having one.
@@ -241,6 +256,7 @@ const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft', notAt: ['Submit
  */
 const HOLD: KeyLabel = { button: ' '.charCodeAt(0), icon: 'lock', whose: 'upstream' }
 const SUBMIT: KeyLabel = {
+  restarts: true,
   // 13 rather than the name: a one-character key string is passed straight
   // through (emcc.c:402) and `midend_process_key` turns 13 into CURSOR_SELECT
   // (midend.c:1255), so the ordinary keypad path carries it.
@@ -342,12 +358,15 @@ const RULES: Record<
    * is why guess is the second name in READS_PREFS.
    */
   guess(p, prefs) {
-    const m = p.match(/^c(\d+)p\d+g\d+/)
+    const m = p.match(/^c(\d+)p(\d+)g\d+/)
     if (!m) return null
     const n = +m[1]
+    // The pegs in a guess, which is how far the write head can run: a digit
+    // moves it on (guess.c:946) and stops at the Submit slot past the last peg.
+    const pegs = +m[2]
     // guess.c:219-224: under two colours is not a puzzle, and ten is as many
     // as game_colours defines.
-    if (n < 2 || n > 10) return null
+    if (n < 2 || n > 10 || pegs < 1) return null
     const labelled = flag(prefs, LABELLED)
     return [
       HOLD,
@@ -367,6 +386,7 @@ const RULES: Record<
           slot: COL_1 + i,
           ink: COL_FRAME,
           value: i + 1,
+          advances: pegs,
           aims: {
             home: fromTop ? 'ArrowUp' : 'ArrowDown',
             step: fromTop ? 'ArrowDown' : 'ArrowUp',
@@ -547,6 +567,16 @@ const KEYS_WITH_ARROWS = new Set(['map'])
 
 /** Whether this puzzle's aimed keys come and go with its arrows. */
 export const keysFollowArrows = (name: string) => KEYS_WITH_ARROWS.has(name)
+
+/**
+ * Whether this puzzle's row is typed against a write head this side counts.
+ *
+ * Guess, and it is a list rather than a rule for the same reason the two above
+ * are: what moves a head is that puzzle's own answer, and the count only exists
+ * to serve one key. See `advances` and `behind` on KeyLabel, and `typed` in
+ * PuzzleHost, which is the count itself.
+ */
+export const heads = (name: string) => name === 'guess'
 
 /**
  * The puzzle whose board has eight ways out of a square rather than four.

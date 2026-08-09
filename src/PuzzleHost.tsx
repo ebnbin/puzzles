@@ -15,6 +15,7 @@ import {
   inMenu,
   HOLD_BUTTON,
   keysFor,
+  heads,
   keysFollowArrows,
   movesEightWays,
   opener,
@@ -285,6 +286,20 @@ export default function PuzzleHost({
    * engine/map.
    */
   const spot = useRef<Spot>({ x: 0, y: 0 })
+  /*
+   * And how much of the row being built the reader has typed, for the one
+   * puzzle whose keypad is a line of characters: Guess's write head, `peg_cur`,
+   * which the back end will not report either — `encode_ui` writes the row and
+   * the holds and not the head.
+   *
+   * A number rather than a mirror of anything, and it only has to answer one
+   * question: how many times the backspace may step. It is set back to zero by
+   * everything that starts a fresh row — a guess submitted, a game dealt, an
+   * undo or a redo, and any press on the board, since all of them rebuild
+   * `ui->curr_pegs` out of the holds (guess.c:525-535). So it cannot drift
+   * further than one row, and a row is as long as four presses.
+   */
+  const [typed, setTyped] = useState(0)
   const grid = useMemo(
     () => (name === 'map' && permalink ? mapSize(permalink.desc.split(':')[0]) : null),
     [name, permalink],
@@ -639,6 +654,8 @@ export default function PuzzleHost({
           // through the save file and so comes back through here, so the copy is
           // re-anchored at the origin as often as it is used. See engine/map.
           spot.current = { x: 0, y: 0 }
+          // Guess's write head is in there too, and a dealt board is a fresh row.
+          setTyped(0)
         },
         onPresetSelected: (index) => {
           setStandard((first) => first ?? index)
@@ -777,6 +794,11 @@ export default function PuzzleHost({
       if (!apiRef.current || dialog) return
       acted()
       fn(apiRef.current)
+      // Everything that comes through here changes the position — undo, redo, a
+      // preset, restart, solve — and Guess rebuilds the row being typed out of
+      // the holds whenever it does (guess.c:525-535). So the count of what has
+      // been typed goes with it. See `typed`.
+      setTyped(0)
       canvasRef.current?.focus()
     },
     [dialog, acted],
@@ -926,6 +948,18 @@ export default function PuzzleHost({
     // And the copy of Map's cursor follows a physical arrow as readily as one of
     // ours: this is the only other place a key reaches the back end.
     if (grid && plain) spot.current = stepCursor(spot.current, e.key, grid)
+    /*
+     * Guess's write head does too. A reader with a keyboard has real arrows and
+     * no need of our backspace, but the count must not be left saying something
+     * false if they use both — and the arithmetic is upstream's own: Left and
+     * Right move the head (guess.c:925) and a digit places and moves it on
+     * (946). Nothing is capped up here; `advances` does that on the way in, and
+     * a count that has run past the row only means one wasted press.
+     */
+    if (plain && heads(name)) {
+      if (e.key === 'ArrowLeft') setTyped((n) => Math.max(n - 1, 0))
+      else if (e.key === 'ArrowRight' || /^[0-9]$/.test(e.key)) setTyped((n) => n + 1)
+    }
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
     // Some of what the board takes changes a preference — undead's `a` — and
@@ -1024,6 +1058,22 @@ export default function PuzzleHost({
     [acted],
   )
 
+  /*
+   * Whether a keypad key is drawn out, which two keys can now be.
+   *
+   * Both are Guess's and both say the same kind of thing — this key has one job
+   * and cannot do it yet — but they read it from different places. The tick
+   * takes it from the back end's own word for its Enter key (`needs`); the
+   * backspace takes it from the count of what has been typed, because the back
+   * end will not say where the write head is. See `behind` and `advances`.
+   */
+  const dead = useCallback(
+    (key: KeyLabel) =>
+      (key.needs !== undefined && labels.enter !== key.needs) ||
+      (key.behind !== undefined && typed === 0),
+    [labels.enter, typed],
+  )
+
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
     if (!api) return
@@ -1079,29 +1129,25 @@ export default function PuzzleHost({
       return api.key(code, sent, '', 0, 0, 0)
     }
     /*
-     * A key that erases backwards, which takes two presses to say — see
-     * `behind` in engine/types for what it means and keys.ts for who asks.
+     * A key that erases backwards, which is two presses: step, then clear. See
+     * `behind` in engine/types for what it means and keys.ts for who asks and
+     * for the measurement that made the step unconditional.
      *
-     * It rests on the one piece of news the back end sends back other than the
-     * two labels: `key()` returns false when a press was understood and came
-     * to nothing, and it does that for exactly one key — the one spelled
-     * `Backspace`, a KaiOS accommodation at emcc.c:456. So this is sent under
-     * that name rather than as its character, and the midend folds 8, 127 and
-     * `\b` into the same button anyway (midend.c:1261). Measured on Guess: the
-     * call answers false on an empty cell with the cursor showing and true on
-     * a full one, which is exactly the question being asked.
+     * `typed` is what keeps it from running off the start of the row. Nothing
+     * else can: the step clamps silently, so without this the clear would land
+     * on the first peg — which after a hold is a peg nobody typed. The key is
+     * drawn out at zero as well, so this guard is the same answer said twice
+     * rather than a second rule.
      *
-     * Two presses at most. Stepping until something gives would walk the whole
-     * row on a press that should have done nothing.
+     * Sent under the name `Backspace` rather than as its character because the
+     * midend folds 8, 127 and `\b` into the same button anyway (midend.c:1261)
+     * and the name is what emcc.c matches first.
      */
     if (key.behind) {
-      const back = () => send('Backspace', 8)
-      if (key.behind.notAt?.includes(labelsRef.current.enter)) {
+      if (typed > 0) {
         send(key.behind.step)
-        back()
-      } else if (!back()) {
-        send(key.behind.step)
-        back()
+        send('Backspace', 8)
+        setTyped((n) => Math.max(n - 1, 0))
       }
       canvasRef.current?.focus()
       return
@@ -1125,8 +1171,13 @@ export default function PuzzleHost({
     // key path carries them: a one-character string is taken as the button
     // itself.
     send(String.fromCharCode(key.button))
+    // And the write head moves on with it, for the one puzzle that keeps a
+    // count of where it is. Held to the same ceiling the back end holds it to.
+    if (key.advances !== undefined) setTyped((n) => Math.min(n + 1, key.advances!))
+    // And a key that ends the row puts it back to nothing.
+    if (key.restarts) setTyped(0)
     canvasRef.current?.focus()
-  }, [acted, awake, markAction, name])
+  }, [acted, awake, markAction, name, typed])
 
   /*
    * A key from the block around the arrows, sent as the keypress it is — the
@@ -1255,6 +1306,10 @@ export default function PuzzleHost({
             // A press on the board puts the cursor away, wherever it lands —
             // net.c:2172 does it before it checks the press was on the grid.
             setAwake(false)
+            // And whatever it does in Guess — drag a peg, mark the guess by
+            // pressing the feedback area (guess.c:915) — the row is no longer
+            // only what was typed, so the count starts again.
+            setTyped(0)
           }}
           className="host-board"
           tabIndex={0}
@@ -1268,7 +1323,7 @@ export default function PuzzleHost({
         keys={keys}
         left={left}
         swatches={swatches}
-        labels={labels}
+        dead={dead}
         onPress={pressKey}
       />
 
