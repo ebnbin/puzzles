@@ -161,11 +161,10 @@ export const zh: Strings = {
       cancelArrow: '把箭头放回去',
       drawEdge: '在这里画一条边',
       clearEdge: '擦掉这条边',
-      pickColour: '拿起光标下的颜色',
-      fillRegion: '用它填充这个区域',
-      stippleRegion: '给这个区域点画：它可能是这个颜色',
+      /* 手册（doc-zh/map.html）把那个记号叫「点画」，含义是「这个区域可能是这个颜色」。
+         这个键说的是「下一个颜色键会做什么」，所以写成一句预告而不是一个状态名。 */
+      maybeMode: '下一个颜色：只是标记「可能」',
       clearRegion: '清空这个区域',
-      cancelFill: '放下手里的颜色',
       domino: '放一张骨牌盖住这两格',
       undomino: '拿掉这张骨牌',
       line: '画一条线：这两格不属于同一张骨牌',

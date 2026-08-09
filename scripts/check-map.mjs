@@ -70,6 +70,10 @@ const whereIsTheCursor = async () => {
   return m ? Number(m[1]) : null
 }
 
+// The palette is drawn out until the cursor is, since it acts where the cursor
+// is — see `aimed`. One arrow shows it, and nothing here works before that.
+await arrow('Right')
+
 let checked = 0
 let wrong = 0
 // A pseudo-random walk with a fixed seed, so a failure can be reproduced.
@@ -138,8 +142,15 @@ const count = async (what, want, act) => {
 }
 const swatch = (re) => () => page.getByRole('button', { name: re }).click()
 const FILL_1 = /^Fill this region with colour 1$/
-const MAYBE_2 = /^Mark this region as possibly colour 2$/
 const EMPTY = /^Empty this region$/
+// The maybes are the same four swatches with the modifier armed — see `arms` on
+// CursorKey — so a stipple is two presses, and the modifier is spent by the one
+// that follows it.
+const MAYBE_2 = () => async () => {
+  await page.getByRole('button', { name: /^Next colour: mark it as a maybe$/ }).click()
+  await page.waitForTimeout(120)
+  await page.getByRole('button', { name: /^Mark this region as possibly colour 2$/ }).click()
+}
 /*
  * First find a region the cases can be run on. The random walk leaves the cursor
  * wherever it leaves it, and a clue refuses everything — correctly — so asserting
@@ -165,10 +176,10 @@ await page.waitForTimeout(250)
 await count('emptying an already empty region', 0, swatch(EMPTY))
 await count('filling an empty region', 1, swatch(FILL_1))
 await count('filling it with the same colour again', 0, swatch(FILL_1))
-await count('stippling a coloured region (upstream refuses)', 0, swatch(MAYBE_2))
+await count('stippling a coloured region (upstream refuses)', 0, MAYBE_2())
 await count('emptying it', 1, swatch(EMPTY))
-await count('stippling the empty region', 1, swatch(MAYBE_2))
-await count('the same stipple again, which turns it back off', 1, swatch(MAYBE_2))
+await count('stippling the empty region', 1, MAYBE_2())
+await count('the same stipple again, which turns it back off', 1, MAYBE_2())
 
 await browser.close()
 console.log(`${checked} presses checked against the engine, ${wrong} wrong`)

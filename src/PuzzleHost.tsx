@@ -10,6 +10,7 @@ import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
+  asMaybes,
   cursorKeys,
   faceOf,
   inMenu,
@@ -30,7 +31,7 @@ import type { KeyLabels } from './engine/keys'
 import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import { mapSize, paintRegion, stepCursor } from './engine/map'
-import type { Spot } from './engine/map'
+import type { Paint, Spot } from './engine/map'
 import {
   clearSave,
   isPlayed,
@@ -300,6 +301,15 @@ export default function PuzzleHost({
    * further than one row, and a row is as long as four presses.
    */
   const [typed, setTyped] = useState(0)
+  /*
+   * Whether Map's palette is offering maybes rather than colours.
+   *
+   * A modifier and not a mode: the first colour pressed spends it. The board
+   * draws a stipple as a scatter of dots (map.c:2872), so while this is on the
+   * swatches wear the dots and say so — see `asMaybes`, and `arms` on
+   * CursorKey, which is the button that sets it.
+   */
+  const [maybe, setMaybe] = useState(false)
   const grid = useMemo(
     () => (name === 'map' && permalink ? mapSize(permalink.desc.split(':')[0]) : null),
     [name, permalink],
@@ -731,8 +741,9 @@ export default function PuzzleHost({
     // And, on the one puzzle whose keys have no other way to be aimed, whether
     // the arrows are out. Each key says for itself whether it needs them — see
     // `aimed` in engine/types, and keysFollowArrows for why the list is one name.
-    return keysFollowArrows(name) && !arrows ? all.filter((k) => !k.aimed) : all
-  }, [arrows, name, permalink, prefs])
+    const shown = keysFollowArrows(name) && !arrows ? all.filter((k) => !k.aimed) : all
+    return maybe ? asMaybes(shown) : shown
+  }, [arrows, maybe, name, permalink, prefs])
 
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
@@ -1070,9 +1081,33 @@ export default function PuzzleHost({
   const dead = useCallback(
     (key: KeyLabel) =>
       (key.needs !== undefined && labels.enter !== key.needs) ||
-      (key.behind !== undefined && typed === 0),
-    [labels.enter, typed],
+      (key.behind !== undefined && typed === 0) ||
+      // And Map's palette, which acts where the cursor is and so has nothing to
+      // act on while the reader cannot see where that is. Same sentence as the
+      // key beside the arrows that empties a region.
+      (key.paints !== undefined && !awake),
+    [awake, labels.enter, typed],
   )
+
+  /*
+   * Paint the region the cursor is on, which is the one thing on this screen
+   * that is answered here and acts somewhere the reader chose. See engine/map,
+   * which does the work and puts the cursor back where it found it.
+   *
+   * Shared by the palette and by the key beside the arrows that empties a
+   * region, because they are the same act with different arguments.
+   */
+  const paint = useCallback((p: Paint) => {
+    const api = apiRef.current
+    if (!api || !awake) return
+    const at = spot.current
+    paintRegion(api, at, p)
+    spot.current = at
+    setAwake(true)
+    // A modifier is spent by the press it modified, whether or not the board
+    // took the move: it said what the *next* colour would do, and that was it.
+    setMaybe(false)
+  }, [awake])
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
@@ -1103,18 +1138,7 @@ export default function PuzzleHost({
      * answers MOVE_UI_UPDATE.
      */
     if (key.paints) {
-      if (!awake) {
-        setAwake(true)
-        api.key(0, 'ArrowLeft', '', 0, 0, 0)
-        canvasRef.current?.focus()
-        return
-      }
-      const at = spot.current
-      paintRegion(api, at, key.paints)
-      // It walks the cursor back itself, since finding the region is done by
-      // walking; the copy and the flag follow it home.
-      spot.current = at
-      setAwake(true)
+      paint(key.paints)
       canvasRef.current?.focus()
       return
     }
@@ -1177,7 +1201,7 @@ export default function PuzzleHost({
     // And a key that ends the row puts it back to nothing.
     if (key.restarts) setTyped(0)
     canvasRef.current?.focus()
-  }, [acted, awake, markAction, name, typed])
+  }, [acted, markAction, name, paint, typed])
 
   /*
    * A key from the block around the arrows, sent as the keypress it is — the
@@ -1497,6 +1521,47 @@ export default function PuzzleHost({
               from where the cursor is, and that is not always the same key.
             */}
             {cursorKeys(name, prefs).map((cursor, i) => {
+              /*
+               * Map's two first, because they are not the back end's keys and
+               * none of the machinery below applies to them: there is no word to
+               * look up, no key to work out, and nothing to ask about which of
+               * two the press should send. One paints, the other arms the
+               * palette, and both are answered here. See `paints` and `arms` on
+               * CursorKey.
+               */
+              if (cursor.paints || cursor.arms) {
+                const on = cursor.arms ? maybe : false
+                return (
+                  <button
+                    key={cursor.icon}
+                    type="button"
+                    data-act={ACT[i]}
+                    // The third step of the ladder, the same as the three on the
+                    // keypad: a key no back end has heard of, answered through
+                    // the save file.
+                    data-whose="ours"
+                    data-on={on || undefined}
+                    aria-pressed={cursor.arms ? on : undefined}
+                    aria-label={t.play.cursor[cursor.says]}
+                    // Emptying acts where the cursor is and so goes out with it,
+                    // exactly as the palette does. Arming does not: it says what
+                    // the *next* colour will mean, which is worth saying before
+                    // the cursor is anywhere.
+                    disabled={cursor.paints !== undefined && !awake}
+                    onMouseDown={(e) => e.preventDefault()}
+                    {...holdToAsk(t.play.cursor[cursor.says])}
+                    onClick={() => {
+                      if (wasHeld()) return
+                      acted()
+                      if (cursor.paints) paint(cursor.paints)
+                      else setMaybe((was) => !was)
+                      canvasRef.current?.focus()
+                    }}
+                  >
+                    <Icon name={cursor.icon} />
+                  </button>
+                )
+              }
               // The list is slots rather than buttons, and a slot is empty while
               // its level is not the one running. Filtered here rather than
               // before the map so `i` stays the slot's own number: the keys that

@@ -1341,6 +1341,23 @@ p.notice-intro button:active {
 }
 
 /*
+ * And a swatch, which the rule above cannot reach: its colour is the board's,
+ * painted inline from the running palette rather than taken from `color`, so
+ * saying `--text-3` here would change nothing at all. Map's palette goes out
+ * with the cursor it acts at, so this had to be answered.
+ *
+ * Opacity rather than a colour, because there is no dim version of "the third
+ * colour" to name — and the ground it fades into is the key's own, which is the
+ * same ground the glyph keys fade towards. 0.35 puts the step at ΔE 19 on light
+ * and 15 on dark, against the 22 the glyphs move by; a swatch is a solid 22
+ * across where a glyph is a stroke, so the smaller number reads as the same
+ * amount of gone.
+ */
+.keypad button:disabled .key-peg {
+  opacity: 0.35;
+}
+
+/*
  * And a cursor key that is a mode rather than a move, while its mode is on.
  *
  * The surface every button on this screen already goes to under a finger, which

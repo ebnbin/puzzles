@@ -411,41 +411,26 @@ const RULES: Record<
    * built out of upstream keys: `drag_colour` only ever becomes a colour by
    * being read off a region already on the board (map.c:2521 and 2542), so
    * there is no key, and no sequence of keys, that means "red". These go
-   * through the save file instead — see engine/map for the whole argument, and
-   * for what it costs.
+   * through the save file instead — see engine/map for the whole argument.
    *
-   * Eight and not four, because a region takes two kinds of answer and the
-   * board draws them differently: filled is "this region is red", and a scatter
-   * of dots is "it might be" (map.c:2872). A mode key would have been four
-   * fewer buttons and a bit of state to remember; two rows of swatches is
-   * neither, and the second row is drawn the way the board draws what it puts
-   * down. Solid ones first, since deciding is the game and stippling is the
-   * working out.
-   *
-   * Then Clear, which is one key rather than five: a colour move takes the
-   * stipple under it away too (map.c:2653), so `C` empties a region whatever
-   * was in it.
+   * Four keys and not eight. A region takes two kinds of answer and the board
+   * draws them differently — filled is "this region is red", a scatter of dots
+   * is "it might be" (map.c:2872) — and both used to have a swatch of their
+   * own. Two rows of colours is two rows to read before pressing one, and the
+   * second row is the rarer answer. So the maybe is a modifier beside the
+   * arrows instead, and these four wear the dots while it is armed: see
+   * `asMaybes`, and `arms` on CursorKey.
    */
-  map: () => [
-    ...Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
+  map: () =>
+    Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
       button: 0,
       slot: COL_MAP + i,
       paints: { colour: i },
       aimed: true,
       whose: 'ours',
     })),
-    ...Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
-      button: 0,
-      slot: COL_MAP + i,
-      dotted: true,
-      paints: { colour: i, pencil: true },
-      aimed: true,
-      whose: 'ours',
-    })),
-    { button: 0, icon: 'clear', paints: { colour: -1 }, aimed: true, whose: 'ours' },
-  ],
 
-  // Nothing to put in a square — only the key that was out of reach.
+    // Nothing to put in a square — only the key that was out of reach.
   net: () => [JUMBLE],
   fifteen: () => [HINT],
   bridges: () => [HINT],
@@ -565,6 +550,21 @@ export const offersArrows = (name: string) => !NO_ARROWS.has(name) && !PAD_ONLY.
  */
 const KEYS_WITH_ARROWS = new Set(['map'])
 
+/**
+ * The palette said as maybes, for while Map's modifier is armed.
+ *
+ * A transform rather than a second set of keys, so that the row a thumb has
+ * learnt keeps its length and its order and only changes what it is offering.
+ * The dots are what the board draws for a stipple, which is the same rule every
+ * swatch here follows: the key looks like what it puts down.
+ */
+export const asMaybes = (keys: KeyLabel[]): KeyLabel[] =>
+  keys.map((k) =>
+    k.paints && k.paints.colour >= 0
+      ? { ...k, dotted: true, paints: { ...k.paints, pencil: true } }
+      : k,
+  )
+
 /** Whether this puzzle's aimed keys come and go with its arrows. */
 export const keysFollowArrows = (name: string) => KEYS_WITH_ARROWS.has(name)
 
@@ -621,8 +621,22 @@ export const movesEightWays = (name: string) => EIGHT_WAY.has(name)
  * code, so these arrive as the same button a keyboard would produce.
  */
 export type CursorKey = {
-  /** The key name, as emcc.c matches it: "Enter" or " ". */
+  /**
+   * The key name, as emcc.c matches it: "Enter" or " ". Empty for the two that
+   * are answered on this side and send nothing — see `paints` and `arms`, and
+   * the branch in PuzzleHost that keeps them away from the label machinery.
+   */
   key: string
+  /**
+   * Answered here, not sent: what this key puts in the region under the cursor.
+   * The same field, and the same door, as the keypad key of that name.
+   */
+  paints?: { colour: number; pencil?: boolean }
+  /**
+   * A modifier rather than a move: while it is armed the palette offers maybes
+   * instead of colours, and the first colour pressed disarms it again.
+   */
+  arms?: boolean
   icon: IconName
   /** Which of the words under `play.cursor` this key is called. */
   says: CursorWord
@@ -820,11 +834,8 @@ export type CursorWord =
   | 'cancelArrow'
   | 'drawEdge'
   | 'clearEdge'
-  | 'pickColour'
-  | 'fillRegion'
-  | 'stippleRegion'
+  | 'maybeMode'
   | 'clearRegion'
-  | 'cancelFill'
   | 'place'
   | 'submit'
   | 'hold'
@@ -2537,18 +2548,29 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Map has none, and that is the change rather than an omission. Both of its
-   * keys were halves of a pick-up: Enter took the colour under the cursor and
-   * put it down again somewhere else, Space did the same with a stipple, and
-   * every word either of them reported — Pick, Fill, Stipple, Clear, Cancel —
-   * was about a colour in hand. The palette in `keysFor` says the colour
-   * outright, so there is nothing to be carrying, and a button offering to pick
-   * one up would be offering the journey the palette exists to remove.
+   * Map's two, and the first pair in this table that the back end has never
+   * heard of.
    *
-   * Clearing came with them and went to the keypad, where the rest of the
-   * answers now are. So Map's block is the four arrows and nothing beside them,
-   * which is what Dominosa's and Flood's are.
+   * Upstream's own two were halves of a pick-up — Enter took the colour under
+   * the cursor and put it down somewhere else, Space did the same with a
+   * stipple — and every word either reported was about a colour in hand. The
+   * palette says the colour outright, so there is nothing to carry and no
+   * journey to offer.
+   *
+   * What is left are the two answers that are not a colour, and they take the
+   * two cells the cross leaves either side of the up key. The modifier is on
+   * the left because it is pressed first and reads first, the same argument
+   * Guess's padlock is placed by; emptying is on the right, where a thumb finds
+   * it without reading, and it is the one of the two that changes the board.
+   *
+   * One key rather than five for emptying: a colour move takes the stipple
+   * under it away too (map.c:2653), so `C` empties a region whatever was in it.
    */
+  map: [
+    { key: '', icon: 'stipple', says: 'maybeMode', arms: true },
+    { key: '', icon: 'clear', says: 'clearRegion', paints: { colour: -1 } },
+  ],
+
 
   solo: [PENCIL],
   unequal: [PENCIL],

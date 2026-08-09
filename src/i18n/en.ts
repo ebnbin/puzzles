@@ -367,11 +367,15 @@ export const en = {
       cancelArrow: 'Put the arrow back',
       drawEdge: 'Draw an edge here',
       clearEdge: 'Rub this edge out',
-      pickColour: 'Pick up the colour under the cursor',
-      fillRegion: 'Fill this region with it',
-      stippleRegion: 'Stipple this region: it might be that colour',
-      clearRegion: 'Clear this region',
-      cancelFill: 'Drop the colour you were carrying',
+      /*
+       * Map's modifier, named for what the palette beside it will do next
+       * rather than for a mode being switched on. Upstream's word for the mark
+       * is a stipple, which is what its board draws and what its manual calls
+       * it; "might be" is what that mark means, and the sentence has to work as
+       * the answer to "what will the next colour key do".
+       */
+      maybeMode: 'Next colour: mark it as a maybe',
+      clearRegion: 'Empty this region',
       domino: 'Place a domino across these two',
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',
