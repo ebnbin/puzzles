@@ -137,6 +137,7 @@ export type IconName =
   | 'mark'
   | 'erase'
   | 'cancel'
+  | 'sweep'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -1005,6 +1006,38 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="17.6" cy="6.4" r="2.6" fill="currentColor" />
       <path d="M4.2 19.8 14.4 9.6" />
       <path d="M4.2 14.4v5.4h5.4" />
+    </>
+  ),
+  /*
+   * The stroke mode, and the one glyph here that had to be drawn *away* from
+   * what it means rather than towards it.
+   *
+   * What it says is "moving now paints", and the obvious picture is an arrow
+   * with a painted tail. It cannot be that: the button sits inside the cross,
+   * with a real right arrow one cell away, and an arrowhead in the neighbour of
+   * an arrow reads as another arrow. Same reason it is not `advance`'s filled
+   * triangle, which is a different family anyway — that one is a play button.
+   *
+   * So it says the same thing with the app's own vocabulary instead: three
+   * cells in a row, two painted and the next one not yet. A run being laid
+   * down, which is the whole of the mode, and nothing else in the set is three
+   * of anything — `track`, `edge` and `drawLine` are all one big square with a
+   * mark inside it, so the shape families do not meet.
+   *
+   * `currentColor` and not `--cell-full`: the three colour keys beside it fill
+   * with the board's own colours because each one *is* a colour. This one is
+   * not a colour, it is what the arrows do with whichever colour is chosen.
+   *
+   * The gaps are 1.8 and were 1: at 24 units drawn 20 across, a one-unit gap
+   * between two filled cells closed up under antialiasing and the pair read as
+   * a single bar, which is a picture of one long mark rather than of separate
+   * squares being taken one at a time.
+   */
+  sweep: (
+    <>
+      <rect x="1.8" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" />
+      <rect x="9.2" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" />
+      <rect x="16.6" y="9.2" width="5.6" height="5.6" rx="1" />
     </>
   ),
   stipple: (

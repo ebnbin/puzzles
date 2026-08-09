@@ -652,6 +652,37 @@ export type CursorKey = {
    */
   does?: string
   /**
+   * The modifier that paints this key's result along a cursor move, for the
+   * puzzles whose arrows can paint.
+   *
+   * Nine back ends read `Shift`/`Ctrl` with an arrow, and in several of them it
+   * is the same act as this key: move one square and set what you crossed. It
+   * has never had a button because a button cannot hold a modifier down — see
+   * `sweeps`, which is the button that can.
+   *
+   * The pairing is the puzzle's, not ours, and it is not guessable: Pattern
+   * spends `Ctrl` on black, `Shift` on white and both together on grey
+   * (pattern.c:1406), which is neither the order of its keys nor the order of
+   * its colours.
+   */
+  brush?: { shift?: true; ctrl?: true }
+  /**
+   * A sticky mode rather than a move: while it is on, every arrow carries the
+   * `brush` of whichever neighbouring key is chosen.
+   *
+   * The one thing on this row that is not a press but a way of pressing. It
+   * exists because painting a run is what these puzzles are played by and the
+   * only gesture upstream offers for it is a held modifier — which a thumb has
+   * no way to hold. Upstream reached the same conclusion itself once and did it
+   * in the back end: Sixteen's chapter says Enter and Space "simulate holding
+   * down" Control and Shift. This is that, one layer out, for the puzzles whose
+   * authors did not.
+   *
+   * Which key it paints with is chosen by pressing that key, and the chosen one
+   * is drawn held down. See PuzzleHost.
+   */
+  sweeps?: boolean
+  /**
    * That a second press takes the first one back.
    *
    * The key still goes out as itself and still sets the square to its own
@@ -780,6 +811,7 @@ export type CursorWord =
   | 'black'
   | 'white'
   | 'grey'
+  | 'sweep'
   | 'carryTile'
   | 'holdPlace'
   | 'turnLeft'
@@ -1772,10 +1804,52 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * ever used if upstream renames these labels, and then the three become two
    * useful buttons and one dead one rather than three dead ones.
    */
+  /*
+   * And a fourth, which is not a colour and not a press: the stroke mode.
+   *
+   * Three buttons that each paint one square is the whole of what a thumb could
+   * do here, and it is not how this puzzle is played. A clue of 4 is four
+   * squares in a row; the keyboard does it by holding Ctrl and walking, because
+   * `IS_CURSOR_MOVE` with a modifier moves the cursor and then paints the
+   * rectangle spanning where it was and where it is (pattern.c:1399) — one
+   * press, two squares, so a walk lays a continuous run. A finger has no way to
+   * hold Ctrl, so it painted runs one square and one aimed press at a time,
+   * which is four presses per four squares against the keyboard's four.
+   *
+   * The saving is better than half and it is arithmetic rather than a guess. A
+   * run of n from where the cursor stands costs n colour presses and n-1 arrows
+   * without the mode, and n-1 arrows with it: nine presses against four for a
+   * run of five, and the mode is turned on once rather than once per run.
+   * Measured through the buttons — four presses of Right with black chosen, and
+   * the save came back with five squares filled.
+   *
+   * The other half of what it buys does not show in that count: the presses
+   * become *the same press repeated*. Without the mode a run alternates arrow,
+   * colour, arrow, colour, and the reader has to keep track of which square the
+   * cursor is on between each pair.
+   *
+   * It is a mode and modes are a cost, so it is paid for as visibly as it can
+   * be: the button holds down while it is on, and so does the colour it is
+   * painting with, which is the same colour button that was already there. Two
+   * lit buttons say "the arrows are painting, and they are painting black"
+   * without a word.
+   *
+   * The colour keys keep everything they had — same key, same `does`, same
+   * `lit`, same single square per press when the mode is off. `brush` is the
+   * only thing added to them, and it is dead weight until the mode is on.
+   */
   pattern: [
-    { key: 'Enter', icon: 'black', says: 'black', does: 'Black', lit: true },
-    { key: ' ', icon: 'white', says: 'white', does: 'White', lit: true },
-    { key: 'Enter', icon: 'grey', says: 'grey', does: 'Grey', lit: true },
+    { key: 'Enter', icon: 'black', says: 'black', does: 'Black', lit: true, brush: { ctrl: true } },
+    { key: ' ', icon: 'white', says: 'white', does: 'White', lit: true, brush: { shift: true } },
+    {
+      key: 'Enter',
+      icon: 'grey',
+      says: 'grey',
+      does: 'Grey',
+      lit: true,
+      brush: { shift: true, ctrl: true },
+    },
+    { key: '', icon: 'sweep', says: 'sweep', sweeps: true },
   ],
 
   /*

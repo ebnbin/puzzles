@@ -138,12 +138,15 @@ const DIAGONALS = [
  * What the stylesheet calls each cursor key, by where it sits in the list.
  *
  * Positions rather than names, because where they go is a layout question and
- * two puzzles can spend the same position on different jobs. Three is the most
- * any puzzle asks for; a fourth would need a row of its own and a decision
- * about what the cross does under it, so it is left to arrive rather than
- * guessed at.
+ * two puzzles can spend the same position on different jobs.
+ *
+ * The fourth arrived and cost no row. Three keys already push the cross down to
+ * the bottom two lines, which leaves the cells either side of the up arrow
+ * empty — and the fourth is Pattern's stroke mode, a thing that changes what
+ * the cross does, so standing inside the cross is where it belongs rather than
+ * where it fits. See `[data-keys='4']` in index.css.
  */
-const ACT = ['first', 'second', 'third'] as const
+const ACT = ['first', 'second', 'third', 'fourth'] as const
 
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
@@ -311,6 +314,22 @@ export default function PuzzleHost({
    * CursorKey, which is the button that sets it.
    */
   const [maybe, setMaybe] = useState(false)
+  /*
+   * The stroke mode, and which key it is painting with — Pattern's, and see
+   * `sweeps` and `brush` on CursorKey.
+   *
+   * A mode where the one above is a modifier, and the difference is what each
+   * is for: Map's arms the *next* press, this one arms every arrow until it is
+   * turned off, because painting a run means walking without stopping to rearm.
+   *
+   * The colour is the slot number of a key with a `brush`, so pressing a colour
+   * chooses it. Zero rather than "none": the mode has to be painting something
+   * the moment it is on, and Pattern's first key is black, which is the colour
+   * a run is nearly always made of.
+   */
+  const [sweeping, setSweeping] = useState(false)
+  const [brush, setBrush] = useState(0)
+  const acts = useMemo(() => cursorKeys(name, prefs), [name, prefs])
   const grid = useMemo(
     () => (name === 'map' && permalink ? mapSize(permalink.desc.split(':')[0]) : null),
     [name, permalink],
@@ -1219,17 +1238,23 @@ export default function PuzzleHost({
    * because between them they also cover the case this feature exists for —
    * a board that never had focus, because on a touch device nothing has.
    */
-  const sendKey = useCallback((key: string, where = 0) => {
-    const api = apiRef.current
-    if (!api) return
-    acted()
-    // No modifiers ever go out from here, so a waking key always wakes.
-    if (wakesCursor(name, key)) setAwake(true)
-    if (opens(name, key, labelsRef.current)) setOpened(key)
-    if (grid) spot.current = stepCursor(spot.current, key, grid)
-    api.key(0, key, '', where, 0, 0)
-    canvasRef.current?.focus()
-  }, [acted, grid, name])
+  const sendKey = useCallback(
+    (key: string, where = 0, mod?: { shift?: true; ctrl?: true }) => {
+      const api = apiRef.current
+      if (!api) return
+      acted()
+      // A modified arrow still moves the cursor — every one of these puzzles
+      // calls move_cursor first and paints afterwards — so it wakes like a bare
+      // one. What it must not do is open a second level: `opens` is about the
+      // select keys, and none of them is ever sent modified.
+      if (wakesCursor(name, key)) setAwake(true)
+      if (!mod && opens(name, key, labelsRef.current)) setOpened(key)
+      if (grid) spot.current = stepCursor(spot.current, key, grid)
+      api.key(0, key, '', where, mod?.shift ? 1 : 0, mod?.ctrl ? 1 : 0)
+      canvasRef.current?.focus()
+    },
+    [acted, grid, name],
+  )
 
   /*
    * Tents' two, which are switches: the key goes out as itself, and if the
@@ -1473,12 +1498,31 @@ export default function PuzzleHost({
                where the puzzle that looks like it should is written down. */
             data-ways={movesEightWays(name) ? '8' : undefined}
             /* And three rows the other way round: a full row of keys with the
-               cross under it, for the one puzzle whose keys are three. */
-            data-keys={cursorKeys(name, prefs).length === 3 ? '3' : undefined}
+               cross under it, for the puzzles whose keys are three or four. */
+            data-keys={acts.length >= 3 ? String(acts.length) : undefined}
             role="group"
             aria-label={t.play.arrows.group}
           >
             {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map((arrow) => {
+              /*
+               * What this arrow paints on its way, or nothing.
+               *
+               * Gated on the labels because Pattern's paint branch does not
+               * check `cur_visible` itself: with the cursor hidden it would
+               * move from wherever it was last left and paint the pair, which
+               * is the trap `doesNothing` exists for elsewhere. Empty labels
+               * are exactly a hidden cursor here (pattern.c:1273), so while it
+               * is hidden the arrows go out bare — the first one wakes the
+               * cursor and the painting comes back with it.
+               *
+               * The buttons stay lit through that gap rather than blinking off
+               * and on. The mode really is on; one press does not paint, and it
+               * is the press that puts a cursor on screen to paint from.
+               */
+              const stroke =
+                sweeping && (labels.enter || labels.space)
+                  ? acts[brush]?.brush
+                  : undefined
               // Sixteen's arrows have two jobs, and which one is running is
               // invisible on its board — so they carry it here, glyph and name
               // both. See shovesTiles; nowhere else does this fire.
@@ -1505,7 +1549,7 @@ export default function PuzzleHost({
                 disabled={rolling ? !rolling.has(key) : undefined}
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => sendKey(key, where)}
+                onClick={() => sendKey(key, where, stroke)}
               >
                 <Icon name={icon} />
               </button>
@@ -1541,7 +1585,7 @@ export default function PuzzleHost({
               the table: a button named for a result asks which key reaches it
               from where the cursor is, and that is not always the same key.
             */}
-            {cursorKeys(name, prefs).map((cursor, i) => {
+            {acts.map((cursor, i) => {
               /*
                * Map's two first, because they are not the back end's keys and
                * none of the machinery below applies to them: there is no word to
@@ -1550,6 +1594,43 @@ export default function PuzzleHost({
                * palette, and both are answered here. See `paints` and `arms` on
                * CursorKey.
                */
+              /*
+               * The stroke mode, which is the only button on this screen that
+               * changes what a *different* button does. Pattern's; see `sweeps`.
+               *
+               * Never dim, and that is not the usual exemption. A mode is not
+               * an act, so there is no square it could fail on — it can be
+               * turned on before there is a cursor as readily as after, and
+               * what it says is true either way: the arrows will paint. The one
+               * moment it is not painting is the press that wakes the cursor,
+               * and that press shows the cursor, which is the answer.
+               */
+              if (cursor.sweeps) {
+                return (
+                  <button
+                    key={cursor.icon}
+                    type="button"
+                    data-act={ACT[i]}
+                    // Ours, like Map's arming key: the modifier it stands for is
+                    // upstream's, but no back end has ever been given a way to
+                    // hold one down, so the holding is this side's invention.
+                    data-whose="ours"
+                    data-on={sweeping || undefined}
+                    aria-pressed={sweeping}
+                    aria-label={t.play.cursor[cursor.says]}
+                    onMouseDown={(e) => e.preventDefault()}
+                    {...holdToAsk(t.play.cursor[cursor.says])}
+                    onClick={() => {
+                      if (wasHeld()) return
+                      acted()
+                      setSweeping((was) => !was)
+                      canvasRef.current?.focus()
+                    }}
+                  >
+                    <Icon name={cursor.icon} />
+                  </button>
+                )
+              }
               if (cursor.paints || cursor.arms) {
                 const on = cursor.arms ? maybe : false
                 return (
@@ -1616,8 +1697,13 @@ export default function PuzzleHost({
                   data-whose="upstream"
                   // Held down, where the face says so — for a mode the board
                   // draws nowhere, and for a drag that is waiting to be closed.
-                  data-on={on || undefined}
-                  aria-pressed={cursor.faces ? !!on : undefined}
+                  // And for the colour a stroke is being painted in, which is
+                  // the same thing again: the arrows are carrying it and there
+                  // is nowhere else that could be shown.
+                  data-on={on || (sweeping && cursor.brush && i === brush) || undefined}
+                  aria-pressed={
+                    cursor.faces ? !!on : cursor.brush ? sweeping && i === brush : undefined
+                  }
                   aria-label={said}
                   // Pattern's three stay lit even with nothing to send, which
                   // the click below already handles by doing nothing. See `lit`
@@ -1626,7 +1712,14 @@ export default function PuzzleHost({
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    if (wasHeld() || key === null) return
+                    if (wasHeld()) return
+                    // Which colour the arrows paint in is a choice about the
+                    // arrows, not a move on this square, so it lands before the
+                    // press can be refused. That matters: `does` answers null on
+                    // a square that already has this colour, which is exactly
+                    // where one run ends and the next one starts.
+                    if (cursor.brush) setBrush(i)
+                    if (key === null) return
                     if (cursor.toggles) toggleSquare(key)
                     else sendKey(key)
                   }}

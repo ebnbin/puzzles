@@ -164,6 +164,13 @@ export const en = {
       black: 'Black',
       white: 'White',
       grey: 'Grey',
+      /*
+       * The one tip on this row that has to be long, because it is the only
+       * button whose effect is somewhere other than under it. The three above
+       * are named by their own picture; this one has to say what happens to the
+       * *arrows*, and "Paint" alone would read as a fourth colour.
+       */
+      sweep: 'Paint while moving: the arrows colour every square they cross',
       /**
        * Sixteen's two, named for what the arrows will do next rather than for
        * the mode being switched on, because the mode is not a thing the reader

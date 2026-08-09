@@ -1389,6 +1389,37 @@ p.notice-intro button:active {
   background: var(--accent-soft-hover);
 }
 
+/*
+ * And one of ours that is also a mode: Pattern's stroke key, on.
+ *
+ * The rule above had already spent this button's ground on saying "ours", so
+ * the held-down surface two rules up could not be seen on it at all — measured
+ * before this existed, on and off were the same pixels. Something had to give,
+ * and it is not the "ours" tint: that one is a fact about the key and is read
+ * across three screens, where the mode is read for as long as it is on.
+ *
+ * So the mode goes up a step in the same hue instead of sideways into another
+ * one. Soft-to-solid is the loudest pair the palette has and this is the
+ * loudest thing on the screen while it is on — four buttons stop doing what
+ * they say and start painting, and a reader who forgets that paints a line
+ * they did not want. `--accent` is spent elsewhere on "the primary action in a
+ * sheet", which is modal and never on screen with this.
+ */
+.play-actions button[data-whose='ours'][data-on] {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+@media (hover: hover) {
+  .play-actions button[data-whose='ours'][data-on]:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+}
+
+.play-actions button[data-whose='ours'][data-on]:active {
+  background: var(--accent-hover);
+}
+
 /* A monster, at the size the glyph beside it is drawn. Bigger than the 20px
    icons because it is a picture rather than a mark: the same detail — two eyes,
    two fangs — has to survive in it. */
@@ -1547,32 +1578,57 @@ p.notice-intro button:active {
  * Left to right in the order engine/keys lists them, which for Pattern is the
  * order its own chapter names the colours in.
  */
-.play-arrows[data-keys='3'] [data-act='first'] {
+.play-arrows[data-keys='3'] [data-act='first'],
+.play-arrows[data-keys='4'] [data-act='first'] {
   grid-area: 1 / 1;
 }
 
-.play-arrows[data-keys='3'] [data-act='second'] {
+.play-arrows[data-keys='3'] [data-act='second'],
+.play-arrows[data-keys='4'] [data-act='second'] {
   grid-area: 1 / 2;
 }
 
-.play-arrows[data-keys='3'] [data-act='third'] {
+.play-arrows[data-keys='3'] [data-act='third'],
+.play-arrows[data-keys='4'] [data-act='third'] {
   grid-area: 1 / 3;
 }
 
-.play-arrows[data-keys='3'] [data-dir='up'] {
+.play-arrows[data-keys='3'] [data-dir='up'],
+.play-arrows[data-keys='4'] [data-dir='up'] {
   grid-area: 2 / 2;
 }
 
-.play-arrows[data-keys='3'] [data-dir='left'] {
+.play-arrows[data-keys='3'] [data-dir='left'],
+.play-arrows[data-keys='4'] [data-dir='left'] {
   grid-area: 3 / 1;
 }
 
-.play-arrows[data-keys='3'] [data-dir='down'] {
+.play-arrows[data-keys='3'] [data-dir='down'],
+.play-arrows[data-keys='4'] [data-dir='down'] {
   grid-area: 3 / 2;
 }
 
-.play-arrows[data-keys='3'] [data-dir='right'] {
+.play-arrows[data-keys='3'] [data-dir='right'],
+.play-arrows[data-keys='4'] [data-dir='right'] {
   grid-area: 3 / 3;
+}
+
+/*
+ * A fourth key, and it costs nothing: three keys already push the cross into
+ * the bottom two rows, which leaves the cells either side of the up arrow
+ * empty — the same two `[data-ways='8']` fills with corners.
+ *
+ * Left of up rather than right, and that is not symmetry. The fourth is
+ * Pattern's stroke mode, which changes what the cross does, so it wants to be
+ * read *before* the cross rather than after it — and left is where reading
+ * starts. It also puts it under the first colour key, which is the one it will
+ * be painting with until somebody says otherwise.
+ *
+ * The block is no wider and no taller than the three-key form, so nothing the
+ * landscape rail measures moves.
+ */
+.play-arrows[data-keys='4'] [data-act='fourth'] {
+  grid-area: 2 / 1;
 }
 
 /*
