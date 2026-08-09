@@ -15,8 +15,9 @@ import {
   inMenu,
   HOLD_BUTTON,
   keysFor,
-  offersKeys,
+  keysFollowArrows,
   movesEightWays,
+  movesSideways,
   opener,
   opens,
   READS_PREFS,
@@ -50,7 +51,6 @@ import type {
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { toggleArrows, useArrows } from './useArrows'
-import { toggleKeys, useKeys } from './useKeys'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -140,7 +140,6 @@ const DIAGONALS = [
  * guessed at.
  */
 const ACT = ['first', 'second', 'third'] as const
-
 
 /** Enough of a set of controls to tell whether anything in it was changed. */
 const values = (controls: readonly DialogControl[]) =>
@@ -270,15 +269,7 @@ export default function PuzzleHost({
    * they say otherwise.
    */
   const chosen = useArrows()
-  const asked = useKeys()
   const arrows = readsArrows(name) ? chosen.has(name) : null
-  /**
-   * And whether this puzzle's ordinary keys are showing, on the one puzzle
-   * where they are a shortcut rather than the way in. Null for every other
-   * puzzle, and null is not false, exactly as above: false is an offer
-   * declined, null is no offer to make.
-   */
-  const ownKeys = offersKeys(name) ? asked.has(name) : null
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -696,12 +687,12 @@ export default function PuzzleHost({
    */
   const keys = useMemo(() => {
     const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
-    // And, where the board can already do what they do, only if asked. What
-    // goes is the keys with no `whose` — the ones that put something in a
-    // square, which is the same set a finger reaches by touching the square.
-    // See offersKeys for why the list is one name long.
-    return offersKeys(name) && !ownKeys ? all.filter((k) => k.whose) : all
-  }, [name, ownKeys, permalink, prefs])
+    // And, on the one puzzle where they are half of the same equipment, whether
+    // the arrows are out. What goes is the keys with no `whose` — the ones that
+    // put something in a square, which is the same set a finger reaches by
+    // touching the square. See keysFollowArrows for why the list is one name.
+    return keysFollowArrows(name) && !arrows ? all.filter((k) => k.whose) : all
+  }, [arrows, name, permalink, prefs])
 
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
@@ -1311,15 +1302,20 @@ export default function PuzzleHost({
             className="play-arrows"
             /* Three rows instead of two, and the corners filled. Only Inertia
                has anywhere to go in them — see movesEightWays, which is also
-               where the puzzle that looks like it should is written down. */
-            data-ways={movesEightWays(name) ? '8' : undefined}
+               where the puzzle that looks like it should is written down. And
+               two instead of four, for the one puzzle whose other two arrows
+               are a menu the keypad states better — see movesSideways. */
+            data-ways={movesEightWays(name) ? '8' : movesSideways(name) ? '2' : undefined}
             /* And three rows the other way round: a full row of keys with the
                cross under it, for the one puzzle whose keys are three. */
             data-keys={cursorKeys(name, prefs).length === 3 ? '3' : undefined}
             role="group"
             aria-label={t.play.arrows.group}
           >
-            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map((arrow) => {
+            {[
+              ...ARROWS.filter((a) => !movesSideways(name) || a.dir === 'left' || a.dir === 'right'),
+              ...(movesEightWays(name) ? DIAGONALS : []),
+            ].map((arrow) => {
               // Sixteen's arrows have two jobs, and which one is running is
               // invisible on its board — so they carry it here, glyph and name
               // both. See shovesTiles; nowhere else does this fire.
@@ -1542,8 +1538,6 @@ export default function PuzzleHost({
           prefsError={inlineError}
           arrows={arrows}
           onToggleArrows={() => toggleArrows(name)}
-          ownKeys={ownKeys}
-          onToggleKeys={() => toggleKeys(name)}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           textError={textError}

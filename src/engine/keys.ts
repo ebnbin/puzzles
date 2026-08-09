@@ -407,35 +407,64 @@ const NO_ARROWS = new Set(['loopy'])
 export const readsArrows = (name: string) => !NO_ARROWS.has(name)
 
 /**
- * The puzzles whose ordinary keys are a shortcut rather than the only way in,
- * and which are therefore worth offering as a switch.
+ * The puzzles whose ordinary keys arrive with the arrows rather than on their
+ * own switch, because for those puzzles the two are one piece of equipment.
  *
  * "Ordinary" is `whose` being absent — the keys that put something in a square.
  * For nearly every puzzle those are the whole reason the keypad exists: nothing
- * on a phone can type a digit into Solo or a monster into Undead, so taking
- * them away would take the game away. Guess is the exception its own board
- * makes. Every colour is on the bar it draws and can be dragged into a hole
- * (guess.c:858), a peg comes off by being dragged out (guess.c:891), and the
- * keypad's `⌫` is the same act; so the swatches save a drag rather than making
- * one possible.
+ * on a phone can type a digit into Solo or a monster into Undead, so they are
+ * unconditional. Guess is the exception its own board makes. Every colour is on
+ * the bar it draws and can be dragged into a hole (guess.c:858), a peg comes off
+ * by being dragged out (guess.c:891), and the keypad's `⌫` is the same act; so
+ * the swatches save a drag rather than making one possible, and there is a real
+ * question about whether to spend the height on them.
  *
- * Named as an offer and not as a behaviour, because the switch and the filter
- * are two different questions. *Which* keys go is general — the ones with no
- * `whose`, which is exactly the set a touch can reach by touching the square.
- * *Whether to ask* is a judgement about one puzzle's board, and it is wrong for
- * every other puzzle in the collection, which is why this is a list and not a
- * rule. Each name earns its place by someone reading that game's mouse
- * handling; guessing would strand a reader with no way to enter anything.
+ * That question used to have a switch of its own, and the switch was built on a
+ * misreading. The swatches send `'1'`..`'9'` and `'0'` — upstream's own keys
+ * (guess.c:940), the same characters a physical keyboard would send, and there
+ * for exactly the reason we want them: walking a colour ring with Up and Down is
+ * a bad way to name the eighth colour. They are not something this side added,
+ * so asking permission for them separately was asking about the wrong thing.
+ *
+ * They belong to the arrows because Guess's arrows are only half a cursor. Up
+ * and Down are `&ui->colour_cur` (guess.c:925) and nothing else — see
+ * `movesSideways`, which is why those two buttons are not drawn. Take the
+ * swatches away and the arrows are left steering a ring with no way to say which
+ * colour; take the arrows away and the swatches have nothing to walk. One
+ * switch, one piece of equipment.
  *
  * `H` stays either way, and that is the line: it is `whose: 'upstream'`, and
  * `compute_hint` hangs off 'h', 'H' and '?' alone (guess.c:929) with no mouse
  * path anywhere. Hiding it would take back the one thing on that row a touch
  * device cannot otherwise have — which is the thing this whole keypad is for.
  */
-const OPTIONAL_KEYS = new Set(['guess'])
+const KEYS_WITH_ARROWS = new Set(['guess'])
 
-/** Whether this puzzle offers the switch for its ordinary keys. */
-export const offersKeys = (name: string) => OPTIONAL_KEYS.has(name)
+/** Whether this puzzle's ordinary keys come and go with its arrows. */
+export const keysFollowArrows = (name: string) => KEYS_WITH_ARROWS.has(name)
+
+/**
+ * The puzzle whose cursor is offered two ways out of a square rather than four.
+ *
+ * Guess, and the reason is that its Up and Down are not travel. `move_cursor` is
+ * handed `&ui->peg_cur` for x and `&ui->colour_cur` for y (guess.c:925): Left
+ * and Right walk the holes of the guess being built, one of which is the Submit
+ * slot at the end, and Up and Down walk the colour bar. So half the cross moves
+ * about the board and half of it is a one-dimensional menu — the same menu the
+ * swatches are, drawn as a ring you have to count your way around.
+ *
+ * The swatches say it in one press, and upstream agrees: its own number keys
+ * (guess.c:940) exist to skip that walk. So the two buttons are not drawn, and
+ * `colour_cur` is moved by the swatch that was pressed instead — see `aims`.
+ *
+ * Nothing is lost by dropping them. A swatch places the peg itself, so the ring
+ * decides only what Enter would place and which swatch the board draws its
+ * highlight on; and Left and Right still reach every hole, Submit included.
+ */
+const SIDEWAYS = new Set(['guess'])
+
+/** Whether this puzzle is offered only the two arrows that travel. */
+export const movesSideways = (name: string) => SIDEWAYS.has(name)
 
 /**
  * The puzzle whose board has eight ways out of a square rather than four.

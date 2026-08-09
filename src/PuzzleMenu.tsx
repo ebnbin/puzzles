@@ -61,8 +61,6 @@ export default function PuzzleMenu({
   prefsError,
   arrows,
   onToggleArrows,
-  ownKeys,
-  onToggleKeys,
   onOpenPrefs,
   onCommitPrefs,
   textError,
@@ -83,13 +81,6 @@ export default function PuzzleMenu({
    */
   arrows: boolean | null
   onToggleArrows: () => void
-  /**
-   * And whether its own keys are showing, on the one puzzle whose board can do
-   * what they do — see `offersKeys`. Null everywhere else, and null is not
-   * false for the same reason as above.
-   */
-  ownKeys: boolean | null
-  onToggleKeys: () => void
   onOpenPrefs: () => void
   onCommitPrefs: () => void
   /** What it said about a typed address, and which of the two it was about. */
@@ -172,7 +163,7 @@ export default function PuzzleMenu({
             than no heading — but the arrow keys are ours to offer and are
             offered on all but one puzzle, so the section now stands on either
             of the two. */}
-        {(arrows !== null || ownKeys !== null || (prefs && prefs.controls.length > 0)) && (
+        {(arrows !== null || (prefs && prefs.controls.length > 0)) && (
           <section>
             <h2>{t.menu.preferences}</h2>
             <div className="sheet-prefs">
@@ -195,19 +186,6 @@ export default function PuzzleMenu({
                     onChange={onToggleArrows}
                   />
                   {t.menu.arrows}
-                </label>
-              )}
-              {/* And, under it, the other row that is ours. Second because the
-                  arrows are offered on thirty-nine puzzles and this on one:
-                  the rarer switch goes below the one a reader has met before. */}
-              {ownKeys !== null && (
-                <label className="dialog-boolean">
-                  <input
-                    type="checkbox"
-                    checked={ownKeys}
-                    onChange={onToggleKeys}
-                  />
-                  {t.menu.keys}
                 </label>
               )}
             </div>

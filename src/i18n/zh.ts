@@ -214,7 +214,6 @@ export const zh: Strings = {
     solve: '求解',
     preferences: '偏好设置',
     arrows: '显示方向键',
-    keys: '显示颜色键',
     gameId: 'Game ID',
     seed: '随机种子',
   },
