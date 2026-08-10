@@ -1420,6 +1420,31 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
+/*
+ * And the colour that mode is painting with: a ring, on the key that names it.
+ *
+ * This is the one place the answer to "what happens if I press an arrow now"
+ * is written, so it has to be readable before the arrow is pressed rather than
+ * after. It was `--surface-3` first — the held-down step every mode key on this
+ * screen uses — and that is ΔE 4.3 on light and 5.3 on dark against the ground
+ * beside it. Enough to confirm a press you have just made, not enough to be
+ * read cold: with the mode on and black chosen, a reader could not say which of
+ * the three it was.
+ *
+ * A ring rather than a ground, and that choice was made for us twice over. The
+ * grounds are spoken for on this row — `--accent-soft` says "ours" one button
+ * along and solid `--accent` says "that mode is on" — and a colour key's ground
+ * is also what its glyph's black, white and grey are read against, so moving it
+ * would change what the three keys look like as colours.
+ *
+ * Inset rather than an outline, which is what focus is drawn with, and inset
+ * rather than the gallery's `::after` border, which is that rule's answer to a
+ * tile already carrying three shadows. These buttons carry none, so the shadow
+ * is free and needs no pseudo-element and no positioning.
+ */
+.play-actions button[data-brush] {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
 
 /* A monster, at the size the glyph beside it is drawn. Bigger than the 20px
    icons because it is a picture rather than a mark: the same detail — two eyes,

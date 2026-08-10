@@ -1024,10 +1024,9 @@ const PATHS: Record<IconName, React.ReactNode> = {
    * of anything — `track`, `edge` and `drawLine` are all one big square with a
    * mark inside it, so the shape families do not meet.
    *
-   * The painted cells take `--brush-ink` where the mode key sets one, and
-   * `currentColor` where it does not. Pattern's stroke walks three colours and
-   * the key is the only place the walk is visible, so the cells wear the one
-   * being carried; Tents and Range have a single brush and nothing to count.
+   * `currentColor` and not `--cell-full`: the three colour keys beside it fill
+   * with the board's own colours because each one *is* a colour. This one is
+   * not a colour, it is what the arrows do with whichever colour is chosen.
    *
    * The gaps are 1.8 and were 1: at 24 units drawn 20 across, a one-unit gap
    * between two filled cells closed up under antialiasing and the pair read as
@@ -1036,8 +1035,8 @@ const PATHS: Record<IconName, React.ReactNode> = {
    */
   sweep: (
     <>
-      <rect x="1.8" y="9.2" width="5.6" height="5.6" rx="1" fill="var(--brush-ink, currentColor)" />
-      <rect x="9.2" y="9.2" width="5.6" height="5.6" rx="1" fill="var(--brush-ink, currentColor)" />
+      <rect x="1.8" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" />
+      <rect x="9.2" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" />
       <rect x="16.6" y="9.2" width="5.6" height="5.6" rx="1" />
     </>
   ),

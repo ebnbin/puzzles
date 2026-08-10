@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Dialog from './Dialog'
 import ErrorNote from './ErrorNote'
@@ -329,19 +328,8 @@ export default function PuzzleHost({
    * the moment it is on, and Pattern's first key is black, which is the colour
    * a run is nearly always made of.
    */
-  /*
-   * The stroke mode, as an index into the mode key's own list of brushes, or -1
-   * for off. One press walks it on and round to off again.
-   *
-   * A cycle on the mode key rather than a choice made by pressing a value key,
-   * which is where it started. Both reasons are about the value keys having
-   * become switches: two switches can only pick two of Pattern's three
-   * modifier combinations, and the one that drops off is grey, which is how a
-   * run is rubbed out; and the press that picked a brush also acted on the
-   * square under it, so choosing white on a square that was already white
-   * cleared it. See `brushes` in engine/keys.
-   */
-  const [sweepAt, setSweepAt] = useState(-1)
+  const [sweeping, setSweeping] = useState(false)
+  const [brush, setBrush] = useState(0)
   const acts = useMemo(() => cursorKeys(name, prefs), [name, prefs])
   /*
    * What a stroke paints with: the mode key's own brush where it has one, and
@@ -353,8 +341,9 @@ export default function PuzzleHost({
    * covers the moment before anything has been pressed, and lands on the first
    * key with a brush rather than the first key, since on Tents that is a tent.
    */
-  const brushes = acts.find((k) => k.sweeps)?.brushes ?? []
-  const stroking = sweepAt >= 0 ? brushes[sweepAt] : undefined
+  const own = acts.find((k) => k.sweeps)?.brush
+  const stroking =
+    own ?? acts[brush]?.brush ?? acts.find((k) => k.brush && !k.sweeps)?.brush
   /*
    * The description, and the grid worked out from it.
    *
@@ -1383,7 +1372,7 @@ export default function PuzzleHost({
    */
   const asleep = silent(labels)
   /** The stroke mode as it is actually behaving, which needs somewhere to paint. */
-  const painting = sweepAt >= 0 && !asleep
+  const painting = sweeping && !asleep
 
   return (
     /* The flag goes here rather than on the row that grows, because two rows
@@ -1726,14 +1715,6 @@ export default function PuzzleHost({
                     data-whose="ours"
                     data-on={painting || undefined}
                     aria-pressed={painting}
-                    // The brush's own colour while it is the one being carried,
-                    // so a cycle of three is counted on screen and not in the
-                    // reader's head. See `brushes`.
-                    style={
-                      painting && stroking?.ink
-                        ? ({ '--brush-ink': `var(${stroking.ink})` } as CSSProperties)
-                        : undefined
-                    }
                     disabled={asleep}
                     aria-label={t.play.cursor[cursor.says]}
                     onMouseDown={(e) => e.preventDefault()}
@@ -1741,7 +1722,7 @@ export default function PuzzleHost({
                     onClick={() => {
                       if (wasHeld()) return
                       acted()
-                      setSweepAt((was) => (was + 1 < brushes.length ? was + 1 : -1))
+                      setSweeping((was) => !was)
                       canvasRef.current?.focus()
                     }}
                   >
@@ -1853,7 +1834,18 @@ export default function PuzzleHost({
                    * down. Measured by a reader: with the mode on and black
                    * chosen, they could not tell which colour was chosen.
                    */
-                  aria-pressed={cursor.faces ? !!on : undefined}
+                  // Only where there is a choice to show: a one-value stroke
+                  // carries its brush on the mode key and rings nothing.
+                  data-brush={
+                    painting && !own && cursor.brush && i === brush ? 'true' : undefined
+                  }
+                  aria-pressed={
+                    cursor.faces
+                      ? !!on
+                      : cursor.brush && !own
+                        ? painting && i === brush
+                        : undefined
+                  }
                   aria-label={said}
                   /*
                    * Pattern's three stay lit with nothing to send, which the
@@ -1863,11 +1855,17 @@ export default function PuzzleHost({
                    * the exemption has nothing to stand on: they go out with
                    * everything else. See `lit` in engine/keys, and `asleep`.
                    */
-                  disabled={key === null}
+                  disabled={key === null && (!cursor.lit || asleep)}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     if (wasHeld()) return
+                    // Which colour the arrows paint in is a choice about the
+                    // arrows, not a move on this square, so it lands before the
+                    // press can be refused. That matters: `does` answers null on
+                    // a square that already has this colour, which is exactly
+                    // where one run ends and the next one starts.
+                    if (cursor.brush) setBrush(i)
                     if (key === null) return
                     if (cursor.toggles) toggleSquare(key)
                     else sendKey(key)

@@ -655,22 +655,25 @@ export type CursorKey = {
    *
    * With it, the button stops meaning "send this key" and starts meaning "get
    * me this": it sends whichever of the two keys currently offers the word, and
-   * falls to `instead` when neither does, which is what already having it looks
-   * like. See `wouldSend`, and `WORDS` for the vocabulary that makes it safe.
+   * stands down when neither does, which is what already having it looks like.
+   * See `wouldSend`, and `WORDS` for the vocabulary that makes it safe.
    */
   does?: string
   /**
-   * And what to ask for when the square already has what `does` asked for,
-   * which is what makes these buttons switches: press for black, press again
-   * for the empty state.
+   * The modifier that paints this key's result along a cursor move, for the
+   * puzzles whose arrows can paint.
    *
-   * Without it a button named for a result went quiet on the square that
-   * already had that result, and the two nulls — "you have it" and "there is no
-   * cursor" — were the same null, which is the whole of what `lit` used to
-   * paper over. There is no first null any more: a key with an `instead` always
-   * has something to ask for while there is a cursor at all.
+   * Nine back ends read `Shift`/`Ctrl` with an arrow, and in several of them it
+   * is the same act as this key: move one square and set what you crossed. It
+   * has never had a button because a button cannot hold a modifier down — see
+   * `sweeps`, which is the button that can.
+   *
+   * The pairing is the puzzle's, not ours, and it is not guessable: Pattern
+   * spends `Ctrl` on black, `Shift` on white and both together on grey
+   * (pattern.c:1406), which is neither the order of its keys nor the order of
+   * its colours.
    */
-  instead?: string
+  brush?: { shift?: true; ctrl?: true }
   /**
    * A sticky mode rather than a move: while it is on, every arrow carries the
    * `brush` of whichever neighbouring key is chosen.
@@ -704,23 +707,6 @@ export type CursorKey = {
    */
   sweeps?: boolean
   /**
-   * The brushes a stroke key offers, in the order a press walks through them:
-   * one press per brush and then off again.
-   *
-   * On the mode key rather than chosen by pressing a value key, which is where
-   * it was first. Two things went wrong there and both are about the value keys
-   * being switches. A switch can only choose among as many brushes as there are
-   * switches, and Pattern has three modifier combinations and two values — grey
-   * is the one that drops off, and sweeping grey is rubbing a run out. And the
-   * press that chose a brush also acted on the square under it, so choosing
-   * white to start a white run on a square that was already white cleared it.
-   *
-   * A cycle costs the reader having to press twice to reach the second brush,
-   * which is the trade. The key wears the brush's own colour while it is on, so
-   * the count is on screen rather than in the head.
-   */
-  brushes?: readonly Brush[]
-  /**
    * That a second press takes the first one back.
    *
    * The key still goes out as itself and still sets the square to its own
@@ -734,6 +720,35 @@ export type CursorKey = {
    * file read per press, and a key that wants one should have to say so.
    */
   toggles?: boolean
+  /**
+   * That an *idempotent* press is not a failed press, so this key stays lit
+   * through the one null that means "you already have it".
+   *
+   * Dimming is the house rule and it is the right one nearly everywhere: a
+   * button that cannot act says so rather than swallowing the press. Pattern's
+   * three are the exception, and for a reason that only shows up in how it is
+   * played. A run of squares gets painted one colour in one sweep, and some of
+   * them are already that colour; a button that goes out part way through the
+   * sweep changes shape under a thumb that is not looking at it, which is worse
+   * than the press it saves. Asking for black on a square that is already black
+   * leaves it black — the postcondition holds, so the button did its job and
+   * has nothing to report.
+   *
+   * That is the whole of the exemption, and it took a second pass to say so.
+   * `does` answers null in two quite different situations and this used to
+   * cover both: "the square already has it", which is the one above, and "there
+   * is no cursor at all", which is the plain case the house rule exists for.
+   * With no cursor there is no square, so nothing is idempotent and nothing has
+   * been achieved — three buttons sat lit on an untouched board and swallowed
+   * every press. The two are told apart at the call site by `silent`, and the
+   * telling is exact for this puzzle: `current_key_label` opens with
+   * `cur_visible` and its switch covers all three states, so empty labels mean
+   * a hidden cursor and can mean nothing else (pattern.c:1272).
+   *
+   * Everywhere else a dead key means the reader wanted something they did not
+   * get, which is why this exemption still does not generalise.
+   */
+  lit?: boolean
   /**
    * That this slot is only in the menu while the puzzle's second level is open.
    *
@@ -805,13 +820,6 @@ export type CursorKey = {
  * What a key looks like and is called while it is reporting one particular
  * word. `on` draws it as held down, for the modes that are otherwise invisible.
  */
-/**
- * A modifier an arrow can carry, and the colour to draw the mode key in while
- * it is the one being carried. `ink` is a token name, since these are the
- * board's colours rather than the interface's — see the swatch glyphs.
- */
-export type Brush = { shift?: true; ctrl?: true; ink?: string }
-
 export type CursorFace = {
   icon: IconName
   says: CursorWord
@@ -1473,11 +1481,8 @@ export const wouldSend = (
   if (SILENT.has(name)) return cursor.key
   if (understood(name, labels)) {
     if (cursor.does) {
-      for (const want of [cursor.does, cursor.instead]) {
-        if (want === undefined) continue
-        if (labels.enter === want) return 'Enter'
-        if (labels.space === want) return ' '
-      }
+      if (labels.enter === cursor.does) return 'Enter'
+      if (labels.space === cursor.does) return ' '
       return null
     }
     if (cursor.faces) {
@@ -1884,19 +1889,17 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * only thing added to them, and it is dead weight until the mode is on.
    */
   pattern: [
-    { key: 'Enter', icon: 'black', says: 'black', does: 'Black', instead: 'Grey' },
-    { key: ' ', icon: 'white', says: 'white', does: 'White', instead: 'Grey' },
+    { key: 'Enter', icon: 'black', says: 'black', does: 'Black', lit: true, brush: { ctrl: true } },
+    { key: ' ', icon: 'white', says: 'white', does: 'White', lit: true, brush: { shift: true } },
     {
-      key: '',
-      icon: 'sweep',
-      says: 'sweep',
-      sweeps: true,
-      brushes: [
-        { ctrl: true, ink: '--cell-full' },
-        { shift: true, ink: '--cell-empty' },
-        { shift: true, ctrl: true, ink: '--cell-unknown' },
-      ],
+      key: 'Enter',
+      icon: 'grey',
+      says: 'grey',
+      does: 'Grey',
+      lit: true,
+      brush: { shift: true, ctrl: true },
     },
+    { key: '', icon: 'sweep', says: 'sweep', sweeps: true },
   ],
 
   /*
@@ -2424,7 +2427,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   tents: [
     { key: 'T', icon: 'tent', says: 'tent', toggles: true },
     { key: 'N', icon: 'grass', says: 'grass', toggles: true },
-    { key: '', icon: 'sweep', says: 'sweepGrass', sweeps: true, brushes: [{ shift: true }] },
+    { key: '', icon: 'sweep', says: 'sweepGrass', sweeps: true, brush: { shift: true } },
   ],
 
   singles: [
@@ -2496,25 +2499,27 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     },
   ],
 
-  /*
-   * Range's two, and they were the last pair here still wearing three faces
-   * that moved: upstream's keys are a cycle, so the button that filled a square
-   * a moment ago is the one that empties it now, and which of them is which
-   * depends on what the cursor is standing on.
-   *
-   * Switches instead, the same shape as Pattern's and Tents': a key asks for
-   * its own value, and asks for "Empty" when the square already has it. Every
-   * state is one press from every other, and neither face ever changes.
-   *
-   * All of it comes out of the labels, with no save file in the way. Range
-   * reports a distinct pair for each of the three states — empty says
-   * {Fill, Dot}, a dot says {Empty, Fill}, a fill says {Dot, Empty}
-   * (range.c:1317) — so which key reaches a given result is always readable and
-   * always one press.
-   */
   range: [
-    { key: 'Enter', icon: 'black', says: 'fillSquare', does: 'Fill', instead: 'Empty' },
-    { key: ' ', icon: 'dotSquare', says: 'dotSquare', does: 'Dot', instead: 'Empty' },
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'fillSquare',
+      faces: {
+        Fill: { icon: 'black', says: 'fillSquare' },
+        Dot: { icon: 'dotSquare', says: 'dotSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'dotSquare',
+      says: 'dotSquare',
+      faces: {
+        Fill: { icon: 'black', says: 'fillSquare' },
+        Dot: { icon: 'dotSquare', says: 'dotSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
     /*
      * And the stroke, which here can only mean dots: `Shift` with an arrow
      * writes `W` on the square left and the square arrived at, and only where
@@ -2527,7 +2532,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
      * where the cursor was last seen. Pattern's and Tents' do not, and are
      * held back on this side.
      */
-    { key: '', icon: 'sweep', says: 'sweepDots', sweeps: true, brushes: [{ shift: true }] },
+    { key: '', icon: 'sweep', says: 'sweepDots', sweeps: true, brush: { shift: true } },
   ],
 
   /*
