@@ -171,6 +171,8 @@ export const en = {
        * *arrows*, and "Paint" alone would read as a fourth colour.
        */
       sweep: 'Paint while moving: the arrows colour every square they cross',
+      sweepGrass: 'Colour green while moving: the arrows green every square they cross',
+      sweepDots: 'Dot while moving: the arrows dot every empty square they cross',
       /**
        * Sixteen's two, named for what the arrows will do next rather than for
        * the mode being switched on, because the mode is not a thing the reader

@@ -1640,20 +1640,25 @@ p.notice-intro button:active {
 }
 
 /*
- * A fourth key, and it costs nothing: three keys already push the cross into
+ * The stroke key, and it costs nothing: three keys already push the cross into
  * the bottom two rows, which leaves the cells either side of the up arrow
  * empty — the same two `[data-ways='8']` fills with corners.
  *
- * Left of up rather than right, and that is not symmetry. The fourth is
- * Pattern's stroke mode, which changes what the cross does, so it wants to be
- * read *before* the cross rather than after it — and left is where reading
- * starts. It also puts it under the first colour key, which is the one it will
- * be painting with until somebody says otherwise.
+ * Left of up rather than right, and that is not symmetry. It changes what the
+ * cross does, so it wants to be read *before* the cross rather than after it,
+ * and left is where reading starts.
+ *
+ * Placed by what it is rather than by which slot it landed in — it is the
+ * fourth key on Pattern and the third on Tents and Range, and a button that
+ * moved between puzzles because its row was a different length would be a
+ * different button as far as a thumb is concerned. Tents and Range leave the
+ * third cell of the top row empty rather than fill it, which is the price.
  *
  * The block is no wider and no taller than the three-key form, so nothing the
  * landscape rail measures moves.
  */
-.play-arrows[data-keys='4'] [data-act='fourth'] {
+.play-arrows[data-keys='3'] [data-act='sweep'],
+.play-arrows[data-keys='4'] [data-act='sweep'] {
   grid-area: 2 / 1;
 }
 

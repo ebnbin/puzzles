@@ -69,6 +69,8 @@ export const zh: Strings = {
       white: '白',
       grey: '灰',
       sweep: '边走边涂：方向键把走过的格子涂成选中的颜色',
+      sweepGrass: '边走边涂绿：方向键把走过的空格涂绿',
+      sweepDots: '边走边打点：方向键在走过的空格上打点',
       carryTile: '方向键带着这个方块一起走',
       holdPlace: '方向键让方块从这一格穿过',
       /* 手册自己的译法:doc-zh/twiddle.html 写的就是「逆时针或顺时针旋转」。 */

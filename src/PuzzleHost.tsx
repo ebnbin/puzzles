@@ -331,6 +331,19 @@ export default function PuzzleHost({
   const [sweeping, setSweeping] = useState(false)
   const [brush, setBrush] = useState(0)
   const acts = useMemo(() => cursorKeys(name, prefs), [name, prefs])
+  /*
+   * What a stroke paints with: the mode key's own brush where it has one, and
+   * otherwise whichever neighbour was chosen.
+   *
+   * Two shapes and the puzzle's modifier table decides which. Pattern's has
+   * three entries and its colour keys are the chooser; Tents' and Range's have
+   * one, so their mode key carries the brush and nothing is chosen. `?? 0`
+   * covers the moment before anything has been pressed, and lands on the first
+   * key with a brush rather than the first key, since on Tents that is a tent.
+   */
+  const own = acts.find((k) => k.sweeps)?.brush
+  const stroking =
+    own ?? acts[brush]?.brush ?? acts.find((k) => k.brush && !k.sweeps)?.brush
   const grid = useMemo(
     () => (name === 'map' && permalink ? mapSize(permalink.desc.split(':')[0]) : null),
     [name, permalink],
@@ -1125,9 +1138,21 @@ export default function PuzzleHost({
     paintRegion(api, at, p)
     spot.current = at
     setAwake(true)
-    // A modifier is spent by the press it modified, whether or not the board
-    // took the move: it said what the *next* colour would do, and that was it.
-    setMaybe(false)
+    /*
+     * The arming stays on. It was spent by the press it modified at first —
+     * shift-like, one press long, nothing to forget — and two things moved it.
+     *
+     * The play: a region's candidates are a set, `state->pencil[r]` is a
+     * bitmask and a maybe press toggles one bit, so recording "this could be
+     * red or green or blue" is three marks in a row. Spent-by-one costs an arm
+     * before each of them; sticky costs one arm for all three, and none at all
+     * for the next region.
+     *
+     * The row: Pattern's stroke key is sticky, and while it is on both are the
+     * solid accent. One look, two lifetimes, and nothing else for a reader to
+     * tell them apart by. Either lifetime could have been the one to keep; this
+     * one wins on presses, and either way the pair had to stop disagreeing.
+     */
   }, [awake])
 
   const pressKey = useCallback((key: KeyLabel) => {
@@ -1530,7 +1555,7 @@ export default function PuzzleHost({
                * first one wakes the cursor, and the painting comes back with
                * it.
                */
-              const stroke = painting ? acts[brush]?.brush : undefined
+              const stroke = painting ? stroking : undefined
               // Sixteen's arrows have two jobs, and which one is running is
               // invisible on its board — so they carry it here, glyph and name
               // both. See shovesTiles; nowhere else does this fire.
@@ -1620,7 +1645,12 @@ export default function PuzzleHost({
                   <button
                     key={cursor.icon}
                     type="button"
-                    data-act={ACT[i]}
+                    /* Always the cell left of the up arrow, whichever slot
+                       number it happens to be — the fourth on Pattern, the
+                       third on Tents and Range. It changes what the cross does,
+                       so it stands in the same place in the cross every time
+                       rather than wherever its own row ran out. */
+                    data-act="sweep"
                     // Ours, like Map's arming key: the modifier it stands for is
                     // upstream's, but no back end has ever been given a way to
                     // hold one down, so the holding is this side's invention.
@@ -1643,7 +1673,11 @@ export default function PuzzleHost({
                 )
               }
               if (cursor.paints || cursor.arms) {
-                const on = cursor.arms ? maybe : false
+                // Armed and out at once would be a button claiming to modify a
+                // press that cannot happen, so the mode reads as off while
+                // there is nowhere to paint. The bit is kept: a cursor that
+                // comes back finds it where it was left, same as the stroke.
+                const on = cursor.arms ? maybe && awake : false
                 return (
                   <button
                     key={cursor.icon}
@@ -1735,11 +1769,17 @@ export default function PuzzleHost({
                    * down. Measured by a reader: with the mode on and black
                    * chosen, they could not tell which colour was chosen.
                    */
+                  // Only where there is a choice to show: a one-value stroke
+                  // carries its brush on the mode key and rings nothing.
                   data-brush={
-                    painting && cursor.brush && i === brush ? 'true' : undefined
+                    painting && !own && cursor.brush && i === brush ? 'true' : undefined
                   }
                   aria-pressed={
-                    cursor.faces ? !!on : cursor.brush ? painting && i === brush : undefined
+                    cursor.faces
+                      ? !!on
+                      : cursor.brush && !own
+                        ? painting && i === brush
+                        : undefined
                   }
                   aria-label={said}
                   /*

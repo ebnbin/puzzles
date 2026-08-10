@@ -634,15 +634,14 @@ export type CursorKey = {
    */
   paints?: { colour: number; pencil?: boolean }
   /**
-   * A modifier rather than a move: while it is armed the palette offers maybes
-   * instead of colours, and the first colour pressed disarms it again.
+   * A mode rather than a move: while it is armed the palette offers maybes
+   * instead of colours, and it stays armed until it is pressed again.
    *
-   * One press long, where `sweeps` lasts until it is pressed again. The app has
-   * both and they look the same while they are on — both are `whose: 'ours'`,
-   * both go to the solid accent — which is a thing to settle rather than leave:
-   * either they get one lifetime or they get two looks. Written down here
-   * because the look is the only thing a reader has to tell them apart by, and
-   * right now it tells them they are the same.
+   * The same lifetime as `sweeps`, which is not a coincidence — it was one
+   * press long first, and the two of them lit the same way while on, so the
+   * only thing a reader could tell them apart by was saying they were the same.
+   * The reasons for landing on this lifetime rather than the other are at the
+   * call site in PuzzleHost.
    *
    * Out while there is no cursor, like everything else it stands among.
    */
@@ -689,6 +688,13 @@ export type CursorKey = {
    *
    * Which key it paints with is chosen by pressing that key, and the chosen one
    * is ringed. See PuzzleHost.
+   *
+   * Unless there is only one, in which case this key carries the `brush` itself
+   * and nothing is chosen or ringed. Tents can only sweep green and Range can
+   * only sweep dots — their modifier tables have one entry — and a chooser
+   * among one is a step that always has the same answer. It also gets Range out
+   * of a hole: both of its keys are cycle keys wearing all three faces, so
+   * there is no key that permanently means "dot" for a ring to sit on.
    *
    * Out while the puzzle reports no cursor, like everything else on this row. A
    * mode is not an act and there was an argument for leaving it live — it can
@@ -840,6 +846,8 @@ export type CursorWord =
   | 'white'
   | 'grey'
   | 'sweep'
+  | 'sweepGrass'
+  | 'sweepDots'
   | 'carryTile'
   | 'holdPlace'
   | 'turnLeft'
@@ -2400,9 +2408,26 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * `doesNothing` already reads. No `WORDS` and no `BOTH` any more: nothing
    * here reads what the words are, only whether there are any.
    */
+  /*
+   * And a third that is not a square but a way of filling them, the same mode
+   * Pattern has: while it is on, `Shift` rides every arrow and upstream greens
+   * both the square being left and the one arrived at (tents.c:1669).
+   *
+   * Greening is where this puzzle's presses go. A tent is one press and there
+   * are as many as there are trees; green is every square around each of them
+   * plus every row and column whose count is already met, and upstream gave it
+   * a modifier for exactly that reason.
+   *
+   * One value, so the key carries its own `brush` and there is nothing to
+   * choose: `Shift` greens the blank squares it crosses and leaves tents alone.
+   * `Ctrl` would green over tents too, which is upstream's other setting and
+   * not offered — a stroke that can rub out the tents it passes is a different
+   * and more dangerous thing than one that fills the gaps between them.
+   */
   tents: [
     { key: 'T', icon: 'tent', says: 'tent', toggles: true },
     { key: 'N', icon: 'grass', says: 'grass', toggles: true },
+    { key: '', icon: 'sweep', says: 'sweepGrass', sweeps: true, brush: { shift: true } },
   ],
 
   singles: [
@@ -2495,6 +2520,19 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Empty: { icon: 'emptyCell', says: 'emptySquare' },
       },
     },
+    /*
+     * And the stroke, which here can only mean dots: `Shift` with an arrow
+     * writes `W` on the square left and the square arrived at, and only where
+     * they are empty (range.c:1385). One value, so the key carries its own
+     * brush.
+     *
+     * The only one of the three puzzles with this mode where upstream guards
+     * itself — the whole branch sits inside `if (ui->cursor_show)`, so a
+     * modified arrow with the cursor away does nothing rather than writing
+     * where the cursor was last seen. Pattern's and Tents' do not, and are
+     * held back on this side.
+     */
+    { key: '', icon: 'sweep', says: 'sweepDots', sweeps: true, brush: { shift: true } },
   ],
 
   /*
