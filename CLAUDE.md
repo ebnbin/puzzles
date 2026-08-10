@@ -121,7 +121,6 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 ```bash
 node scripts/check-cube.mjs       # src/engine/cube.ts 和引擎对不对得上,同样要 preview + playwright
 node scripts/check-map.mjs        # map 的调色板落色落在光标那一格,同上
-node scripts/check-tents.mjs      # tents 两个开关键六种情况各落在哪个值,同上
 node scripts/check-clues.mjs      # map 的调色板只在能填的格子上亮,同上
 ```
 
@@ -139,11 +138,6 @@ node scripts/check-clues.mjs      # map 的调色板只在能填的格子上亮,
 「有颜色」和「是线索」是同一件事(map.c:1896-1897),所以棋盘自己画出来的就是那张表。脚本用引擎
 对照:先把每个区域都上色,再在每一格按两下选择键(上游自己的「清空这个区域」),能清空的就不是线索。
 改 `engine/map` 的线索读取、改 `CanvasRenderer` 的录制、或者升级上游之后跑它。
-
-`check-tents.mjs` 是同一类:`src/engine/tents.ts` 也不模型化棋盘,它倒着走一遍存档里的走子,
-只为回答「光标这一格刚才是什么」。脚本用另一种读法对照——从 DESC 和走子表**正着**重建整盘,
-和被测那段各写各的——跑六种情况(三种状态 × 两个按钮),并且要求每按一下历史正好长一格。改
-`engine/tents`、改 tents 在 `engine/keys` 里那条、或者升级上游之后跑它。
 
 ## 架构
 
@@ -238,12 +232,13 @@ Undead)因此多了三个键:
 (`pending()`),`loadGame` 之后按一下 `redo()`——`midend_redo` 落进同一条尾巴。实测 redo
 之后后端写出的存档和「全部走子都已应用」那份逐字节相同,契约检查对每份存档都验这一条。
 
-**这扇门还有另外两个用户,而且它们各自只用了一半。** `src/engine/map.ts` 走整趟(读、改、
-`loadGame` 放回去),代价也整趟付:`midend_deserialise` 会重建 `game_ui`,所以光标每次都得走
-回去,而且不会闪。`src/engine/tents.ts` **只读不写**——它按完键之后翻一遍存档,只为回答「刚才
-那一格里是什么」(标签分不出帐篷和草,两种都报 `Clear`),然后照常用按键把结果改对。**只读那
-一半是免费的**:不动 `game_ui`,光标不丢,闪也照旧。要往存档里写之前先想清楚是不是真的需要
-写——tents 一开始就是照 map 设计的,后来发现读就够了。
+**这扇门还有第二个用户:`src/engine/map.ts`。** 它走整趟(读、改、`loadGame` 放回去),代价也整趟
+付:`midend_deserialise` 会重建 `game_ui`,所以光标每次都得走回去,而且不会闪。
+
+tents 一度是第三个,而且只用了**只读**那一半——按完键之后翻一遍存档,只为回答「刚才那一格里是
+什么」(标签分不出帐篷和草,两种都报 `Clear`)。那一半是免费的:不动 `game_ui`,光标不丢,闪也照
+旧。它随着 tents 改回三个固定键一起删了,记在这里是因为**只读那一半仍然是这扇门最便宜的用法**,
+下次要往存档里写之前先问一句是不是读就够。
 
 ### 两块屏幕,没有路由
 

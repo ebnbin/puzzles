@@ -33,7 +33,6 @@ import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import { clueAt, mapSize, paintRegion, readClues, stepCursor } from './engine/map'
 import type { Clues, Paint, Spot } from './engine/map'
-import { setOrClear } from './engine/tents'
 import {
   clearSave,
   isPlayed,
@@ -1340,25 +1339,6 @@ export default function PuzzleHost({
     [acted, grid, name],
   )
 
-  /*
-   * Tents' two, which are switches: the key goes out as itself, and if the
-   * square already held what it sets, the press is taken back and the square
-   * emptied. It cannot be decided beforehand — nothing the back end reports
-   * tells a tent from grass — so it is decided from the move that was just
-   * made. See engine/tents.
-   *
-   * Its own callback rather than a branch inside `sendKey` because none of what
-   * that does applies: this puzzle is not in `CURSOR_LIFE`, has no second level
-   * to open, and keeps no cursor copy — the coordinates come out of the engine's
-   * own move string instead.
-   */
-  const toggleSquare = useCallback((key: string) => {
-    const api = apiRef.current
-    if (!api) return
-    acted()
-    setOrClear(api, key)
-    canvasRef.current?.focus()
-  }, [acted])
 
   /*
    * No cursor to act on, so nothing on this row can act — the arrows are the
@@ -1867,8 +1847,7 @@ export default function PuzzleHost({
                     // where one run ends and the next one starts.
                     if (cursor.brush) setBrush(i)
                     if (key === null) return
-                    if (cursor.toggles) toggleSquare(key)
-                    else sendKey(key)
+                    sendKey(key)
                   }}
                 >
                   <Icon name={icon} />

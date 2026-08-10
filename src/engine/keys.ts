@@ -707,20 +707,6 @@ export type CursorKey = {
    */
   sweeps?: boolean
   /**
-   * That a second press takes the first one back.
-   *
-   * The key still goes out as itself and still sets the square to its own
-   * value. What this adds is the other half of a switch: when the square
-   * already held that value the press changed nothing, and the button undoes
-   * itself and empties the square instead.
-   *
-   * Whether it changed anything is not something the labels can say — see
-   * `engine/tents`, which is where the deciding is done and where the reasons
-   * are. Marked here rather than inferred because the deciding costs a save
-   * file read per press, and a key that wants one should have to say so.
-   */
-  toggles?: boolean
-  /**
    * That an *idempotent* press is not a failed press, so this key stays lit
    * through the one null that means "you already have it".
    *
@@ -2373,61 +2359,48 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Tents' two, and the only pair here that are switches rather than keys.
+   * Tents' three, Slant's shape reached from the other direction: not a cycle
+   * wound both ways, but a pair of keys that will not do the one thing this
+   * puzzle is played by.
    *
-   * Each one is its own value's switch: press it on an empty square and the
-   * square becomes that, press it again and the square is empty, press it on
-   * the *other* value and it takes over. Three outcomes per button, covering
-   * every state a square can be in from either button, in one press each way.
+   * Enter gives `v == BLANK ? 'T' : 'B'` and Space `v == BLANK ? 'N' : 'B'`
+   * (tents.c:1702), so neither key can put grass where a tent stands — it has
+   * to be cleared first — and while it stands both buttons wear "Clear" and
+   * neither shows what it would place. Two presses and a face that changes
+   * under the thumb, for the one move a reader makes over and over.
    *
-   * Upstream's own two keys cannot do the third. Enter is
-   * `v == BLANK ? 'T' : 'B'` and Space `v == BLANK ? 'N' : 'B'` (tents.c:1702),
-   * so neither will put grass where a tent stands — the tent has to be cleared
-   * first, two presses — and while it stands both keys report "Clear", so both
-   * buttons wear it and neither shows what it would place. That is the one move
-   * this puzzle is played by, and it is the move upstream's pair is worst at.
+   * `'T'`, `'N'` and `'B'` set the square outright and are read on the very
+   * next line (tents.c:1706). So all three faces are fixed, every state is one
+   * press from every other, and the cycle keys lose nothing by losing their
+   * buttons.
    *
-   * `'T'`, `'N'` and `'B'` set the square outright, read on the very next line
-   * (tents.c:1706). Three keys, two buttons: the third is what the other two
-   * turn into on a second press, which is why these two send through
-   * `engine/tents` rather than going out as themselves. The whole of the
-   * difficulty is that nothing the back end says tells a tent from grass — both
-   * answer "Clear" — so the button reads the save file to find out, and that
-   * file is also where the cursor's coordinates come from. See there.
+   * These were two switches for a while — tent and grass, each clearing the
+   * square on a second press, with no third button. It read well and it cost a
+   * save-file reader to work at all, because nothing the back end says tells a
+   * tent from grass: both answer "Clear". Three fixed keys need none of that.
+   * The press that asks for what is already there writes the move anyway, since
+   * there is no MOVE_NO_EFFECT on this path, so it costs an undo step that
+   * changes nothing — Slant is spared that by slant.c:1832 and this is not.
    *
-   * A third button that only clears was built first and thrown away. It made
-   * every state reachable in one press too, and by fewer moving parts, but it
-   * spends a button on the rarest of the three intentions and leaves the reader
-   * with two buttons whose second press does nothing.
-   *
-   * Liveness is free and exact, more so than anywhere else in this table.
-   * `interpret_move` refuses these keys when the cursor is hidden or the square
+   * Liveness is free and exact, more exact than anywhere else in this table.
+   * `interpret_move` refuses all three when the cursor is hidden or the square
    * is a tree, and `current_key_label` returns "" under precisely those two
    * conditions — its switch covers BLANK, TENT and NONTENT and lets TREE fall
    * out (tents.c:1482). The labels going empty *is* the refusal, which is what
-   * `doesNothing` already reads. No `WORDS` and no `BOTH` any more: nothing
-   * here reads what the words are, only whether there are any.
-   */
-  /*
-   * And a third that is not a square but a way of filling them, the same mode
-   * Pattern has: while it is on, `Shift` rides every arrow and upstream greens
-   * both the square being left and the one arrived at (tents.c:1669).
+   * `doesNothing` already reads. No `WORDS` and no `BOTH`: nothing here reads
+   * what the words are, only whether there are any.
    *
-   * Greening is where this puzzle's presses go. A tent is one press and there
-   * are as many as there are trees; green is every square around each of them
-   * plus every row and column whose count is already met, and upstream gave it
-   * a modifier for exactly that reason.
-   *
-   * One value, so the key carries its own `brush` and there is nothing to
-   * choose: `Shift` greens the blank squares it crosses and leaves tents alone.
-   * `Ctrl` would green over tents too, which is upstream's other setting and
-   * not offered — a stroke that can rub out the tents it passes is a different
-   * and more dangerous thing than one that fills the gaps between them.
+   * `bareSquare` and not `white` for the third, for Slant's reason and on
+   * Slant's measurement: a blank square here is COL_BACKGROUND (tents.c:2349),
+   * the ground the board leaves showing, rgb(213,213,213) light and
+   * rgb(44,44,44) dark, while `white` fills with `--cell-empty`, #ffffff and
+   * #cccccc.
    */
   tents: [
-    { key: 'T', icon: 'tent', says: 'tent', toggles: true },
-    { key: 'N', icon: 'grass', says: 'grass', toggles: true },
-    { key: '', icon: 'sweep', says: 'sweepGrass', sweeps: true, brush: { shift: true } },
+    { key: 'T', icon: 'tent', says: 'tent' },
+    { key: 'N', icon: 'grass', says: 'grass', brush: { shift: true } },
+    { key: 'B', icon: 'bareSquare', says: 'clearSquare' },
+    { key: '', icon: 'sweep', says: 'sweepGrass', sweeps: true },
   ],
 
   singles: [
@@ -2499,40 +2472,32 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     },
   ],
 
+  /*
+   * Range's three, Pattern's shape rather than the cycle upstream reads.
+   *
+   * Its two keys are a cycle wound both ways — empty steps to a dot steps to a
+   * fill — so buttons that follow the labels wear three faces that move with
+   * the cursor: the button that filled a square a moment ago is the one that
+   * empties it now. Three buttons named for a result instead, each one hunting
+   * for whichever key currently reaches it, which is exactly what `does` is
+   * for and exactly what Pattern needed it for.
+   *
+   * Safe because the labels give a distinct pair for each of the three states —
+   * empty says {Fill, Dot}, a dot says {Empty, Fill}, a fill says {Dot, Empty}
+   * (range.c:1317) — so every result is always one press away and never
+   * ambiguous. And `lit` for the same reason Pattern has it: a press asking for
+   * a dot on a square that already has one leaves it there, which is idempotent
+   * rather than failed, and a button that goes dark mid-run changes shape under
+   * a thumb that is not watching it.
+   *
+   * A clue square reports nothing at all (range.c:1316) and all three go out
+   * together, which is upstream's own refusal showing through.
+   */
   range: [
-    {
-      key: 'Enter',
-      icon: 'black',
-      says: 'fillSquare',
-      faces: {
-        Fill: { icon: 'black', says: 'fillSquare' },
-        Dot: { icon: 'dotSquare', says: 'dotSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'dotSquare',
-      says: 'dotSquare',
-      faces: {
-        Fill: { icon: 'black', says: 'fillSquare' },
-        Dot: { icon: 'dotSquare', says: 'dotSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
-    /*
-     * And the stroke, which here can only mean dots: `Shift` with an arrow
-     * writes `W` on the square left and the square arrived at, and only where
-     * they are empty (range.c:1385). One value, so the key carries its own
-     * brush.
-     *
-     * The only one of the three puzzles with this mode where upstream guards
-     * itself — the whole branch sits inside `if (ui->cursor_show)`, so a
-     * modified arrow with the cursor away does nothing rather than writing
-     * where the cursor was last seen. Pattern's and Tents' do not, and are
-     * held back on this side.
-     */
-    { key: '', icon: 'sweep', says: 'sweepDots', sweeps: true, brush: { shift: true } },
+    { key: 'Enter', icon: 'black', says: 'fillSquare', does: 'Fill', lit: true },
+    { key: ' ', icon: 'dotSquare', says: 'dotSquare', does: 'Dot', lit: true, brush: { shift: true } },
+    { key: 'Enter', icon: 'emptyCell', says: 'emptySquare', does: 'Empty', lit: true },
+    { key: '', icon: 'sweep', says: 'sweepDots', sweeps: true },
   ],
 
   /*
