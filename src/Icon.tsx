@@ -142,6 +142,7 @@ export type IconName =
   | 'erase'
   | 'cancel'
   | 'sweep'
+  | 'noBridge'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -1041,6 +1042,32 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <circle cx="12" cy="12" r="4.6" fill="currentColor" />
       <circle cx="12" cy="12" r="8.4" />
+    </>
+  ),
+  /*
+   * Two islands with the bridge between them crossed out: Bridges' own mark for
+   * "these two are definitely not joined".
+   *
+   * Islands are filled circles here already — `island` and `islandDone` are
+   * both one — so a pair of them is this puzzle's word for a pair, and the
+   * cross sits where the bridge would have gone.
+   *
+   * Undirected on purpose, and that is the whole of why it beat the other
+   * candidates. The one drawn as `island` with a crossed stub off one side reads
+   * well enough at 20, but it says *which way*, and this key does not know: the
+   * direction is the arrow pressed after it. Drawing a quantity this side cannot
+   * answer is the mistake Sixteen's rim pair took four tries to stop making.
+   *
+   * The two beside it stay distinct at 20: one filled circle with four stubs,
+   * one circle inside a ring, and this a pair with a cross. Nothing else in the
+   * file is two filled circles side by side.
+   */
+  noBridge: (
+    <>
+      <circle cx="4.6" cy="12" r="3" fill="currentColor" stroke="none" />
+      <circle cx="19.4" cy="12" r="3" fill="currentColor" stroke="none" />
+      <path d="M8.6 8.6 15.4 15.4" />
+      <path d="M15.4 8.6 8.6 15.4" />
     </>
   ),
   linkFrom: (

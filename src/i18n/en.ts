@@ -371,6 +371,10 @@ export const en = {
       startBridge: 'Start a bridge from this island',
       endBridge: 'Land the bridge here',
       islandDone: 'Mark this island as finished',
+      /* Bridges' third, and ours. Named as what the next arrow will do rather
+         than as a state, because that is its whole life: it is spent by the
+         press it modifies. */
+      noBridge: 'Next arrow: mark no bridge that way',
       linkFrom: 'Link this square to the next one',
       linkTo: 'Link this square to the one before',
       cancelLink: 'Drop this link',

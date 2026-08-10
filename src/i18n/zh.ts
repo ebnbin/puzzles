@@ -155,6 +155,7 @@ export const zh: Strings = {
       startBridge: '从这座岛开始架桥',
       endBridge: '把桥搭到这里',
       islandDone: '把这座岛标记为已完成',
+      noBridge: '下一个方向键：标记那边没有桥',
       linkFrom: '把这一格连到下一格',
       linkTo: '把这一格连到上一格',
       cancelLink: '放弃这次连接',

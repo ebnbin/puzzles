@@ -417,6 +417,14 @@ export default function PuzzleHost({
    * unset by it.
    */
   const [held, setHeld] = useState<Square | null>(null)
+  /*
+   * And whether the next arrow is armed to mark "no bridge this way".
+   *
+   * Bridges'. Spent by the press it modifies rather than left on, because while
+   * it is armed an arrow marks instead of moving — see `primes` in engine/keys
+   * for why that rules out the sticky shape the stroke mode uses.
+   */
+  const [primed, setPrimed] = useState(false)
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -1703,7 +1711,15 @@ export default function PuzzleHost({
                 disabled={rolling ? !rolling.has(key) : undefined}
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => sendKey(key, where, stroke)}
+                onClick={() => {
+                  // An armed no-bridge mark rides out on this press and is
+                  // spent by it, whether or not the mark lands: upstream
+                  // refuses at the edge of the grid, and a modifier left armed
+                  // after a press the reader has already made would fire on a
+                  // later one they did not mean it for. See `primes`.
+                  if (primed) setPrimed(false)
+                  sendKey(key, where, primed ? { shift: true } : stroke)
+                }}
               >
                 <Icon name={icon} />
               </button>
@@ -1761,6 +1777,38 @@ export default function PuzzleHost({
                * The bit is kept while it is out, so a cursor that comes back
                * finds the mode where it was left.
                */
+              /*
+               * The arming key, which sends nothing itself: it puts a modifier
+               * on the next arrow. Drawn like the stroke key because it is the
+               * same kind of thing — ours, and about what the cross will do —
+               * and out with the row when there is no cursor, since a modifier
+               * on a press that cannot happen claims nothing.
+               */
+              if (cursor.primes) {
+                const armed = primed && !asleep
+                return (
+                  <button
+                    key={cursor.icon}
+                    type="button"
+                    data-act={ACT[i]}
+                    data-whose="ours"
+                    data-on={armed || undefined}
+                    aria-pressed={armed}
+                    disabled={asleep}
+                    aria-label={t.play.cursor[cursor.says]}
+                    onMouseDown={(e) => e.preventDefault()}
+                    {...holdToAsk(t.play.cursor[cursor.says])}
+                    onClick={() => {
+                      if (wasHeld()) return
+                      acted()
+                      setPrimed((was) => !was)
+                      canvasRef.current?.focus()
+                    }}
+                  >
+                    <Icon name={cursor.icon} />
+                  </button>
+                )
+              }
               if (cursor.sweeps) {
                 return (
                   <button

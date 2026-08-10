@@ -693,6 +693,29 @@ export type CursorKey = {
    */
   switches?: string
   /**
+   * Arms the next arrow press to carry these modifiers, and is spent by it.
+   *
+   * Bridges', and so far only that. Its `Shift`+arrow marks "these two islands
+   * are definitely not joined" (bridges.c:2449-2453) and nothing else on the
+   * keyboard reaches it: `Enter` starts a drag with `drag_is_noline` false, and
+   * the line that looks as though `Space` could start a no-line one
+   * (bridges.c:2540) sits inside a branch that has already excluded `Space`, so
+   * it is dead as written. Without this the mark has no route into the arrow
+   * row at all.
+   *
+   * Spent by one press rather than sticky, and that is not the coin-flip it
+   * looks like. While it is armed an arrow lays a mark and *does not move the
+   * cursor* — `finish_drag` leaves cur_x and cur_y alone — so a sticky version
+   * would be a mode a reader has to remember to leave before they can go
+   * anywhere at all. Map's sticky arming modifies its four colour keys, which
+   * are pressed on purpose; this one modifies the keys travelling is done with.
+   *
+   * Shown on the key and not on the arrows, which is where Bridges already puts
+   * this: `Enter` is an arming key too — it opens a drag the next arrow closes —
+   * and it says so by changing its own face. A one-press life needs no more.
+   */
+  primes?: { shift?: boolean; ctrl?: boolean }
+  /**
    * The modifier that paints this key's result along a cursor move, for the
    * puzzles whose arrows can paint.
    *
@@ -921,6 +944,7 @@ export type CursorWord =
   | 'startBridge'
   | 'endBridge'
   | 'islandDone'
+  | 'noBridge'
   | 'linkFrom'
   | 'linkTo'
   | 'cancelLink'
@@ -2705,6 +2729,9 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'islandDone',
       faces: { Finished: { icon: 'islandDone', says: 'islandDone' } },
     },
+    // And the mark that says two islands are definitely not joined, which is
+    // upstream's Shift+arrow and has no other way in. See `primes`.
+    { key: '', icon: 'noBridge', says: 'noBridge', primes: { shift: true } },
   ],
 
   /*
