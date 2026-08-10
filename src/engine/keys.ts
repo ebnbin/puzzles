@@ -679,7 +679,16 @@ export type CursorKey = {
    * authors did not.
    *
    * Which key it paints with is chosen by pressing that key, and the chosen one
-   * is drawn held down. See PuzzleHost.
+   * is ringed. See PuzzleHost.
+   *
+   * Out while the puzzle reports no cursor, like everything else on this row. A
+   * mode is not an act and there was an argument for leaving it live — it can
+   * be armed before there is anywhere to paint, and it would be true by the
+   * time it mattered. The argument does not survive the row it sits in: with no
+   * cursor the three keys beside it are out, the arrows are the only thing that
+   * works, and one lit button among four dark ones says the opposite. The bit
+   * is kept rather than cleared, so a cursor that comes back finds the mode
+   * where it was left.
    */
   sweeps?: boolean
   /**
@@ -697,7 +706,8 @@ export type CursorKey = {
    */
   toggles?: boolean
   /**
-   * That this key is a place before it is a state, so it is never drawn dim.
+   * That an *idempotent* press is not a failed press, so this key stays lit
+   * through the one null that means "you already have it".
    *
    * Dimming is the house rule and it is the right one nearly everywhere: a
    * button that cannot act says so rather than swallowing the press. Pattern's
@@ -705,14 +715,23 @@ export type CursorKey = {
    * played. A run of squares gets painted one colour in one sweep, and some of
    * them are already that colour; a button that goes out part way through the
    * sweep changes shape under a thumb that is not looking at it, which is worse
-   * than the press it saves.
+   * than the press it saves. Asking for black on a square that is already black
+   * leaves it black — the postcondition holds, so the button did its job and
+   * has nothing to report.
    *
-   * It is also the one place where a press with nothing to send is not a failed
-   * press. Asking for black on a square that is already black leaves it black —
-   * the postcondition holds, so the button did its job and has nothing to
-   * report. That is idempotent rather than inert, and it is why this exemption
-   * does not generalise: everywhere else a dead key means the reader wanted
-   * something they did not get.
+   * That is the whole of the exemption, and it took a second pass to say so.
+   * `does` answers null in two quite different situations and this used to
+   * cover both: "the square already has it", which is the one above, and "there
+   * is no cursor at all", which is the plain case the house rule exists for.
+   * With no cursor there is no square, so nothing is idempotent and nothing has
+   * been achieved — three buttons sat lit on an untouched board and swallowed
+   * every press. The two are told apart at the call site by `silent`, and the
+   * telling is exact for this puzzle: `current_key_label` opens with
+   * `cur_visible` and its switch covers all three states, so empty labels mean
+   * a hidden cursor and can mean nothing else (pattern.c:1272).
+   *
+   * Everywhere else a dead key means the reader wanted something they did not
+   * get, which is why this exemption still does not generalise.
    */
   lit?: boolean
   /**
@@ -1266,6 +1285,20 @@ const WORDS: Record<string, readonly string[]> = {
      report the same word and there is one button. */
   galaxies: ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear'],
 }
+
+/**
+ * Both of a puzzle's keys reporting nothing at all.
+ *
+ * What that means is the puzzle's own business — most of them go quiet when the
+ * cursor is hidden, some also on a square their keys cannot touch, and the
+ * seven in `CURSOR_LIFE` never go quiet at all. So this says only what it sees,
+ * and the caller says what it means for the puzzle it is asking about.
+ *
+ * Pattern is the one caller, where it is exactly "no cursor": its
+ * `current_key_label` opens with `cur_visible` and its switch covers every
+ * state a square can be in, so there is no other way for both to be empty.
+ */
+export const silent = (labels: KeyLabels) => !labels.enter && !labels.space
 
 /** Whether we are still reading a puzzle's labels rather than guessing at them. */
 const understood = (name: string, labels: KeyLabels) => {

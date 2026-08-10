@@ -24,6 +24,7 @@ import {
   READS_PREFS,
   offersArrows,
   shovesTiles,
+  silent,
   wakesCursor,
   wouldSend,
 } from './engine/keys'
@@ -1276,6 +1277,20 @@ export default function PuzzleHost({
     canvasRef.current?.focus()
   }, [acted])
 
+  /*
+   * No cursor to act on, so nothing on this row can act — the arrows are the
+   * only thing left that works, since an arrow is the only way to make one.
+   *
+   * Pattern's, and only Pattern's: for it, both keys reporting nothing means a
+   * hidden cursor and can mean nothing else. Every other puzzle already reaches
+   * the same place through `wouldSend`; this is here because Pattern's three
+   * are `lit`, which was written to keep them through the *idempotent* null and
+   * kept them through this one too.
+   */
+  const asleep = silent(labels)
+  /** The stroke mode as it is actually behaving, which needs somewhere to paint. */
+  const painting = sweeping && !asleep
+
   return (
     /* The flag goes here rather than on the row that grows, because two rows
        answer to it: the four buttons pair off into a 2×2 to make room for the
@@ -1507,22 +1522,15 @@ export default function PuzzleHost({
               /*
                * What this arrow paints on its way, or nothing.
                *
-               * Gated on the labels because Pattern's paint branch does not
-               * check `cur_visible` itself: with the cursor hidden it would
-               * move from wherever it was last left and paint the pair, which
-               * is the trap `doesNothing` exists for elsewhere. Empty labels
-               * are exactly a hidden cursor here (pattern.c:1273), so while it
-               * is hidden the arrows go out bare — the first one wakes the
-               * cursor and the painting comes back with it.
-               *
-               * The buttons stay lit through that gap rather than blinking off
-               * and on. The mode really is on; one press does not paint, and it
-               * is the press that puts a cursor on screen to paint from.
+               * Gated on `painting` rather than the bit, because Pattern's
+               * paint branch does not check `cur_visible` itself: with the
+               * cursor hidden it would move from wherever it was last left and
+               * paint the pair, which is the trap the dimming exists for
+               * elsewhere. So while it is hidden the arrows go out bare — the
+               * first one wakes the cursor, and the painting comes back with
+               * it.
                */
-              const stroke =
-                sweeping && (labels.enter || labels.space)
-                  ? acts[brush]?.brush
-                  : undefined
+              const stroke = painting ? acts[brush]?.brush : undefined
               // Sixteen's arrows have two jobs, and which one is running is
               // invisible on its board — so they carry it here, glyph and name
               // both. See shovesTiles; nowhere else does this fire.
@@ -1598,12 +1606,14 @@ export default function PuzzleHost({
                * The stroke mode, which is the only button on this screen that
                * changes what a *different* button does. Pattern's; see `sweeps`.
                *
-               * Never dim, and that is not the usual exemption. A mode is not
-               * an act, so there is no square it could fail on — it can be
-               * turned on before there is a cursor as readily as after, and
-               * what it says is true either way: the arrows will paint. The one
-               * moment it is not painting is the press that wakes the cursor,
-               * and that press shows the cursor, which is the answer.
+               * Out with the rest of the row while there is no cursor. It was
+               * live at first, on the argument that a mode is not an act and
+               * could be armed before there was anywhere to paint. That does
+               * not survive the row: with no cursor the three keys beside it
+               * are out and the arrows are the only thing that works, so one
+               * lit button among four dark ones says the opposite of the truth.
+               * The bit is kept while it is out, so a cursor that comes back
+               * finds the mode where it was left.
                */
               if (cursor.sweeps) {
                 return (
@@ -1615,8 +1625,9 @@ export default function PuzzleHost({
                     // upstream's, but no back end has ever been given a way to
                     // hold one down, so the holding is this side's invention.
                     data-whose="ours"
-                    data-on={sweeping || undefined}
-                    aria-pressed={sweeping}
+                    data-on={painting || undefined}
+                    aria-pressed={painting}
+                    disabled={asleep}
                     aria-label={t.play.cursor[cursor.says]}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
@@ -1713,16 +1724,21 @@ export default function PuzzleHost({
                    * chosen, they could not tell which colour was chosen.
                    */
                   data-brush={
-                    sweeping && cursor.brush && i === brush ? 'true' : undefined
+                    painting && cursor.brush && i === brush ? 'true' : undefined
                   }
                   aria-pressed={
-                    cursor.faces ? !!on : cursor.brush ? sweeping && i === brush : undefined
+                    cursor.faces ? !!on : cursor.brush ? painting && i === brush : undefined
                   }
                   aria-label={said}
-                  // Pattern's three stay lit even with nothing to send, which
-                  // the click below already handles by doing nothing. See `lit`
-                  // in engine/keys for the one puzzle this is right for.
-                  disabled={key === null && !cursor.lit}
+                  /*
+                   * Pattern's three stay lit with nothing to send, which the
+                   * click below handles by doing nothing — but only for the
+                   * null that means "the square is already this colour". With
+                   * no cursor there is no square, nothing is idempotent, and
+                   * the exemption has nothing to stand on: they go out with
+                   * everything else. See `lit` in engine/keys, and `asleep`.
+                   */
+                  disabled={key === null && (!cursor.lit || asleep)}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
