@@ -60,6 +60,12 @@ export const zh: Strings = {
         left: '向左推',
         right: '向右推',
       },
+      paint: {
+        up: '向上涂',
+        down: '向下涂',
+        left: '向左涂',
+        right: '向右涂',
+      },
     },
     cursor: {
       rotateLeft: '向左旋转',

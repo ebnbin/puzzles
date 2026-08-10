@@ -109,10 +109,10 @@ const NUMPAD = 3
  * being made with a thumb is visible on the far side.
  */
 const ARROWS = [
-  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp', shove: 'pushUp' },
-  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft', shove: 'pushLeft' },
-  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown', shove: 'pushDown' },
-  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight', shove: 'pushRight' },
+  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp', shove: 'pushUp', sweep: 'sweepUp' },
+  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft', shove: 'pushLeft', sweep: 'sweepLeft' },
+  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown', shove: 'pushDown', sweep: 'sweepDown' },
+  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight', shove: 'pushRight', sweep: 'sweepRight' },
 ] as const
 
 /**
@@ -331,16 +331,6 @@ export default function PuzzleHost({
   const [brush, setBrush] = useState(0)
   const acts = useMemo(() => cursorKeys(name, prefs), [name, prefs])
   /*
-   * What a stroke paints with: the mode key's own brush where it has one, and
-   * otherwise whichever neighbour was chosen.
-   *
-   * Two shapes and the puzzle's modifier table decides which. Pattern's has
-   * three entries and its colour keys are the chooser; Tents' and Range's have
-   * one, so their mode key carries the brush and nothing is chosen. `?? 0`
-   * covers the moment before anything has been pressed, and lands on the first
-   * key with a brush rather than the first key, since on Tents that is a tent.
-   */
-  /*
    * Which key's brush a stroke is carrying: the last one pressed that has one,
    * and otherwise the first key that has one at all.
    *
@@ -353,6 +343,23 @@ export default function PuzzleHost({
    */
   const brushAt = acts[brush]?.brush ? brush : acts.findIndex((k) => k.brush)
   const stroking = brushAt >= 0 ? acts[brushAt].brush : undefined
+  /*
+   * And whether there is a choice being made at all, which is what the ring is
+   * for and the only thing it can say.
+   *
+   * The shape comes from the puzzle's own modifier table. Pattern's has three
+   * entries and its three colour keys are the chooser, so the ring moves and
+   * naming the chosen one is the only way to know what an arrow will lay down.
+   * Tents' and Range's have one — Shift greens, Shift dots, and upstream offers
+   * nothing else — so a ring would sit on the same key from the moment the mode
+   * went on and never move again.
+   *
+   * A mark that never moves carries nothing, and this one costs worse than
+   * nothing: it looks like a choice, so it invites a press on another key, and
+   * that press does not move it. The brush is on the mode key there, which is
+   * where its name already says it — "Sweep grass", "Sweep dots".
+   */
+  const picksBrush = acts.filter((k) => k.brush).length > 1
   /*
    * The description, and the grid worked out from it.
    *
@@ -1613,7 +1620,24 @@ export default function PuzzleHost({
               // diagonals are Inertia's and never shove.
               const shoving =
                 'shove' in arrow && shovesTiles(name, labels) ? arrow : null
-              const icon = shoving ? shoving.shove : arrow.icon
+              /*
+               * And the same again for the stroke mode, which is the other
+               * thing that changes what a press of this button does. Sixteen's
+               * two jobs are invisible on its board; a mode the reader switched
+               * on is invisible everywhere except the key they switched it with
+               * — and that key is not where anyone is looking when they reach
+               * for an arrow. The mode key's own comment in index.css already
+               * says the quiet part: while it is on, "four buttons stop doing
+               * what they say".
+               *
+               * Read off `stroke` and not off the mode bit, which is what makes
+               * it exact through the gap where the cursor is away: the mode is
+               * still armed but the next press only wakes the cursor, and these
+               * glyphs describe the press about to be made rather than the
+               * state of the switch.
+               */
+              const marking = !shoving && stroke && 'sweep' in arrow ? arrow : null
+              const icon = shoving ? shoving.shove : marking ? marking.sweep : arrow.icon
               return (
               <button
                 key={dir}
@@ -1623,7 +1647,13 @@ export default function PuzzleHost({
                 // are keys the back end has always read and never offered a
                 // button for. Same step of the ladder as M, H and J above.
                 data-whose="upstream"
-                aria-label={shoving ? t.play.arrows.shove[shoving.dir] : t.play.arrows[dir]}
+                aria-label={
+                  shoving
+                    ? t.play.arrows.shove[shoving.dir]
+                    : marking
+                      ? t.play.arrows.paint[marking.dir]
+                      : t.play.arrows[dir]
+                }
                 // Cube's, and no other puzzle's — see engine/cube for the line
                 // that keeps it there. A null answer leaves every arrow live,
                 // which is what the other thirty-nine get.
@@ -1825,14 +1855,17 @@ export default function PuzzleHost({
                    * chosen, they could not tell which colour was chosen.
                    */
                   // Only where there is a choice to show: a one-value stroke
-                  // carries its brush on the mode key and rings nothing.
+                  // carries its brush on the mode key and rings nothing. See
+                  // `picksBrush`, which is where that is worked out — this line
+                  // claimed it before anything enforced it, and Tents and Range
+                  // wore a ring that no press could move.
                   data-brush={
-                    painting && cursor.brush && i === brushAt ? 'true' : undefined
+                    painting && cursor.brush && picksBrush && i === brushAt ? 'true' : undefined
                   }
                   aria-pressed={
                     cursor.faces
                       ? !!on
-                      : cursor.brush
+                      : cursor.brush && picksBrush
                         ? painting && i === brushAt
                         : undefined
                   }

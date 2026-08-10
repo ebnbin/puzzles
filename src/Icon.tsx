@@ -72,6 +72,10 @@ export type IconName =
   | 'arrowUpRight'
   | 'arrowDownLeft'
   | 'arrowDownRight'
+  | 'sweepUp'
+  | 'sweepDown'
+  | 'sweepLeft'
+  | 'sweepRight'
   | 'rotate'
   | 'turnLeft'
   | 'turnRight'
@@ -428,6 +432,64 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M6.5 6.5 17.5 17.5" />
       <path d="M17.5 9.5v8h-8" />
+    </>
+  ),
+  /*
+   * The same four again, wearing what the stroke mode does to them: a filled
+   * cell left behind at the tail.
+   *
+   * These are worn by the arrow buttons themselves while the mode is on, and
+   * that is the whole reason they exist. The mode changes what a *different*
+   * control does — press an arrow and it paints on its way instead of only
+   * moving — and until now the only evidence was on the mode key and on a ring
+   * one row up. Sixteen already settled that argument in the other direction:
+   * its arrows change glyph and name when the cursor steps onto the rim,
+   * because which job they are doing "is invisible on its board, so they carry
+   * it here". A mode the reader switched on is the same problem with a shorter
+   * memory, not a different one.
+   *
+   * The mark is a filled rounded cell and not a trail, a thicker shaft or a
+   * dotted tail, all of which were drawn and looked at on a 40 key at both
+   * themes. A thicker shaft fails the only test that matters: it reads as a
+   * bolder arrow beside a plain one and as nothing at all on its own, and on
+   * its own is how it is always seen. The filled cell is the vocabulary this
+   * app already has for a painted square — `sweep` one key along is three of
+   * them — so what the picture says is "you leave one of these behind", which
+   * is what the press does.
+   *
+   * Exact rotations of each other, like the four they replace: the head is
+   * untouched, the shaft gives up 2.6 at the tail, and the cell is centred on
+   * the axis where the shaft used to end. Only these four, because only an
+   * orthogonal arrow can be in a stroke — the eight-way block is Inertia's and
+   * Inertia has no mode. A diagonal falls back to its plain glyph, which will
+   * be right for as long as that stays true.
+   */
+  sweepUp: (
+    <>
+      <path d="M12 16.4V5" />
+      <path d="m6 11 6-6 6 6" />
+      <rect x="9.2" y="16.6" width="5.6" height="5.6" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  sweepDown: (
+    <>
+      <path d="M12 7.6v11.4" />
+      <path d="m6 13 6 6 6-6" />
+      <rect x="9.2" y="1.8" width="5.6" height="5.6" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  sweepLeft: (
+    <>
+      <path d="M16.4 12H5" />
+      <path d="m11 6-6 6 6 6" />
+      <rect x="16.6" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  sweepRight: (
+    <>
+      <path d="M7.6 12h11.4" />
+      <path d="m13 6 6 6-6 6" />
+      <rect x="1.8" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" stroke="none" />
     </>
   ),
   /*

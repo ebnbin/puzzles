@@ -128,6 +128,16 @@ export const en = {
         left: 'Push left',
         right: 'Push right',
       },
+      /* And what they are called while the stroke mode is on and they are
+         painting on their way rather than only moving. Which colour is not in
+         the name: the mode key beside them says that, and a name that changed
+         every time a swatch was pressed would read as a different button. */
+      paint: {
+        up: 'Paint up',
+        down: 'Paint down',
+        left: 'Paint left',
+        right: 'Paint right',
+      },
     },
     /**
      * And the keys that act where the arrows have got to, which is what makes
