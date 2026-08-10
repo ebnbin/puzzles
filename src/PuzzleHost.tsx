@@ -1697,10 +1697,24 @@ export default function PuzzleHost({
                   data-whose="upstream"
                   // Held down, where the face says so — for a mode the board
                   // draws nowhere, and for a drag that is waiting to be closed.
-                  // And for the colour a stroke is being painted in, which is
-                  // the same thing again: the arrows are carrying it and there
-                  // is nowhere else that could be shown.
-                  data-on={on || (sweeping && cursor.brush && i === brush) || undefined}
+                  data-on={on || undefined}
+                  /*
+                   * And separately: the colour the arrows are painting with.
+                   *
+                   * Its own attribute rather than `data-on`, because it is not
+                   * the same claim. A held-down key is one that has been
+                   * pressed and stayed down; this one is *chosen among three*,
+                   * and it is chosen the moment the mode goes on whether or not
+                   * anybody pressed it. Sharing the attribute meant sharing the
+                   * look, and the held-down look — one step of surface — is the
+                   * app's quietest, which is right for a state the board also
+                   * shows and wrong for the only place this one is written
+                   * down. Measured by a reader: with the mode on and black
+                   * chosen, they could not tell which colour was chosen.
+                   */
+                  data-brush={
+                    sweeping && cursor.brush && i === brush ? 'true' : undefined
+                  }
                   aria-pressed={
                     cursor.faces ? !!on : cursor.brush ? sweeping && i === brush : undefined
                   }
