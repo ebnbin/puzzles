@@ -2497,7 +2497,12 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     { key: 'Enter', icon: 'black', says: 'fillSquare', does: 'Fill', lit: true },
     { key: ' ', icon: 'dotSquare', says: 'dotSquare', does: 'Dot', lit: true, brush: { shift: true } },
     { key: 'Enter', icon: 'emptyCell', says: 'emptySquare', does: 'Empty', lit: true },
-    { key: '', icon: 'sweep', says: 'sweepDots', sweeps: true },
+    // `sweepDots` and not the shared `sweep`, which is a run of filled cells:
+    // this stroke lays dots, and filling a square is what the first key in this
+    // row does. On a puzzle with one brush the mode key is the only thing that
+    // ever names it — there is no ring, because there is nothing to choose —
+    // so a generic glyph here leaves the brush unwritten anywhere on screen.
+    { key: '', icon: 'sweepDots', says: 'sweepDots', sweeps: true },
   ],
 
   /*
