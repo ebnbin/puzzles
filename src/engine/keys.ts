@@ -660,6 +660,39 @@ export type CursorKey = {
    */
   does?: string
   /**
+   * And what to ask for instead once the square already has it, which turns a
+   * key that places a value into a switch for that value.
+   *
+   * Nobody offering `does` is exactly "this square is already that", since a
+   * puzzle does not label a press that would change nothing — so the fallback
+   * fires on precisely the squares the switch should be emptying, and on no
+   * others. That equivalence is what makes this safe without reading anything:
+   * see `holding`, which is the same test asked for the button's face.
+   *
+   * Range's two, and only where the labels can tell all three states apart.
+   * Its do: an empty square offers {Fill, Dot}, a dotted one {Empty, Fill} and
+   * a filled one {Dot, Empty} (range.c:1317), so every one of the six
+   * transitions a pair of switches needs is exactly one press, and which press
+   * is always readable from the words.
+   */
+  instead?: string
+  /**
+   * And the key to send when the square already holds this key's own value,
+   * for a switch whose puzzle cannot answer that in words.
+   *
+   * Tents': `T` and `N` are absolute keys upstream reads on the line after its
+   * cycle keys (tents.c:1706), so placing is one press and needs nothing. What
+   * needs something is emptying, because "Clear" is upstream's word for a tent
+   * and for a green square alike (tents.c:1485-1486) and the blanking then eats
+   * the first of the pair — the two states arrive here identical. `instead`
+   * cannot help: it reads the words, and the words are the problem.
+   *
+   * So the value under the cursor is read from the save file instead and handed
+   * in from outside. See engine/tents, and `held` in PuzzleHost, which is the
+   * only caller.
+   */
+  switches?: string
+  /**
    * The modifier that paints this key's result along a cursor move, for the
    * puzzles whose arrows can paint.
    *
@@ -832,8 +865,6 @@ export type CursorWord =
   | 'white'
   | 'grey'
   | 'sweep'
-  | 'sweepGrass'
-  | 'sweepDots'
   | 'carryTile'
   | 'holdPlace'
   | 'turnLeft'
@@ -1457,6 +1488,25 @@ const SILENT = new Set(['untangle', 'palisade'])
  * Everywhere else the pair already carries it and this argument is ignored — as
  * it is for a key that does not act at the cursor at all; see `offCursor`.
  */
+/**
+ * Whether the square under the cursor already holds this switch's value.
+ *
+ * Read off the same words the press is: a puzzle does not offer a word for a
+ * press that would leave the square as it is, so "nobody is offering what this
+ * key places" and "the square already has it" are one fact. No copy, and
+ * nothing to drift.
+ *
+ * False for a key that is not a switch, and false with the words unreadable —
+ * where the button falls back to sending its own key and wearing its own face,
+ * as everything else here does when the labels stop making sense.
+ */
+export const holding = (cursor: CursorKey, labels: KeyLabels) =>
+  !!cursor.instead &&
+  !!cursor.does &&
+  labels.enter !== cursor.does &&
+  labels.space !== cursor.does &&
+  (labels.enter === cursor.instead || labels.space === cursor.instead)
+
 export const wouldSend = (
   name: string,
   cursor: CursorKey,
@@ -1467,8 +1517,9 @@ export const wouldSend = (
   if (SILENT.has(name)) return cursor.key
   if (understood(name, labels)) {
     if (cursor.does) {
-      if (labels.enter === cursor.does) return 'Enter'
-      if (labels.space === cursor.does) return ' '
+      const asks = holding(cursor, labels) ? cursor.instead : cursor.does
+      if (labels.enter === asks) return 'Enter'
+      if (labels.space === asks) return ' '
       return null
     }
     if (cursor.faces) {
@@ -2397,10 +2448,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * #cccccc.
    */
   tents: [
-    { key: 'T', icon: 'tent', says: 'tent' },
-    { key: 'N', icon: 'grass', says: 'grass', brush: { shift: true } },
-    { key: 'B', icon: 'bareSquare', says: 'clearSquare' },
-    { key: '', icon: 'sweep', says: 'sweepGrass', sweeps: true },
+    { key: 'T', icon: 'tent', says: 'tent', switches: 'B' },
+    { key: 'N', icon: 'grass', says: 'grass', switches: 'B' },
   ],
 
   singles: [
@@ -2494,15 +2543,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * together, which is upstream's own refusal showing through.
    */
   range: [
-    { key: 'Enter', icon: 'black', says: 'fillSquare', does: 'Fill', lit: true },
-    { key: ' ', icon: 'dotSquare', says: 'dotSquare', does: 'Dot', lit: true, brush: { shift: true } },
-    { key: 'Enter', icon: 'emptyCell', says: 'emptySquare', does: 'Empty', lit: true },
-    // `sweepDots` and not the shared `sweep`, which is a run of filled cells:
-    // this stroke lays dots, and filling a square is what the first key in this
-    // row does. On a puzzle with one brush the mode key is the only thing that
-    // ever names it — there is no ring, because there is nothing to choose —
-    // so a generic glyph here leaves the brush unwritten anywhere on screen.
-    { key: '', icon: 'sweepDots', says: 'sweepDots', sweeps: true },
+    { key: 'Enter', icon: 'black', says: 'fillSquare', does: 'Fill', instead: 'Empty' },
+    { key: ' ', icon: 'dotSquare', says: 'dotSquare', does: 'Dot', instead: 'Empty' },
   ],
 
   /*

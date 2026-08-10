@@ -13,6 +13,7 @@ import {
   asMaybes,
   cursorKeys,
   faceOf,
+  holding,
   inMenu,
   HOLD_BUTTON,
   keysFor,
@@ -32,6 +33,8 @@ import type { KeyLabels } from './engine/keys'
 import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import { clueAt, mapSize, paintRegion, readClues, stepCursor } from './engine/map'
+import { squareAt, tentsGrid } from './engine/tents'
+import type { Square } from './engine/tents'
 import type { Clues, Paint, Spot } from './engine/map'
 import {
   clearSave,
@@ -375,7 +378,19 @@ export default function PuzzleHost({
    */
   const desc = permalink?.desc
   const grid = useMemo(
-    () => (name === 'map' && desc ? mapSize(desc.split(':')[0]) : null),
+    () =>
+      !desc
+        ? null
+        : name === 'map'
+          ? mapSize(desc.split(':')[0])
+          : // Tents keeps a copy of its cursor for the same reason and on
+            // easier terms: only the arrows move it, a press on the board hides
+            // it without moving it (tents.c:1582 writes cdisp and nothing else),
+            // and `move_cursor` is called with wrap off, so `stepCursor`'s
+            // clamping is upstream's arithmetic exactly. See engine/tents.
+            name === 'tents'
+            ? tentsGrid(desc.split(':')[0])
+            : null,
     [name, desc],
   )
   /*
@@ -391,6 +406,17 @@ export default function PuzzleHost({
    */
   const clues = useRef<Clues | null>(null)
   const [onClue, setOnClue] = useState(false)
+  /*
+   * And what is in the square under Tents' cursor, which its two switches turn
+   * on: a key whose value is already there empties the square instead.
+   *
+   * A reading and not a copy — see engine/tents for why the labels cannot say
+   * it and why a remembered board could not survive a drag. Held as state
+   * rather than worked out at render time because it costs a serialise, and
+   * because it has to be right *before* the press: the button is drawn set or
+   * unset by it.
+   */
+  const [held, setHeld] = useState<Square | null>(null)
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -586,6 +612,21 @@ export default function PuzzleHost({
   }, [name])
 
   /*
+   * And Tents' square, off the same notice and the same string. Only the read
+   * half of the save-file door is used here, so nothing is loaded back: the
+   * `game_ui` stands, the cursor stays where the reader left it, and a board
+   * that completes still flashes.
+   */
+  const readHeld = useCallback(() => {
+    const api = apiRef.current
+    setHeld(name === 'tents' && api ? squareAt(api.saveGame(), spot.current) : null)
+    // `grid` is deliberately not a dependency: this is captured once with the
+    // callbacks and the description does not arrive until the first permalink,
+    // so a closure over it would be null for the whole game. Nothing here needs
+    // it — only `stepCursor` does, and that runs where the press is.
+  }, [name])
+
+  /*
    * This is now the game to come back to, from the moment it is opened — and
    * the one the gallery marks, which is the same fact stored once. What the
    * gallery drops on arrival is the flag beside it, not the name.
@@ -708,6 +749,7 @@ export default function PuzzleHost({
            */
           countLeft()
           readRolls()
+          readHeld()
         },
         onError: (message) => {
           if (restoring.current) {
@@ -732,6 +774,7 @@ export default function PuzzleHost({
           queueSave()
           countLeft()
           readRolls()
+          readHeld()
         },
         // Both keys, every move, named in the order emcc.c asks for them:
         // CURSOR_SELECT2 first. Turned round here so that the rest of this file
@@ -1817,6 +1860,24 @@ export default function PuzzleHost({
               // on, Rectangles' into Done and Cancel once a drag is open. See
               // faceOf, and `faces` in keys.ts for why the back end decides it.
               const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
+              /*
+               * A switch shows the state it is in rather than the press it is
+               * about to make: held down exactly while the square under the
+               * cursor already holds its value, which is exactly when a press
+               * empties it instead of filling it. See `holding` in engine/keys,
+               * and `instead` for why the words can answer that without a copy.
+               *
+               * The glyph does not change with it. A switch that redrew itself
+               * as an eraser would be two buttons taking turns in one place, and
+               * the thing a reader hunts for in a row of four is the shape; the
+               * ground is what says which way it is set.
+               */
+              const set =
+                on ||
+                holding(cursor, labels) ||
+                // And Tents', where the same question is answered by reading
+                // the board rather than the words. See `held` and engine/tents.
+                (!!cursor.switches && held === cursor.key)
               const said = t.play.cursor[says]
               const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
               return (
@@ -1838,8 +1899,9 @@ export default function PuzzleHost({
                   // stand among, whatever each puzzle spends them on.
                   data-whose="upstream"
                   // Held down, where the face says so — for a mode the board
-                  // draws nowhere, and for a drag that is waiting to be closed.
-                  data-on={on || undefined}
+                  // draws nowhere, and for a drag that is waiting to be closed —
+                  // and where a switch is currently set. See `set` above.
+                  data-on={set || undefined}
                   /*
                    * And separately: the colour the arrows are painting with.
                    *
@@ -1863,11 +1925,13 @@ export default function PuzzleHost({
                     painting && cursor.brush && picksBrush && i === brushAt ? 'true' : undefined
                   }
                   aria-pressed={
-                    cursor.faces
-                      ? !!on
-                      : cursor.brush && picksBrush
-                        ? painting && i === brushAt
-                        : undefined
+                    cursor.instead
+                      ? set
+                      : cursor.faces
+                        ? !!on
+                        : cursor.brush && picksBrush
+                          ? painting && i === brushAt
+                          : undefined
                   }
                   aria-label={said}
                   /*
@@ -1890,7 +1954,12 @@ export default function PuzzleHost({
                     // where one run ends and the next one starts.
                     if (cursor.brush) setBrush(i)
                     if (key === null) return
-                    sendKey(key)
+                    // A switch that is already set empties the square instead,
+                    // and for Tents that swap happens here rather than in
+                    // `wouldSend`, which only ever sees the words. `set` is the
+                    // same bit the button is drawn with, so what it does and
+                    // what it looks like cannot come apart.
+                    sendKey(set && cursor.switches ? cursor.switches : key)
                   }}
                 >
                   <Icon name={icon} />

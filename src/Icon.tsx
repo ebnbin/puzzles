@@ -76,7 +76,6 @@ export type IconName =
   | 'sweepDown'
   | 'sweepLeft'
   | 'sweepRight'
-  | 'sweepDots'
   | 'rotate'
   | 'turnLeft'
   | 'turnRight'
@@ -491,39 +490,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M7.6 12h11.4" />
       <path d="m13 6 6 6-6 6" />
       <rect x="1.8" y="9.2" width="5.6" height="5.6" rx="1" fill="currentColor" stroke="none" />
-    </>
-  ),
-  /*
-   * And the stroke key for a puzzle whose stroke lays dots rather than fills.
-   *
-   * `sweep` is a run of filled cells, which is what Pattern and Tents paint —
-   * Tents' grass covers the whole tile in COL_GRASS (tents.c:2349), so a filled
-   * cell is a picture of it and not merely a symbol for one. Range's stroke
-   * paints WHITE, which upstream draws as a small dot at the centre of an empty
-   * tile (range.c:1791), while filling a tile is what its *other* key does
-   * (range.c:1786). So the shared glyph had Range's mode key promising a run of
-   * black squares beside the very key that makes them, and delivering dots.
-   *
-   * Same grammar as `sweep` — two laid down, one still to come — with the unit
-   * swapped, which is the whole of the difference between the two puzzles.
-   *
-   * Bare dots rather than dots inside cells, and that was measured rather than
-   * chosen: a dot that fits inside `sweep`'s 5.6 cell is r=1.15, which at the
-   * 20 these are drawn at is under a pixel and vanishes into the cell's own
-   * outline. Three cells with nothing visible in them is `sweep` with its fills
-   * lost, which is worse than either. Dropping the cells buys the room —
-   * r=2.5 — and loses nothing, since the run of three is already saying
-   * "square after square".
-   *
-   * Sixteen's rim pair is one dot and two dots, which is the nearest neighbour
-   * in the census. It does not collide: those are a lone count on a key and
-   * this is a run with an open end, and no board shows both.
-   */
-  sweepDots: (
-    <>
-      <circle cx="4.6" cy="12" r="2.5" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
-      <circle cx="19.4" cy="12" r="2.2" />
     </>
   ),
   /*
