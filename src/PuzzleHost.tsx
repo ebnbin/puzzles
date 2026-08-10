@@ -1656,11 +1656,23 @@ export default function PuzzleHost({
                     data-on={on || undefined}
                     aria-pressed={cursor.arms ? on : undefined}
                     aria-label={t.play.cursor[cursor.says]}
-                    // Emptying acts where the cursor is and so goes out with it,
-                    // exactly as the palette does. Arming does not: it says what
-                    // the *next* colour will mean, which is worth saying before
-                    // the cursor is anywhere.
-                    disabled={cursor.paints !== undefined && !awake}
+                    /*
+                     * Both out until there is a cursor. Emptying acts where the
+                     * cursor is, so that half was never in doubt; arming was
+                     * left live on the argument that it says what the *next*
+                     * colour will mean and is worth saying before the cursor is
+                     * anywhere.
+                     *
+                     * That argument is wrong and it is the same one that was
+                     * written for Pattern's stroke key and withdrawn there. What
+                     * kills it is the row, not the button: with no cursor the
+                     * four swatches and the emptying key are all out, so the one
+                     * live button is telling the reader that something on this
+                     * row works, and nothing does. Arming before there is
+                     * anywhere to paint also has nothing to arm — the very next
+                     * press it could modify is disabled.
+                     */
+                    disabled={!awake}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
                     onClick={() => {

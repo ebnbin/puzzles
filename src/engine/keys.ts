@@ -636,6 +636,15 @@ export type CursorKey = {
   /**
    * A modifier rather than a move: while it is armed the palette offers maybes
    * instead of colours, and the first colour pressed disarms it again.
+   *
+   * One press long, where `sweeps` lasts until it is pressed again. The app has
+   * both and they look the same while they are on — both are `whose: 'ours'`,
+   * both go to the solid accent — which is a thing to settle rather than leave:
+   * either they get one lifetime or they get two looks. Written down here
+   * because the look is the only thing a reader has to tell them apart by, and
+   * right now it tells them they are the same.
+   *
+   * Out while there is no cursor, like everything else it stands among.
    */
   arms?: boolean
   icon: IconName
