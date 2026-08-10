@@ -20,6 +20,11 @@ export interface Size {
 
 import { BACKGROUND, FIGURE, figureInk, forDarkBoard, RIM } from './palette'
 
+/** A shape the board asked for, with the colour slot it asked for it in. */
+export type Drawn =
+  | { kind: 'rect'; x: number; y: number; w: number; h: number; colour: number }
+  | { kind: 'poly'; points: number[]; colour: number }
+
 export class CanvasRenderer {
   private readonly onscreen: HTMLCanvasElement
   private readonly offscreen: HTMLCanvasElement
@@ -157,6 +162,36 @@ export class CanvasRenderer {
     ctx?.drawImage(this.offscreen, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0)
   }
 
+  // --- recording -----------------------------------------------------------
+
+  /**
+   * Watch what the board draws, for the one thing that cannot be asked any
+   * other way: which part of Map's board belongs to a clue.
+   *
+   * The shapes arrive here carrying the *colour number* the game asked for,
+   * not the pixels it came out as — `rect` and `poly` are the two calls Map
+   * paints a square with, and both are given a slot index straight out of
+   * map.c. So this is reading what the game said, one step before the theme
+   * translates it, which is a good deal closer to the source than the name
+   * "reading the drawing" suggests.
+   *
+   * Off unless somebody is holding the tape, and a push onto an array is the
+   * whole of the cost when they are. Nothing else in the app records; see
+   * engine/map for the one caller and for why the question has no other
+   * answer.
+   */
+  private tape: Drawn[] | null = null
+
+  record(): void {
+    this.tape = []
+  }
+
+  stop(): Drawn[] {
+    const tape = this.tape ?? []
+    this.tape = null
+    return tape
+  }
+
   // --- shapes --------------------------------------------------------------
 
   /**
@@ -167,6 +202,7 @@ export class CanvasRenderer {
    * rects wherever the tile is small enough to round their radius away.
    */
   rect(x: number, y: number, w: number, h: number, colour: number) {
+    this.tape?.push({ kind: 'rect', x, y, w, h, colour })
     this.ctx.fillStyle = colour === BACKGROUND ? this.colours[colour] : this.ink(colour)
     this.ctx.fillRect(x, y, w, h)
   }
@@ -222,6 +258,7 @@ export class CanvasRenderer {
 
   /** `points` is a flat [x0, y0, x1, y1, …]. A fill of -1 means outline only. */
   poly(points: number[], fill: number, outline: number) {
+    this.tape?.push({ kind: 'poly', points: [...points], colour: fill })
     const { ctx } = this
     ctx.beginPath()
     ctx.moveTo(points[0] + 0.5, points[1] + 0.5)

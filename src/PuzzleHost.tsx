@@ -31,8 +31,8 @@ import {
 import type { KeyLabels } from './engine/keys'
 import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
-import { mapSize, paintRegion, stepCursor } from './engine/map'
-import type { Paint, Spot } from './engine/map'
+import { clueAt, mapSize, paintRegion, readClues, stepCursor } from './engine/map'
+import type { Clues, Paint, Spot } from './engine/map'
 import { setOrClear } from './engine/tents'
 import {
   clearSave,
@@ -344,10 +344,37 @@ export default function PuzzleHost({
   const own = acts.find((k) => k.sweeps)?.brush
   const stroking =
     own ?? acts[brush]?.brush ?? acts.find((k) => k.brush && !k.sweeps)?.brush
+  /*
+   * The description, and the grid worked out from it.
+   *
+   * Keyed on the string rather than on the `permalink` object it came in, and
+   * that is not tidiness. `onPermalinks` fires from `midend_deserialise` as
+   * well as from `midend_new_game`, so every trip through the save file hands
+   * back a fresh object carrying the *same* description — and a memo keyed on
+   * the object would hand a fresh grid to everything downstream on every
+   * press. One of those downstream things reads the board by loading a save,
+   * which fires `onPermalinks`, which is a loop. It was written that way once
+   * and it spun: the palette stayed dark because every turn of it reset the
+   * cursor. See the clue effect below.
+   */
+  const desc = permalink?.desc
   const grid = useMemo(
-    () => (name === 'map' && permalink ? mapSize(permalink.desc.split(':')[0]) : null),
-    [name, permalink],
+    () => (name === 'map' && desc ? mapSize(desc.split(':')[0]) : null),
+    [name, desc],
   )
+  /*
+   * Which of Map's squares belong to a clue, and whether the cursor is on one.
+   *
+   * The table is the board's and is read once per deal; the bit is the cursor's
+   * and moves with it. Kept apart because they change on completely different
+   * clocks — a ref for the table, since nothing renders differently for it, and
+   * state for the bit, since the palette goes out under it.
+   *
+   * See engine/map: the reading is one redraw of the dealt position, which is
+   * the moment "coloured" and "is a clue" are the same fact.
+   */
+  const clues = useRef<Clues | null>(null)
+  const [onClue, setOnClue] = useState(false)
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -371,6 +398,30 @@ export default function PuzzleHost({
   // that it is still in the reader's language if they change it afterwards.
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+
+  const reading = useRef(false)
+  useEffect(() => {
+    const api = apiRef.current
+    const renderer = rendererRef.current
+    // Reading the board loads a save, which announces a new game, which lands
+    // back here. The description has not changed, so the deps above should not
+    // fire again — but a re-entrant read would empty `clues` and reset the
+    // cursor on every press if they ever did, and that failure is silent: the
+    // palette simply stays dark. Cheap to make impossible.
+    if (reading.current) return
+    clues.current = null
+    setOnClue(false)
+    // Only once the board is up: reading it means loading the deal over it and
+    // loading it back, and there is nothing to put back before then.
+    if (!ready || !api || !renderer || !grid || !desc) return
+    reading.current = true
+    try {
+      clues.current = readClues(api, renderer, grid)
+    } finally {
+      reading.current = false
+    }
+  }, [desc, grid, ready])
+
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -1116,11 +1167,12 @@ export default function PuzzleHost({
     (key: KeyLabel) =>
       (key.needs !== undefined && labels.enter !== key.needs) ||
       (key.behind !== undefined && typed === 0) ||
-      // And Map's palette, which acts where the cursor is and so has nothing to
-      // act on while the reader cannot see where that is. Same sentence as the
-      // key beside the arrows that empties a region.
-      (key.paints !== undefined && !awake),
-    [awake, labels.enter, typed],
+      // And Map's palette, which acts where the cursor is: nothing to act on
+      // while the reader cannot see where that is, and nothing it *may* act on
+      // when that is a clue. Same sentence as the key beside the arrows that
+      // empties a region.
+      (key.paints !== undefined && (!awake || onClue)),
+    [awake, labels.enter, onClue, typed],
   )
 
   /*
@@ -1275,7 +1327,13 @@ export default function PuzzleHost({
       // select keys, and none of them is ever sent modified.
       if (wakesCursor(name, key)) setAwake(true)
       if (!mod && opens(name, key, labelsRef.current)) setOpened(key)
-      if (grid) spot.current = stepCursor(spot.current, key, grid)
+      if (grid) {
+        spot.current = stepCursor(spot.current, key, grid)
+        // The quadrant the cursor lands on depends on the arrow that took it
+        // there, so the answer is worked out here rather than at render time
+        // where the direction is no longer known. See `clueAt`.
+        setOnClue(clues.current ? clueAt(clues.current, spot.current, key) : false)
+      }
       api.key(0, key, '', where, mod?.shift ? 1 : 0, mod?.ctrl ? 1 : 0)
       canvasRef.current?.focus()
     },
@@ -1705,8 +1763,15 @@ export default function PuzzleHost({
                      * row works, and nothing does. Arming before there is
                      * anywhere to paint also has nothing to arm — the very next
                      * press it could modify is disabled.
+                     *
+                     * A clue under the cursor is not the same case and does not
+                     * dim it. There the row is alive — the arrows work, the
+                     * cursor is on screen, and the square the next colour will
+                     * land on is one press away — so a mode about the next press
+                     * is telling the truth. What the no-cursor case takes away
+                     * is the reader's ability to see where any of it applies.
                      */
-                    disabled={!awake}
+                    disabled={!awake || (cursor.paints !== undefined && onClue)}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
                     onClick={() => {

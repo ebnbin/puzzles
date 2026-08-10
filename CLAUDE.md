@@ -122,6 +122,7 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 node scripts/check-cube.mjs       # src/engine/cube.ts 和引擎对不对得上,同样要 preview + playwright
 node scripts/check-map.mjs        # map 的调色板落色落在光标那一格,同上
 node scripts/check-tents.mjs      # tents 两个开关键六种情况各落在哪个值,同上
+node scripts/check-clues.mjs      # map 的调色板只在能填的格子上亮,同上
 ```
 
 `src/engine/cube.ts` 把上游的网格几何在这一侧重写了一遍(为了给 cube 滚不过去的那个方向置灰,
@@ -132,6 +133,12 @@ node scripts/check-tents.mjs      # tents 两个开关键六种情况各落在�
 了(见 `docs/keys.md`),现在改成让引擎自己说出光标下是哪个区域。所以那个脚本不比对模型,它按
 真按钮再从外面问一遍光标站在哪,两个读数对不上就报。改 `engine/map`、改 `PuzzleHost` 那份光标
 副本、或者升级上游之后跑它。
+
+`check-clues.mjs` 是 `check-map.mjs` 的另一半:那个问「按下去有没有落对区域」,这个问「按钮该不该
+亮」。`src/engine/map.ts` 判「这一格能不能填」的办法是**录一次发牌局面的重画**——发牌那一刻
+「有颜色」和「是线索」是同一件事(map.c:1896-1897),所以棋盘自己画出来的就是那张表。脚本用引擎
+对照:先把每个区域都上色,再在每一格按两下选择键(上游自己的「清空这个区域」),能清空的就不是线索。
+改 `engine/map` 的线索读取、改 `CanvasRenderer` 的录制、或者升级上游之后跑它。
 
 `check-tents.mjs` 是同一类:`src/engine/tents.ts` 也不模型化棋盘,它倒着走一遍存档里的走子,
 只为回答「光标这一格刚才是什么」。脚本用另一种读法对照——从 DESC 和走子表**正着**重建整盘,
