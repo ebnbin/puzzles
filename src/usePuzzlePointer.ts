@@ -35,9 +35,11 @@ type Pending = {
  * Touch is not. Half these puzzles need a right-click — flagging a mine,
  * pencilling a Sudoku digit — and a finger has only one button. So a touch
  * press is not dispatched at once: it waits until the gesture reveals itself.
- * Lift quickly and it was a left click; hold still and it was the second press;
- * move and it was a drag all along, replayed from where it started so puzzles
- * that drag still work.
+ * Lift quickly and it was a left click; move and it was a drag all along,
+ * replayed from where it started so puzzles that drag still work; hold still
+ * and it was the second press — and moving after that drags with the second
+ * button, which is the only way a finger can reach the right-button drag that
+ * several of these puzzles paint a whole run with.
  *
  * Which leaves the question a puzzle can answer for itself: what a hold is
  * worth. Only a hold — the mouse below is upstream's, button for button, and
@@ -132,12 +134,28 @@ export function usePuzzlePointer(
         clientX: e.clientX,
         clientY: e.clientY,
         timer: window.setTimeout(() => {
-          // Held still long enough: this is the second press. Fire press and
-          // release together, since there is nothing sensible to drag now.
-          const p = flush(hold)
-          if (!p) return
-          apiRef.current?.mouseup(p.x, p.y, hold)
-          held.current.delete(p.pointerId)
+          // Held still long enough: this is the second press. Press only, and
+          // leave the button down until the finger lifts, which is what the
+          // mouse above does and is the whole of what a right drag needs.
+          //
+          // This used to fire the release here too, on the reasoning that there
+          // was nothing sensible to drag once a hold had been recognised. That
+          // is not upstream's reasoning: a run of squares is painted by
+          // dragging with the second button, and by that button alone. Pattern
+          // fills black on a left drag and white on a right one (pattern.c:1314-1334);
+          // Tents makes a left drag a plain click on purpose and paints grass
+          // only on the right one (tents.c:1518-1525); Rect erases a rectangle
+          // on a right drag and Signpost starts one. Crossing out is the bulk
+          // of the work in a nonogram and grass is the bulk of it in Tents, so
+          // what the release cost was the larger half of two games — and cost
+          // it on a board with no cursor and no keypad, which is the default
+          // one.
+          //
+          // Nothing that acted at the moment of the hold has moved: the press
+          // still lands at LONG_PRESS_MS. Only the release is later, and a
+          // puzzle that reads it reads it as the end of a drag of no extent,
+          // which is what a mouse would have said too.
+          flush(hold)
         }, LONG_PRESS_MS),
       }
     },
