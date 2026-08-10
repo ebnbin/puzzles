@@ -340,9 +340,19 @@ export default function PuzzleHost({
    * covers the moment before anything has been pressed, and lands on the first
    * key with a brush rather than the first key, since on Tents that is a tent.
    */
-  const own = acts.find((k) => k.sweeps)?.brush
-  const stroking =
-    own ?? acts[brush]?.brush ?? acts.find((k) => k.brush && !k.sweeps)?.brush
+  /*
+   * Which key's brush a stroke is carrying: the last one pressed that has one,
+   * and otherwise the first key that has one at all.
+   *
+   * As an index rather than as a brush, which is the whole of the fix here. It
+   * used to be a brush with a fallback chain, and the ring that shows which key
+   * is chosen re-derived the answer from `brush` on its own — so on a puzzle
+   * whose first key has no brush the two disagreed: the stroke painted green
+   * because the chain found green, and the ring pointed at Tents' tent key,
+   * which has no brush, so nothing was ringed at all. One number, read once.
+   */
+  const brushAt = acts[brush]?.brush ? brush : acts.findIndex((k) => k.brush)
+  const stroking = brushAt >= 0 ? acts[brushAt].brush : undefined
   /*
    * The description, and the grid worked out from it.
    *
@@ -1817,13 +1827,13 @@ export default function PuzzleHost({
                   // Only where there is a choice to show: a one-value stroke
                   // carries its brush on the mode key and rings nothing.
                   data-brush={
-                    painting && !own && cursor.brush && i === brush ? 'true' : undefined
+                    painting && cursor.brush && i === brushAt ? 'true' : undefined
                   }
                   aria-pressed={
                     cursor.faces
                       ? !!on
-                      : cursor.brush && !own
-                        ? painting && i === brush
+                      : cursor.brush
+                        ? painting && i === brushAt
                         : undefined
                   }
                   aria-label={said}
