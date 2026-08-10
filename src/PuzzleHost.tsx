@@ -1777,6 +1777,15 @@ export default function PuzzleHost({
                * The bit is kept while it is out, so a cursor that comes back
                * finds the mode where it was left.
                */
+              // The list is slots rather than buttons, and a slot is empty while
+              // its level is not the one running. Filtered here rather than
+              // before the map so `i` stays the slot's own number: the keys that
+              // are always there keep their places when a neighbour empties.
+              // See `level` in engine/keys.
+              if (!inMenu(name, cursor, labels, awake)) return null
+              // Above the special-cased kinds below and not after them, which is
+              // where it used to sit: Bridges' arming key is the first of those
+              // to carry a level, and it was drawn straight through the filter.
               /*
                * The arming key, which sends nothing itself: it puts a modifier
                * on the next arrow. Drawn like the stroke key because it is the
@@ -1897,12 +1906,6 @@ export default function PuzzleHost({
                   </button>
                 )
               }
-              // The list is slots rather than buttons, and a slot is empty while
-              // its level is not the one running. Filtered here rather than
-              // before the map so `i` stays the slot's own number: the keys that
-              // are always there keep their places when a neighbour empties.
-              // See `level` in engine/keys.
-              if (!inMenu(name, cursor, labels, awake)) return null
               // What the key is right now, which for two puzzles is not what it
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
@@ -2001,6 +2004,11 @@ export default function PuzzleHost({
                     // a square that already has this colour, which is exactly
                     // where one run ends and the next one starts.
                     if (cursor.brush) setBrush(i)
+                    // Any other key in this row puts the arming down. Bridges'
+                    // Enter opens a drag the next arrow lands, so leaving a
+                    // no-bridge mark armed across it would take that arrow for
+                    // something the reader stopped asking for two presses ago.
+                    setPrimed(false)
                     if (key === null) return
                     // A switch that is already set empties the square instead,
                     // and for Tents that swap happens here rather than in

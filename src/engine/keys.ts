@@ -818,7 +818,7 @@ export type CursorKey = {
    * See `SECOND` for how the level is read, and `ACT` in PuzzleHost for why the
    * slots keep their places when one of them empties.
    */
-  level?: 2
+  level?: 1 | 2
   /**
    * Or, for a key that changes job as the puzzle goes along: a face per word
    * its own key can report.
@@ -1438,6 +1438,14 @@ const SECOND: Record<string, readonly string[]> = {
    * flooding key beside it is untouched.
    */
   flood: ['Advance'],
+  /*
+   * And Bridges', which is a drag rather than a selection: Enter opens one and
+   * the next arrow lands it. "Finished" is what Enter reports for exactly that
+   * (bridges.c:2187) and "Select" is what it reports otherwise, so the word is
+   * the state. Space says "Finished" all game long and is no evidence at all —
+   * see `inMenu`, which is why it reads Enter alone.
+   */
+  bridges: ['Finished'],
 }
 
 /**
@@ -1468,7 +1476,23 @@ export const inMenu = (
   if (gated(name, cursor) && !awake) return false
   if (!understood(name, labels)) return true
   const second = SECOND[name]
-  return !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
+  /*
+   * Read off the first key alone, which is the only one that can answer.
+   *
+   * The blanking falls on the *second* word — `js_update_key_labels` hands over
+   * CURSOR_SELECT2 first and clears it when the pair agree — so Enter's word is
+   * never eaten and is the honest one to test. Asking "either of them" happened
+   * to work while Same Game was the only entry and does not survive the second:
+   * Bridges' Space reports "Finished" unconditionally (bridges.c:2187), open
+   * drag or not, so either-of-them is true for the whole game there.
+   */
+  const open = !!second && !!labels.enter && second.includes(labels.enter)
+  // A second-level slot is in the menu while the level is open, and a
+  // first-level one while it is shut. Both are levels, not one level and a
+  // default: a key that only makes sense before something has been started has
+  // to leave when it starts, or it stands there promising a press that the
+  // thing already open will take instead.
+  return cursor.level === 2 ? open : !open
 }
 
 /**
@@ -2731,7 +2755,12 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     },
     // And the mark that says two islands are definitely not joined, which is
     // upstream's Shift+arrow and has no other way in. See `primes`.
-    { key: '', icon: 'noBridge', says: 'noBridge', primes: { shift: true } },
+    // First level only: while Enter's drag is open the row is about landing that
+    // bridge, and an arming key beside it would be promising a press the drag is
+    // going to take. Measured before it was fixed — both keys lit at once, one
+    // saying "land the bridge here" and this one saying "mark no bridge", and
+    // only this one was telling the truth.
+    { key: '', icon: 'noBridge', says: 'noBridge', primes: { shift: true }, level: 1 },
   ],
 
   /*
