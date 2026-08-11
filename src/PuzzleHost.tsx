@@ -1783,6 +1783,24 @@ export default function PuzzleHost({
               // are always there keep their places when a neighbour empties.
               // See `level` in engine/keys.
               if (!inMenu(name, cursor, labels, awake)) return null
+              /*
+               * And the level one of our own keys opens, which the line above
+               * cannot see: it reads the back end's words, and the back end does
+               * not know this arming exists.
+               *
+               * While it is armed the row is that key's menu. Everything else in
+               * it would take the press the arming is waiting for — measured
+               * before this was here: key 1 opened a drag and key 2 marked an
+               * island, and both threw the arming away without a word. That is
+               * the same fault as the one this key had in the other direction,
+               * and it was left standing because only the direction that was
+               * pointed at got looked at.
+               *
+               * `asleep` is in the test for the same reason it is in `armed`
+               * below: with no cursor the arming is not doing anything, so the
+               * row should be its ordinary self rather than one dead key.
+               */
+              if (primed && !asleep && !cursor.primes) return null
               // Above the special-cased kinds below and not after them, which is
               // where it used to sit: Bridges' arming key is the first of those
               // to carry a level, and it was drawn straight through the filter.
