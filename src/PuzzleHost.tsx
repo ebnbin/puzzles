@@ -424,7 +424,7 @@ export default function PuzzleHost({
    * it is armed an arrow marks instead of moving — see `primes` in engine/keys
    * for why that rules out the sticky shape the stroke mode uses.
    */
-  const [primed, setPrimed] = useState(false)
+  const [primed, setPrimed] = useState<number | null>(null)
   /**
    * How many of each value are still to be placed, for the keys to say so.
    *
@@ -1712,13 +1712,25 @@ export default function PuzzleHost({
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  // An armed no-bridge mark rides out on this press and is
-                  // spent by it, whether or not the mark lands: upstream
-                  // refuses at the edge of the grid, and a modifier left armed
-                  // after a press the reader has already made would fire on a
-                  // later one they did not mean it for. See `primes`.
-                  if (primed) setPrimed(false)
-                  sendKey(key, where, primed ? { shift: true } : stroke)
+                  const armed = primed === null ? null : acts[primed].primes
+                  /*
+                   * Spent by the press only if the press landed, which is not
+                   * fussiness: upstream sets `dragging` *before* it tries to
+                   * move and never clears it when the move is refused
+                   * (bridges.c:2455-2461), so an armed arrow into the edge of
+                   * the grid writes nothing and leaves the back end mid-drag.
+                   * Measured: the next bare arrow then wrote N4,0,1,0, a mark
+                   * the reader was only trying to walk past.
+                   *
+                   * Keeping the arming on in that case puts the two back in
+                   * step — the next arrow goes out modified, lands in the same
+                   * branch, and that branch resets the drag from the cursor. The
+                   * save is the sensor, and it is only read when something is
+                   * armed, which is the only time it can be wrong.
+                   */
+                  const before = armed ? apiRef.current?.saveGame() : undefined
+                  sendKey(key, where, armed ?? stroke)
+                  if (armed && apiRef.current?.saveGame() !== before) setPrimed(null)
                 }}
               >
                 <Icon name={icon} />
@@ -1800,7 +1812,7 @@ export default function PuzzleHost({
                * below: with no cursor the arming is not doing anything, so the
                * row should be its ordinary self rather than one dead key.
                */
-              if (primed && !asleep && !cursor.primes) return null
+              if (primed !== null && i !== primed) return null
               // Above the special-cased kinds below and not after them, which is
               // where it used to sit: Bridges' arming key is the first of those
               // to carry a level, and it was drawn straight through the filter.
@@ -1812,7 +1824,16 @@ export default function PuzzleHost({
                * on a press that cannot happen claims nothing.
                */
               if (cursor.primes) {
-                const armed = primed && !asleep
+                const armed = primed === i
+                /*
+                 * Out with no cursor on the board, and this is not decoration.
+                 * Upstream's modified-arrow branch shows the cursor and paints
+                 * in the same press (bridges.c:2447-2453), so an armed arrow
+                 * pressed blind would build from wherever the cursor was last
+                 * left. Both words go empty exactly when it is hidden, which is
+                 * the only thing this side can see.
+                 */
+                const blind = !labels.enter && !labels.space
                 return (
                   <button
                     key={cursor.icon}
@@ -1821,14 +1842,14 @@ export default function PuzzleHost({
                     data-whose="ours"
                     data-on={armed || undefined}
                     aria-pressed={armed}
-                    disabled={asleep}
+                    disabled={blind}
                     aria-label={t.play.cursor[cursor.says]}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
                     onClick={() => {
                       if (wasHeld()) return
                       acted()
-                      setPrimed((was) => !was)
+                      setPrimed((was) => (was === i ? null : i))
                       canvasRef.current?.focus()
                     }}
                   >
@@ -2026,7 +2047,7 @@ export default function PuzzleHost({
                     // Enter opens a drag the next arrow lands, so leaving a
                     // no-bridge mark armed across it would take that arrow for
                     // something the reader stopped asking for two presses ago.
-                    setPrimed(false)
+                    setPrimed(null)
                     if (key === null) return
                     // A switch that is already set empties the square instead,
                     // and for Tents that swap happens here rather than in

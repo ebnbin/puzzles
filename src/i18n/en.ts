@@ -370,7 +370,14 @@ export const en = {
        */
       startBridge: 'Start a bridge from this island',
       endBridge: 'Land the bridge here',
-      islandDone: 'Mark this island as finished',
+      /* Named as the switch it is, since upstream reports the same word both
+         ways and this side has no other sensor — the same reason Palisade's two
+         are named as switches. It does toggle: measured, two presses put the
+         board back to the same pixels. */
+      islandDone: 'Mark or unmark this island as finished',
+      /* And the pair that arm a direction for the arrow after them. Which way
+         is not in the name — that is the arrow's half. */
+      buildBridge: 'Next arrow: build a bridge that way',
       /* Bridges' third, and ours. Named as what the next arrow will do rather
          than as a state, because that is its whole life: it is spent by the
          press it modifies. */

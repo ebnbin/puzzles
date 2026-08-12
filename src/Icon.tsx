@@ -142,6 +142,7 @@ export type IconName =
   | 'erase'
   | 'cancel'
   | 'sweep'
+  | 'bridge'
   | 'noBridge'
 
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -1042,6 +1043,25 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <circle cx="12" cy="12" r="4.6" fill="currentColor" />
       <circle cx="12" cy="12" r="8.4" />
+    </>
+  ),
+  /*
+   * Two islands with a bridge between them, and its opposite one line down.
+   *
+   * A pair, and drawn as one: these two keys ask the same question — which way
+   * from here — and differ only in what lands. Islands are filled circles in
+   * this puzzle (`island` and `islandDone` are both one), so a pair of them is
+   * its word for a pair, and what sits between them is the whole of the
+   * difference.
+   *
+   * Undirected, like its opposite and for the same reason: the direction is the
+   * arrow pressed after it, and this side does not know it yet.
+   */
+  bridge: (
+    <>
+      <circle cx="4.6" cy="12" r="3" fill="currentColor" stroke="none" />
+      <circle cx="19.4" cy="12" r="3" fill="currentColor" stroke="none" />
+      <path d="M8.2 12h7.6" strokeWidth="2.4" />
     </>
   ),
   /*

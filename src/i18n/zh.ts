@@ -154,7 +154,8 @@ export const zh: Strings = {
          丢进格子里、用来记住这格属于哪个点的记号。 */
       startBridge: '从这座岛开始架桥',
       endBridge: '把桥搭到这里',
-      islandDone: '把这座岛标记为已完成',
+      islandDone: '标记或取消标记这座岛已完成',
+      buildBridge: '下一个方向键：往那边架一座桥',
       noBridge: '下一个方向键：标记那边没有桥',
       linkFrom: '把这一格连到下一格',
       linkTo: '把这一格连到上一格',

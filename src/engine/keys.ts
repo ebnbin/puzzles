@@ -714,7 +714,7 @@ export type CursorKey = {
    * this: `Enter` is an arming key too — it opens a drag the next arrow closes —
    * and it says so by changing its own face. A one-press life needs no more.
    */
-  primes?: { shift?: boolean; ctrl?: boolean }
+  primes?: { shift?: true; ctrl?: true }
   /**
    * The modifier that paints this key's result along a cursor move, for the
    * puzzles whose arrows can paint.
@@ -944,6 +944,7 @@ export type CursorWord =
   | 'startBridge'
   | 'endBridge'
   | 'islandDone'
+  | 'buildBridge'
   | 'noBridge'
   | 'linkFrom'
   | 'linkTo'
@@ -1438,14 +1439,6 @@ const SECOND: Record<string, readonly string[]> = {
    * flooding key beside it is untouched.
    */
   flood: ['Advance'],
-  /*
-   * And Bridges', which is a drag rather than a selection: Enter opens one and
-   * the next arrow lands it. "Finished" is what Enter reports for exactly that
-   * (bridges.c:2187) and "Select" is what it reports otherwise, so the word is
-   * the state. Space says "Finished" all game long and is no evidence at all —
-   * see `inMenu`, which is why it reads Enter alone.
-   */
-  bridges: ['Finished'],
 }
 
 /**
@@ -2737,30 +2730,31 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * upstream then refuses to let you disturb its bridges. Mid-drag both report
    * "Finished" — Enter lands it, Space drops it — which is what `BOTH` is for.
    */
+  /*
+   * Bridges' three, and the shape falls straight out of the game: everything it
+   * does to the board is about a *pair* of islands except one thing, which is
+   * about the island itself.
+   *
+   * So two of these arm a direction and the arrow supplies it — one lays a
+   * bridge (upstream's Ctrl, cycling 0-1-2-0 as it is pressed again), one
+   * toggles "definitely not joined" (Shift) — and the third is a plain switch on
+   * the island under the cursor. Same shape for the same question, and the odd
+   * one out is odd because the game is.
+   *
+   * Upstream's Enter is not sent at all, and dropping it is what this row is
+   * for. Enter opens a drag that the next arrow closes, which is the same two
+   * presses arming costs, but it cannot be called off — both select keys answer
+   * an open drag by cancelling it *and* marking the island (bridges.c:2521-2532)
+   * — and while it is open `current_key_label` says "Finished", which names that
+   * marking and not the bridge. Read as "land the bridge here" it put a tick on
+   * a button that lands nothing. Nothing here reads that word any more.
+   */
   bridges: [
-    {
-      key: 'Enter',
-      icon: 'island',
-      says: 'startBridge',
-      faces: {
-        Select: { icon: 'island', says: 'startBridge' },
-        Finished: { icon: 'done', says: 'endBridge', on: true },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'islandDone',
-      says: 'islandDone',
-      faces: { Finished: { icon: 'islandDone', says: 'islandDone' } },
-    },
-    // And the mark that says two islands are definitely not joined, which is
-    // upstream's Shift+arrow and has no other way in. See `primes`.
-    // First level only: while Enter's drag is open the row is about landing that
-    // bridge, and an arming key beside it would be promising a press the drag is
-    // going to take. Measured before it was fixed — both keys lit at once, one
-    // saying "land the bridge here" and this one saying "mark no bridge", and
-    // only this one was telling the truth.
-    { key: '', icon: 'noBridge', says: 'noBridge', primes: { shift: true }, level: 1 },
+    // Upstream's own key first, ours after it, which is the ladder. The pair
+    // stays together at the end because they are a pair.
+    { key: ' ', icon: 'islandDone', says: 'islandDone' },
+    { key: '', icon: 'bridge', says: 'buildBridge', primes: { ctrl: true } },
+    { key: '', icon: 'noBridge', says: 'noBridge', primes: { shift: true } },
   ],
 
   /*
