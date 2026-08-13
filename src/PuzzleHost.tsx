@@ -14,6 +14,7 @@ import {
   cursorKeys,
   faceOf,
   holding,
+  overwrites,
   inMenu,
   HOLD_BUTTON,
   keysFor,
@@ -2055,6 +2056,10 @@ export default function PuzzleHost({
                     // same bit the button is drawn with, so what it does and
                     // what it looks like cannot come apart.
                     sendKey(set && cursor.switches ? cursor.switches : key)
+                    // And once more where the square holds the other value: the
+                    // first press takes that off, the second puts this key's own
+                    // on. See `twice` in engine/keys.
+                    if (overwrites(cursor, labels)) sendKey(key)
                   }}
                 >
                   <Icon name={icon} />

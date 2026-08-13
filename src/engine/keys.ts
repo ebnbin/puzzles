@@ -677,6 +677,24 @@ export type CursorKey = {
    */
   instead?: string
   /**
+   * And that the same key twice covers the square holding the *other* value,
+   * which is what makes every state one press from every other.
+   *
+   * Singles', and it works because upstream's two select keys both clear a
+   * marked square (singles.c:1571-1576, either becoming 'E') and then place on
+   * a plain one. So this key pressed twice is "take the other mark off, put
+   * mine on" — one button press, two keys out, and no key that upstream does
+   * not already read.
+   *
+   * The alternative was two presses by the reader, with the button dark on the
+   * other value's square until they had cleared it themselves. That is honest
+   * and it is what Same Game's rule asks for when a button would be doing its
+   * neighbour's job — but this is not that: the neighbour clears, and this
+   * places. Doing it in one press costs two entries in the undo history, so
+   * stepping back over it takes two, which is the whole of the price.
+   */
+  twice?: true
+  /**
    * And the key to send when the square already holds this key's own value,
    * for a switch whose puzzle cannot answer that in words.
    *
@@ -1542,6 +1560,22 @@ export const holding = (cursor: CursorKey, labels: KeyLabels) =>
   labels.space !== cursor.does &&
   (labels.enter === cursor.instead || labels.space === cursor.instead)
 
+/**
+ * Whether this switch is about to overwrite the other value rather than place
+ * on a plain square or clear its own.
+ *
+ * Neither word is on offer and the back end is still talking, which for a
+ * puzzle with one word per state leaves exactly one thing it can be: the other
+ * mark is in the square. Silence is the separate case and means no cursor.
+ */
+export const overwrites = (cursor: CursorKey, labels: KeyLabels) =>
+  !!cursor.twice &&
+  !!cursor.does &&
+  !holding(cursor, labels) &&
+  labels.enter !== cursor.does &&
+  labels.space !== cursor.does &&
+  !!(labels.enter || labels.space)
+
 export const wouldSend = (
   name: string,
   cursor: CursorKey,
@@ -1552,6 +1586,9 @@ export const wouldSend = (
   if (SILENT.has(name)) return cursor.key
   if (understood(name, labels)) {
     if (cursor.does) {
+      // Its own key, twice, and the second press is what places — so the face
+      // stays this key's own rather than turning into a clear. See `twice`.
+      if (overwrites(cursor, labels)) return cursor.key
       const asks = holding(cursor, labels) ? cursor.instead : cursor.does
       if (labels.enter === asks) return 'Enter'
       if (labels.space === asks) return ' '
@@ -2514,8 +2551,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * mouse, and nothing else).
    */
   singles: [
-    { key: 'Enter', icon: 'black', says: 'blackSquare', does: 'Black', instead: 'Restore' },
-    { key: ' ', icon: 'circleSquare', says: 'circle', does: 'Circle', instead: 'Remove' },
+    { key: 'Enter', icon: 'black', says: 'blackSquare', does: 'Black', instead: 'Restore', twice: true },
+    { key: ' ', icon: 'circleSquare', says: 'circle', does: 'Circle', instead: 'Remove', twice: true },
   ],
 
   unruly: [
