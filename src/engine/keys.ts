@@ -1502,19 +1502,6 @@ export const inMenu = (
   labels: KeyLabels,
   awake: boolean,
 ) => {
-  /*
-   * Signpost's level is a link being dragged, and only one key belongs to it:
-   * both do the same thing while it is open (signpost.c:1528-1543 never asks
-   * which was pressed), so the one that did not open it stands there wearing
-   * the same face and doing the same job. See `opener`, whose answer arrives on
-   * `labels.opened`.
-   *
-   * Above the `level` test rather than inside it, because these keys carry no
-   * level: `level` names a slot that comes and goes, and here both slots are
-   * ordinary until a drag makes one of them a duplicate.
-   */
-  if (name === 'signpost' && labels.space === '' && labels.enter !== '')
-    return labels.opened === cursor.key
   if (!cursor.level) return true
   if (gated(name, cursor) && !awake) return false
   if (!understood(name, labels)) return true
@@ -1691,6 +1678,18 @@ const mine = (name: string, cursor: CursorKey, labels: KeyLabels) => {
   // neighbour keeps the abandon. See `opened` and `WAITING`.
   if (WAITING[name] === word && labels.space === '' && labels.opened)
     return cursor.key === labels.opened ? PENDING : word
+  /*
+   * And Signpost's, where the split has to happen for every word rather than
+   * one. Rectangles' keys come apart on their own once its drag has moved;
+   * Signpost's never do — both report whatever the square under the cursor
+   * offers, all the way through. So the pair is told apart here: the key that
+   * opened the link is the finisher, its neighbour the abandon, and each is
+   * held out on the squares where it would do the other's job. See `opener`.
+   */
+  if (name === 'signpost' && labels.space === '' && word && labels.opened) {
+    if (cursor.key === labels.opened) return word === 'Cancel' ? PENDING : word
+    return word === 'Cancel' ? word : IDLING
+  }
   return word
 }
 
@@ -1705,6 +1704,20 @@ const mine = (name: string, cursor: CursorKey, labels: KeyLabels) => {
  */
 const WAITING: Record<string, string> = { rect: 'Cancel' }
 const PENDING = '\0waiting'
+/**
+ * And the abandon that cannot abandon, which is Signpost's alone.
+ *
+ * Rectangles' pair really are a finisher and an abandoner once its drag has
+ * moved — `erasing == ui->erasing` lets only the matching key into the branch
+ * that writes (rect.c:2511). Signpost's are not: its select branch never asks
+ * which key was pressed (signpost.c:1528-1543), so on a square the link can
+ * reach *either* key lands it. Pressing the one drawn as an abandon would
+ * therefore do the opposite of what it says, so it is shown and held out until
+ * the cursor is somewhere the link cannot land — which is the same square its
+ * neighbour's tick goes out on, and the reason exactly one of the pair is live
+ * at any moment while a link is open.
+ */
+const IDLING = '\0idling'
 
 /**
  * The face a key should be wearing: its picture, its word, and whether to draw
@@ -2874,6 +2887,29 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * it to dim in favour of, and upstream has no such key — the same press does
    * both, and where the cursor is decides which.
    */
+  /*
+   * Signpost, where a press opens a link and the next one lands it — and where
+   * the pair has to be told apart by this side, because upstream never does.
+   *
+   * Idle the two differ: Enter drags a link forward from this square, Space
+   * drags one back to it. Once either is open the select branch stops asking
+   * which key was pressed (signpost.c:1528-1543) — whichever it is ends the
+   * drag, writing the link where the cursor can reach and abandoning it where
+   * it cannot. Both keys, one action.
+   *
+   * Rectangles' shape all the same, because a pair of buttons can say more than
+   * upstream's two keys have to: the key that opened it is the finisher for the
+   * whole flow and its neighbour is the abandon. What differs is that
+   * Rectangles' keys genuinely come apart once its drag has moved, so only the
+   * "opened but unmoved" moment needs help; Signpost's never come apart, so
+   * every moment does. `mine` does it, with PENDING for a tick that cannot
+   * finish yet and IDLING for an X that would land the link if it were pressed.
+   *
+   * So exactly one of the pair is live at a time, and it is the one that does
+   * what it says: on a square the link can reach, the tick; anywhere else, the
+   * X. That is what upstream can do, laid out as two buttons rather than one
+   * changing meaning underfoot.
+   */
   signpost: [
     {
       key: 'Enter',
@@ -2882,6 +2918,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'From here': { icon: 'linkFrom', says: 'linkFrom' },
         'To here': { icon: 'done', says: 'endLink', on: true },
+        [PENDING]: { icon: 'done', says: 'endLink', idle: true },
+        [IDLING]: { icon: 'cancel', says: 'cancelLink', idle: true },
         Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
       },
     },
@@ -2892,6 +2930,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         'To here': { icon: 'linkTo', says: 'linkTo' },
         'From here': { icon: 'done', says: 'endLink', on: true },
+        [PENDING]: { icon: 'done', says: 'endLink', idle: true },
+        [IDLING]: { icon: 'cancel', says: 'cancelLink', idle: true },
         Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
       },
     },
