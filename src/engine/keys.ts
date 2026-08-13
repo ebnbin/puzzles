@@ -1515,16 +1515,28 @@ export const inMenu = (
   if (!understood(name, labels)) return true
   const second = SECOND[name]
   /*
-   * Read off the first key alone, which is the only one that can answer.
+   * Either key, because which of the two carries the word is the puzzle's
+   * business and the table has already said which words count. Same Game's and
+   * Pearl's come from Enter, Inertia's from both, and Flood's from Space alone
+   * — its keys never share a state, so "Advance" arrives on the second word and
+   * nowhere else (flood.c:813).
    *
-   * The blanking falls on the *second* word — `js_update_key_labels` hands over
-   * CURSOR_SELECT2 first and clears it when the pair agree — so Enter's word is
-   * never eaten and is the honest one to test. Asking "either of them" happened
-   * to work while Same Game was the only entry and does not survive the second:
-   * Bridges' Space reports "Finished" unconditionally (bridges.c:2187), open
-   * drag or not, so either-of-them is true for the whole game there.
+   * This read Enter alone for a while, on the argument that the blanking falls
+   * on the *second* word — `js_update_key_labels` hands over CURSOR_SELECT2's
+   * first and clears it when the pair agree — so Enter's is the one that is
+   * never eaten. True, and it does not follow: a puzzle whose keys agree still
+   * has Enter's copy to read, and a puzzle whose keys differ has nothing
+   * blanked. What it cost was Flood, whose Advance button stopped appearing at
+   * all — its level was reported from the one place the test had stopped
+   * looking, and the button is only ever on screen after Solve, which is not
+   * where anybody looks.
+   *
+   * What the table owes in return: its words have to be second-level words for
+   * *either* key. One that a key reports at the first level would open the
+   * level from the wrong place.
    */
-  const open = !!second && !!labels.enter && second.includes(labels.enter)
+  const open =
+    !!second && [labels.enter, labels.space].some((w) => !!w && second.includes(w))
   // A second-level slot is in the menu while the level is open, and a
   // first-level one while it is shut. Both are levels, not one level and a
   // default: a key that only makes sense before something has been started has
