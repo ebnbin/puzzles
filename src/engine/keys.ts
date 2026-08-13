@@ -1413,21 +1413,21 @@ const understood = (name: string, labels: KeyLabels) => {
  * "pending" in so many terms, so a second-level key needs no `does` to be
  * placed correctly, and reading the table answers what the levels are.
  *
- * Two entries, and they are two different shapes of level, which is worth
- * seeing before adding a third. Same Game's is a selection: the menu is about
- * the thing under the cursor, and confirm and cancel exist only while there is
- * one. Inertia's is a mode: before Solve the reader is playing and after it
- * they are walking a route, and the key belongs to the second of those.
+ * Four entries in three shapes, which is worth seeing before adding a fifth.
+ * Same Game's is a selection: the menu is about the thing under the cursor, and
+ * confirm and cancel exist only while there is one. Inertia's and Flood's are a
+ * mode: before Solve the reader is playing, after it they are walking a route,
+ * and the key belongs to the second of those. Pearl's is a drag — a line that
+ * has been started and not yet left.
  *
- * Seven more puzzles have a second level by their vocabulary
- * — Pegs, Bridges, Signpost, Pearl, Galaxies, Filling, and Rectangles, which is
- * the one that needs no entry because both its levels are the same two buttons.
- * Each will get its own line as its keys are looked at again; guessing them all
- * now would be filing seven claims about puzzles nobody has measured.
- *
- * Map was on that list and came off it a different way: its second level was a
- * colour in hand, and the palette in `keysFor` means there is never one — see
- * CURSOR_KEYS, where its two keys used to be.
+ * The list of candidates has shrunk from both ends, and how each one left is
+ * the useful part. Rectangles and Signpost do have a second level and want no
+ * entry: in both, the two levels are the same two buttons wearing different
+ * faces, and Galaxies is one key with seven faces for the same reason. Bridges
+ * and Filling came off the list by losing the keys that had the level. Map came
+ * off it a third way — its second level was a colour in hand, and the palette in
+ * `keysFor` means there is never one. That leaves Pegs, which will get its line
+ * when its keys are looked at.
  */
 const SECOND: Record<string, readonly string[]> = {
   /*
@@ -1476,6 +1476,14 @@ const SECOND: Record<string, readonly string[]> = {
    * flooding key beside it is untouched.
    */
   flood: ['Advance'],
+  /*
+   * And Pearl's, where the level is a line being drawn. Enter opens one, the
+   * arrows walk it, Enter again leaves it (pearl.c:2256-2263), and the label
+   * follows that exactly: "Start" while `ndragcoords` is -1 and "Stop" the rest
+   * of the time (pearl.c:1989-1990). So the word and "a line is open" are the
+   * same fact, and nothing is kept on this side to know it.
+   */
+  pearl: ['Stop'],
 }
 
 /**
@@ -2939,9 +2947,15 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
 
   /*
    * Pearl, whose Enter is a keyboard drag: press once to start drawing the
-   * loop, walk it with the arrows, press again to leave it. Space exists only
-   * to abandon one, which is why it has a single face and is out the rest of
-   * the time — upstream reports nothing for it until a drag is open.
+   * loop, walk it with the arrows, press again to leave it.
+   *
+   * Space abandons one and does nothing else, so it is a second-level slot
+   * rather than a button that spends the game dimmed. Upstream refuses it
+   * outright while nothing is being drawn (MOVE_NO_EFFECT, pearl.c:2264-2270)
+   * and reports no word for it either, and that pair is exactly what `level`
+   * was written for: a dim button invites the reader to work out what would
+   * light it, and for a cancel with nothing to cancel the only answer is to
+   * start a line they did not want.
    */
   pearl: [
     {
@@ -2957,6 +2971,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       key: ' ',
       icon: 'cancel',
       says: 'cancelLoop',
+      level: 2,
       faces: { Cancel: { icon: 'cancel', says: 'cancelLoop', on: true } },
     },
   ],
