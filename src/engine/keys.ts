@@ -1595,7 +1595,6 @@ const BOTH: Record<string, readonly string[]> = {
   rect: ['Cancel'],
   /* Same shape twice over — a black square restores and a circled one is
      rubbed out, whichever key is asked (singles.c:1141). */
-  singles: ['Restore', 'Remove'],
   /* While a bridge is being drawn both keys answer "Finished": Enter lands it,
      Space drops it. Without this line the second button would go dark in the
      middle of the one flow it is there to get out of. */
@@ -2487,27 +2486,36 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     { key: 'N', icon: 'grass', says: 'grass', switches: 'B' },
   ],
 
+  /*
+   * Singles' two, Tents' shape and Range's price.
+   *
+   * The game has three states in a square — plain, blacked out, circled — and
+   * upstream's two keys are the pair that place them, each clearing instead
+   * when the square already holds anything (singles.c:1571-1576, where either
+   * key becomes 'E' on a marked square). So a fixed face per value, and a
+   * second press on your own value empties it.
+   *
+   * Free, because the labels tell all three states apart: plain answers
+   * {Black, Circle}, a black square answers "Restore" from both keys and a
+   * circled one "Remove" from both, and the blanking eats the second word, so
+   * what arrives is {Black, Circle}, {Restore, ""} and {Remove, ""} — three
+   * readings for three states. Nothing is read from the save file, which is
+   * where Tents had to go for the same design because its two marked states
+   * report one word between them.
+   *
+   * Each key goes dark on the other's square, and that is the house rule rather
+   * than a shortfall. Upstream's Space on a blacked-out square does clear it —
+   * but clearing a black square is the *first* key's job, and a button that
+   * takes over its neighbour's work in one position is the thing Same Game
+   * settled: it goes quiet instead. What the reader loses is going straight
+   * from circled to black, which costs two presses here; Tents got that in one
+   * only because upstream gave it absolute keys, and Singles reads no letters
+   * at all (its interpret_move takes cursor moves, the two select keys and the
+   * mouse, and nothing else).
+   */
   singles: [
-    {
-      key: 'Enter',
-      icon: 'black',
-      says: 'blackSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        Restore: { icon: 'white', says: 'restore', on: true },
-        Remove: { icon: 'white', says: 'uncircle', on: true },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'circleSquare',
-      says: 'circle',
-      faces: {
-        Circle: { icon: 'circleSquare', says: 'circle' },
-        Restore: { icon: 'white', says: 'restore', on: true },
-        Remove: { icon: 'white', says: 'uncircle', on: true },
-      },
-    },
+    { key: 'Enter', icon: 'black', says: 'blackSquare', does: 'Black', instead: 'Restore' },
+    { key: ' ', icon: 'circleSquare', says: 'circle', does: 'Circle', instead: 'Remove' },
   ],
 
   unruly: [
