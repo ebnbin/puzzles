@@ -387,9 +387,8 @@ export const en = {
       startLoop: 'Start drawing the loop here',
       endLoop: 'Stop drawing here',
       cancelLoop: 'Drop what you were drawing',
-      /* Pearl's own pair of edge keys, named the way Bridges' are: what the
-         next arrow will do, with which way left to the arrow. */
-      lineNext: 'Next arrow: draw the line that way',
+      /* Pearl's edge key, named the way Bridges' are: what the next arrow will
+         do, with which way left to the arrow. */
       crossNext: 'Next arrow: rule out the line that way',
       newArrow: 'Pick up an arrow from this dot',
       moveArrow: 'Pick this arrow up',

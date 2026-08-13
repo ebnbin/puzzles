@@ -967,7 +967,6 @@ export type CursorWord =
   | 'startLoop'
   | 'endLoop'
   | 'cancelLoop'
-  | 'lineNext'
   | 'crossNext'
   | 'newArrow'
   | 'moveArrow'
@@ -2971,26 +2970,29 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * light it, and for a cancel with nothing to cancel the only answer is to
    * start a line they did not want.
    *
-   * The two in the middle are ours, and they are Bridges' pair doing Bridges'
-   * job: upstream reads Ctrl and Shift with an arrow to draw the line on the
-   * edge that way, or to rule it out (`mark_in_direction`, pearl.c:2174-2192),
-   * and no back end has ever been given a way to hold a modifier down. So each
-   * is armed by a press and spent by the arrow after it.
+   * The cross is ours, and it is Bridges' arming key doing Bridges' job:
+   * upstream rules an edge out with Shift and an arrow (`mark_in_direction`,
+   * pearl.c:2174-2192) and no back end has ever been given a way to hold a
+   * modifier down, so a press arms it and the arrow after it spends it.
    *
-   * Only the second of them is owed by the criteria. The drag reaches every
-   * line a Ctrl-arrow can — open it, step once, close it — so that key is a
-   * shortcut and nothing more. The cross is the other case: a drag emits `F`
-   * moves and only `F` moves, so without this key the row can draw a loop and
-   * can never say where one does not go, which is half of how this puzzle is
-   * played. They are both here because a pair of edge keys that offers only the
-   * negative reads as an oversight rather than a decision.
+   * It is the one edge key this row is owed. A drag emits `F` moves and only
+   * `F` moves, and stops dead at a cross rather than crossing one, so without
+   * this key the row could draw a loop and never say where one does not go —
+   * half of how the puzzle is played. Ctrl's counterpart was here for a day and
+   * is the other case: the drag reaches every line it can, for the same move,
+   * under the same refusal on an edge already crossed. Counted, it saves a
+   * press on a lone edge (2 against 3), ties at two, and loses from three up
+   * (2n against n+2) — so on a puzzle played by drawing corridors it was a net
+   * cost, and "a pair of edge keys offering only the negative reads as an
+   * oversight" is a claim about appearances that those numbers do not support.
+   * Bridges keeps both because it sends no drag at all; here the drag is the
+   * line key.
    *
-   * Both leave while a line is open, which is upstream's own answer: it refuses
-   * a modified arrow mid-drag outright (`MOVE_NO_EFFECT`, pearl.c:2237) and,
-   * in the one moment it does not — a drag opened and not yet moved — it
-   * silently throws the drag away first (2238). Neither is a thing to offer, so
-   * the drag's menu is the two keys that are about the drag, and the edge keys
-   * are the idle menu's.
+   * The cross leaves while a line is open, which is upstream's own answer: it
+   * refuses a modified arrow mid-drag outright (`MOVE_NO_EFFECT`,
+   * pearl.c:2237) and, in the one moment it does not — a drag opened and not
+   * yet moved — it silently throws the drag away first (2238). So the row is
+   * two menus: start and cross while idle, stop and drop while drawing.
    */
   pearl: [
     {
@@ -3002,7 +3004,14 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Stop: { icon: 'done', says: 'endLoop', on: true },
       },
     },
-    { key: '', icon: 'lineNext', says: 'lineNext', primes: { ctrl: true }, level: 1 },
+    /*
+     * Ours in the middle and upstream's at the end, which is the ladder the
+     * other way round and deliberate: the two are the same reach — one edge
+     * each — so what orders them is which of the two cells should be the one
+     * that empties. The idle menu is where a reader spends the game, and a gap
+     * at the end of a row reads as a row that ended; a gap in the middle of one
+     * reads as a button that is missing.
+     */
     { key: '', icon: 'crossNext', says: 'crossNext', primes: { shift: true }, level: 1 },
     {
       key: ' ',

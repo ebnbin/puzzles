@@ -1620,21 +1620,23 @@ p.notice-intro button:active {
 }
 
 /*
- * The fourth slot, and it shares the second's cell rather than taking one of
- * its own.
+ * And the one key that does not sit in its own slot's cell: a second-level key
+ * at the end of a three-key row moves in beside the first.
  *
- * Pearl is the only puzzle with four of these, and it never shows four: its
- * second and third are the edge keys, which belong to the idle menu, and its
- * fourth is the cancel, which belongs to the drag. So the second cell holds
- * whichever of the two the level asks for, and the block stays the size it is.
+ * Pearl is the only one, and it is why the rule exists rather than an example
+ * of it. Its row is two menus of two — start and cross while idle, stop and
+ * drop while a line is being drawn — and the cross is the middle slot, the drop
+ * the last. Placed by slot alone the second menu would be a button, a hole, and
+ * a button, with the hole exactly where the key that just left used to be.
  *
- * Sharing is sound because the two are declared as opposite levels in
- * engine/keys and nothing else can put both on screen — except a back end that
- * renames a word, where `inMenu` shows everything rather than hide a button
- * with no way to ask for it back, and the price of that day is two glyphs in
- * one cell. Give a fifth puzzle its own cell rather than widen this rule.
+ * Sound only because the cell it moves into is emptied by the level change
+ * itself: `level: 1` on the middle key and `level: 2` on this one are what
+ * makes the two mutually exclusive, and engine/keys declares both. A row whose
+ * middle key has no level would put two glyphs in one cell — so check that
+ * before a second puzzle takes this rule, and give it its own cell if it has
+ * one to spare.
  */
-.play-arrows[data-keys='4'] [data-act='fourth'] {
+.play-arrows[data-keys='3'] [data-act='third'][data-level='2'] {
   grid-area: 1 / 2;
 }
 

@@ -1985,6 +1985,12 @@ export default function PuzzleHost({
                   key={cursor.does ?? cursor.key}
                   type="button"
                   data-act={ACT[i]}
+                  // Which menu this button belongs to, for the one layout rule
+                  // that needs to know: a second-level key at the end of the row
+                  // stands in the cell a first-level neighbour has vacated,
+                  // rather than leaving a hole between the two keys that are on
+                  // screen. See `[data-level='2']` in index.css.
+                  data-level={cursor.level}
                   // Enter and Space, which the back end reads as CURSOR_SELECT
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.
