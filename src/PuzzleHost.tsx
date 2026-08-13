@@ -1795,7 +1795,7 @@ export default function PuzzleHost({
               // before the map so `i` stays the slot's own number: the keys that
               // are always there keep their places when a neighbour empties.
               // See `level` in engine/keys.
-              if (!inMenu(name, cursor, labels, awake)) return null
+              if (!inMenu(name, cursor, { ...labels, opened: opened ?? undefined }, awake)) return null
               /*
                * And the level one of our own keys opens, which the line above
                * cannot see: it reads the back end's words, and the back end does

@@ -380,6 +380,9 @@ export const en = {
       noBridge: 'Next arrow: mark no bridge that way',
       linkFrom: 'Link this square to the next one',
       linkTo: 'Link this square to the one before',
+      /* The one press a link being dragged has left, in its two readings: the
+         cursor is somewhere it can land, or it is not. See CURSOR_KEYS. */
+      endLink: 'Link it here',
       cancelLink: 'Drop this link',
       startLoop: 'Start drawing the loop here',
       endLoop: 'Stop drawing here',

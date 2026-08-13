@@ -962,6 +962,7 @@ export type CursorWord =
   | 'noBridge'
   | 'linkFrom'
   | 'linkTo'
+  | 'endLink'
   | 'cancelLink'
   | 'startLoop'
   | 'endLoop'
@@ -1215,6 +1216,26 @@ export const shovesTiles = (name: string, labels: KeyLabels) =>
  * left standing does exactly what it says.
  */
 export function opener(name: string, labels: KeyLabels, was: string | null) {
+  if (name === 'signpost') {
+    /*
+     * Signpost says which key opened its link outright, most of the time, and
+     * the blanking is what makes it legible. Idle, the two keys differ — "From
+     * here" and "To here" — so both words arrive. Once a link is open the label
+     * stops asking which key it was called about (signpost.c:1482-1494), so the
+     * pair agree and the second word is blanked. An empty second word is
+     * therefore "a link is open", with nothing else it can be.
+     *
+     * And the word left says which end is fixed: "To here" is a link dragging
+     * *from* somewhere, which only Enter opens; "From here" is one dragging to,
+     * which only Space does. Only "Cancel" is mute — it means the cursor is
+     * somewhere the link cannot land, which says nothing about where it began —
+     * so that is the one case that has to be remembered.
+     */
+    if (labels.space !== '') return null
+    if (labels.enter === 'To here') return 'Enter'
+    if (labels.enter === 'From here') return ' '
+    return labels.enter === 'Cancel' ? was : null
+  }
   if (name !== 'rect') return null
   if (labels.enter === 'Done') return 'Enter'
   if (labels.space === 'Done') return ' '
@@ -1225,7 +1246,11 @@ export function opener(name: string, labels: KeyLabels, was: string | null) {
 
 /** And the press that opens one, which is the only thing the labels miss. */
 export const opens = (name: string, key: string, labels: KeyLabels) =>
-  name === 'rect' && (key === 'Enter' || key === ' ') && labels.enter === 'Mark'
+  (key === 'Enter' || key === ' ') &&
+  (name === 'rect'
+    ? labels.enter === 'Mark'
+    : // Signpost is idle exactly while both words are on the wire; see `opener`.
+      name === 'signpost' && labels.space !== '')
 
 /** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
 export const wakesCursor = (name: string, key: string) =>
@@ -1477,6 +1502,19 @@ export const inMenu = (
   labels: KeyLabels,
   awake: boolean,
 ) => {
+  /*
+   * Signpost's level is a link being dragged, and only one key belongs to it:
+   * both do the same thing while it is open (signpost.c:1528-1543 never asks
+   * which was pressed), so the one that did not open it stands there wearing
+   * the same face and doing the same job. See `opener`, whose answer arrives on
+   * `labels.opened`.
+   *
+   * Above the `level` test rather than inside it, because these keys carry no
+   * level: `level` names a slot that comes and goes, and here both slots are
+   * ordinary until a drag makes one of them a duplicate.
+   */
+  if (name === 'signpost' && labels.space === '' && labels.enter !== '')
+    return labels.opened === cursor.key
   if (!cursor.level) return true
   if (gated(name, cursor) && !awake) return false
   if (!understood(name, labels)) return true
@@ -1637,7 +1675,7 @@ const BOTH: Record<string, readonly string[]> = {
      middle of the one flow it is there to get out of. */
   bridges: ['Finished'],
   /* Both of Signpost's keys cancel the same half-built link. */
-  signpost: ['Cancel'],
+  signpost: ['From here', 'To here', 'Cancel'],
 }
 
 /** What the back end says about this button's own key, with the blanking undone. */
@@ -2812,6 +2850,30 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * successor, Space to its predecessor, and once a link is open each key says
    * whether the square under the cursor can be the other end of it.
    */
+  /*
+   * Signpost, where a press opens a link and the next one lands it — and where
+   * the second button has to leave while that is going on.
+   *
+   * Idle the two keys are different: Enter drags a link forward from this
+   * square, Space drags one back to it. Once either is open they are the same
+   * key. Upstream's select branch does not look at which was pressed
+   * (signpost.c:1528-1543): whichever it is ends the drag, writing the link if
+   * the cursor is somewhere it can land and abandoning it otherwise. So there
+   * is one action to offer, not two, and offering two put the same X on both
+   * buttons — which is what a reader saw.
+   *
+   * The survivor is the key that opened it, Rectangles' rule and for
+   * Rectangles' reason: position is the only thing left to tell a link being
+   * dragged forward from one being dragged back, and the board draws the line
+   * but not which end is pinned.
+   *
+   * Its two faces are the two things the one press can do, and the label
+   * separates them exactly: a word that names an end means the cursor is on a
+   * square the link can reach, so it lands; "Cancel" means it cannot, so it
+   * gives up. A confirm that could be dimmed instead would need a cancel beside
+   * it to dim in favour of, and upstream has no such key — the same press does
+   * both, and where the cursor is decides which.
+   */
   signpost: [
     {
       key: 'Enter',
@@ -2819,7 +2881,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'linkFrom',
       faces: {
         'From here': { icon: 'linkFrom', says: 'linkFrom' },
-        'To here': { icon: 'linkTo', says: 'linkTo', on: true },
+        'To here': { icon: 'done', says: 'endLink', on: true },
         Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
       },
     },
@@ -2828,8 +2890,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       icon: 'linkTo',
       says: 'linkTo',
       faces: {
-        'From here': { icon: 'linkFrom', says: 'linkFrom', on: true },
         'To here': { icon: 'linkTo', says: 'linkTo' },
+        'From here': { icon: 'done', says: 'endLink', on: true },
         Cancel: { icon: 'cancel', says: 'cancelLink', on: true },
       },
     },

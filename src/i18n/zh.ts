@@ -154,6 +154,7 @@ export const zh: Strings = {
       noBridge: '下一个方向键：标记那边没有桥',
       linkFrom: '把这一格连到下一格',
       linkTo: '把这一格连到上一格',
+      endLink: '把连接落在这里',
       cancelLink: '放弃这次连接',
       startLoop: '从这里开始画环',
       endLoop: '在这里停笔',
