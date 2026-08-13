@@ -716,6 +716,21 @@ export type CursorKey = {
    */
   primes?: { shift?: true; ctrl?: true }
   /**
+   * The back end never labels this key, so the labels are not consulted for it
+   * and it is live whenever its row is drawn.
+   *
+   * Filling's Escape, and so far only that. `current_key_label` answers for the
+   * two select keys and nothing else (filling.c:1430), so reading it here would
+   * dim Escape whenever the cursor is away — and away is exactly when it is
+   * most wanted, since a drag across the board builds a selection *and* hides
+   * the cursor (filling.c:1474-1491). What it acts on is the selection, which
+   * has nothing to do with where the cursor is or whether there is one.
+   *
+   * Not `SILENT`, which exempts a whole puzzle because its back end says
+   * nothing at all. Filling's says plenty; it just has no word for this key.
+   */
+  unspoken?: true
+  /**
    * The modifier that paints this key's result along a cursor move, for the
    * puzzles whose arrows can paint.
    *
@@ -936,6 +951,7 @@ export type CursorWord =
   | 'multiselect'
   | 'stopSelect'
   | 'selectSquare'
+  | 'clearSelection'
   | 'deselectSquare'
   | 'floodFill'
   | 'advance'
@@ -1185,6 +1201,23 @@ const gated = (name: string, cursor: CursorKey) =>
  */
 export const shovesTiles = (name: string, labels: KeyLabels) =>
   name === 'sixteen' && (labels.enter === 'Unlock' || labels.space === 'Unlock')
+
+/**
+ * Whether Filling's arrows are taking the squares they cross into the
+ * selection, which is the other mode in the collection that changes what a
+ * press of the cross does.
+ *
+ * Upstream's own and upstream's word for it: Enter toggles `keydragging`, and
+ * while it is on `current_key_label` answers "Stop" for that key rather than
+ * "Multiselect" (filling.c:1430-1434). So it is read rather than remembered,
+ * the same trade as Sixteen's above.
+ *
+ * Only Enter's word is asked. Space's says whether the square under the cursor
+ * is in the selection, which is a different question and can say "Select" while
+ * the mode is running.
+ */
+export const picksSquares = (name: string, labels: KeyLabels) =>
+  name === 'filling' && labels.enter === 'Stop'
 
 /**
  * Which key opened the drag now running, as far as anything can say.
@@ -1569,6 +1602,8 @@ export const wouldSend = (
       return face && !face.idle ? cursor.key : null
     }
   }
+  // An unspoken key is never dimmed by words that were never about it.
+  if (cursor.unspoken) return cursor.key
   return doesNothing(cursor.key, labels) ? null : cursor.key
 }
 
@@ -2654,6 +2689,18 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * cursor. A clue square cannot be selected, and upstream says so by falling
    * silent (filling.c:1462).
    */
+  /*
+   * Filling's three, and all of them are about *which squares* rather than what
+   * goes in one: the numbers are the keypad's job, and a digit writes into the
+   * whole selection at once (filling.c:1546-1573).
+   *
+   * So the row is a set being built. A set needs three things and upstream has
+   * a key for each: take these squares as I walk (Enter's `keydragging`), take
+   * or drop this one (Space), and throw the set away (Escape). The third had no
+   * button, and it is the only one of the three that cannot be had another way
+   * — Space undoes a selection one square at a time, and a digit clears it by
+   * writing into every square in it, which is not a cancel at all.
+   */
   filling: [
     {
       key: 'Enter',
@@ -2673,6 +2720,10 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Deselect: { icon: 'white', says: 'deselectSquare', on: true },
       },
     },
+    // Upstream reads it and has never offered a button for it — the same step
+    // of the ladder as M and H. `cancel` because that is this file's word for
+    // abandoning something half-made, which a selection is.
+    { key: 'Escape', icon: 'cancel', says: 'clearSelection', unspoken: true },
   ],
 
   /*

@@ -66,6 +66,12 @@ export const zh: Strings = {
         left: '向左涂',
         right: '向右涂',
       },
+      pick: {
+        up: '向上选',
+        down: '向下选',
+        left: '向左选',
+        right: '向右选',
+      },
     },
     cursor: {
       rotateLeft: '向左旋转',
@@ -142,6 +148,7 @@ export const zh: Strings = {
       /* filling 这两个管的是选区，真正填数字的是键盘那一排。 */
       multiselect: '用方向键选中一片格子',
       stopSelect: '结束选择',
+      clearSelection: '清空选区',
       selectSquare: '把这一格加进选区',
       deselectSquare: '把这一格移出选区',
       floodFill: '用这个颜色淹没左上角',
