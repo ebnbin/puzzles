@@ -716,21 +716,6 @@ export type CursorKey = {
    */
   primes?: { shift?: true; ctrl?: true }
   /**
-   * The back end never labels this key, so the labels are not consulted for it
-   * and it is live whenever its row is drawn.
-   *
-   * Filling's Escape, and so far only that. `current_key_label` answers for the
-   * two select keys and nothing else (filling.c:1430), so reading it here would
-   * dim Escape whenever the cursor is away — and away is exactly when it is
-   * most wanted, since a drag across the board builds a selection *and* hides
-   * the cursor (filling.c:1474-1491). What it acts on is the selection, which
-   * has nothing to do with where the cursor is or whether there is one.
-   *
-   * Not `SILENT`, which exempts a whole puzzle because its back end says
-   * nothing at all. Filling's says plenty; it just has no word for this key.
-   */
-  unspoken?: true
-  /**
    * The modifier that paints this key's result along a cursor move, for the
    * puzzles whose arrows can paint.
    *
@@ -1602,8 +1587,6 @@ export const wouldSend = (
       return face && !face.idle ? cursor.key : null
     }
   }
-  // An unspoken key is never dimmed by words that were never about it.
-  if (cursor.unspoken) return cursor.key
   return doesNothing(cursor.key, labels) ? null : cursor.key
 }
 
@@ -2723,7 +2706,16 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     // Upstream reads it and has never offered a button for it — the same step
     // of the ladder as M and H. `cancel` because that is this file's word for
     // abandoning something half-made, which a selection is.
-    { key: 'Escape', icon: 'cancel', says: 'clearSelection', unspoken: true },
+    // Dimmed with the other two, and that is a correction. It was live whatever
+    // they did, on the argument that it acts on the selection rather than at the
+    // cursor and a drag across the board builds one while hiding the cursor —
+    // true, and beside the point. What a reader sees on a board nobody has
+    // touched is two dark keys and this one lit, which reads as the row being
+    // broken; and it cannot be lit *honestly*, because whether a selection
+    // exists is the one thing this side cannot find out. Upstream's own label
+    // reads `ui->sel` without checking it for NULL (filling.c:1435-1437), and
+    // NULL is exactly what an empty selection is (1399, 1531, 1538, 1575).
+    { key: 'Escape', icon: 'cancel', says: 'clearSelection' },
   ],
 
   /*
