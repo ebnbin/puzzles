@@ -24,7 +24,6 @@ import {
   opens,
   READS_PREFS,
   offersArrows,
-  picksSquares,
   shovesTiles,
   silent,
   wakesCursor,
@@ -1688,22 +1687,8 @@ export default function PuzzleHost({
                * glyphs describe the press about to be made rather than the
                * state of the switch.
                */
-              /*
-               * Two modes leave a mark behind the cursor as it moves, and the
-               * arrows wear one face for both: the stroke, which is ours, and
-               * Filling's multiselect, which is upstream's — its arrows take
-               * every square they cross into the selection (filling.c:1494-1498)
-               * and upstream draws those squares with a darker ground, so a
-               * filled cell at the tail is a picture of it either way.
-               *
-               * One glyph for one idea across two puzzles, which is the same
-               * trade Netslide and Sixteen make over `primary`. The names differ
-               * because the marks do.
-               */
-              const picking = !shoving && picksSquares(name, labels)
-              const marking = !shoving && !picking && stroke && 'sweep' in arrow ? arrow : null
-              const trailing = marking ?? (picking && 'sweep' in arrow ? arrow : null)
-              const icon = shoving ? shoving.shove : trailing ? trailing.sweep : arrow.icon
+              const marking = !shoving && stroke && 'sweep' in arrow ? arrow : null
+              const icon = shoving ? shoving.shove : marking ? marking.sweep : arrow.icon
               return (
               <button
                 key={dir}
@@ -1716,8 +1701,8 @@ export default function PuzzleHost({
                 aria-label={
                   shoving
                     ? t.play.arrows.shove[shoving.dir]
-                    : trailing
-                      ? (marking ? t.play.arrows.paint : t.play.arrows.pick)[trailing.dir]
+                    : marking
+                      ? t.play.arrows.paint[marking.dir]
                       : t.play.arrows[dir]
                 }
                 // Cube's, and no other puzzle's — see engine/cube for the line

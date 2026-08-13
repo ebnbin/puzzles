@@ -138,14 +138,6 @@ export const en = {
         left: 'Paint left',
         right: 'Paint right',
       },
-      /* And while Filling's multiselect is running and they are taking the
-         squares they cross. Upstream's mode, not ours — see picksSquares. */
-      pick: {
-        up: 'Select up',
-        down: 'Select down',
-        left: 'Select left',
-        right: 'Select right',
-      },
     },
     /**
      * And the keys that act where the arrows have got to, which is what makes
@@ -356,13 +348,6 @@ export const en = {
        * digits on its keypad are what fill squares, and these choose which
        * squares they fill.
        */
-      multiselect: 'Select squares with the arrows',
-      stopSelect: 'Stop selecting',
-      /* Upstream's Escape, which throws the whole selection away rather than
-         acting on one square. */
-      clearSelection: 'Clear the selection',
-      selectSquare: 'Add this square to the selection',
-      deselectSquare: 'Take this square out of the selection',
       floodFill: 'Flood the corner with this colour',
       advance: 'Play the solver’s next move',
       /**

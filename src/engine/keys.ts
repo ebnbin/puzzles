@@ -933,11 +933,6 @@ export type CursorWord =
   | 'notBlankDomino'
   | 'track'
   | 'noTrack'
-  | 'multiselect'
-  | 'stopSelect'
-  | 'selectSquare'
-  | 'clearSelection'
-  | 'deselectSquare'
   | 'floodFill'
   | 'advance'
   | 'edge'
@@ -1186,24 +1181,6 @@ const gated = (name: string, cursor: CursorKey) =>
  */
 export const shovesTiles = (name: string, labels: KeyLabels) =>
   name === 'sixteen' && (labels.enter === 'Unlock' || labels.space === 'Unlock')
-
-/**
- * Whether Filling's arrows are taking the squares they cross into the
- * selection, which is the other mode in the collection that changes what a
- * press of the cross does.
- *
- * Upstream's own and upstream's word for it: Enter toggles `keydragging`, and
- * while it is on `current_key_label` answers "Stop" for that key rather than
- * "Multiselect" (filling.c:1430-1434). So it is read rather than remembered,
- * the same trade as Sixteen's above.
- *
- * Only Enter's word is asked. Space's says whether the square under the cursor
- * is in the selection, which is a different question and can say "Select" while
- * the mode is running.
- */
-export const picksSquares = (name: string, labels: KeyLabels) =>
-  name === 'filling' && labels.enter === 'Stop'
-
 /**
  * Which key opened the drag now running, as far as anything can say.
  *
@@ -1343,7 +1320,6 @@ const WORDS: Record<string, readonly string[]> = {
      domino and a pair of question marks — and it names them by what it draws. */
   magnets: ['+', '-', 'X', '?', 'Clear'],
   tracks: ['Track', 'X', 'Clear'],
-  filling: ['Multiselect', 'Stop', 'Select', 'Deselect'],
   /* Flood's two do not share a state at all: one is a move on the board and
      the other replays the solver, which only exists after Solve. */
   flood: ['Fill', 'Advance'],
@@ -2673,50 +2649,35 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * silent (filling.c:1462).
    */
   /*
-   * Filling's three, and all of them are about *which squares* rather than what
-   * goes in one: the numbers are the keypad's job, and a digit writes into the
-   * whole selection at once (filling.c:1546-1573).
+   * Filling has none, and that is the whole entry.
    *
-   * So the row is a set being built. A set needs three things and upstream has
-   * a key for each: take these squares as I walk (Enter's `keydragging`), take
-   * or drop this one (Space), and throw the set away (Escape). The third had no
-   * button, and it is the only one of the three that cannot be had another way
-   * — Space undoes a selection one square at a time, and a digit clears it by
-   * writing into every square in it, which is not a cancel at all.
+   * Upstream's three — Enter's multiselect, Space's take-or-drop, Escape's
+   * clear — are all about building a *set* of squares, because a digit writes
+   * into the whole set at once (filling.c:1546-1573). Buttons for them failed
+   * both tests this file judges by. Not the first: the game plays without them,
+   * a square and a digit at a time, since a digit with no selection writes at
+   * the cursor (1576-1578, measured writing 14_1). Not the second either: the
+   * arrows are not decoration without them, they move a cursor the keypad then
+   * acts on.
+   *
+   * What they bought was 2n-1 presses down to n+1 on a run — and only the first
+   * of the three bought any of it. Measured: selecting a square and then
+   * pressing a digit writes the same move as pressing the digit alone, one
+   * press later; and picking a run out square by square costs 2n, worse than
+   * not selecting at all. The other two exist to repair and to abandon what the
+   * first one builds. Three buttons for one saving, two of them servicing the
+   * first, and the third impossible to dim honestly — whether a selection
+   * exists is unknowable here, since upstream's own label reads `ui->sel`
+   * without a NULL check (1435-1437) and NULL is what empty is (1399).
+   *
+   * The saving is reachable another way if it is ever wanted, and it does not
+   * need upstream's selection at all: an arrow followed by the last digit again
+   * fills the square it lands on, one move per square, with clue squares
+   * skipped by upstream itself. Measured — 14_3, then Right-and-3 four times
+   * giving 16_3, 17_3, 18_3 and one silent pass over a clue. That is one key
+   * instead of three and paints as it goes; it is written down here rather than
+   * built because the row was cut instead.
    */
-  filling: [
-    {
-      key: 'Enter',
-      icon: 'select',
-      says: 'multiselect',
-      faces: {
-        Multiselect: { icon: 'select', says: 'multiselect' },
-        Stop: { icon: 'done', says: 'stopSelect', on: true },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'pickCell',
-      says: 'selectSquare',
-      faces: {
-        Select: { icon: 'pickCell', says: 'selectSquare' },
-        Deselect: { icon: 'white', says: 'deselectSquare', on: true },
-      },
-    },
-    // Upstream reads it and has never offered a button for it — the same step
-    // of the ladder as M and H. `cancel` because that is this file's word for
-    // abandoning something half-made, which a selection is.
-    // Dimmed with the other two, and that is a correction. It was live whatever
-    // they did, on the argument that it acts on the selection rather than at the
-    // cursor and a drag across the board builds one while hiding the cursor —
-    // true, and beside the point. What a reader sees on a board nobody has
-    // touched is two dark keys and this one lit, which reads as the row being
-    // broken; and it cannot be lit *honestly*, because whether a selection
-    // exists is the one thing this side cannot find out. Upstream's own label
-    // reads `ui->sel` without checking it for NULL (filling.c:1435-1437), and
-    // NULL is exactly what an empty selection is (1399, 1531, 1538, 1575).
-    { key: 'Escape', icon: 'cancel', says: 'clearSelection' },
-  ],
 
   /*
    * Flood, whose two keys have nothing to do with each other. Enter floods the

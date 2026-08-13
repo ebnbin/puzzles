@@ -123,7 +123,6 @@ export type IconName =
   | 'crossSquare'
   | 'questionSquare'
   | 'track'
-  | 'pickCell'
   | 'floodFill'
   | 'advance'
   | 'edge'
@@ -952,16 +951,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M3.4 12h17.2" />
       <path d="M9 8.8v6.4" />
       <path d="M15 8.8v6.4" />
-    </>
-  ),
-  /*
-   * Filling's second key adds one square to the run it is about to fill and
-   * takes it out again. The board says so by drawing that square heavier, so
-   * this is a square with a heavier outline, and its opposite is the plain one.
-   */
-  pickCell: (
-    <>
-      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" strokeWidth="3.4" />
     </>
   ),
   /*
