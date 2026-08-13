@@ -143,6 +143,8 @@ export type IconName =
   | 'sweep'
   | 'bridge'
   | 'noBridge'
+  | 'lineNext'
+  | 'crossNext'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -1077,6 +1079,30 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="19.4" cy="12" r="3" fill="currentColor" stroke="none" />
       <path d="M8.6 8.6 15.4 15.4" />
       <path d="M15.4 8.6 8.6 15.4" />
+    </>
+  ),
+  /*
+   * Pearl's two arming keys, and they are the line itself rather than anything
+   * holding it: one segment of loop, and one segment crossed out — which is
+   * exactly what that board draws, a thick bar between two cell centres and a
+   * small × where the reader has ruled one out.
+   *
+   * No box around either, and that is what keeps them clear of the shapes
+   * already spoken for. Every "two things and what is between them" glyph in
+   * this file is about the two things — Bridges' islands, Signpost's squares,
+   * Dominosa's halves — so a third pair of them would be read as a fourth
+   * puzzle's cells. Here the cells are not the point; the edge is. Palisade's
+   * `edge`/`noEdge` are the same idea with a box and a quarter turn, and they
+   * mean a wall, which is the one place a reader could confuse them — they are
+   * three puzzles apart in the gallery and never on screen together.
+   */
+  lineNext: <path d="M3.4 12h17.2" strokeWidth="3.4" />,
+  crossNext: (
+    <>
+      <path d="M3.4 12h2.6" strokeWidth="3.4" />
+      <path d="M18 12h2.6" strokeWidth="3.4" />
+      <path d="m8 8 8 8" strokeWidth="2.2" />
+      <path d="m16 8-8 8" strokeWidth="2.2" />
     </>
   ),
   linkFrom: (

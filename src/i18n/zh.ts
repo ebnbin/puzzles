@@ -159,6 +159,8 @@ export const zh: Strings = {
       startLoop: '从这里开始画环',
       endLoop: '在这里停笔',
       cancelLoop: '放弃正在画的这一段',
+      lineNext: '下一个方向键：往那边画线',
+      crossNext: '下一个方向键：标记那边没有线',
       newArrow: '从这个点上拿起一个箭头',
       moveArrow: '拿起这个箭头',
       dropArrow: '把箭头放在这里',

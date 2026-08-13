@@ -1619,6 +1619,25 @@ p.notice-intro button:active {
   grid-area: 1 / 3;
 }
 
+/*
+ * The fourth slot, and it shares the second's cell rather than taking one of
+ * its own.
+ *
+ * Pearl is the only puzzle with four of these, and it never shows four: its
+ * second and third are the edge keys, which belong to the idle menu, and its
+ * fourth is the cancel, which belongs to the drag. So the second cell holds
+ * whichever of the two the level asks for, and the block stays the size it is.
+ *
+ * Sharing is sound because the two are declared as opposite levels in
+ * engine/keys and nothing else can put both on screen — except a back end that
+ * renames a word, where `inMenu` shows everything rather than hide a button
+ * with no way to ask for it back, and the price of that day is two glyphs in
+ * one cell. Give a fifth puzzle its own cell rather than widen this rule.
+ */
+.play-arrows[data-keys='4'] [data-act='fourth'] {
+  grid-area: 1 / 2;
+}
+
 .play-arrows[data-keys='3'] [data-dir='up'],
 .play-arrows[data-keys='4'] [data-dir='up'] {
   grid-area: 2 / 2;
