@@ -1,5 +1,6 @@
 import type { IconName } from '../Icon'
 import { COLOURS } from './map'
+import type { Border, Stand } from './palisade'
 import type { DialogControl, KeyLabel } from './types'
 
 /**
@@ -837,6 +838,17 @@ export type CursorKey = {
    * slots keep their places when one of them empties.
    */
   /**
+   * Which of Palisade's two marks this key lays, for the one puzzle whose keys
+   * are answered by the drawing rather than by a word.
+   *
+   * It stands in for `does` and `instead` together: the key is live wherever
+   * the cursor is on a border, held down where that border already carries this
+   * mark — a second press takes it off, which is upstream's own behaviour
+   * (palisade.c:1080-1095) — and sent twice where it carries the other one,
+   * since upstream's first press there only clears. See `Stand`.
+   */
+  holds?: Border
+  /**
    * The other key's word for "I can take off what is in this one's way", for a
    * pair whose two marks cannot share a cell.
    *
@@ -1069,6 +1081,12 @@ export type KeyLabels = {
    * the miss costs a press and nothing else.
    */
   walked?: boolean
+  /**
+   * And Palisade's stop, which is not a label at all: that back end reports
+   * nothing, so where its cursor is standing and what is already there are read
+   * off the drawing instead. See engine/palisade.
+   */
+  stand?: Stand
 }
 
 /**
@@ -1690,6 +1708,22 @@ export const clears = (cursor: CursorKey, labels: KeyLabels): string | null => {
   return cursor.key === 'Enter' ? ' ' : 'Enter'
 }
 
+/** Whether the border under Palisade's cursor already carries this key's mark. */
+export const laid = (cursor: CursorKey, labels: KeyLabels) =>
+  !!cursor.holds && labels.stand?.has === cursor.holds
+
+/**
+ * And whether it carries the other key's, where a press has to clear before it
+ * can lay: upstream's first press on the other mark only takes it off
+ * (palisade.c:1088-1095), so this key sends itself twice. Singles' bargain.
+ */
+export const buries = (cursor: CursorKey, labels: KeyLabels) =>
+  !!cursor.holds &&
+  !!labels.stand?.live &&
+  labels.stand.has !== null &&
+  labels.stand.has !== 'none' &&
+  labels.stand.has !== cursor.holds
+
 export const wouldSend = (
   name: string,
   cursor: CursorKey,
@@ -1697,6 +1731,11 @@ export const wouldSend = (
   awake: boolean,
 ): string | null => {
   if (gated(name, cursor) && !awake) return null
+  // Palisade's pair, which the drawing answers rather than a word: live on a
+  // border, out on a corner, a centre, and a cursor that is not on screen. A
+  // frame that could not be read leaves `spot` undefined and the keys stay
+  // live, which is what they were before there was anything to read.
+  if (cursor.holds) return !labels.stand || labels.stand.live ? cursor.key : null
   if (SILENT.has(name)) return cursor.key
   if (understood(name, labels)) {
     if (cursor.does) {
@@ -2910,8 +2949,8 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * as readily as it rubs one out, and the board shows which.
    */
   palisade: [
-    { key: 'Enter', icon: 'edge', says: 'edge' },
-    { key: ' ', icon: 'noEdge', says: 'noEdge' },
+    { key: 'Enter', icon: 'edge', says: 'edge', holds: 'wall' },
+    { key: ' ', icon: 'noEdge', says: 'noEdge', holds: 'no' },
   ],
 
   /*

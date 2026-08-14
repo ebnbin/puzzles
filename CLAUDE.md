@@ -122,6 +122,7 @@ playwright 不在 `package.json` 里,这几个脚本要用时自行安装。`bui
 node scripts/check-cube.mjs       # src/engine/cube.ts 和引擎对不对得上,同样要 preview + playwright
 node scripts/check-map.mjs        # map 的调色板落色落在光标那一格,同上
 node scripts/check-clues.mjs      # map 的调色板只在能填的格子上亮,同上
+node scripts/check-palisade.mjs   # palisade 的两个键该不该亮、该不该按下,同上
 ```
 
 `src/engine/cube.ts` 把上游的网格几何在这一侧重写了一遍(为了给 cube 滚不过去的那个方向置灰,
@@ -138,6 +139,12 @@ node scripts/check-clues.mjs      # map 的调色板只在能填的格子上亮,
 「有颜色」和「是线索」是同一件事(map.c:1896-1897),所以棋盘自己画出来的就是那张表。脚本用引擎
 对照:先把每个区域都上色,再在每一格按两下选择键(上游自己的「清空这个区域」),能清空的就不是线索。
 改 `engine/map` 的线索读取、改 `CanvasRenderer` 的录制、或者升级上游之后跑它。
+
+`check-palisade.mjs` 管的是同一个口子的第二个用户。palisade **一个标签都不报**,所以它两个键
+的死活是从**每一帧画面**里读出来的:光标那个框是长条还是方块,说明脚下是不是能画墙的位置;框底下
+那条边画成什么颜色,说明那里现在是墙、是「没有墙」的记号、还是空的(palisade.c:1228)。两样都是
+在猜别人的绘图代码,而且错了是静悄悄的,所以脚本走一圈,把按钮的说法和真按下去写出来的走子逐一对
+照。改 `engine/palisade`、改 `CanvasRenderer` 的录制、或者升级上游之后跑它。
 
 ## 架构
 

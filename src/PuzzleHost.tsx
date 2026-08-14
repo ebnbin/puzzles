@@ -11,11 +11,13 @@ import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
   asMaybes,
+  buries,
   clears,
   cursorKeys,
   dragWalked,
   faceOf,
   holding,
+  laid,
   overwrites,
   inMenu,
   HOLD_BUTTON,
@@ -50,6 +52,7 @@ import {
   writeSave,
 } from './engine/saves'
 import type { CanvasRenderer } from './engine/renderer'
+import { readStand, type Stand } from './engine/palisade'
 import type {
   DialogControl,
   DialogSpec,
@@ -265,6 +268,12 @@ export default function PuzzleHost({
    * each key leaves it at.
    */
   const [walked, setWalked] = useState(false)
+  /**
+   * And where Palisade's cursor is standing, with what is already there, which
+   * that back end reports no other way — see engine/palisade. Read off the
+   * frame each press draws, so it costs no extra redraw.
+   */
+  const [stand, setStand] = useState<Stand | undefined>(undefined)
   /*
    * The same two words again, in a ref, because one caller cannot wait for a
    * render: the arrow that has just walked Sixteen's cursor off the board needs
@@ -1435,6 +1444,26 @@ export default function PuzzleHost({
    * are `lit`, which was written to keep them through the *idempotent* null and
    * kept them through this one too.
    */
+  /*
+   * Palisade's reading, kept up by watching every frame rather than the frames
+   * our own presses draw.
+   *
+   * Which is the difference between right and nearly right: undo, redo, a press
+   * on the board, restart and solve all redraw, and a reading taken only around
+   * our own keys goes stale on every one of them — measured, with the check
+   * script disagreeing on exactly the presses that followed an undo. See
+   * engine/palisade.
+   */
+  useEffect(() => {
+    const renderer = rendererRef.current
+    if (!ready || !renderer || name !== 'palisade') return
+    renderer.watch((tape) => {
+      const seen = readStand(tape)
+      if (seen) setStand(seen)
+    })
+    return () => renderer.watch(null)
+  }, [name, ready])
+
   const asleep = silent(labels)
   /** The stroke mode as it is actually behaving, which needs somewhere to paint. */
   const painting = sweeping && !asleep
@@ -1447,7 +1476,7 @@ export default function PuzzleHost({
    * would move the arrow the arming is waiting for.
    */
   const shownKeys = acts.map((cursor) =>
-    inMenu(name, cursor, { ...labels, opened: opened ?? undefined, walked }, awake),
+    inMenu(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake),
   )
   const cellOf = shownKeys.reduce<(string | undefined)[]>((out, shown) => {
     out.push(shown ? ACT[out.filter(Boolean).length] : undefined)
@@ -1989,7 +2018,7 @@ export default function PuzzleHost({
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
               // faceOf, and `faces` in keys.ts for why the back end decides it.
-              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined, walked }, awake)
+              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake)
               /*
                * A switch shows the state it is in rather than the press it is
                * about to make: held down exactly while the square under the
@@ -2005,11 +2034,13 @@ export default function PuzzleHost({
               const set =
                 on ||
                 holding(cursor, labels) ||
+                // Palisade's, which the drawing answers rather than a word.
+                laid(cursor, { ...labels, stand }) ||
                 // And Tents', where the same question is answered by reading
                 // the board rather than the words. See `held` and engine/tents.
                 (!!cursor.switches && held === cursor.key)
               const said = t.play.cursor[says]
-              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined, walked }, awake)
+              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake)
               return (
                 <button
                   // The key it sends, not the word it is showing: two of these
@@ -2120,6 +2151,11 @@ export default function PuzzleHost({
                     // first press takes that off, the second puts this key's own
                     // on. See `twice` in engine/keys.
                     if (overwrites(cursor, labels)) sendKey(key)
+                    // Palisade the same way, and it needs no second reading: on
+                    // the other mark upstream's first press only clears
+                    // (palisade.c:1088-1095), and a border with nothing on it
+                    // takes either mark. See `buries`.
+                    if (buries(cursor, { ...labels, stand })) sendKey(key)
                   }}
                 >
                   <Icon name={icon} />

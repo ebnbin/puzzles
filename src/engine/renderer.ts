@@ -137,6 +137,7 @@ export class CanvasRenderer {
   startDraw() {
     this.palette()
     this.dirty = null
+    if (this.watcher) this.tape = []
   }
 
   drawUpdate(x: number, y: number, w: number, h: number) {
@@ -156,6 +157,7 @@ export class CanvasRenderer {
   }
 
   endDraw() {
+    if (this.watcher && this.tape) this.watcher(this.tape)
     if (!this.dirty) return
     const { x0, y0, x1, y1 } = this.dirty
     const ctx = this.onscreen.getContext('2d', { alpha: false })
@@ -181,6 +183,22 @@ export class CanvasRenderer {
    * answer.
    */
   private tape: Drawn[] | null = null
+
+  /**
+   * And the standing form of the same thing, for the puzzle that has to read
+   * every frame rather than one it asked for: Palisade, whose keys have no
+   * other way to know where its cursor is. Handed each frame as it closes.
+   *
+   * A watcher and `record` share the tape, which is safe because they are one
+   * puzzle each — Map asks a question once at load, Palisade listens all game.
+   * Setting one while the other is running would take the other's tape away.
+   */
+  private watcher: ((tape: readonly Drawn[]) => void) | null = null
+
+  watch(fn: ((tape: readonly Drawn[]) => void) | null): void {
+    this.watcher = fn
+    this.tape = fn ? [] : null
+  }
 
   record(): void {
     this.tape = []
