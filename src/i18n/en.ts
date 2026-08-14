@@ -24,6 +24,7 @@ export const en = {
     manualHint: 'Rules and controls for every puzzle',
     manualFailed: 'Could not load this page.',
     manualRetry: 'Retry',
+    manualBack: 'Back',
     erase: 'Erase everything',
     eraseHint: 'Games, settings, and what is hidden',
     eraseWhat: 'This cannot be undone',

@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Icon from './Icon'
 import { docHref, useLang, useStrings } from './i18n'
 import './doc.css'
 
 let page: string | null = null
 let fragment: string | null = null
+let restore: number | null = null
+let trail: { file: string; scroll: number }[] = []
 const listeners = new Set<() => void>()
 const emit = () => {
   for (const listener of listeners) listener()
@@ -21,6 +23,27 @@ export function openManual(target = 'index.html') {
   const parsed = parse(target)
   page = parsed.file
   fragment = parsed.frag
+  restore = null
+  trail = []
+  emit()
+}
+
+const push = (target: string, from: { file: string; scroll: number }) => {
+  const parsed = parse(target)
+  trail = [...trail, from]
+  page = parsed.file
+  fragment = parsed.frag
+  restore = null
+  emit()
+}
+
+const back = () => {
+  const last = trail[trail.length - 1]
+  if (!last) return
+  trail = trail.slice(0, -1)
+  page = last.file
+  fragment = null
+  restore = last.scroll
   emit()
 }
 
@@ -48,10 +71,11 @@ const body = (html: string): string => {
 
 export default function DocViewer() {
   const open = useSyncExternalStore(subscribe, () => page)
-  return open ? <Viewer file={open} /> : null
+  const depth = useSyncExternalStore(subscribe, () => trail.length)
+  return open ? <Viewer file={open} depth={depth} /> : null
 }
 
-function Viewer({ file }: { file: string }) {
+function Viewer({ file, depth }: { file: string; depth: number }) {
   const [lang] = useLang()
   const t = useStrings()
   const [html, setHtml] = useState<string | null>(null)
@@ -105,8 +129,14 @@ function Viewer({ file }: { file: string }) {
     else box.scrollTo({ top: 0 })
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (html === null) return
+    if (restore !== null) {
+      const box = scroller.current
+      if (box) box.scrollTop = restore
+      restore = null
+      return
+    }
     const frag = fragment
     fragment = null
     scrollTo(frag)
@@ -124,7 +154,7 @@ function Viewer({ file }: { file: string }) {
     if (/^[\w-]+\.html(#|$)/.test(href)) {
       const next = parse(href)
       if (next.file === file) scrollTo(next.frag)
-      else openManual(href)
+      else push(href, { file, scroll: scroller.current?.scrollTop ?? 0 })
       return
     }
     // 手册里的站外链接:同 tab 跳转会卸掉整个 app,一律新标签。
@@ -134,6 +164,16 @@ function Viewer({ file }: { file: string }) {
   return (
     <div className="doc-viewer" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
       <header className="doc-viewer-top">
+        {depth > 0 ? (
+          <button
+            type="button"
+            className="dialog-close"
+            aria-label={t.settings.manualBack}
+            onClick={back}
+          >
+            <Icon name="back" size={20} />
+          </button>
+        ) : null}
         <span className="doc-viewer-title">{t.settings.manual}</span>
         <button
           type="button"
