@@ -164,6 +164,7 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
   return (
     <div className="doc-viewer" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
       <header className="doc-viewer-top">
+        <div className="doc-viewer-bar">
         {depth > 0 ? (
           <button
             type="button"
@@ -183,6 +184,7 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
         >
           <Icon name="close" size={20} />
         </button>
+        </div>
       </header>
       <div className="doc-viewer-scroll" ref={scroller}>
         {failed ? (

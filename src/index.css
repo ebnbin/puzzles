@@ -1734,21 +1734,34 @@ p.notice-intro button:active {
 }
 
 .doc-viewer-top {
-  display: flex;
   flex: none;
-  align-items: center;
-  gap: 0.25rem;
-  min-height: 3rem;
-  padding: 0 max(0.5rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
   border-bottom: 1px solid var(--edge);
+}
+
+.doc-viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 44rem;
+  margin: 0 auto;
+  min-height: 3.25rem;
+  padding: 0 max(0.5rem, env(safe-area-inset-right)) 0 max(0.5rem, env(safe-area-inset-left));
 }
 
 .doc-viewer-title {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  padding-left: 0.5rem;
   font-size: var(--t-lg);
   font-weight: 600;
   letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.doc-viewer-bar > button:first-child + .doc-viewer-title {
+  padding-left: 0;
 }
 
 .doc-viewer-scroll {
