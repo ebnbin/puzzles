@@ -2639,11 +2639,22 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Light Up, whose two keys are mutually exclusive rather than a cycle: a lit
-   * square cannot be marked and a marked one cannot be lit (lightup.c:1500), so
-   * whichever one is in use puts the other button out. Both spell their undo
-   * "Clear", and they can never say it together, which is why there is no
-   * `BOTH` line for it.
+   * Light Up, which is Tracks twice over. Its two marks exclude each other — a
+   * lit square cannot be marked and a marked one cannot be lit
+   * (lightup.c:1500) — and each key clears its own on a second press
+   * (lightup.c:1916-1925), so it was already a pair of switches and is now
+   * drawn as one: the glyph fixed, the ground saying which way it is set.
+   *
+   * `replaces` for the same reason it is on Tracks: the key on the other mark
+   * used to be dark, and reaching that square meant pressing the key you did
+   * not want first. Here the second half always lands, which Tracks cannot
+   * promise — the only things in a lamp's way are a black square and the mark
+   * being cleared, and the only things in a mark's way are a black square and
+   * the lamp. Neither key ever speaks on a black one, so a "Clear" from the
+   * neighbour is proof the square takes both.
+   *
+   * Both spell their undo "Clear" and can never say it together, which is why
+   * there is no `BOTH` line for it.
    */
   lightup: [
     {
@@ -2652,8 +2663,9 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'light',
       faces: {
         Light: { icon: 'lamp', says: 'light' },
-        Clear: { icon: 'white', says: 'unlight', on: true },
+        Clear: { icon: 'lamp', says: 'unlight', on: true },
       },
+      replaces: 'Clear',
     },
     {
       key: ' ',
@@ -2661,8 +2673,9 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'cannot',
       faces: {
         Mark: { icon: 'dotSquare', says: 'cannot' },
-        Clear: { icon: 'white', says: 'uncannot', on: true },
+        Clear: { icon: 'dotSquare', says: 'uncannot', on: true },
       },
+      replaces: 'Clear',
     },
   ],
 
