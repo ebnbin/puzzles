@@ -44,6 +44,8 @@ export function readTowers(lines: Field[]): Board | null {
     each: size,
     clues: grid,
     groups: latinGroups(size),
+    // 负号不是装饰:线索按所在位置寻址,在网格外——上/左是 -1(towers.c 的
+    // is_clue),所以 D-1,3 是玩家划掉线索的真实走子,收紧正则会让整局键死掉。
     moves: gridMoves(size, /^D-?\d+,-?\d+$/),
     narrow: (candidates, values) => {
       for (let index = 0; index < clues.length; index++) {
@@ -56,6 +58,8 @@ export function readTowers(lines: Field[]): Board | null {
           const most = size - clue + 1 + i
           for (const n of [...candidates[cell]]) if (n > most) candidates[cell].delete(n)
         }
+        // 通用上界 size-k+1+i 在 k=1 时等于 size+i,什么都排不掉:「看到 1 个 =
+        // 近端是最高塔」必须单独写,这个特例不被上面的公式蕴含。
         if (clue === 1 && !values[start]) {
           for (const n of [...candidates[start]]) if (n !== size) candidates[start].delete(n)
         }

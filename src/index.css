@@ -411,6 +411,9 @@ p.notice-toast {
   box-shadow: var(--shadow-2);
   pointer-events: none;
   transform: translateX(-50%);
+  /* 没有规则引用这个名字,但它是 toast 盖住飞行 tile 的唯一机制:tile 被命名后
+     提入 view-transition 层,z-index 对该层无效;快照按文档序堆叠,所以 toast
+     还必须是画廊最后渲染的元素。 */
   view-transition-name: toast;
   animation: toast-in var(--dur) var(--ease);
 }
@@ -591,6 +594,8 @@ footer p {
   background: var(--surface-2);
 }
 
+/* 带 p 前缀是特异性武器:要和 .sheet p 平权、靠靠后取胜;.sheet p:not(.notice-error)
+   的排除是同一约定的另一半,两处都不可「精简」。 */
 p.notice {
   flex: none;
   display: flex;
@@ -670,6 +675,9 @@ p.notice-intro button:active {
   min-height: 0;
 }
 
+/* 永不设 background:引擎读 canvas 的计算背景色播种整套调色板(defaultColour
+   透明→null→上游自己的 0.9 灰),连显式写「同样的」#e6e6e6 都不行(230/255≠0.9,
+   会挪一批游戏的衍生色)。font-family 同理,引擎拿它当谜题画字的字体。 */
 .host-board {
   display: block;
   font-family: sans-serif;
@@ -917,6 +925,9 @@ p.notice-intro button:active {
   grid-area: 2 / 3;
 }
 
+/* 暂时退场的键用 visibility,不能改条件渲染或 display:none:iOS 真机上按钮卸载
+   再插回会画成残片(字形被裁、无背景);visibility 保住盒子,回来只是重画,
+   且照样退出命中与无障碍树。 */
 .play-arrows button[data-off] {
   visibility: hidden;
 }
@@ -1251,7 +1262,7 @@ p.notice-intro button:active {
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 1rem;
+  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
 }
 
 .sheet-custom .dialog-string input,
@@ -1304,7 +1315,7 @@ p.notice-intro button:active {
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 1rem;
+  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
   font-variant-numeric: tabular-nums;
 }
 
@@ -1369,7 +1380,7 @@ p.notice-intro button:active {
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  font-size: 1rem;
+  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
 }
 
 .dialog-string input:focus-visible,

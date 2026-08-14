@@ -15,6 +15,10 @@ import { useResolvedTheme } from './useTheme'
 const HOLD_MS = 450
 
 function swallowTapAfterHold() {
+  // 长按 450ms 生效时磁贴已经离场,松手的 click 按「当下指下的元素」结算,落在
+  // 滑进来的另一张卡上(实测长按 Cube 隐藏了 Cube、打开了 Fifteen):吞 click
+  // 必须吊在 window 捕获阶段,挂在磁贴自己身上吃不到;click 不来时靠 pointerup
+  // 延时清监听,不许留着吃下一次点击。
   const eat = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -32,6 +36,8 @@ function swallowTapAfterHold() {
 }
 
 export default function Launcher() {
+  // 存的是打开设置那一刻的滚动位置,不是布尔:scroll lock 把文档钉在顶上,
+  // 期间 window.scrollY 恒为 0,切后台/关页时记录要用 settingsAt ?? scrollY。
   const [settingsAt, setSettingsAt] = useState<number | null>(null)
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const t = useStrings()
@@ -82,6 +88,8 @@ export default function Launcher() {
       change()
       return
     }
+    // 两段式不能内联:view transition 的旧快照只拍得到「已经在页面上」的
+    // viewTransitionName,所以先渲染一帧把名字挂上,layout effect 里才真正换屏。
     pending.current = change
     setMoving(game.name)
   }
@@ -90,6 +98,7 @@ export default function Launcher() {
     const change = pending.current
     if (!change) return
     pending.current = null
+    // 摘名只归最新一班:第二次按会 abandon 前一次,老 land 不许把新 flight 的名字摘掉。
     const mine = ++flight.current
     const transition = withViewTransition(change, 'tiles')
     const land = () => {
@@ -281,6 +290,9 @@ function Tile({
         onClick={() => openGame(game.name)}
       >
         <span className="games-art">
+          {/* 故意不加 loading="lazy":服务器对 /tiles 回 no-cache,lazy 图在滚入
+              视口那一刻付一次 revalidation 往返,从游戏返回画廊还要再付;
+              四十张小 PNG 比空白便宜。 */}
           <img
             src={`/tiles/${game.name}-${theme}.png`}
             alt=""

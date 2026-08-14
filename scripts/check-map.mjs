@@ -53,6 +53,8 @@ const next = (n) => {
 
 for (let round = 0; round < ROUNDS; round++) {
   for (let i = 0; i < 3 + next(9); i++) await arrow(['Right', 'Down', 'Left', 'Up'][next(4)])
+  // clue 上的 swatch 是 disabled 的,只能读 isDisabled() 跳过、不能点:playwright
+  // 点 disabled 按钮不会返回「没走子」,而是等它变 enabled 直到整跑超时。
   if (await page.getByRole('button', { name: /^Fill this region with colour 1$/ }).isDisabled())
     continue
   let colour = next(4) + 1
@@ -99,6 +101,8 @@ const swatch = (re) => () => page.getByRole('button', { name: re }).click()
 const FILL_1 = /^Fill this region with colour 1$/
 const EMPTY = /^Empty this region$/
 const MAYBE = /^Next colour: mark it as a maybe$/
+// MAYBE 键是粘性 mode、不是 one-shot:没有东西会替你花掉它,用完必须再按一次
+// 关掉,否则之后每个 case 的调色板都带着 maybe 点。
 const MAYBE_2 = () => async () => {
   await page.getByRole('button', { name: MAYBE }).click()
   await page.getByRole('button', { name: /^Mark this region as possibly colour 2$/ }).click()

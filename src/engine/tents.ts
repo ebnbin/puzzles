@@ -13,6 +13,9 @@ export function tentsGrid(params: string): { w: number; h: number } | null {
 
 const PLACE = /^([TNB])(\d+),(\d+)$/
 
+// STATEPOS 数的是状态数、发牌是第 1 个,已生效走子 = 前 STATEPOS-1 条,其后是
+// redo 尾巴;++played >= at 的 break 必须发生在处理该条之前,差一就把 redo 读进
+// 棋盘——撤销后 squareAt 报「未来」的值,两个开关方向反转。
 function written(save: string): Map<string, Square> | null {
   const lines = fields(save)
   if (!lines) return null

@@ -1,3 +1,7 @@
+/*
+ * 上游 emcclib.js 的替身(emcc --js-library):C 调出来的全部函数,名字签名不变,
+ * 只转发给宿主,不碰 DOM。
+ */
 mergeInto(LibraryManager.library, {
     js_init_puzzle: function() {
         initPuzzle();
@@ -86,6 +90,8 @@ mergeInto(LibraryManager.library, {
         PZ.onTimer(true);
         timer_reference = performance.now();
         var frame = function(now) {
+            /* 先排下一帧再调 callback:callback 可能同步 deactivate,取消的必须是
+               刚排上的这一帧,顺序反了循环停不下来。 */
             timer = window.requestAnimationFrame(frame);
             timer_callback((now - timer_reference) / 1000.0);
             timer_reference = now;

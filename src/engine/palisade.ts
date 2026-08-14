@@ -1,8 +1,13 @@
+// palisade 一个标签都不报,两个键的死活全从每一帧画面里读:光标框的形状说明
+// 脚下能不能画墙,框底边的颜色说明那里是墙、「没有墙」的记号还是空(palisade.c:1228)。
+// 都是在猜别人的绘图代码,错了是静悄悄的:改这里跑 scripts/check-palisade.mjs。
 import type { Drawn } from './renderer'
 
 const WALL = 2
 const MAYBE = 3
 const NO = 4
+// 颜色编号照 palisade.c:1162-1173 的 enum 顺序;ERROR(5)是「破坏了线索的墙」,
+// 语义仍是墙——必须留在过滤名单里并归入 'wall',漏掉它,凡标红的墙上按键全部失灵。
 const ERROR = 5
 
 export type Border = 'wall' | 'no' | 'none'
@@ -11,6 +16,9 @@ export type Stand = { live: boolean; has: Border | null }
 
 const OUT: Stand = { live: false, has: null }
 
+// null 和 OUT 是两个答案:空 tape = 这一帧根本不是重画(无效按压什么都不画),
+// 返回 null 让调用方保留上一次读数;有重画而没有光标框才是 OUT。合并两者,
+// 每次无效按压都会把 stand 清掉,光标明明在边上两个键却灰掉。
 export function readStand(tape: readonly Drawn[]): Stand | null {
   if (tape.length === 0) return null
 

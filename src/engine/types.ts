@@ -13,6 +13,8 @@ export type DialogControl =
 
 export interface DialogSpec {
   title: string
+  // 与 C 共享的活对象:dialogOk 时 puzzle-lib 的闭包从原对象上读回 value,
+  // 编辑必须原地赋 control.value;拷贝或重建会让对话框永远提交初始值。
   controls: DialogControl[]
 }
 
@@ -51,6 +53,7 @@ export interface PuzzleApi {
 
   tick(seconds: number): void
 
+  // 丢弃 puzzle 前必须调用:wasm 没有 teardown,计时中的 rAF 链会抓着死实例永远跑。
   stopTimer(): void
 }
 
@@ -90,6 +93,8 @@ export interface PuzzleCallbacks {
 
 declare global {
   interface Window {
+    // package.json 之外的脚本(build-tiles/howto/art、check-*.mjs)经 playwright
+    // 靠这两个全局驱动引擎:app 内没有读者,但不是死代码。
     __puzzle?: PuzzleApi
     __animating?: boolean
   }

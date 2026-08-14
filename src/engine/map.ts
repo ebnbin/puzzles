@@ -1,3 +1,7 @@
+// 不重写上游几何——试过,错了(docs/keys.md):让引擎自己说出光标下是哪个区域。
+// 走存档门整趟(读、改、loadGame 放回)的代价也整趟付:midend_deserialise 会重建
+// game_ui,光标每次都得走回去;闪光靠 pending+redo 补(见 marks/save.ts)。
+// 改这里跑 scripts/check-map.mjs 和 check-clues.mjs。
 import { done, extend, fields, find, line, pending } from './marks/save'
 import type { Drawn } from './renderer'
 import type { PuzzleApi } from './types'
@@ -82,6 +86,9 @@ const wording = (paint: Paint, at: { colour: number; pencil: number }, r: number
   return `${paint.colour < 0 ? 'C' : paint.colour}:${r}`
 }
 
+// 本函数和 readClues 都必须在一次同步调用内做完,中间不能插 await 或分帧:
+// 探针盘(全涂色)和发牌盘都真的画上了 canvas,只靠浏览器来不及合成才不可见;
+// PuzzleHost.paint() 的 spot 保存/恢复也依赖同步返回。
 export function paintRegion(api: PuzzleApi, at: Spot, paint: Paint): void {
   const orig = api.saveGame()
   const lines = fields(orig)
@@ -98,6 +105,9 @@ export function paintRegion(api: PuzzleApi, at: Spot, paint: Paint): void {
 
   const key = (k: string) => api.key(0, k, '', 0, 0, 0)
   const walk = (to: Spot) => {
+    // 这一记不多余:每次 loadGame 后 game_ui 重建、光标藏在原点没醒;map 的方向
+    // 键总是「移动 + 唤醒」,而 0 的左边没有格,ArrowLeft 是唯一原地唤醒的按法。
+    // 删掉它,to=(0,0) 时探针第一记 Enter 会被吃掉去唤醒,调色板静默哑掉。
     key('ArrowLeft')
     for (let i = 0; i < to.x; i++) key('ArrowRight')
     for (let i = 0; i < to.y; i++) key('ArrowDown')
@@ -115,6 +125,9 @@ export function paintRegion(api: PuzzleApi, at: Spot, paint: Paint): void {
     const m = /^C:(\d+)$/.exec(played[played.length - 1].value)
     if (m) region = +m[1]
   }
+  // given 检查不是冗余:存档门绕过 interpret_move,execute_move 对涂色走子只查
+  // 区域号在范围内(map.c:2638),线索区域照样被覆写;拒绝线索的守卫在
+  // interpret_move 那侧(map.c:2588),不在这条路径上,「不是线索」必须由这里证明。
   if (region === null || region >= grid.n || start.given[region]) return restore()
 
   const move = wording(paint, { colour: stood.colour[region], pencil: stood.pencil[region] }, region)

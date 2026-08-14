@@ -31,6 +31,8 @@ function candidates(board: Board, values: number[]): Set<number>[] {
   return sets
 }
 
+// 读不懂就整个拒绝:参数不认识、描述解析不了、走子没见过,一律 null,界面什么
+// 都不做。猜错比不做坏得多——会擦掉玩家写的候选,还会说某个数字不可能。
 function readBoard(save: string) {
   const lines = fields(save)
   if (!lines) return null
@@ -53,6 +55,8 @@ export function fillMarks(save: string): string | null {
   const { lines, board, kept, position } = state
 
   const should = candidates(board, position.values)
+  // 判「棋盘是否一个候选都没有」要跳过已填格:Undead 的怪物格下压着看不见、
+  // 擦不掉的旧标记(G/V/Z 不清标记),它们不能参与这个裁决。
   const bare = position.marks.every(
     (set, square) => position.values[square] !== 0 || set.size === 0,
   )
@@ -70,6 +74,9 @@ export function fillMarks(save: string): string | null {
   return extend(lines, kept, wanted, board.moves.chain)
 }
 
+// 和 fillMarks 方向相反,这是设计:fillMarks 读值写候选、这里读候选写值,
+// 谁都喂不到自己,连按两次第二次一定什么都不做。绝不能在这里按规则重算候选——
+// 那会让它自己就能一直跑下去,正是要避免的循环;只读棋盘上写着的。
 export function placeSingles(save: string): string | null {
   const state = readBoard(save)
   if (!state) return null
@@ -94,6 +101,9 @@ export function placeSingles(save: string): string | null {
       moved = true
     }
 
+    // 隐式单候选的前提缺一不可:组里有「空着但零候选」的格子就整组跳过
+    // (那种格子读起来像什么都不能填,会凭空造出唯一解);已填的值不再算候选;
+    // 外层循环跑到不动点才幂等。少任何一个都会写出能被规则证明是错的数字。
     for (const group of board.groups) {
       if (group.length !== board.values.length) continue
       if (group.some((square) => !values[square] && marks[square].size === 0)) continue
@@ -128,6 +138,8 @@ export function clearMarks(save: string): string | null {
   return extend(lines, kept, wanted, board.moves.chain)
 }
 
+// 只数已填的值,铅笔标记不算——另外三个键全部建立在这个区分上。数到零和负数
+// 由调用方决定不显示:多放了的数字棋盘自己已经画红。
 export function remaining(save: string): Map<number, number> | null {
   const state = readBoard(save)
   if (!state) return null

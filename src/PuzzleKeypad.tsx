@@ -85,6 +85,8 @@ export default function PuzzleKeypad({
   return (
     <>
       <div className="keypad" role="group" aria-label={t.play.keypad}>
+        {/* React key 用下标、不用 key.button:我们这侧回答的键 button 全是 0,
+            Map 的九个 swatch 会撞 key;列表每次发牌整体重建、局内从不重排。 */}
         {keys.map((key, i) => {
           const said = describe(key)
           const count = countOn(key, left)
@@ -103,6 +105,7 @@ export default function PuzzleKeypad({
                     : undefined
               }
               title={said}
+              // 让焦点留在棋盘上:谜题从棋盘读键盘,按钮拿到焦点会吞方向键。
               onMouseDown={(e) => e.preventDefault()}
               {...holdToAsk(said)}
               onClick={() => {

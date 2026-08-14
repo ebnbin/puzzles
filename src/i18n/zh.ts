@@ -1,6 +1,10 @@
 import type { Strings } from './en'
 
+// 键面、长按提示这类文案的中文优先取 doc-zh 手册对应章节的既有译法
+// (「点画」「保留」「跳跃」「区域」都是手册的词),不自创同义词。
 export const zh: Strings = {
+  // brand 和 tagline 保持英文是有意的:名字就是名字;tagline 的梗建立在英语
+  // vibe 一词上,译回去梗即死。这不是漏译。
   brand: 'Puzzles',
 
   tagline: 'Think between vibes.',

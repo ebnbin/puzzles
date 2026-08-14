@@ -5,6 +5,8 @@ import { BASE, CHROMIUM, cornerColour, freshDir, openBoard, outFile, root, THEME
 
 const outDir = path.join(root, 'public/art')
 
+// 两个底色的红通道必须相同(三种皮肤全部只由背景的红导出,SKINS 按红=230 算),
+// 绿蓝要差得远供减法除;动 GROUNDS 必须同步重算 SKINS。
 const GROUNDS = ['rgb(230, 230, 230)', 'rgb(230, 0, 0)']
 
 const SKINS = {
@@ -24,6 +26,8 @@ const grab = (page) =>
     return { w: c.width, h: c.height, data: [...d.data] }
   })
 
+// 后端只在启动报色时读一次页面背景(frontend_default_colour):强制背景必须在
+// 进谜题前生效——先落画廊、addStyleTag,再点进 undead;棋盘起来后再加样式后端听不见。
 async function renderOn(browser, ground) {
   const context = await browser.newContext({
     viewport: VIEWPORT,

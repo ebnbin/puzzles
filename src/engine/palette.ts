@@ -1,3 +1,6 @@
+// 深色主题 = 把后端报上来的颜色表整表翻译一遍,wasm 全程不知情。SEMANTIC/BEVEL/
+// FIGURE/RIM 这些表的不变量由 scripts/verify-palette.mjs 用代码强制,改表就跑它;
+// 表要保持顶格 const 声明——那个脚本靠改写行首加 export 才 import 得到它们。
 const ACHROMATIC = 0.15
 
 const FLOOR = 0.05
@@ -45,6 +48,8 @@ const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
   blackbox: [[5, 6]],
   inertia: [[2, 3]],
   flood: [[12, 13]],
+  // unruly 这两对目前是空跑(SEMANTIC 的 compress 已保持方向,交换不触发),
+  // 留着是护栏:哪天 unruly 离开 SEMANTIC,靠它们接住;verify-palette 不查这件事。
   unruly: [
     [4, 5],
     [7, 8],
@@ -119,6 +124,8 @@ function format({ h, s, l }: { h: number; s: number; l: number }): string {
   return `#${channel(h + 1 / 3)}${channel(h)}${channel(h - 1 / 3)}`
 }
 
+// flip 和 compress 共享 FLOOR/CEILING、方向相反,端点必然重合:两个不同浅色落到
+// 同一暗色是量过并接受的(Mines 的 1 和 4 同蓝),不要为此加扰动。
 const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
 
 const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
@@ -193,6 +200,9 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     ;[flipped[lit], flipped[shade]] = [flipped[shade], flipped[lit]]
   }
 
+  // 这个 pass 不冗余:所有规则同色入同色出,唯一能打破的是 BEVEL 交换(值在槽位
+  // 间搬家),所以用交换过的对播种、同浅色槽跟走;SEMANTIC 槽故意豁免(Pattern
+  // 的两个黑本该分开)。
   const settled = new Map<string, string>()
   for (const index of BEVEL[game]?.flat() ?? [])
     if (!semantic?.includes(index)) settled.set(light[index], flipped[index])

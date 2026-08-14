@@ -1,3 +1,6 @@
+// 重新实现上游 request_keys() 的结果(emcc.c 不调用它),按 game id 里的参数推;
+// 认不出的 id 一律不显示键盘,而不是显示错的。逐游戏的判据和踩过的坑在 docs/keys.md,
+// 改这里要同步改它。
 import type { IconName } from '../Icon'
 import { COLOURS } from './map'
 import type { Border, Stand } from './palisade'
@@ -5,8 +8,12 @@ import type { DialogControl, KeyLabel } from './types'
 
 const MAX_SYMBOLS = 36
 
+// 单行键盘里非符号键的最大个数,数出来的不是猜的:往任何 RULES 行加非符号键都要
+// 同步加大它——keysFor 的长度守卫超限就整排不显示,只在最宽的合法棋盘上可见。
 const MAX_EXTRAS = 6
 
+// 字符与数值是两回事:unequal 超过 9 阶从 '0' 起标以保持一字宽,此时 '0' 键的
+// value 是 1——value: i + 1 不是 off-by-one,键面显示前者、角标按后者计数。
 function digits(count: number, startAtZero = false): KeyLabel[] {
   const first = startAtZero ? 0 : 1
   return Array.from({ length: count }, (_, i) => {
@@ -38,6 +45,9 @@ function size(p: string): number | null {
   return n >= 1 && n <= MAX_SYMBOLS ? n : null
 }
 
+// 故意按 answers 列表逐项匹配、不按名字(keyword 过不了边界):上游改名仍读对;
+// 答案增删换序时宁可漏配(回落默认脸)也不把 value 对到换过序的表上。下面的
+// flag 是被迫按 label 匹配的唯一例外——boolean 没有答案可匹配。
 function preference(
   prefs: readonly DialogControl[],
   answers: readonly string[],
@@ -188,6 +198,8 @@ const RULES: Record<
   },
 }
 
+// 键盘长什么样要问偏好设置的游戏:PuzzleHost 见到这些名字,才会在偏好可能
+// 动过之后回来重读一遍。
 export const READS_PREFS = new Set(['undead', 'guess', 'palisade'])
 
 const NO_ARROWS = new Set(['loopy'])

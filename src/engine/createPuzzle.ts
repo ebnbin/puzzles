@@ -19,6 +19,8 @@ export async function createPuzzle(options: {
     gameId,
     draw: renderer,
 
+    // C 侧经 js_get_selected_preset 同步读回,必须在 command(2) 前就位;
+    // TS 侧没有读者,但不是死字段。
     selectedPreset: 0,
 
     attach(bound: PuzzleApi) {

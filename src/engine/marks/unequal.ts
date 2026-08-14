@@ -17,6 +17,9 @@ export function readUnequal(lines: Field[]): Board | null {
   const params = find(lines, 'CPARAMS') ?? find(lines, 'PARAMS') ?? ''
   const size = leadingNumber(params)
   if (!size) return null
+  // Unequal 模式:flag = 带 flag 的那格 > 它指向的邻格,方向依据是 unequal.c
+  // check_num_adj 的报错文案,不是屏幕上画的符号。Adjacent 模式:没有 flag 的
+  // 邻对是「差 ≠ 1」的硬约束(更强的那半),只遍历 signs 会丢掉它。
   const adjacent = /a/.test(params.slice(String(size).length))
   const area = size * size
 
@@ -79,6 +82,8 @@ export function readUnequal(lines: Field[]): Board | null {
         for (const n of [...candidates[cell]]) if (!keep(n)) candidates[cell].delete(n)
       }
 
+      // 零候选的空格对邻居什么都说明不了(没有最小候选,floor/ceiling 无从谈起):
+      // 不挡住它,空白会一格传一格,玩家棋盘一处矛盾变成整行标记被擦。
       const open = (cell: number) => values[cell] || candidates[cell].size > 0
 
       if (adjacent) {

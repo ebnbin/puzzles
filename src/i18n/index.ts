@@ -1,3 +1,4 @@
+// 语言解析和 index.html 的内联脚本是同一段逻辑,联动改。
 import { useSyncExternalStore } from 'react'
 import { en } from './en'
 import type { Strings } from './en'
@@ -66,6 +67,8 @@ export function useStrings(): Strings {
   return CATALOGUE[useSyncExternalStore(subscribe, snapshot, snapshot)]
 }
 
+// 默认页显式 index.html,不要改成目录式 URL:halibut 在全部章节页头把 Contents
+// 链接写成 index.html,SW 按整条 URL 缓存,目录式会给同一页铸出第二个缓存条目。
 export function docHref(lang: Lang, page = 'index.html'): string {
   return `/doc/${lang}/${page}`
 }

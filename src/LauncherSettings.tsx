@@ -27,6 +27,8 @@ export default function LauncherSettings({
 
   const arm = (event: React.MouseEvent) => {
     window.clearTimeout(timer.current)
+    // click 的 detail===0 即键盘触发(Enter/Space 合成的 click):键盘用户不设
+    // 3 秒 disarm 倒计时并把焦点移给确认键——键盘追不上一个会自己消失的目标。
     byKeyboard.current = event.detail === 0
     setAsking(true)
     if (byKeyboard.current) return
@@ -61,6 +63,8 @@ export default function LauncherSettings({
       <a
         className="setting setting-link"
         href={docHref(lang)}
+        // 必须新开:app 是无历史的单页,同 tab 跳转会卸掉唯一页面;standalone
+        // PWA 里更是原窗口被整个替换、无 tab 可回。
         target="_blank"
         rel="noreferrer"
       >

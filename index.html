@@ -6,6 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
+    <!-- 只有一个 theme-color,值由内联脚本和 useTheme 同步;不要按 media 写成
+         一对,那会无视玩家手动选的主题。 -->
     <meta name="theme-color" content="#fafaf9" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Puzzles" />
@@ -13,6 +15,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+    <!-- iOS 只读这一条且只认 PNG:给 SVG 会退化成拿页面截图当主屏图标。 -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Puzzles</title>
     <meta name="description" content="Think between vibes." />

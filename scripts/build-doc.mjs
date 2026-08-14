@@ -51,6 +51,10 @@ const MOON_ICON = icon(
   '<path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/>',
 )
 
+// 这个字符串随每个手册页原样发布,里面的 // 注释是产物内容,不归本仓库的注释
+// 规矩管。其中删自身 hash 的那段不冗余:halibut 把每页链成 <file>.html#<file>,
+// 自带同名 fragment 会让页面开在半中腰;只删「等于本页名」的,#net-controls
+// 这类真跳转必须原样保留。主题/语言解析和 index.html 内联脚本是同一段,联动改。
 const HEAD_SCRIPT = `<script>
 ;(function () {
   // Open at the top of the page, not a screenful into it.
@@ -226,6 +230,8 @@ const css =
     .join('\n')
 
 writeFileSync(join(OUT, 'doc.css'), css)
+// doc.css 是同一地址原地重写,必须带内容摘要 query:service worker 按整条 URL
+// 存,没有它老样式表会被永远端出;vercel 对它写 immutable 也只因这个 query 才合法。
 const STYLESHEET = `/doc/doc.css?v=${createHash('sha256').update(css).digest('hex').slice(0, 8)}`
 
 const styledEn = styleTree(join(OUT, 'en'), 'en')

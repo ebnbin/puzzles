@@ -16,6 +16,8 @@ export function readKeen(lines: Field[]): Board | null {
   const desc = find(lines, 'DESC') ?? ''
   const comma = desc.indexOf(',')
   if (comma < 0) return null
+  // 25 = 'y',不是 solo 的 26/'z':依据是 keen.c:856 的代码(adv = (c != 25)),
+  // 那一行旁边的上游注释写着 'z',是错的,别照它「修」。
   const block = dividerBlocks(desc.slice(0, comma), size, { open: 25, repeats: true })
   if (!block) return null
 

@@ -1,3 +1,6 @@
+/* 一份文件服务两种标记:app 是 label+隐藏 radio+data-selected,手册无脚本、是
+   a+aria-current——成对的选择器不是冗余。本文件还被 build-doc.mjs 拼进
+   public/doc/doc.css,改了要重跑 npm run doc,否则手册侧原地不动。 */
 .segmented {
   display: inline-grid;
   grid-auto-flow: column;

@@ -5,6 +5,8 @@ import type { Lang } from './index'
 
 export type GameText = {
   name: string
+  // 双向都不翻译:谜题名是专有名词,手册章节、game id、上游页面都用它;
+  // 往 games.zh.json 补 displayName 会让画廊名字与手册和 ID 失联。
   displayName: string
   description: string
   objective: string

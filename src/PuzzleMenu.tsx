@@ -17,6 +17,8 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
 
 type TextKind = 'desc' | 'seed'
 
+// 后端给的 desc/seed 是放在 # 后的形式、即 %-escaped(seed 形如 3x3%23124…):
+// 显示和回喂都必须用 decode 后的形式,原样回喂会被拒。
 const plain = (value: string) => {
   try {
     return decodeURIComponent(value)
@@ -137,6 +139,8 @@ function TextRow({
   const id = useId()
   const [text, setText] = useState(() => plain(value))
 
+  // 记「上次交出去的」,不能拿 value 当基准:被拒的 id 永远不会变成 value,
+  // 比较对象错了,拒绝后每次 blur 都会把同一个 id 再送去被拒一遍。
   const sent = useRef(text)
   useEffect(() => {
     setText(plain(value))

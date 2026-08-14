@@ -19,6 +19,9 @@ import {
 const outDir = path.join(root, 'public/howto')
 const SIZE = 324
 
+// 这三个的 Solve 只展示答案不改盘(flood 存的是 solution path),必须直接用
+// 发牌图,否则玩法图变成「画着答案路线的未完成盘」;cube/samegame/pegs 的
+// can_solve=false 由「solve 前后像素相同即回退」自动兜住,不用列在这里。
 const SOLVE_ONLY_SHOWS = new Set(['flood', 'inertia', 'flip'])
 
 const board = (page) =>
@@ -56,6 +59,8 @@ for (const game of list) {
           fs.readFileSync(savePath(game.name), 'utf8'),
         )
         await page.waitForTimeout(400)
+        // 取开局必须 loadGame(上游 .sav)后 restart():restart 保留生成时的 aux,
+        // netslide/untangle 没有 aux 会拒绝 solve;改成按 game id 重发,aux 就丢了。
         await page.evaluate(() => window.__puzzle.restart())
         await page.waitForTimeout(300)
 
