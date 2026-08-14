@@ -1815,15 +1815,25 @@ export default function PuzzleHost({
                * cannot see: it reads the back end's words, and the back end does
                * not know this arming exists.
                *
-               * These stay where they are and go dim, which is this row's own
-               * word for "in this menu, cannot act now" — the press they would
-               * take belongs to the arming. They used to leave instead, and that
-               * was wrong twice over: four buttons vanishing under the thumb is
-               * a bigger jump than the state it reports, and putting them back
-               * left a repaint artefact on iOS — a button drawn as a fragment of
-               * itself, every time, after arm and disarm.
+               * While it is armed the row is that key's menu. Everything else in
+               * it would take the press the arming is waiting for — measured
+               * before this was here: key 1 opened a drag and key 2 marked an
+               * island, and both threw the arming away without a word. That is
+               * the same fault as the one this key had in the other direction,
+               * and it was left standing because only the direction that was
+               * pointed at got looked at.
+               *
+               * `asleep` is in the test for the same reason it is in `armed`
+               * below: with no cursor the arming is not doing anything, so the
+               * row should be its ordinary self rather than one dead key.
+               *
+               * Hidden rather than unmounted, which is not a nicety: taking them
+               * out and putting them back is what leaves a button drawn as a
+               * fragment of itself on iOS. `visibility` keeps the box laid out
+               * in the cell it already had, so disarming flips a paint flag and
+               * moves nothing. See `[data-off]` in index.css.
                */
-              const shelved = primed !== null && i !== primed
+              const off = primed !== null && i !== primed
               // Above the special-cased kinds below and not after them, which is
               // where it used to sit: Bridges' arming key is the first of those
               // to carry a level, and it was drawn straight through the filter.
@@ -1850,10 +1860,11 @@ export default function PuzzleHost({
                     key={cursor.icon}
                     type="button"
                     data-act={cellOf[i]}
+                    data-off={off || undefined}
                     data-whose="ours"
                     data-on={armed || undefined}
                     aria-pressed={armed}
-                    disabled={blind || shelved}
+                    disabled={blind}
                     aria-label={t.play.cursor[cursor.says]}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
@@ -1879,13 +1890,14 @@ export default function PuzzleHost({
                        so it stands in the same place in the cross every time
                        rather than wherever its own row ran out. */
                     data-act="sweep"
+                    data-off={off || undefined}
                     // Ours, like Map's arming key: the modifier it stands for is
                     // upstream's, but no back end has ever been given a way to
                     // hold one down, so the holding is this side's invention.
                     data-whose="ours"
                     data-on={painting || undefined}
                     aria-pressed={painting}
-                    disabled={asleep || shelved}
+                    disabled={asleep}
                     aria-label={t.play.cursor[cursor.says]}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
@@ -1911,6 +1923,7 @@ export default function PuzzleHost({
                     key={cursor.icon}
                     type="button"
                     data-act={cellOf[i]}
+                    data-off={off || undefined}
                     // The third step of the ladder, the same as the three on the
                     // keypad: a key no back end has heard of, answered through
                     // the save file.
@@ -1941,7 +1954,7 @@ export default function PuzzleHost({
                      * is telling the truth. What the no-cursor case takes away
                      * is the reader's ability to see where any of it applies.
                      */
-                    disabled={shelved || !awake || (cursor.paints !== undefined && onClue)}
+                    disabled={!awake || (cursor.paints !== undefined && onClue)}
                     onMouseDown={(e) => e.preventDefault()}
                     {...holdToAsk(t.play.cursor[cursor.says])}
                     onClick={() => {
@@ -1995,6 +2008,7 @@ export default function PuzzleHost({
                   key={cursor.does ?? cursor.key}
                   type="button"
                   data-act={cellOf[i]}
+                  data-off={off || undefined}
                   // Enter and Space, which the back end reads as CURSOR_SELECT
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.
@@ -2043,7 +2057,7 @@ export default function PuzzleHost({
                    * the exemption has nothing to stand on: they go out with
                    * everything else. See `lit` in engine/keys, and `asleep`.
                    */
-                  disabled={shelved || (key === null && (!cursor.lit || asleep))}
+                  disabled={key === null && (!cursor.lit || asleep)}
                   {...holdToAsk(said)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
@@ -2054,6 +2068,11 @@ export default function PuzzleHost({
                     // a square that already has this colour, which is exactly
                     // where one run ends and the next one starts.
                     if (cursor.brush) setBrush(i)
+                    // Any other key in this row puts the arming down. Bridges'
+                    // Enter opens a drag the next arrow lands, so leaving a
+                    // no-bridge mark armed across it would take that arrow for
+                    // something the reader stopped asking for two presses ago.
+                    setPrimed(null)
                     if (key === null) return
                     // A switch that is already set empties the square instead,
                     // and for Tents that swap happens here rather than in

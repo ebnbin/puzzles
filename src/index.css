@@ -1576,6 +1576,23 @@ p.notice-intro button:active {
  * with. A puzzle offering one key fills the left cell and leaves the right
  * empty, which is a gap in a cross rather than a hole in a row.
  */
+/*
+ * A key that is out for the moment: still in its cell, just not painted.
+ *
+ * This is what one of our arming keys does to the rest of the row — the next
+ * press belongs to the arming, so nothing else may take it. It was done by not
+ * rendering them at all, and putting them back left a repaint artefact on iOS:
+ * the button came back drawn as a fragment of itself, glyph clipped and no
+ * background, every time, reported on a phone and not reproducible in Chromium,
+ * where every attribute measures right. `visibility` keeps the box where it
+ * already was, so coming back is a paint and not an insertion — and it takes
+ * the key out of hit testing and off the accessibility tree while it is out,
+ * which is what unmounting did.
+ */
+.play-arrows button[data-off] {
+  visibility: hidden;
+}
+
 .play-arrows [data-act='first'] {
   grid-area: 1 / 1;
 }
