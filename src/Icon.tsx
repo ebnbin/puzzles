@@ -1081,23 +1081,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   /*
-   * Pearl's arming key, and it is the line itself rather than anything holding
-   * it: a segment of loop with a × through it, which is what that board draws
-   * — a thick bar between two cell centres, and a small × where the reader has
-   * ruled one out.
-   *
-   * No box around it, and that is what keeps it clear of the shapes already
-   * spoken for. Every "two things and what is between them" glyph in
-   * this file is about the two things — Bridges' islands, Signpost's squares,
-   * Dominosa's halves — so a third pair of them would be read as a fourth
-   * puzzle's cells. Here the cells are not the point; the edge is. Palisade's
-   * `noEdge` is the same idea with a box and a quarter turn, and it means a
-   * wall, which is the one place a reader could confuse them — the two puzzles
-   * are never on screen together.
-   *
-   * A plain thick bar was its partner for a day, for the Ctrl key that has
-   * since gone. Worth knowing if that key ever comes back: at 20px it is a
-   * thick minus sign, and it read as a line only next to this one.
+   * Pearl's arming key: the line itself with a × through it, which is what that
+   * board draws. No box round it — every "two things and what is between them"
+   * glyph here is about the two things (Bridges' islands, Signpost's squares,
+   * Dominosa's halves), and this one is about the edge. Palisade's `noEdge` is
+   * the same idea boxed and turned, and means a wall; the two never share a
+   * screen. Drawn at 20px in both themes: the × has to stand taller than the
+   * bar or it goes to mush.
    */
   crossNext: (
     <>

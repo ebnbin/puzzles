@@ -2959,40 +2959,20 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Pearl, whose Enter is a keyboard drag: press once to start drawing the
-   * loop, walk it with the arrows, press again to leave it.
+   * Pearl. Two menus of two: Enter opens a keyboard drag and the arrows walk
+   * it, so while one is open the row is stop and drop, and while none is the
+   * row is start and the cross.
    *
-   * Space abandons one and does nothing else, so it is a second-level slot
-   * rather than a button that spends the game dimmed. Upstream refuses it
-   * outright while nothing is being drawn (MOVE_NO_EFFECT, pearl.c:2264-2270)
-   * and reports no word for it either, and that pair is exactly what `level`
-   * was written for: a dim button invites the reader to work out what would
-   * light it, and for a cancel with nothing to cancel the only answer is to
-   * start a line they did not want.
+   * Both levels are upstream's word, not a bit kept here. It refuses Space
+   * while nothing is being drawn (pearl.c:2264-2270) and refuses a modified
+   * arrow mid-drag (2237) — and in the one moment it does not, a drag opened
+   * and not yet moved, it throws the drag away first (2238).
    *
-   * The cross is ours, and it is Bridges' arming key doing Bridges' job:
-   * upstream rules an edge out with Shift and an arrow (`mark_in_direction`,
-   * pearl.c:2174-2192) and no back end has ever been given a way to hold a
-   * modifier down, so a press arms it and the arrow after it spends it.
-   *
-   * It is the one edge key this row is owed. A drag emits `F` moves and only
-   * `F` moves, and stops dead at a cross rather than crossing one, so without
-   * this key the row could draw a loop and never say where one does not go —
-   * half of how the puzzle is played. Ctrl's counterpart was here for a day and
-   * is the other case: the drag reaches every line it can, for the same move,
-   * under the same refusal on an edge already crossed. Counted, it saves a
-   * press on a lone edge (2 against 3), ties at two, and loses from three up
-   * (2n against n+2) — so on a puzzle played by drawing corridors it was a net
-   * cost, and "a pair of edge keys offering only the negative reads as an
-   * oversight" is a claim about appearances that those numbers do not support.
-   * Bridges keeps both because it sends no drag at all; here the drag is the
-   * line key.
-   *
-   * The cross leaves while a line is open, which is upstream's own answer: it
-   * refuses a modified arrow mid-drag outright (`MOVE_NO_EFFECT`,
-   * pearl.c:2237) and, in the one moment it does not — a drag opened and not
-   * yet moved — it silently throws the drag away first (2238). So the row is
-   * two menus: start and cross while idle, stop and drop while drawing.
+   * The cross arms Shift for the next arrow, the way Bridges' keys arm theirs.
+   * Ctrl's counterpart was here for a day: the drag reaches every line it can,
+   * for the same move, and costs fewer presses from three edges up (n+2 against
+   * 2n) in one undo rather than one each. The cross has no such twin — a drag
+   * emits `F` moves only, and stops dead at a cross rather than crossing one.
    */
   pearl: [
     {
@@ -3004,14 +2984,6 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Stop: { icon: 'done', says: 'endLoop', on: true },
       },
     },
-    /*
-     * Ours in the middle and upstream's at the end, which is the ladder the
-     * other way round and deliberate: the two are the same reach — one edge
-     * each — so what orders them is which of the two cells should be the one
-     * that empties. The idle menu is where a reader spends the game, and a gap
-     * at the end of a row reads as a row that ended; a gap in the middle of one
-     * reads as a button that is missing.
-     */
     { key: '', icon: 'crossNext', says: 'crossNext', primes: { shift: true }, level: 1 },
     {
       key: ' ',

@@ -1423,6 +1423,22 @@ export default function PuzzleHost({
   /** The stroke mode as it is actually behaving, which needs somewhere to paint. */
   const painting = sweeping && !asleep
 
+  /*
+   * Which cell each slot gets, and how many there are — counted over the menu
+   * that is running, so a row of two keys is laid out as a row of two whichever
+   * slots they came from. Not over the buttons actually drawn: arming hides a
+   * key's neighbours for one press, and a block that changed shape for that
+   * would move the arrow the arming is waiting for.
+   */
+  const shownKeys = acts.map((cursor) =>
+    inMenu(name, cursor, { ...labels, opened: opened ?? undefined }, awake),
+  )
+  const cellOf = shownKeys.reduce<(string | undefined)[]>((out, shown) => {
+    out.push(shown ? ACT[out.filter(Boolean).length] : undefined)
+    return out
+  }, [])
+  const keyCount = shownKeys.filter(Boolean).length
+
   return (
     /* The flag goes here rather than on the row that grows, because two rows
        answer to it: the four buttons pair off into a 2×2 to make room for the
@@ -1646,7 +1662,7 @@ export default function PuzzleHost({
             data-ways={movesEightWays(name) ? '8' : undefined}
             /* And three rows the other way round: a full row of keys with the
                cross under it, for the puzzles whose keys are three or four. */
-            data-keys={acts.length >= 3 ? String(acts.length) : undefined}
+            data-keys={keyCount >= 3 ? String(keyCount) : undefined}
             role="group"
             aria-label={t.play.arrows.group}
           >
@@ -1790,12 +1806,10 @@ export default function PuzzleHost({
                * The bit is kept while it is out, so a cursor that comes back
                * finds the mode where it was left.
                */
-              // The list is slots rather than buttons, and a slot is empty while
-              // its level is not the one running. Filtered here rather than
-              // before the map so `i` stays the slot's own number: the keys that
-              // are always there keep their places when a neighbour empties.
-              // See `level` in engine/keys.
-              if (!inMenu(name, cursor, { ...labels, opened: opened ?? undefined }, awake)) return null
+              // A slot is empty while its level is not the one running; the cell
+              // it would have had goes to the next key that is. See `level` in
+              // engine/keys and `cellOf` above.
+              if (!shownKeys[i]) return null
               /*
                * And the level one of our own keys opens, which the line above
                * cannot see: it reads the back end's words, and the back end does
@@ -1839,7 +1853,7 @@ export default function PuzzleHost({
                   <button
                     key={cursor.icon}
                     type="button"
-                    data-act={ACT[i]}
+                    data-act={cellOf[i]}
                     data-whose="ours"
                     data-on={armed || undefined}
                     aria-pressed={armed}
@@ -1900,7 +1914,7 @@ export default function PuzzleHost({
                   <button
                     key={cursor.icon}
                     type="button"
-                    data-act={ACT[i]}
+                    data-act={cellOf[i]}
                     // The third step of the ladder, the same as the three on the
                     // keypad: a key no back end has heard of, answered through
                     // the save file.
@@ -1984,13 +1998,7 @@ export default function PuzzleHost({
                   // `Enter` and the key alone would no longer be unique.
                   key={cursor.does ?? cursor.key}
                   type="button"
-                  data-act={ACT[i]}
-                  // Which menu this button belongs to, for the one layout rule
-                  // that needs to know: a second-level key at the end of the row
-                  // stands in the cell a first-level neighbour has vacated,
-                  // rather than leaving a hole between the two keys that are on
-                  // screen. See `[data-level='2']` in index.css.
-                  data-level={cursor.level}
+                  data-act={cellOf[i]}
                   // Enter and Space, which the back end reads as CURSOR_SELECT
                   // and CURSOR_SELECT2 — upstream's keys like the arrows they
                   // stand among, whatever each puzzle spends them on.

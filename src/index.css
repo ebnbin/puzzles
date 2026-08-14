@@ -1619,27 +1619,6 @@ p.notice-intro button:active {
   grid-area: 1 / 3;
 }
 
-/*
- * And the one key that does not sit in its own slot's cell: a second-level key
- * at the end of a three-key row moves in beside the first.
- *
- * Pearl is the only one, and it is why the rule exists rather than an example
- * of it. Its row is two menus of two — start and cross while idle, stop and
- * drop while a line is being drawn — and the cross is the middle slot, the drop
- * the last. Placed by slot alone the second menu would be a button, a hole, and
- * a button, with the hole exactly where the key that just left used to be.
- *
- * Sound only because the cell it moves into is emptied by the level change
- * itself: `level: 1` on the middle key and `level: 2` on this one are what
- * makes the two mutually exclusive, and engine/keys declares both. A row whose
- * middle key has no level would put two glyphs in one cell — so check that
- * before a second puzzle takes this rule, and give it its own cell if it has
- * one to spare.
- */
-.play-arrows[data-keys='3'] [data-act='third'][data-level='2'] {
-  grid-area: 1 / 2;
-}
-
 .play-arrows[data-keys='3'] [data-dir='up'],
 .play-arrows[data-keys='4'] [data-dir='up'] {
   grid-area: 2 / 2;
