@@ -2762,33 +2762,19 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
-   * Mosaic, whose two keys are Unruly's cycle wound both ways, and whose labels
-   * are Unruly's word for word (mosaic.c:1037-1044). It has not been given the
-   * pair of colour switches beside it because nobody has asked for that yet;
-   * this is the entry as it stood, put back after a careless edit took it out
-   * with its neighbour's.
+   * Mosaic, which is Unruly twice over: the same three states, the same words
+   * for them, and the same table saying which key reaches which
+   * (mosaic.c:1037-1044). So the same pair of colour switches, and the same
+   * six transitions in one press with nothing kept on this side.
+   *
+   * One thing it has that Unruly does not: a solved board reports nothing from
+   * either key (`not_completed_clues == 0`, mosaic.c:1035) and `interpret_move`
+   * takes only cursor moves after that, so both buttons go dark when the puzzle
+   * is done, without this side knowing the game is over.
    */
   mosaic: [
-    {
-      key: 'Enter',
-      icon: 'black',
-      says: 'blackSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        White: { icon: 'white', says: 'whiteSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'white',
-      says: 'whiteSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        White: { icon: 'white', says: 'whiteSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
+    { key: 'Enter', icon: 'black', says: 'blackSquare', does: 'Black', instead: 'Empty' },
+    { key: ' ', icon: 'white', says: 'whiteSquare', does: 'White', instead: 'Empty' },
   ],
 
   /*
