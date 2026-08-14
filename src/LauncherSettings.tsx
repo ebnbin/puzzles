@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Dialog from './Dialog'
 import Icon from './Icon'
 import { forgetEverything } from './engine/saves'
+import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
 import { setArrows, useArrows } from './useArrows'
 import { useScrollLock } from './useScrollLock'
@@ -63,16 +64,16 @@ export default function LauncherSettings({
       <a
         className="setting setting-link"
         href={docHref(lang)}
-        // 必须新开:app 是无历史的单页,同 tab 跳转会卸掉唯一页面;standalone
-        // PWA 里更是原窗口被整个替换、无 tab 可回。
-        target="_blank"
-        rel="noreferrer"
+        onClick={(e) => {
+          e.preventDefault()
+          openManual()
+        }}
       >
         <span className="setting-text">
           {t.settings.manual}
           <em>{t.settings.manualHint}</em>
         </span>
-        <Icon name="external" size={18} />
+        <Icon name="caret" size={18} />
       </a>
 
       {asking ? (

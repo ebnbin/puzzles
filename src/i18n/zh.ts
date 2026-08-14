@@ -27,6 +27,8 @@ export const zh: Strings = {
     themeDark: '深色',
     manual: '手册',
     manualHint: '每个谜题的规则与操作',
+    manualFailed: '这一页没能加载。',
+    manualRetry: '重试',
     erase: '清除全部数据',
     eraseHint: '存档、设置，以及隐藏的谜题',
     eraseWhat: '此操作无法撤销',

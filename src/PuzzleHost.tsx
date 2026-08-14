@@ -62,6 +62,7 @@ import type {
   Preset,
   PuzzleApi,
 } from './engine/types'
+import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useArrows } from './useArrows'
@@ -1051,11 +1052,12 @@ export default function PuzzleHost({
             <p className="prose-more">
               <a
                 href={docHref(lang, `${name}.html`)}
-                target="_blank"
-                rel="noreferrer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  openManual(`${name}.html`)
+                }}
               >
                 {t.play.fullInstructions}
-                <Icon name="external" size={14} />
               </a>
             </p>
           </div>

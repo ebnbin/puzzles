@@ -1721,3 +1721,57 @@ p.notice-intro button:active {
     animation: none !important;
   }
 }
+
+/* 手册阅读层:盖在一切之上;正文样式来自 doc.css,和独立手册页同一份源 */
+.doc-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  background: var(--bg);
+}
+
+.doc-viewer-top {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: 0 max(0.5rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--edge);
+}
+
+.doc-viewer-title {
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.doc-viewer-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.doc-viewer-note {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem max(1rem, env(safe-area-inset-left));
+  color: var(--text-2);
+}
+
+.doc-viewer-note button {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
