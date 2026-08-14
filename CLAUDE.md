@@ -161,7 +161,7 @@ node scripts/check-palisade.mjs   # palisade 的两个键该不该亮、该不�
 `src/engine/createPuzzle.ts` 动态 import `/engine/<name>.js`(MODULARIZE 的 ES module,
 每次调用是独立实例),`src/PuzzleHost.tsx` 每次挂载启动恰好一个后端。
 
-几个反复出现的坑,改 `PuzzleHost` 前先读它的注释:后端只有**一个** config box(游戏 ID、
+几个反复出现的坑,改 `PuzzleHost` 前先过一遍:后端只有**一个** config box(游戏 ID、
 参数、偏好设置共用),所以打开一个就必须有人回答它;StrictMode 下 effect 会跑两遍而 wasm
 没有 teardown;`rescale()` 而不是 `resize()`;**后端第一次报的 `onPresetSelected` 是默认
 预设**——emcc.c 建菜单时调一次 `select_appropriate_preset()`,那之后才轮到读存档和玩家选,
@@ -240,18 +240,19 @@ Undead)因此多了三个键:
 之后后端写出的存档和「全部走子都已应用」那份逐字节相同,契约检查对每份存档都验这一条。
 
 **这扇门还有第二个用户:`src/engine/map.ts`。** 它走整趟(读、改、`loadGame` 放回去),代价也整趟
-付:`midend_deserialise` 会重建 `game_ui`,所以光标每次都得走回去,而且不会闪。
+付:`midend_deserialise` 会重建 `game_ui`,所以光标每次都得走回去;闪光靠下面说的
+pending+redo 补回来。
 
-tents 一度是第三个,而且只用了**只读**那一半——按完键之后翻一遍存档,只为回答「刚才那一格里是
+tents 是第三个,而且只用**只读**那一半——按完键之后翻一遍存档,只为回答「刚才那一格里是
 什么」(标签分不出帐篷和草,两种都报 `Clear`)。那一半是免费的:不动 `game_ui`,光标不丢,闪也照
-旧。它随着 tents 改回三个固定键一起删了,记在这里是因为**只读那一半仍然是这扇门最便宜的用法**,
-下次要往存档里写之前先问一句是不是读就够。
+旧。**只读那一半是这扇门最便宜的用法**,要往存档里写之前先问一句是不是读就够。
 
 ### 两块屏幕,没有路由
 
 `src/view.ts`:一个模块级变量决定显示画廊还是某个谜题,地址永远是 `/`,全app只有一次
-`history.replaceState`。不要引入 router,也不要往 hash 里塞状态——注释里写了为什么这
-是设计而不是欠账。
+`history.replaceState`。不要引入 router,也不要往 hash 里塞状态——这是设计而不是欠账:
+两块屏幕是互相替换的同级,没有层级,Back 从哪块都离开 app 是语义不是缺陷;router、地址
+镜像、push 出来的历史条目是被拆掉的复杂度,别装回来。
 
 进度和位置存在 localStorage(`src/engine/saves.ts`):`puzzles.save.<name>` 是 midend
 自己的存档格式,每步棋后写;`puzzles.recent` 是「最近玩的是哪个」(画廊拿它画圈),
@@ -264,13 +265,14 @@ tents 一度是第三个,而且只用了**只读**那一半——按完键之后
 
 后端启动时报一次颜色、之后只按编号引用,所以深色主题是**我们这边把颜色表翻译一遍**,
 wasm 全程不知情。规则全在 `src/engine/palette.ts`(compress / veil / flip 三条,加
-BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据。
+BEVEL 修正),426 个色位没有一个是手挑的;常量的测量依据在引入它们的提交信息里。
 
 `CanvasRenderer.defaultColour()` 故意在两种主题下都返回 null,这是浅色棋盘仍然逐像素
 等于上游的原因,也是深色必须由 palette.ts 生成的原因。
 
 `SEMANTIC`/`BEVEL`/`FIGURE`/`RIM` 这几张表是「哪个游戏的哪个色位属于哪类」的知识,算不
-出来。它们在注释里声明的规则由 `scripts/verify-palette.mjs` 强制;改表就跑它。
+出来。它们的规则由 `scripts/verify-palette.mjs` 用代码强制——脚本就是规则的唯一写法;
+改表就跑它。
 
 ### 生成物不要手改
 
@@ -282,7 +284,7 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
 | `public/og.png` | `scripts/build-shot.mjs`(1200×630,分享卡片;和 README 那张同一个脚本) |
 | `public/tiles/`、`public/howto/`、`public/art/` | 对应的 build-*.mjs(浏览器里跑真引擎截图);共用 `scripts/lib/pictures.mjs`,每张图亮暗各一份,文件名 `<name>-light.png` / `<name>-dark.png` |
 | `public/icon-512.png`、`public/icon-192.png`、`public/apple-touch-icon.png`、`public/favicon-32.png` | `scripts/build-appicon.mjs`(拿 `public/tiles/` 里的 net 和 cube 亮色图拼的,不跑引擎);改了图标要同步 `index.html`、`manifest.webmanifest` 和 `sw.js` 的预缓存名单 |
-| `public/doc/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/doc.css` 拼起来 |
+| `public/doc/doc.css` | `scripts/build-doc.mjs` 把 `src/tokens.css` + `src/segmented.css` + `src/doc.css` 拼起来 |
 | `docs/gallery.png` | `scripts/build-shot.mjs`(README 用的首页截图,亮暗并排);放 `docs/` 不放 `public/`,它不该跟着 app 部署出去 |
 
 手写的对应物只有翻译:`src/games.zh.json`、`public/help/zh.json`、`doc-zh/`。
@@ -305,7 +307,7 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   (`i18n/index.ts`)、隐藏的游戏(`useHidden`)、要不要方向键(`useArrows`)、当前屏幕
   (`view.ts`)都是这个形状。中间两个还共用一个更小的形状:一组游戏名存在一个 key 下,
   presence 即真——四十个只会被一起问到的布尔值是一件事,不是四十件。两份同形的 store 现在是
-  两个文件,各自的注释才是它们的内容;要合成一个工厂也说得过去。
+  两个文件;要合成一个工厂也说得过去。
 - 主题和语言在 `index.html` 的内联脚本里先解析一次,避免首帧闪白/闪英文;改了那段就要
   同步改 `useTheme` / `i18n`(以及 `build-doc.mjs` 里给手册用的同一段)。
 - 设计 token 全在 `src/tokens.css`,`data-theme` 属性切换,样式表里没有 media query。
@@ -319,19 +321,21 @@ BEVEL 修正),426 个色位没有一个是手挑的,常量都附了测量依据�
   的空白。后端说的话(preset 名、状态栏、参数对话框的标签)不在这里也翻不了——它们是编进
   wasm 的字符串,而这个 build 的全部意义就是不动那份 C。
 - `src/engine/keys.ts` 重新实现了上游 `request_keys()` 的结果(emcc.c 不调用它),按
-  game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。Undead 是唯一一个
-  光看 id 不够的:键面画怪物还是写字母得问偏好设置,所以它列在 `READS_PREFS` 里——
-  `PuzzleHost` 见到这个名字,才会在偏好可能动过之后回去重读一遍。
+  game id 里的参数推。认不出来的 id 一律不显示键盘,而不是显示错的。光看 id 不够、还要
+  问偏好设置的游戏(Undead 的键面画怪物还是写字母、Guess、Palisade)列在 `READS_PREFS`
+  里——`PuzzleHost` 见到这些名字,才会在偏好可能动过之后回去重读一遍。
 - **把「键盘上能做、触摸屏上做不到」的事补成按钮,是一件正在一个一个游戏做下去的事。**
   每个游戏读哪些键、哪些已经有落点、还差什么,记在 **`docs/keys.md`**,判据和踩过的坑也在
   那里。改到这一块就同步改它——那份文档没有脚本会替你更新。
-- **键盘上有三种键,画法不同**,分法是 `KeyLabel.aid`:不带这个字段的是往一个格子里放
+- **键盘上有三种键,画法不同**,分法是 `KeyLabel.whose`:不带这个字段的是往一个格子里放
   东西的普通键(数字、怪物、Clear);`'upstream'` 是后端自己就读、但从来没给过按钮的字母
   ——`M`、`H`、`J`,加上 Dominosa 那排高亮数字;`'ours'` 是后端根本不认识、由这一侧回答的
   三个,也就是上面那扇门。三档按「按一下够到多远」爬:一格 → 整块棋盘 → 整块棋盘且是我们
   的,**键盘上的排列顺序就是这个顺序**——游戏本来就有的排在前面,我们加上去的排在最后。
-  填色那一档给了我们的键而不是上游的,理由写在 `index.css` 里,和「谁更具破坏性」无关
-  ——Dominosa 的上游键什么都不伤,那条分法立不住。上游键的文案和顺序以上游手册为准,和我们
+  填色那一档给了我们的键而不是上游的,分法是「键是谁的」这个事实,不是「按下去伤多大」
+  这种因游戏而异的代价:我们的三个键永远一起出现、永远三个,填色让它们读成一个整块,
+  上游的键零散到来(Unequal 只有两个),更适合当数字间的点缀;「谁更具破坏性」那条分法
+  立不住——Dominosa 的上游键什么都不伤。上游键的文案和顺序以上游手册为准,和我们
   的键撞了就改我们的(`possible` 因此从 "Fill in the possible pencil marks" 改成了
   "Leave only the pencil marks still possible")。
 - TS 是 strict + `noUnusedLocals`/`noUnusedParameters`/`verbatimModuleSyntax`,类型
@@ -375,9 +379,16 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
   一天。**任何非内容寻址的 URL 都不许写 `immutable`**;`/doc/doc.css` 可以,因为它带内容
   摘要的 query。
 
-反过来,下面这些随便改:`src/` 里的一切、`docs/`、构建脚本、注释。
+反过来,下面这些随便改:`src/` 里的一切、`docs/`、构建脚本。
 
-### 注释和提交信息的调子
+### 注释和提交信息
 
-这个仓库的注释写的是**为什么**——权衡、量过的数字、被否决的方案。提交信息是完整的句子,
-正文解释理由和证据(`git log` 里看得到)。新代码照这个写,不要退回「做了什么」式的注释。
+**代码即 SSOT,注释近乎为零。** 这是纯 vibe coding 项目,没有人逐行读代码:讲解、权衡、
+历史、测量依据一律不写进代码——那些住在提交信息(`git log` 里看得到)、CLAUDE.md 和
+docs/ 里。唯一允许的注释是**代码自己表达不了、而不知道就会把代码改坏的约束**:与 C 共享
+的活对象、故意反直觉的顺序或常量、跨文件要一起改的值、「看起来该修恰恰不能修」的地方。
+用中文写,一到三行,常用英文术语不硬翻。现存的每一条注释都是按这个标准留下的:改到它
+守着的代码时顺手校对它,过期就删;不要新增讲解式注释。
+
+提交信息不变:完整的句子,正文解释理由和证据。被删掉的「为什么」从此只住在提交信息和
+这份文件里,所以提交信息的标准只升不降。
