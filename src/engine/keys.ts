@@ -2662,50 +2662,24 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
     { key: ' ', icon: 'circleSquare', says: 'circle', does: 'Circle', instead: 'Remove', twice: true },
   ],
 
+  /*
+   * Unruly, Range's shape and the cheapest of the family: two keys named for a
+   * colour, each emptying its own square on a second press.
+   *
+   * The labels tell all three states apart with no word shared between the two
+   * keys, so nothing is blanked and nothing is kept here — empty answers
+   * {Black, White}, a black square {White, Empty}, a white one {Empty, Black}
+   * (unruly.c:1546-1553). Every one of the six transitions is one press, black
+   * to white included, which Singles had to spend two on: there the middle
+   * state is reached through a key that is already busy, here upstream's own
+   * cycle happens to pass through the colour the other key wants.
+   *
+   * A clue square reports nothing from either key (unruly.c:1545) and both go
+   * out together, which is upstream's refusal showing through.
+   */
   unruly: [
-    {
-      key: 'Enter',
-      icon: 'black',
-      says: 'blackSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        White: { icon: 'white', says: 'whiteSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'white',
-      says: 'whiteSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        White: { icon: 'white', says: 'whiteSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
-  ],
-
-  mosaic: [
-    {
-      key: 'Enter',
-      icon: 'black',
-      says: 'blackSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        White: { icon: 'white', says: 'whiteSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
-    {
-      key: ' ',
-      icon: 'white',
-      says: 'whiteSquare',
-      faces: {
-        Black: { icon: 'black', says: 'blackSquare' },
-        White: { icon: 'white', says: 'whiteSquare' },
-        Empty: { icon: 'emptyCell', says: 'emptySquare' },
-      },
-    },
+    { key: 'Enter', icon: 'black', says: 'blackSquare', does: 'Black', instead: 'Empty' },
+    { key: ' ', icon: 'white', says: 'whiteSquare', does: 'White', instead: 'Empty' },
   ],
 
   /*
