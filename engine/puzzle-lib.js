@@ -1,24 +1,4 @@
-/*
- * puzzle-lib.js — our replacement for upstream's emcclib.js.
- *
- * Passed to emcc as --js-library. This is the whole of the interface the
- * compiled C calls out through: 48 functions, unchanged in name and
- * signature, because the C side is not ours to alter.
- *
- * What changed is what they do. Upstream's versions build and mutate DOM
- * directly — creating <li>s for presets, setting textContent on a status bar,
- * assembling dialogs out of elements. These ones decode the arguments out of
- * wasm memory and hand plain JavaScript values to the host, which is React.
- * Drawing goes to a renderer we own in TypeScript rather than straight to a
- * 2D context.
- *
- * PZ and the shared state come from puzzle-pre.js.
- */
-
 mergeInto(LibraryManager.library, {
-    /* ----------------------------------------------------------------
-     * Lifecycle.
-     */
     js_init_puzzle: function() {
         initPuzzle();
     },
@@ -35,11 +15,6 @@ mergeInto(LibraryManager.library, {
         PZ.onError(UTF8ToString(ptr));
     },
 
-    /* ----------------------------------------------------------------
-     * Presets and menu state. Upstream appends elements to a live <ul> as
-     * these arrive; we collect them and hand the finished tree to the host
-     * in post_init, so React can render it as data.
-     */
     js_remove_type_dropdown: function() {
         presets_removed = true;
     },
@@ -90,10 +65,6 @@ mergeInto(LibraryManager.library, {
             seed == 0 ? null : encodeURI(UTF8ToString(seed)).replace(/#/g, '%23'));
     },
 
-    /* ----------------------------------------------------------------
-     * Colours. The back end names its colours once at startup; the first is
-     * also the page background, which upstream publishes as a CSS variable.
-     */
     js_default_colour: function(output) {
         var rgb = PZ.draw.defaultColour();
         if (rgb) {
@@ -111,16 +82,11 @@ mergeInto(LibraryManager.library, {
         setValue(ptr, new Date().valueOf(), 'i64');
     },
 
-    /* ----------------------------------------------------------------
-     * Frame timer. The chain is the same as upstream's, but the handle is
-     * kept where the host can cancel it on teardown.
-     */
     js_activate_timer: function() {
         PZ.onTimer(true);
         timer_reference = performance.now();
         var frame = function(now) {
             timer = window.requestAnimationFrame(frame);
-            // This may call js_deactivate_timer below.
             timer_callback((now - timer_reference) / 1000.0);
             timer_reference = now;
         };
@@ -133,10 +99,6 @@ mergeInto(LibraryManager.library, {
         PZ.onTimer(false);
     },
 
-    /* ----------------------------------------------------------------
-     * Drawing. Every one of these is a straight forward to the renderer,
-     * after pulling strings and point arrays out of wasm memory.
-     */
     js_canvas_start_draw: function(dr) {
         PZ.draw.startDraw();
     },
@@ -220,9 +182,6 @@ mergeInto(LibraryManager.library, {
         return window.devicePixelRatio || 1;
     },
 
-    /* ----------------------------------------------------------------
-     * Status bar.
-     */
     js_canvas_remove_statusbar: function() {
         PZ.onStatus(null);
     },
@@ -231,11 +190,6 @@ mergeInto(LibraryManager.library, {
         PZ.onStatus(UTF8ToString(ptr));
     },
 
-    /* ----------------------------------------------------------------
-     * Dialogs. Upstream builds the controls as elements; we describe them and
-     * let the host render them, keeping a thunk per control to read the value
-     * back when the dialog is accepted.
-     */
     js_dialog_init: function(titletext) {
         dlg_controls = [];
         dlg_return_funcs = [];
@@ -255,8 +209,6 @@ mergeInto(LibraryManager.library, {
     },
 
     js_dialog_choices: function(index, title, choicelist, initvalue) {
-        // The back end packs the choices into one string whose first
-        // character is the separator.
         var packed = UTF8ToString(choicelist);
         var control = {
             kind: 'choices',
@@ -296,9 +248,6 @@ mergeInto(LibraryManager.library, {
         PZ.focusCanvas();
     },
 
-    /* ----------------------------------------------------------------
-     * Saved games and preferences.
-     */
     js_savefile_read: function(buf, len) {
         return savefile_read_callback ? savefile_read_callback(buf, len) : false;
     },

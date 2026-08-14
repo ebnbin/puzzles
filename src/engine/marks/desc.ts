@@ -1,25 +1,3 @@
-/**
- * The two encodings the four puzzles write their descriptions in.
- *
- * Both are upstream's, and both are mirrored here from the *decoder* rather
- * than from the encoder beside it. That is deliberate: for a run longer than
- * the alphabet the two do not agree — solo.c and keen.c both emit `z` meaning
- * twenty-five, and both read it back as twenty-six — and the decoder is what
- * interprets the descriptions that exist. The disagreement has never bitten
- * because a run that long cannot occur at the sizes these puzzles ship: it
- * would need twenty-five consecutive cell pairs undivided, and the largest
- * block in the collection is nine squares.
- */
-
-/**
- * A grid of clues, run-length encoded — solo.c's `spec_to_grid`, which
- * towers.c copies.
- *
- * A letter is that many empty squares, `a` for one; a number is a clue; `_`
- * separates two numbers that would otherwise run together, which is what keeps
- * a board of more than nine digits readable. Stops at a comma and says where
- * it got to, since two of the four carry more description after this one.
- */
 export function runLengthGrid(
   text: string,
   area: number,
@@ -45,25 +23,6 @@ export function runLengthGrid(
   return { grid, rest: text.slice(at) }
 }
 
-/**
- * Blocks, read off a description of the lines *between* them — solo.c's
- * `spec_to_dsf`, and keen.c's `parse_block_structure`.
- *
- * What is written down is the dividing lines, not the blocks: the internal
- * vertical edges in reading order and then the horizontal ones transposed, as
- * a count of how many places in that walk are *not* a division before each one
- * that is. `_` is none, `a` is one, and one letter near the end of the alphabet
- * is the one that does not consume a division, so a run longer than twenty-six
- * can be spelled as a prefix.
- *
- * Which letter that is, is the one thing the two versions disagree on, and
- * Keen adds a repeat count after a letter — `a3` for three of them — which Solo
- * has no need of because its blocks are all the same size.
- *
- * Merging what is not divided leaves the blocks. Whether they came out a
- * sensible shape is the caller's to check, and is the only thing standing
- * between a misread description and a board marked to the wrong rules.
- */
 export function dividerBlocks(
   text: string,
   size: number,
@@ -97,7 +56,6 @@ export function dividerBlocks(
       }
     }
 
-    // The letter that spells a run without ending it, so it can be a prefix.
     const advance = count !== options.open
     for (let t = 0; t < times; t++) {
       for (let c = count; c > 0; c--) {
@@ -121,11 +79,8 @@ export function dividerBlocks(
       if (advance) pos += 1
     }
   }
-  // One past the last edge, for the virtual one the encoder ends with.
   if (pos !== edges + 1) return null
 
-  // Numbered in the order the cells are first met, so a block index is the
-  // index of its lowest square — which is the order Keen lists its clues in.
   const numbered = new Map<number, number>()
   const block = new Array<number>(area)
   for (let i = 0; i < area; i++) {
@@ -137,7 +92,6 @@ export function dividerBlocks(
   return block
 }
 
-/** The cells of each block, in block order. */
 export function blockCells(block: number[]): number[][] {
   const out: number[][] = []
   for (let cell = 0; cell < block.length; cell++) {
@@ -146,7 +100,6 @@ export function blockCells(block: number[]): number[][] {
   return out
 }
 
-/** Rows and columns: the groups every one of these four has. */
 export function latinGroups(size: number): number[][] {
   const groups: number[][] = []
   for (let i = 0; i < size; i++) {
@@ -156,11 +109,9 @@ export function latinGroups(size: number): number[][] {
   return groups
 }
 
-/** The leading number of a parameter string — the side of the grid, mostly. */
 export function leadingNumber(text: string | undefined): number | null {
   const found = text ? /^(\d+)/.exec(text) : null
   if (!found) return null
   const n = Number(found[1])
-  // Nothing in the collection is near this; a bigger one is a misread string.
   return n >= 1 && n <= 36 ? n : null
 }

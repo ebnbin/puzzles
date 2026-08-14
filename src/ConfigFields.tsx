@@ -1,36 +1,13 @@
 import { useReducer } from 'react'
 import type { DialogControl } from './engine/types'
 
-/**
- * The controls a back-end dialog is made of.
- *
- * The objects are shared with the C, which reads `value` off them when the
- * dialog is accepted, so an edit assigns in place and the redraw is by hand
- * rather than by copying into state.
- *
- * Two places show them: the modal dialog the back end asks for, and the
- * parameters that open inside the type sheet. They are the same controls
- * either way — the difference is only what surrounds them — so they are
- * understood in one place.
- *
- * Every label here comes out of the compiled back end and is in English
- * whatever the reader has chosen; nothing in this file is ours to translate.
- */
 export default function ConfigFields({
   controls,
   autoFocus = false,
   onCommit,
 }: {
   controls: DialogControl[]
-  /** Whether the first field should take focus when it appears. */
   autoFocus?: boolean
-  /**
-   * Called when a control has been settled rather than merely touched: a box
-   * ticked, a menu picked, a field left or entered. Typing is not settling —
-   * a width on its way from 5 to 12 passes through 1, and nobody means 1.
-   *
-   * Only some callers want this. A dialog with its own OK button does not.
-   */
   onCommit?: () => void
 }) {
   const [, redraw] = useReducer((n: number) => n + 1, 0)

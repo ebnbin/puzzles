@@ -1,70 +1,3 @@
-/**
- * Cut Undead's three monsters out of the board they are drawn on.
- *
- * The keypad needs a ghost, a vampire and a zombie on three of its keys, and
- * hand-drawn glyphs of them were never going to be the ones on the board. These
- * are: the same `draw_monster` in the same engine, rendered big and lifted off
- * its background.
- *
- * ---------------------------------------------------------------------------
- * WHY THIS IS NOT A CROP
- * ---------------------------------------------------------------------------
- *
- * A rectangle cut out of the board brings the board with it, and not only
- * around the edges: the whites of all three — the eyes, the vampire's fangs,
- * the zombie's open mouth — are painted in COL_BACKGROUND, because on
- * upstream's near-white board that is what white is. Keying the background out
- * by colour would take the fangs with it, and keeping it would put a grey plate
- * on every key.
- *
- * So the alpha is measured rather than guessed. The back end takes its
- * background from the page — `frontend_default_colour`, which this port answers
- * with the canvas's own CSS colour — and Undead derives all three skins from
- * that colour's *red* channel alone:
- *
- *     ret[COL_GHOST*3 + 0] = ret[COL_BACKGROUND*3 + 0] * 0.5F;
- *     ret[COL_GHOST*3 + 1] = ret[COL_BACKGROUND*3 + 0];
- *     ret[COL_GHOST*3 + 2] = ret[COL_BACKGROUND*3 + 0];
- *
- * Render twice with the same red and different green and blue, and every colour
- * in the drawing is identical between the two while the ground is not. Then for
- * a pixel that is ink over ground, `P = a*ink + (1-a)*ground`, and subtracting
- * the two renders leaves `a = 1 - (P1 - P2) / (g1 - g2)` — exact, including the
- * half-covered pixels along every edge, which is what a colour key can never
- * get and what makes the difference between a cut-out and a sprite.
- *
- * That leaves the eyes and fangs reading as ground, since that is what they are
- * made of. They are not outside, though, and outside is what should be
- * transparent — so the transparency is flood-filled in from the border, and
- * anything the fill cannot reach is put back opaque at the colour it was drawn.
- * The whites stay white and the key shows through only around the monster.
- *
- * ---------------------------------------------------------------------------
- * WHERE THE COLOURS COME FROM, WHICH IS NOT THOSE TWO RENDERS
- * ---------------------------------------------------------------------------
- *
- * The pair above is dressed in a ground chosen to make the subtraction work, so
- * its colours are not the ones the app draws. They are only ever asked for the
- * alpha. Every pixel's colour comes from a third render made with nothing
- * forced — the app exactly as it ships — and there is one of those per theme.
- *
- * Two sprites each, then, and not because dark is dimmer: the three skins are
- * veiled on a dark board (#55a9a9, #57ad57, #a99898 against the light board's
- * own values) and the monsters' paper and ink are re-served by `FIGURE`. A
- * light sprite on a dark key is a different drawing, not a brighter one.
- *
- * The alpha is measured once, in light, and used for both. It is geometry —
- * which pixels the shape covers, and by how much — and the geometry does not
- * know what theme it is: same `draw_monster`, same board size, same tile. What
- * does differ is what a half-covered pixel is *blended with*, so a partial
- * pixel is un-blended against that theme's own board colour before it is
- * stored: `ink = (P - (1-a)*board) / a`. Skipping that step is what would put a
- * pale fringe on the dark sprite and a dark one on the light.
- *
- * Run against a preview server:
- *   npx vite preview --port 4173 &
- *   node scripts/build-art.mjs
- */
 import fs from 'node:fs'
 import path from 'node:path'
 import { chromium } from 'playwright'
@@ -72,27 +5,18 @@ import { BASE, CHROMIUM, cornerColour, freshDir, openBoard, outFile, root, THEME
 
 const outDir = path.join(root, 'public/art')
 
-/**
- * The two grounds. Same red, so `game_colours` derives the same three skins
- * from both; wildly different green and blue, so the subtraction has something
- * to divide by.
- */
 const GROUNDS = ['rgb(230, 230, 230)', 'rgb(230, 0, 0)']
 
-/** What each monster is recognised by: its skin, as `game_colours` mixes it. */
 const SKINS = {
   ghost: [115, 230, 230],
   zombie: [115, 230, 115],
   vampire: [230, 207, 207],
 }
 
-/** The sprite's longest side. Twice the 24px the keypad draws it at. */
 const SIZE = 48
 
-/** Rendered this big first, so the downscale has something to work with. */
 const VIEWPORT = { width: 1100, height: 1400 }
 
-/** The board's pixels, as they are, at the size the two passes share. */
 const grab = (page) =>
   page.evaluate(() => {
     const c = document.querySelector('canvas.host-board')
@@ -100,18 +24,6 @@ const grab = (page) =>
     return { w: c.width, h: c.height, data: [...d.data] }
   })
 
-/**
- * One of the alpha pair: the board with its background forced to a colour of
- * our choosing.
- *
- * The back end asks the page for its background once, when it names its
- * colours, and never again — so the style has to be up before the puzzle
- * starts. Hence the gallery: land there, dress the canvas that does not exist
- * yet, and walk into the puzzle, which is one screen away and boots with the
- * rule already in force. (An init script does not survive the document being
- * parsed, and a style added after the board is up is a repaint the back end
- * never hears about.)
- */
 async function renderOn(browser, ground) {
   const context = await browser.newContext({
     viewport: VIEWPORT,
@@ -144,7 +56,6 @@ const [a, b] = [await renderOn(browser, GROUNDS[0]), await renderOn(browser, GRO
 if (a.w !== b.w || a.h !== b.h) throw new Error('the two renders came out different sizes')
 const { w, h } = a
 
-/** The app as it ships, once per theme: the colours, and the ground behind them. */
 const painted = {}
 for (const theme of THEMES) {
   const { context, page } = await openBoard(browser, { game: 'undead', theme, viewport: VIEWPORT })
@@ -158,11 +69,8 @@ await browser.close()
 
 const ground = GROUNDS.map((css) => css.match(/\d+/g).map(Number))
 
-/** Every pixel's alpha, from the pair of renders. */
 const alpha = new Float32Array(w * h)
 for (let i = 0; i < w * h; i++) {
-  // Green and blue both carry the difference; averaging the two answers halves
-  // the noise the canvas's own rounding puts into either.
   let sum = 0
   for (const c of [1, 2]) {
     const diff = a.data[i * 4 + c] - b.data[i * 4 + c]
@@ -171,10 +79,6 @@ for (let i = 0; i < w * h; i++) {
   alpha[i] = Math.min(1, Math.max(0, sum / 2))
 }
 
-/**
- * Outside is what the border can reach through transparency. The whites inside
- * a monster read as ground too, and this is what tells them apart from it.
- */
 function outside(x0, y0, x1, y1) {
   const seen = new Uint8Array((x1 - x0) * (y1 - y0))
   const stack = []
@@ -204,20 +108,6 @@ function outside(x0, y0, x1, y1) {
   return seen
 }
 
-/**
- * One monster, found by its skin and then grown along everything it is drawn
- * with — which is what picks up the vampire's cap, black and sitting outside
- * the face it belongs to.
- *
- * Taken from the row of counters above the grid, and found by scanning
- * downwards so that is the one reached first. Up there each monster stands on
- * plain background with nothing else near it; among the squares it would be
- * touching the grid, and a fill that walks through anything opaque would walk
- * off along the lines and take the board with it.
- *
- * Read off the first of the alpha pair, whose skins are the ones `SKINS` names.
- * The box it returns is geometry, so it holds for every render here.
- */
 function findMonster([r, g, bl]) {
   let start = -1
   for (let i = 0; i < w * h && start < 0; i++)
@@ -261,12 +151,8 @@ for (const [name, skin] of Object.entries(SKINS)) {
       for (let x = 0; x < cw; x++) {
         const src = ((y + y0) * w + (x + x0)) * 4
         const dst = (y * cw + x) * 4
-        // Inside the drawing, whatever the subtraction said: the whites are
-        // made of ground and would otherwise punch through.
         const cover = off[y * cw + x] ? alpha[(y + y0) * w + (x + x0)] : 1
         for (let c = 0; c < 3; c++) {
-          // Take the board back out of a half-covered pixel, so the sprite
-          // carries the ink alone and nothing of the board it was cut from.
           rgba[dst + c] =
             cover > 0.02 ? (data[src + c] - (1 - cover) * board[c]) / cover : data[src + c]
         }
@@ -277,11 +163,6 @@ for (const [name, skin] of Object.entries(SKINS)) {
   console.log(`  ${name.padEnd(8)} cut ${cw}x${ch} from ${w}x${h}`)
 }
 
-/*
- * Squared off and scaled down in a browser, which is the only image library
- * this project has — and the right one, since it is the same resampler the
- * page would have used on a bigger sprite.
- */
 const b2 = await chromium.launch({ executablePath: CHROMIUM })
 const page = await (await b2.newContext()).newPage()
 

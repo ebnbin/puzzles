@@ -1,37 +1,3 @@
-/*
- * The manual: generated, translated, and given a stylesheet.
- *
- * Upstream ships the manual as halibut's raw output — HTML 4.01, no CSS, and
- * no viewport meta, so on a phone it renders at desktop width and has to be
- * pinched. The words are worth reading; the page has simply never been dressed.
- *
- * This script does three things and stops:
- *
- *   1. runs halibut over vendor's puzzles.but with upstream's own flags, into
- *      public/doc/en/;
- *   2. lays the Simplified Chinese translation of that same output, kept in
- *      doc-zh/, alongside it as a second tree under public/doc/zh/;
- *   3. gives every page a head worth having and wraps its body in the app's
- *      chrome.
- *
- * One directory per language, neither of them the default. English used to sit
- * at the root of public/doc/ with the translation hanging off it, which said
- * that the manual was English and also had a Chinese version — a shape
- * upstream's own gallery pages once required, linking in as
- * ../doc/<game>.html. Those pages are not published here. Halibut's
- * cross-references are relative and stay within one tree, so the move costs
- * them nothing.
- *
- * The body markup itself is not touched. What comes out between <main> and
- * </main> is byte-for-byte what halibut wrote (or, for the second tree, what
- * the translation of it says) — the styling reaches it through element
- * selectors and the position of the nav paragraph, not through classes
- * sprinkled into the prose. verify-doc.mjs checks that.
- *
- * Regenerating is the whole job, every time: there is no in-place edit to be
- * idempotent about, because step 1 starts by deleting the tree.
- */
-
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
@@ -43,21 +9,11 @@ const VENDOR = join(ROOT, 'vendor/sgtpuzzles')
 const OUT = join(ROOT, 'public/doc')
 const ZH_SRC = join(ROOT, 'doc-zh')
 
-/**
- * Where this is served from, for the sitemap, which is the one file here that
- * has to name it: a sitemap of relative paths is not a sitemap.
- */
 const ORIGIN = 'https://puzzles.ebnbin.dev'
 
-/* --- the chrome ---------------------------------------------------------
- * The only words this script contributes. Everything else on the page is
- * upstream's, or a translation of upstream's.
- */
 const CHROME = {
   en: {
     htmlLang: 'en',
-    /* One label for both states, because there is no React here to rewrite it
-       on the way past and a stale one is worse than a general one. */
     theme: 'Light or dark',
     footer:
       "Simon Tatham's Portable Puzzle Collection, distributed under the " +
@@ -73,35 +29,16 @@ const CHROME = {
   },
 }
 
-/*
- * What stands at the head of the bar, in either language.
- *
- * The app's name rather than the word "Manual", which is what it used to say —
- * and which said the smaller of the two true things. A reader arrives here from
- * a puzzle, in a tab of its own with no way back (see topBar), so the question
- * the bar answers is not "which part of the app is this" but "what is this a
- * tab of". The name answers that; "Manual" left the app itself unnamed.
- *
- * Untranslated, like i18n's `brand`: it is what the collection is called.
- */
 const BRAND = 'Puzzles'
 
-const LANGS = /** @type {const} */ (['en', 'zh'])
+const LANGS =  (['en', 'zh'])
 const LABEL = { en: 'EN', zh: '中文' }
 
-/** The app's glyphs, drawn the same way Icon.tsx draws them. */
 const icon = (size, body) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" ` +
   'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" ' +
   `stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`
 
-/*
- * Both of them, always in the markup, with the stylesheet showing whichever
- * names what a press would do — the sun while the page is dark, as in the
- * app. There is no script here to swap them with, and one that did would have
- * to run after the theme is resolved and again on every toggle; `data-theme`
- * is already on the root by then, so CSS can simply read it.
- */
 const SUN_ICON = icon(
   20,
   '<circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2"/>' +
@@ -114,20 +51,6 @@ const MOON_ICON = icon(
   '<path d="M20.6 13.4A8.6 8.6 0 1 1 10.6 3.4 6.7 6.7 0 0 0 20.6 13.4Z"/>',
 )
 
-/*
- * Resolve the theme before anything is painted, exactly as index.html does —
- * same storage key, same two colours — so following a link into the manual
- * does not flash white at a reader who has chosen dark. A blocked store is
- * only a lost preference, so the read is what is guarded and not the applying:
- * the system's answer still gets used, and the root still gets an attribute
- * for the stylesheet to read.
- *
- * It also drops the fragment a page arrives at its own name under, for the
- * reason written at the top of the script itself.
- *
- * Then two listeners: one keeps the app's idea of the language in step when it
- * is changed from here, the other is the bar's own light-and-dark button.
- */
 const HEAD_SCRIPT = `<script>
 ;(function () {
   // Open at the top of the page, not a screenful into it.
@@ -201,7 +124,6 @@ const HEAD_SCRIPT = `<script>
 })()
 </script>`
 
-/** Everything before `<body>`, replaced wholesale. */
 function head(lang, title, links) {
   const c = CHROME[lang]
   return `<!doctype html>
@@ -217,17 +139,6 @@ ${HEAD_SCRIPT}
 </head>`
 }
 
-/**
- * The bar, which is the app saying where you are — and, at this end of it,
- * nothing more than that.
- *
- * It used to open with a back arrow to the app. There was never anywhere for
- * it to go: the manual is only ever reached in a tab of its own, so the board
- * it was opened from is still there in the tab behind, and the arrow either
- * did nothing that the tab strip did not already do or pushed a second copy of
- * the app over the page. What is left is the label, saying which of the app's
- * two things you are looking at.
- */
 function topBar(lang, file) {
   const c = CHROME[lang]
   const choices = LANGS.map((code) => {
@@ -237,10 +148,6 @@ function topBar(lang, file) {
       `hreflang="${CHROME[code].htmlLang}"${current}>${LABEL[code]}</a>`
     )
   }).join('')
-  // Two classes doing two jobs: `segmented` is the app's own control, shared
-  // rather than imitated (see src/segmented.css), and `doc-lang` is what the
-  // script in the head listens on to keep the app's idea of the language in
-  // step when it is changed from here.
   return `<header class="doc-top">
 <span class="doc-top-title">${BRAND}</span>
 <span class="segmented doc-lang">${choices}</span>
@@ -248,12 +155,6 @@ function topBar(lang, file) {
 </header>`
 }
 
-/**
- * Halibut's output is machine-regular: a doctype, a head, `<body>` on its own
- * line, the prose, then `<hr><address></address></body>`. Both ends are
- * asserted rather than assumed — if a halibut upgrade changes the shape, this
- * should stop rather than quietly emit half a page.
- */
 function restyle(source, lang, file) {
   const title = /<title>([\s\S]*?)<\/title>/.exec(source)
   if (!title) throw new Error(`${file}: no <title>`)
@@ -291,7 +192,6 @@ function styleTree(dir, lang) {
   return files.length
 }
 
-// --- 1. generate ---------------------------------------------------------
 rmSync(OUT, { recursive: true, force: true })
 mkdirSync(join(OUT, 'en'), { recursive: true })
 execFileSync(
@@ -307,7 +207,6 @@ execFileSync(
   { cwd: join(OUT, 'en'), stdio: 'inherit' },
 )
 
-// --- 2. lay the translation alongside ------------------------------------
 const english = readdirSync(join(OUT, 'en')).filter((f) => f.endsWith('.html'))
 if (existsSync(ZH_SRC)) {
   const zh = readdirSync(ZH_SRC).filter((f) => f.endsWith('.html'))
@@ -319,25 +218,6 @@ if (existsSync(ZH_SRC)) {
     cpSync(join(ZH_SRC, file), join(OUT, 'zh', file))
 }
 
-/* --- 3. the stylesheet, before the pages that have to name it -------------
- *
- * Three files, in the order the app itself includes them: the tokens both
- * sides are built from, the one control both sides have, and the manual's own
- * rules. segmented.css is here rather than copied into doc.css because a
- * control described twice is a control that drifts, and this one had.
- *
- * Inside public/doc/, beside the two trees that are the only thing that ever
- * asks for it, rather than at the root of public/ where it used to sit.
- *
- * Stamped with the digest of what came out. The app's own stylesheet is
- * hashed by Vite and so is a different address every time it changes; this one
- * is one address regenerated in place, and the service worker — which serves an
- * asset from its cache — took that literally. A reader who had opened the
- * manual once kept its first stylesheet through every deploy after, so pages
- * arrived with rules five versions old and the light-and-dark button drew both
- * of its faces. A query is enough: the worker keys on the whole URL, and this
- * one changes exactly when the contents do.
- */
 const css =
   '/* Generated by scripts/build-doc.mjs from src/tokens.css,\n' +
   '   src/segmented.css and src/doc.css. Edit those, not this. */\n' +
@@ -348,26 +228,9 @@ const css =
 writeFileSync(join(OUT, 'doc.css'), css)
 const STYLESHEET = `/doc/doc.css?v=${createHash('sha256').update(css).digest('hex').slice(0, 8)}`
 
-// --- 4. dress ------------------------------------------------------------
 const styledEn = styleTree(join(OUT, 'en'), 'en')
 const styledZh = existsSync(join(OUT, 'zh')) ? styleTree(join(OUT, 'zh'), 'zh') : 0
 
-/* --- 5. the sitemap, which is the only way any of this is found -----------
- *
- * The app is one address rendering itself in JavaScript, and its link into the
- * manual sits inside a dialog nobody clicks but a reader. So a crawler that
- * arrives at `/` finds no links at all, and the ninety pages below are
- * reachable only by being listed. That is what this file is for; without it
- * the manual is published and undiscoverable.
- *
- * Plain text rather than XML: one URL per line is a format the search engines
- * document as equivalent, and it is a format a person can read.
- *
- * Both trees, English included. It duplicates upstream's own manual, which is
- * older and authoritative and will rightly win any contest for those words —
- * that is deduplication working, not a reason to hide from it. And the other
- * half is a translation that exists nowhere else.
- */
 writeFileSync(
   join(ROOT, 'public/sitemap.txt'),
   [

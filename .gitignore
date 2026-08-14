@@ -5,5 +5,5 @@ dist
 .DS_Store
 .vercel
 
-# Emscripten SDK and CMake output, created by scripts/build-games.sh.
+# scripts/build-games.sh 的 emsdk 和 CMake 输出
 .build

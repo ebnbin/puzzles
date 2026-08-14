@@ -1,22 +1,3 @@
-/*
- * The manual, wearing the app's clothes.
- *
- * The pages themselves are halibut's output and are not edited: the same
- * HTML 4.01, the same words, the same anchors the game pages have always
- * linked to. All this file does is give that markup a stylesheet, which it
- * has never had — upstream ships the manual unstyled, so a browser's own
- * defaults are what a reader has been getting.
- *
- * It is concatenated onto tokens.css and segmented.css by
- * scripts/build-doc.mjs to produce public/doc.css, so the manual and the app
- * work from one set of values and — for the one control they both have — one
- * set of rules: change either and both move together.
- *
- * The vocabulary is small and fixed — a p em li dt dd h1 h2 h3 code ul dl br
- * pre — because that is all halibut emits. There are no wrapper classes to
- * hang a layout off, so the layout has to come from the elements themselves.
- */
-
 *,
 *::before,
 *::after {
@@ -35,9 +16,6 @@ body {
   background-size: 24px 24px;
   background-position: center -1px;
   -webkit-font-smoothing: antialiased;
-  /* The prose is authored in English and reads left to right in both
-     languages; `text-wrap: pretty` keeps a heading from leaving one word
-     alone on the last line. */
   text-wrap: pretty;
 }
 
@@ -46,19 +24,6 @@ body {
   outline-offset: 2px;
 }
 
-/* --- the bar ------------------------------------------------------------
- * The puzzle screen's bar, as far as it can be. Same height, same gap, same
- * side padding, the same treatment on the name at the left end and the same
- * segmented control at the right — that one is not a copy but the same file,
- * segmented.css, which both stylesheets include.
- *
- * Two things are deliberately not the same, and both follow from this being a
- * document. It is sticky and it carries a hairline: the manual is three
- * thousand words that scroll under it, so it has to stay and it has to have an
- * edge. The app's screens do not scroll, and its board is a lit plate with an
- * edge of its own, which is why the bar there sits on nothing.
- */
-
 .doc-top {
   position: sticky;
   top: 0;
@@ -66,18 +31,9 @@ body {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  /* The one part of a page of prose that is not prose. Where the app says this
-     of itself and exempts the few places that are text (see index.css), a
-     manual is the other way round: it is text, and this row of controls is the
-     exception. A long press here should not offer to copy "手册". */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-  /* `.play-bar`'s own numbers, with the screen's edges honoured — this bar
-     runs to the edge of the window where that one sits inside a padded
-     column. Symmetrical again now that this one also ends in an icon button:
-     it briefly needed more on the right, when the last thing in it was a
-     filled pill with no slack of its own to keep it off the glass. */
   min-height: 3rem;
   padding: 0 max(0.3rem, env(safe-area-inset-right)) 0
     max(0.3rem, env(safe-area-inset-left));
@@ -86,25 +42,10 @@ body {
   border-bottom: 1px solid var(--edge);
 }
 
-/*
- * Which of the app's two things you are looking at, said once and offered as a
- * way nowhere.
- *
- * It is set as `.play-title` is — the size, weight and tracking the puzzle
- * screen gives its own name — and it is not a control: no target, no radius,
- * no fill under a pointer, nothing to press. The app's name behind a back
- * arrow stood here until it turned out to have nowhere to go; the manual is
- * only reached in a tab of its own, so the way back is the tab that is still
- * open, and this end of the bar is left saying where you are.
- */
 .doc-top-title {
-  /* Takes the bar's slack, so the two controls sit at the right end. */
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  /* On top of the bar's own 0.3rem, which puts this text where `.play-title`'s
-     lands: that one is a control and spends the 0.4 on a thumb's target, this
-     one spends it on the same optical inset. */
   padding-left: 0.4rem;
   color: var(--text);
   font-size: var(--t-lg);
@@ -114,28 +55,10 @@ body {
   white-space: nowrap;
 }
 
-/*
- * The bar's own button, set as `.play-icon` is: bare until it is touched, so
- * nothing up here competes with the page for the eye.
- *
- * Both glyphs are in the markup and the stylesheet picks one, because there is
- * no script here to swap them and `data-theme` is on the root before the first
- * paint anyway. The one shown is what a press would give you — the sun while
- * the page is dark — which is the rule the app's own button follows.
- */
 .doc-theme {
   display: grid;
   flex: none;
   place-items: center;
-  /*
-   * Standing off the language switch by the gallery's 0.85rem rather than the
-   * bar's own 0.25rem, which is far too tight for these two: a filled pill four
-   * pixels from a bare glyph reads as one crowded cluster rather than as two
-   * controls. The gallery is the app screen with this same pair in it, so it is
-   * the one to copy — 0.6 here on top of the bar's 0.25. Nothing else in this
-   * bar is spaced by that gap any more: the title takes the whole of the slack
-   * between itself and these two.
-   */
   margin-left: 0.6rem;
   width: var(--tap-w);
   height: var(--tap-h);
@@ -153,18 +76,6 @@ body {
   grid-area: 1 / 1;
 }
 
-/*
- * The moon by default and the sun only on a dark page — stated that way round
- * rather than as one rule per theme, so that a root with no `data-theme` at
- * all still shows exactly one glyph.
- *
- * It used to be a pair of rules keyed on `light` and on `dark`, which is fine
- * while something has set the attribute and wrong the moment nothing has: with
- * neither selector matching, both glyphs were shown, stacked in the one grid
- * cell. Reachable with scripting off, where the button is dead anyway but was
- * also drawn as a sun inside a moon. Light is the default now, so the default
- * face is the one that offers dark.
- */
 .doc-theme svg:first-child {
   display: none;
 }
@@ -189,12 +100,6 @@ body {
   transform: scale(0.92);
 }
 
-/* --- the page -----------------------------------------------------------
- * One column, held to a measure. 44rem is about 75 characters of this size
- * in English; Chinese runs shorter per character, and the same width reads
- * as a comfortable 40-odd characters a line.
- */
-
 .doc-main {
   max-width: 44rem;
   margin: 0 auto;
@@ -203,10 +108,6 @@ body {
   padding-bottom: max(4rem, env(safe-area-inset-bottom));
 }
 
-/* Halibut's own Previous | Contents | Index | Next row. Every page opens with
-   it, so it can be reached as the first paragraph rather than by marking it —
-   which is what keeps the body markup untouched. Small and quiet: it is a way
-   back, not the point of the page. */
 .doc-main > p:first-of-type {
   margin: 0 0 2rem;
   color: var(--text-3);
@@ -236,18 +137,6 @@ body {
   letter-spacing: -0.015em;
 }
 
-/*
- * Room for the bar above whatever a link jumped to.
- *
- * It belongs on the anchor and nowhere else. Halibut writes HTML 4 named
- * anchors — `<h2><a name="net-controls"></a>3.1 Net controls</h2>` — so the
- * element a fragment scrolls to is that empty `<a>` inside the heading, never
- * the heading itself. The same margin declared on h1/h2/h3 looks right and
- * does nothing: the browser reads it off the target, and the target is the
- * anchor. Every named anchor gets it, not only the ones in headings, because
- * every one of them is something a link in this manual points at — the
- * footnote markers and the index entries as much as the section titles.
- */
 .doc-main a[name] {
   scroll-margin-top: 4.5rem;
 }
@@ -266,8 +155,6 @@ body {
   font-size: var(--t-lg);
 }
 
-/* The invisible anchors halibut scatters through the text to hang index
-   entries off. They have no content, so they should take no room. */
 .doc-main a[name]:empty {
   display: inline;
 }
@@ -293,14 +180,6 @@ body {
   color: var(--text-3);
 }
 
-/* Every `dl` in the manual is a term and its explanation — the controls a
-   puzzle answers to, the parameters it takes. Read as a definition list, not
-   as two columns: the terms are long enough that a column would wrap badly on
-   a phone, and this is the shape that survives being narrow. */
-/* A term here is usually `<em>the thing</em>: how you do it` — so the weight
-   belongs on the emphasis the source already marked, not on the whole line.
-   Bolding all of it makes "left mouse button" shout as loudly as the action
-   it is bound to. */
 .doc-main dt {
   margin-top: 1rem;
   color: var(--text);
@@ -324,10 +203,6 @@ body {
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.9em;
-  /* `break-word` and not `anywhere`: a key name is short enough to fit on a
-     line and so is never broken, while the URLs some chapters cite are longer
-     than a phone is wide and have to go somewhere. Without this they are
-     simply clipped, which is the one thing worse than an ugly wrap. */
   overflow-wrap: break-word;
 }
 
@@ -359,8 +234,6 @@ body {
   }
 }
 
-/* --- the footer --------------------------------------------------------- */
-
 .doc-foot {
   max-width: 44rem;
   margin: 0 auto;
@@ -378,8 +251,6 @@ body {
   color: var(--text-3);
   text-underline-offset: 2px;
 }
-
-/* --- room to work ------------------------------------------------------- */
 
 @media (min-width: 48em) {
   .doc-top {

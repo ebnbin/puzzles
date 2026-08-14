@@ -1,81 +1,20 @@
-/*
- * The design system: everything the components are allowed to reach for.
- *
- * One fact drives the whole palette. A puzzle's light background is not ours
- * to choose — the C asks the canvas for its CSS background colour, gets nothing
- * (upstream's page supplies none either), and falls back to its own
- * 0.9/0.9/0.9. So every light board is #e6e6e6, and it is by far the most
- * common colour in the collection: 20% of every pixel of every icon. The dark
- * board is that palette flipped on our side — see engine/palette.ts — so the
- * grey is still what the whole scheme is built around.
- *
- * The chrome is therefore achromatic, so that grey reads as deliberate rather
- * than as a colour that missed. Colour comes from the icons and from the
- * boards. The accent is the collection's own blue — #0000ff, as the puzzles
- * actually draw it — pulled just far enough to be legible as text and spent
- * only on state: what is selected, what has focus, what is on.
- *
- * Which of the two is in force is decided in one place — `useTheme` resolves
- * the reader's choice, or the system's if they have not made one, and writes
- * `data-theme` on the root before first paint. So there is no media query
- * here, and no second copy of the dark values guarded by one.
- */
-
 :root {
   color-scheme: light;
 
-  /* --- surface ladder ---------------------------------------------------
-   * Depth by tone rather than by hairlines. `2` is what a tonal button or a
-   * key sits on, `3` is its pressed state.
-   */
   --bg: #fafaf9;
   --surface: #ffffff;
   --surface-2: #f0f0ef;
   --surface-3: #e4e4e2;
-  /* Sits on top of `2` and has to read as raised from it. On light that means
-     lighter; on dark it means the other way, which is why this is a token and
-     not just `--surface`. */
   --raised: #ffffff;
   --edge: #e4e4e2;
-  /* `edge` is a hairline between blocks and may be as faint as it likes.
-     `edge-strong` draws the boundary of a control — a text field, an
-     unselected radio — which has to clear 3:1 against whatever it sits on to
-     be findable at all. */
   --edge-strong: #8a8a90;
 
-  /*
-   * The three fills of a square on a board that has black, white and neither.
-   *
-   * These are the only colours in the app taken from a board rather than chosen
-   * for the interface, and they are here because Pattern's keys are *about*
-   * colour: a key drawn in the accent says "filled or not", which is one bit
-   * short of what that puzzle asks. Measured off the running board, light and
-   * dark: full is rgb(0,0,0) / rgb(13,13,13), empty rgb(255,255,255) /
-   * rgb(204,204,204), unknown rgb(128,128,128) / rgb(109,109,109). Pattern's
-   * black and white are in palette.ts's SEMANTIC, so the dark board keeps them
-   * the way round they started rather than flipping — which is what lets these
-   * be the same three ideas in both themes.
-   *
-   * Unknown is a real mid grey rather than "no fill" on purpose. Transparent
-   * would be the key's own surface, and the key sits on `--surface-2`: #f0f0ef
-   * on light, which is white, so an unfilled square and a white one would be
-   * one picture. A mid grey is the one value that stays apart from both
-   * surfaces at once.
-   *
-   * Each glyph keeps its accent outline, so the shape is legible even where the
-   * fill nearly matches what it sits on — black on the dark key, white on the
-   * light one. That the fill goes quiet exactly there is not a bug: it is the
-   * board's own answer, where a white square on a pale page is also barely a
-   * square.
-   */
   --cell-full: #000000;
   --cell-empty: #ffffff;
   --cell-unknown: #808080;
 
   --text: #17171a;
   --text-2: #5b5b64;
-  /* Dim, but it carries 11px section labels and the footer, so it still has
-     to clear 4.5:1 on every surface it appears over. */
   --text-3: #6b6b75;
 
   --accent: #2b2bd6;
@@ -83,41 +22,18 @@
   --accent-on: #ffffff;
   --accent-soft: #e7e7fb;
   --accent-soft-text: #1e1e9e;
-  /* What `surface-3` is to `surface-2`, for the tint: the pressed state of a
-     key filled with it. Picked to move as far as that pair does and no further
-     — ΔE 5.6 against 4.3 — so the two kinds of key depress by the same amount
-     rather than one of them flinching. `accent-soft-text` still reads 9.0:1
-     over it. */
   --accent-soft-hover: #dcdcf8;
 
   --danger: #b3261e;
-  /* The ground a refusal is written on, so that a sentence from the back end
-     reads as one at a glance rather than as a caption. Measured at 5.61:1
-     against `danger`, which is where the message already sat on `surface-2`
-     (5.73:1) — the tint says what it is without costing legibility. */
   --danger-soft: #fbeae8;
 
-  /* The grey the thumbnails are rendered on, so the plate under one matches
-     it while it loads. There is a pair of icons per puzzle now, one per theme,
-     so this follows the theme too — see the dark block below.
-
-     One value cannot match all forty: twenty-four boards are #e6e6e6 and
-     sixteen the dimmed #d5d5d5. It matches the majority and is only ever seen
-     in the moment before a picture arrives, because each picture is padded out
-     to its square with its own edge colour and covers the plate exactly.
-
-     Never applied to the canvas itself — see the note above. What a board
-     becomes on dark is decided in engine/palette.ts, not here. */
   --board: #e6e6e6;
 
-  /* The lattice every one of these puzzles is played on, at a contrast you
-     notice only once you look for it. */
   --grid-line: rgb(23 23 26 / 0.045);
 
   --shadow-1: 0 1px 2px rgb(20 20 30 / 0.06), 0 1px 1px rgb(20 20 30 / 0.04);
   --shadow-2: 0 2px 4px rgb(20 20 30 / 0.06), 0 8px 20px -6px rgb(20 20 30 / 0.12);
   --shadow-3: 0 4px 8px rgb(20 20 30 / 0.08), 0 24px 48px -12px rgb(20 20 30 / 0.22);
-  /* The board is a lit plate on the page, not a panel in it. */
   --shadow-board: 0 0 0 1px rgb(20 20 30 / 0.1), 0 2px 4px rgb(20 20 30 / 0.08),
     0 14px 32px -10px rgb(20 20 30 / 0.22);
   --scrim: rgb(20 20 26 / 0.4);
@@ -127,8 +43,6 @@
   --r-lg: 18px;
   --r-full: 999px;
 
-  /* Type scale. Nothing between 13px and 15px, so sizes read as levels
-     rather than as drift. */
   --t-2xs: 0.6875rem;
   --t-xs: 0.75rem;
   --t-sm: 0.8125rem;
@@ -144,25 +58,11 @@
   --dur: 170ms;
   --dur-slow: 300ms;
 
-  /*
-   * The lattice every surface of the app stands on — the same one the puzzles
-   * are played on, at a contrast you find only by looking for it. Named here
-   * so the launcher and the puzzle screen paint the identical pattern; the
-   * colour (--grid-line) is a theme token set further down.
-   */
   --grid-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   --grid-size: 24px 24px;
   --grid-position: center -1px;
 
-  /*
-   * The size of a button: 40 across, 36 down.
-   *
-   * Not a floor to grow from. A button is this size unless it is stretched
-   * across a row that has to be filled — the four along the foot of the board,
-   * the keys — or unless its own label needs more room than that. Never
-   * because there happened to be space going spare.
-   */
   --tap-w: 2.5rem;
   --tap-h: 2.25rem;
 }
@@ -177,7 +77,6 @@
   --edge: #26262d;
   --edge-strong: #6b6b7d;
 
-  /* The same three, as palette.ts leaves them on the dark board. */
   --cell-full: #0d0d0d;
   --cell-empty: #cccccc;
   --cell-unknown: #6d6d6d;
@@ -191,28 +90,19 @@
   --accent-on: #14143a;
   --accent-soft: #23234a;
   --accent-soft-text: #c3c3ff;
-  /* ΔE 5.1, against 5.3 for `surface-2` to `surface-3`. Lighter rather than
-     darker, which is the direction every pressed state goes on this theme. */
   --accent-soft-hover: #2c2c58;
 
   --danger: #f2b8b5;
-  /* 8.60:1 against `danger`, against 9.37:1 on `surface-2`. */
   --danger-soft: #3a2220;
 
   --grid-line: rgb(236 236 239 / 0.05);
 
-  /* Black shadows are invisible against near-black. Depth comes from the
-     ring and from the surface ladder. */
   --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.05);
   --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.7);
   --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -12px rgb(0 0 0 / 0.8);
-  /* No halo here: on a dark board the plate is no longer the brightest thing
-     on screen, and a glow around it would read as fog rather than as light. */
   --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.14),
     0 10px 28px -8px rgb(0 0 0 / 0.8);
   --scrim: rgb(0 0 0 / 0.6);
 
-  /* What `flip` makes of #e6e6e6, which is what the majority of the dark
-     thumbnails are drawn on. */
   --board: #1f1f1f;
 }

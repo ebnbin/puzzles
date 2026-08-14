@@ -1,27 +1,3 @@
-/*
- * Does Map's palette paint the region the cursor is standing on?
- *
- * src/engine/map.ts does not model map.c's geometry — it asks the engine, for
- * the reason written at the top of that file. So this is not check-cube.mjs's
- * kind of test, where a model is compared with the thing it copies. There is no
- * model. What can still go wrong is the asking: the walk that carries the probe
- * colour, the cursor copy the walk is aimed by, the clue list, or the move
- * language. Any of those and a press paints the wrong region, or none.
- *
- * So this drives the real buttons and checks the board afterwards, from the
- * outside: press a swatch, then ask the engine — by the same double-press
- * upstream answers to — which region the cursor is on now, and compare with the
- * region the save says was painted. Two independent readings of one press.
- *
- * Worth running after upgrading vendor/sgtpuzzles, and after touching
- * engine/map, PuzzleHost's cursor copy, or Map's entry in engine/keys.
- *
- * Needs a preview server and playwright, like the other scripts outside
- * package.json:
- *
- *   npm run build && npx vite preview --port 4173 &
- *   node scripts/check-map.mjs
- */
 import { chromium } from 'playwright'
 
 const URL_BASE = process.env.PREVIEW ?? 'http://localhost:4173'
@@ -48,13 +24,6 @@ const arrow = async (d) => {
   await page.waitForTimeout(60)
 }
 
-/*
- * Which region the cursor is on, asked the way engine/map asks but without any
- * of engine/map: pick up whatever is there and put it straight back down, which
- * is upstream's own "empty this region" (map.c:2532), then undo. It names the
- * region whenever there is something to empty — which, right after a swatch has
- * been pressed, there always is.
- */
 const whereIsTheCursor = async () => {
   const before = await moves()
   await page.evaluate(() => {
@@ -70,13 +39,10 @@ const whereIsTheCursor = async () => {
   return m ? Number(m[1]) : null
 }
 
-// The palette is drawn out until the cursor is, since it acts where the cursor
-// is — see `aimed`. One arrow shows it, and nothing here works before that.
 await arrow('Right')
 
 let checked = 0
 let wrong = 0
-// A pseudo-random walk with a fixed seed, so a failure can be reproduced.
 let seed = 20250809
 const next = (n) => {
   seed ^= seed << 13; seed |= 0
@@ -86,24 +52,9 @@ const next = (n) => {
 }
 
 for (let round = 0; round < ROUNDS; round++) {
-  // Somewhere the reader might plausibly have walked to.
   for (let i = 0; i < 3 + next(9); i++) await arrow(['Right', 'Down', 'Left', 'Up'][next(4)])
-  /*
-   * A clue is skipped by *reading* the palette, not by pressing it: the
-   * swatches dim on a clue now (see check-clues.mjs, which tests exactly
-   * that), and playwright's click on a disabled button does not return "no
-   * move played" — it waits for the button to enable until the run times
-   * out. This loop predated the dimming and did the polite thing instead,
-   * which stopped being possible the day the dimming landed.
-   */
   if (await page.getByRole('button', { name: /^Fill this region with colour 1$/ }).isDisabled())
     continue
-  /*
-   * Then a colour the region has not already got. A press that plays nothing
-   * checks nothing, and a first colour picked blind comes up empty often
-   * enough to leave the run with two or three cases in it. Four tries
-   * settles it: only a clue refuses all four, and clues were skipped above.
-   */
   let colour = next(4) + 1
   let before = await moves()
   let after = before
@@ -134,11 +85,6 @@ for (let round = 0; round < ROUNDS; round++) {
   }
 }
 
-/*
- * And the refusals, which need a case each because a silent bug and a silent
- * refusal look the same from outside. Filled first, so that the region is known
- * to have something in it and each press has a definite right answer.
- */
 const count = async (what, want, act) => {
   const before = (await moves()).length
   await act()
@@ -152,16 +98,6 @@ const count = async (what, want, act) => {
 const swatch = (re) => () => page.getByRole('button', { name: re }).click()
 const FILL_1 = /^Fill this region with colour 1$/
 const EMPTY = /^Empty this region$/
-/*
- * The maybes are the same four swatches with the mode on — see `arms` on
- * CursorKey. A mode, not a one-shot: nothing spends it, so it is put back off
- * afterwards, or every case after this one would find the palette wearing
- * dots. This helper assumed the one-shot lifetime the key had at first, and
- * kept assuming it after a858eb4 made the key sticky — its third press turned
- * the mode *off* and then waited for a label only the mode shows, which is
- * where every run died. The check scripts age like the docs do: nothing
- * fails when the behaviour under them moves.
- */
 const MAYBE = /^Next colour: mark it as a maybe$/
 const MAYBE_2 = () => async () => {
   await page.getByRole('button', { name: MAYBE }).click()
@@ -169,15 +105,8 @@ const MAYBE_2 = () => async () => {
   await page.getByRole('button', { name: MAYBE }).click()
   await page.waitForTimeout(120)
 }
-/*
- * First find a region the cases can be run on. The random walk leaves the cursor
- * wherever it leaves it, and a clue refuses everything — correctly — so asserting
- * from there would be asserting about the wrong thing. Walk until a fill plays,
- * then empty it, and the state is known.
- */
 let ready = false
 for (let i = 0; i < 40 && !ready; i++) {
-  // Same rule as the walk above: read the dimming, never click into it.
   if (await page.getByRole('button', { name: FILL_1 }).isDisabled()) {
     await arrow(i % 5 === 4 ? 'Down' : 'Right')
     continue
@@ -186,8 +115,6 @@ for (let i = 0; i < 40 && !ready; i++) {
   await swatch(FILL_1)()
   await page.waitForTimeout(200)
   if ((await moves()).length > before) ready = true
-  // Rightwards, dropping a row now and then: a cycle of four directions
-  // would come back to where it started and search one region forty times.
   else await arrow(i % 5 === 4 ? 'Down' : 'Right')
 }
 if (!ready) {

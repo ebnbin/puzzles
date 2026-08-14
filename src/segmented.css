@@ -1,38 +1,3 @@
-/*
- * The segmented control: two or three states side by side, one of them on.
- *
- * The app uses it for the language and the theme; the manual uses it for the
- * language too, at the right-hand end of its bar. Those were two stylesheets
- * describing the same control from memory, and they had drifted — the manual's
- * options were content-width, so EN came out 40px against 中文's 46 and the
- * pair read as two buttons rather than as one switch, and its labels were half
- * a weight heavier. This is the one description, and both sides now include
- * it: index.css imports it, and build-doc.mjs concatenates it into
- * public/doc.css between the tokens and the manual's own rules.
- *
- * It has to serve two markups, which is the reason for the doubled selectors
- * and not an accident. In the app an option is a `label` wrapping a hidden
- * radio, because React is there to hear the change; in the manual there is no
- * script, so an option is a link to the other language's copy of the page and
- * the current one is marked `aria-current`. Neither markup is wrong for where
- * it is, so the styling takes both rather than forcing one.
- */
-
-/*
- * Equal columns, and no wider than the widest of them needs.
- *
- * The two demands pull against each other. A switch whose halves are
- * different sizes reads as two separate buttons — EN sets to 18px and 中文 to
- * 24px, and left alone they look like a pair of unrelated chips. But the fix
- * used to be a `min-width` of 3.5rem, which is a number somebody chose: wide
- * enough for anything, and so wider than anything, at 118px for a control
- * saying four characters.
- *
- * A grid of `1fr` columns answers both without a number. Every column takes
- * the width of the widest item, and the track sizing of an inline grid is its
- * content — so the control comes out at exactly twice the wider label and not
- * a pixel more, in any language, for two options or three.
- */
 .segmented {
   display: inline-grid;
   grid-auto-flow: column;
@@ -49,8 +14,6 @@
   align-items: center;
   justify-content: center;
   min-height: 1.875rem;
-  /* Enough that the pill reads as a pill around the shorter label rather than
-     as a circle, and no more. */
   padding: 0 0.5rem;
   border-radius: var(--r-full);
   color: var(--text-2);
@@ -63,9 +26,6 @@
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
-/* The one that is on: a raised pill, which on dark is lighter than its
-   trough and on light is white against grey — hence `--raised` rather than a
-   second copy of `--surface`. */
 .segmented > [data-selected='true'],
 .segmented > [aria-current='true'] {
   background: var(--raised);
@@ -79,7 +39,6 @@
   }
 }
 
-/* The radio is what the app actually reads; it is the label that is seen. */
 .segmented input {
   position: absolute;
   width: 1px;

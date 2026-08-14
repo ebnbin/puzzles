@@ -1,20 +1,10 @@
 import { CanvasRenderer } from './renderer'
 import type { Preset, PuzzleApi, PuzzleCallbacks } from './types'
 
-/**
- * Load a compiled puzzle and attach it to a canvas.
- *
- * The module is built with MODULARIZE, so each call is an independent
- * instance with its own closure — nothing lands in global scope, and a puzzle
- * can be started again after being discarded. The object passed in as
- * `puzzle` is what puzzle-pre.js and puzzle-lib.js talk to.
- */
 export async function createPuzzle(options: {
   name: string
   canvas: HTMLCanvasElement
-  /** Game id to restore, as it appears after the # in a permalink. */
   gameId?: string
-  /** Which way up the board is, known before the first frame is drawn. */
   dark?: boolean
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
@@ -29,7 +19,6 @@ export async function createPuzzle(options: {
     gameId,
     draw: renderer,
 
-    /** Tracked here because the C side reads it back synchronously. */
     selectedPreset: 0,
 
     attach(bound: PuzzleApi) {
@@ -67,8 +56,6 @@ export async function createPuzzle(options: {
       try {
         window.localStorage.setItem(prefsKey, data)
       } catch (error) {
-        // Private browsing, or the store is full. The game is still playable;
-        // the settings just will not outlive the session.
         console.warn('could not save preferences', error)
       }
     },

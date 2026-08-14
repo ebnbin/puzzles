@@ -1,38 +1,3 @@
-/**
- * Does the app grey exactly the arrows Cube's back end refuses?
- *
- * Not in `npm run build`, for the same reason the marks checks and the three
- * picture scripts are not: it needs a browser and a running engine, and
- * playwright is not in package.json. It is here because src/engine/cube.ts is
- * the one module whose correctness is "our geometry matches upstream's", which
- * no type can state and no unit test can settle — the only authority is the C,
- * running.
- *
- * Run it after any bump of vendor/sgtpuzzles and after any change to
- * engine/cube. A model that has drifted greys an arrow that works, and that is
- * the one failure a reader cannot report: a wrongly greyed button looks exactly
- * like an honestly greyed one.
- *
- *   npm run build
- *   npx vite preview --port 4173 &
- *   node scripts/check-cube.mjs
- *
- * Three things are kept apart on purpose:
- *
- *   - The *claim* is read from the DOM — the four arrows' `disabled` attribute.
- *     Not from the module, so this covers the whole path including the wiring,
- *     and not from the labels, which say the same thing whether or not a button
- *     can be pressed.
- *   - The *truth* is taken from the engine: save, send the arrow, save again. A
- *     save that did not change is a move the back end refused, and both of its
- *     refusals — the square's shape and the edge of the grid — end in
- *     MOVE_NO_EFFECT, which never reaches the move list. A save that did change
- *     is undone with loadGame, which round-trips byte for byte.
- *   - The *walk* uses a second, independent copy of upstream's enumeration,
- *     below, and only ever to decide where to step next and whether it has been
- *     there. It is never the expected answer. Written from cube.c rather than
- *     from engine/cube, so a mistake shared by both is a mistake made twice.
- */
 import { chromium } from 'playwright'
 
 const URL = process.env.PREVIEW_URL ?? 'http://localhost:4173/'
@@ -40,8 +5,6 @@ const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome
 const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
 const LABELS = ['Left', 'Right', 'Up', 'Down']
 const OPPOSITE = [1, 0, 3, 2]
-
-/* --- the navigation model, from cube.c:325-467 and 1054 ------------------- */
 
 function squares(solid, d1, d2) {
   const out = []
@@ -84,13 +47,9 @@ function neighbour(sqs, from, dir) {
   return -1
 }
 
-/* --- the check ------------------------------------------------------------ */
-
 const browser = await chromium.launch({ executablePath: CHROME })
 const page = await browser.newPage({ viewport: { width: 420, height: 900 } })
 await page.goto(URL)
-// The arrows are a per-puzzle preference and off by default; this is the block
-// under test, so it has to be on.
 await page.evaluate(() => localStorage.setItem('puzzles.arrows', 'true'))
 await page.goto(URL, { waitUntil: 'networkidle' })
 await page.getByRole('button', { name: /^Cube/ }).first().click()
@@ -102,9 +61,8 @@ const load = (s) => page.evaluate((v) => window.__puzzle.loadGame(v), s)
 const send = (k) => page.evaluate((key) => window.__puzzle.key(0, key, '', 0, 0, 0), k)
 const field = (s, k) => s.split('\n').find((l) => l.startsWith(k))?.split(':').slice(2).join(':')
 
-/** What the reader is being told, straight off the buttons. */
 const claimed = async () => {
-  await page.waitForTimeout(60)                 // let React paint the change
+  await page.waitForTimeout(60)
   const out = []
   for (const label of LABELS)
     out.push(!(await page.locator(`.play-arrows button[aria-label="${label}"]`).isDisabled()))

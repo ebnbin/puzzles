@@ -1,6 +1,4 @@
 @import './tokens.css';
-/* The one control the manual has too, described once and included by both.
-   See segmented.css; build-doc.mjs does the same for public/doc.css. */
 @import './segmented.css';
 
 *,
@@ -9,39 +7,6 @@
   box-sizing: border-box;
 }
 
-/*
- * --- the page behaviours an app does not want ---------------------------
- *
- * Four of them, said once at the root because each is either inherited or
- * resolved by walking up from whatever was touched. Everything below narrows
- * these further; nothing has to repeat them.
- *
- * `touch-action: manipulation` is double-tap-to-zoom, gone. It is the loudest
- * remaining tell that this is a web page: two quick presses anywhere — on a
- * tile, on Undo, on a key — and the whole interface jumps to twice the size,
- * which is never what a second press meant. Pinch is deliberately left alone,
- * because that one is somebody's eyesight and not a stray gesture. The board
- * and the keypad ask for less than this (`none` and `pan-y`); a touch takes the
- * narrowest answer on its way up, so they still get it.
- *
- * `overscroll-behavior: none` is pull-to-refresh, gone, and the rubber band
- * with it. This used to be on a `.playing` class, on the reasoning that the
- * launcher is a list with nothing to lose. True, and beside the point: a
- * home-screen app that reloads when a list is dragged past its end is behaving
- * like a browser tab. It costs the one way of reloading in standalone, where
- * there is no address bar — a real cost, and the price of the gesture not
- * firing by accident.
- *
- * `-webkit-text-size-adjust` is iOS inflating type when the phone is turned,
- * which relaid the gallery to a different number of columns than the one the
- * grid asked for.
- *
- * `-webkit-tap-highlight-color` is the grey box Android paints over whatever
- * was tapped. Every control here already answers a press with its own fill, so
- * the box is a second, slower, uglier answer to the same press. It was switched
- * off on seven selectors one at a time and left on for the board, the keypad,
- * the sheets and the scrim; the property is inherited, so it belongs here.
- */
 html {
   touch-action: manipulation;
   overscroll-behavior: none;
@@ -52,7 +17,6 @@ html {
 
 body {
   margin: 0;
-  /* Keep clear of a notch in landscape and the home indicator at the bottom. */
   padding: 2rem max(1rem, env(safe-area-inset-left)) 3rem;
   padding-bottom: max(3rem, env(safe-area-inset-bottom));
   font-family: var(--font);
@@ -60,8 +24,6 @@ body {
   line-height: 1.5;
   color: var(--text);
   background-color: var(--bg);
-  /* The app's lattice, defined once in tokens and shared with the puzzle
-     screen so the two never drift. */
   background-image: var(--grid-image);
   background-size: var(--grid-size);
   background-position: var(--grid-position);
@@ -73,42 +35,12 @@ body {
   margin: 0 auto;
 }
 
-/*
- * --- what can be selected, and what is a control ------------------------
- *
- * Almost none of this app is text. A tile's name is the face of a button, the
- * segmented control's EN is a radio, "Hidden (3)" is a disclosure — and on a
- * phone every one of them answers a long press by putting up a selection
- * handle and a Copy bubble over the thing the press was actually for. The
- * gallery had it worst: a long press means "put this away", and it raised the
- * browser's own text selection at the same time.
- *
- * The puzzle screen has said this for as long as it has existed, on four of its
- * own selectors. It is not a property of the puzzle screen. It is a property of
- * being an interface rather than a document, so it is said here, once, and the
- * places that really are text ask for it back below.
- *
- * `-webkit-touch-callout` is the other half on iOS: without it a long press on
- * an image offers to save or copy it whatever selection says.
- */
 body {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
-/*
- * And the exceptions, which are every part of the app a reader might genuinely
- * want in the clipboard.
- *
- * The fields are the game id and the random seed — an address you hand out or
- * paste one over is the whole point of that row — plus whatever the back end
- * puts in a config box. The prose is the help dialog's blurb, which is a
- * paragraph out of the manual. The credit names a licence and a URL.
- *
- * The manual itself is not here: it is three thousand words a page and has its
- * own stylesheet, where the default stands and only the bar is exempted.
- */
 input,
 textarea,
 .dialog-prose,
@@ -118,13 +50,6 @@ footer p {
   user-select: text;
 }
 
-/*
- * Pictures are not files here. The thumbnails are the faces of buttons, the
- * monsters are the faces of keys, and the finished board in the help dialog is
- * an illustration — dragging one out or holding it to save is never what was
- * meant. The elements carry `draggable={false}` as well, which is what Firefox
- * reads; this is what the rest read.
- */
 img {
   -webkit-user-drag: none;
 }
@@ -134,9 +59,6 @@ img {
   outline-offset: 2px;
 }
 
-/* The base, so nothing falls through to the browser's own blue. An underlined
-   link is right inside a sentence; `.textlink` is for the ones standing alone,
-   where position and colour already say what it is. */
 a {
   color: var(--accent);
   text-underline-offset: 2px;
@@ -162,23 +84,6 @@ a {
   }
 }
 
-/* --- the gallery -------------------------------------------------------- */
-
-/*
- * The gap is the puzzle screen's, because the row ends the same way that one
- * does: two bare glyphs side by side.
- *
- * It was 0.85rem for everything, from when there was one glyph and nothing to
- * pair it with. A second one arrived and the two floated — 14px apart where the
- * play bar's two sit at 4 — which reads as two unrelated controls rather than
- * as the pair they are. So the row takes the bar's 0.25rem and the standoff is
- * added back in one place, between the language and the glyphs, which is
- * exactly what the manual's bar does with the same 0.6rem.
- *
- * The name loses nothing by it: it is `flex: 1`, so the space the gap gives up
- * goes into its box rather than to anything visible, and the text inside stops
- * a long way short of the pill either way.
- */
 .masthead {
   display: flex;
   align-items: center;
@@ -186,8 +91,6 @@ a {
   margin-bottom: 1.25rem;
 }
 
-/* A filled pill and a bare glyph four pixels apart read as one crowded thing;
-   see the same rule, and the same number, on `.doc-theme`. */
 .masthead .segmented + .masthead-icon {
   margin-left: 0.6rem;
 }
@@ -205,14 +108,6 @@ a {
   line-height: 1.15;
 }
 
-/*
- * The line under the name.
- *
- * Quiet on purpose: it is read once and then never again, so it is the
- * secondary ink at the smallest size the page uses anywhere. The gap is
- * 0.15rem rather than nothing because the two lines are set at very different
- * sizes, and their baselines otherwise crowd.
- */
 .masthead-name p {
   margin: 0.15rem 0 0;
   overflow: hidden;
@@ -223,7 +118,6 @@ a {
   text-overflow: ellipsis;
 }
 
-/* Bare, like the puzzle screen's bar buttons: no fill until touched. */
 .masthead-icon {
   display: grid;
   flex: none;
@@ -249,8 +143,6 @@ a {
   background: var(--surface-3);
   transform: scale(0.92);
 }
-
-/* --- the two things there are to decide, in their own dialog -------------- */
 
 .setting {
   display: flex;
@@ -299,8 +191,6 @@ a {
   font-weight: 400;
 }
 
-/* The switch row's checkbox, drawn the size and colour the dialogs draw
-   theirs, so the same kind of control reads as the same kind of thing. */
 .setting input[type='checkbox'] {
   flex: none;
   width: 1.15rem;
@@ -309,13 +199,6 @@ a {
   accent-color: var(--accent);
 }
 
-/*
- * --- the one row that destroys something ---------------------------------
- *
- * A row can be a button now as well as a link, so it needs the reset every
- * other button in this app already gets from the shared tonal rule — this one
- * is not tonal, it is a row, so it takes the reset and nothing else.
- */
 button.setting {
   width: 100%;
   border: 0;
@@ -325,27 +208,11 @@ button.setting {
   cursor: pointer;
 }
 
-/*
- * Red on the name and on the glyph, and not on the line under them: the
- * sentence explaining what will go has to be read, and a paragraph in the
- * warning colour is a paragraph people stop reading. `danger` is measured
- * against `surface` in tokens.css, which is what a dialog is drawn on.
- */
 .setting-danger .setting-text,
 .setting-danger > svg {
   color: var(--danger);
 }
 
-/*
- * The button the row grows when it is armed, where the glyph was.
- *
- * Tinted rather than bare, because it is the one thing in this dialog that has
- * to look aimed at rather than merely pressed — everything else here is a row
- * you might brush past. It takes the glyph's place instead of going under the
- * text so that the row stays a row: a second line appearing under a control is
- * how a dialog starts jumping about, and this one is asking a question the
- * reader is meant to be still for.
- */
 .setting-do {
   flex: none;
   padding: 0.4rem 0.9rem;
@@ -359,11 +226,6 @@ button.setting {
   cursor: pointer;
 }
 
-/*
- * Three across on a phone, seven once there is a desktop's worth of room.
- * The thumbnail still leads, just at a size that puts a screenful of the
- * collection in front of you rather than four of it.
- */
 .games {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
@@ -374,15 +236,10 @@ button.setting {
 }
 
 .games .games-tile {
-  /* Flex rather than block: a button taller than its content centres that
-     content vertically, which a stretched grid row makes it, and the art stops
-     sitting flush against the top of the card. A column with a start alignment
-     is what the anchor this used to be did by default. */
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  /* For the current tile's ring, below. */
   position: relative;
   width: 100%;
   height: 100%;
@@ -399,9 +256,6 @@ button.setting {
   transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
-/* The thumbnails are rendered on the C's own background colour, so a plate of
-   the same grey makes each one bleed to the edges of its tile. Seen only while
-   a picture loads: the pictures are square and cover this exactly. */
 .games-art {
   display: block;
   background: var(--board);
@@ -426,10 +280,6 @@ button.setting {
   text-overflow: ellipsis;
 }
 
-/* Two lines, then an ellipsis: three tiles across leaves 97px of column, and
-   the longest of these would otherwise run to four. The space below is a
-   margin rather than padding — the clip happens at the padding box, so a third
-   line would show through it. */
 .games-desc {
   display: -webkit-box;
   overflow: hidden;
@@ -454,16 +304,6 @@ button.setting {
   transform: scale(0.985);
 }
 
-/*
- * The one you are on: the card's own edge, in the accent, with the name to
- * match. Marking the card rather than the art keeps the ring off the picture,
- * which has enough going on.
- *
- * Drawn as a pseudo-element rather than folded into the tile's shadow, which is
- * already three states deep — rest, hover, press — and a ring inside it would
- * have to be repeated in each. Not an outline either: that is what focus is
- * drawn with, and a mark identical to the focus ring would hide it.
- */
 .games [aria-current]::after {
   content: '';
   position: absolute;
@@ -478,14 +318,6 @@ button.setting {
   font-weight: 650;
 }
 
-/*
- * The way to put a game away, in the corner of its tile.
- *
- * Where there is a pointer it appears on hover, the way desktop affordances
- * do; on a touch screen it stays out of the way entirely — a permanent badge
- * on forty tiles is noise — and the long press does the same job. Keyboards
- * reach it by tab, so focus shows it too.
- */
 .games li {
   position: relative;
 }
@@ -517,11 +349,6 @@ button.setting {
   display: grid;
 }
 
-/*
- * The put-away games, folded below the list. One line when closed; the same
- * grid as above when open, in the same order — the collection's order is
- * fixed, and hiding is not sorting.
- */
 .stash {
   margin-top: 1.5rem;
 }
@@ -550,7 +377,6 @@ button.setting {
   margin-top: 0.75rem;
 }
 
-/* Put-away tiles sit a step back until pointed at. */
 .games-stashed .games-art {
   opacity: 0.55;
 }
@@ -561,31 +387,6 @@ button.setting {
   }
 }
 
-/*
- * --- a tile going somewhere ----------------------------------------------
- *
- * Both rules are scoped on an attribute the transition puts on the root for its
- * own duration — see transition.ts — because these pseudo-elements are one per
- * document, and the app's other transition is a screen swap that wants the
- * opposite of both.
- *
- * The flight itself runs on the app's own motion rather than the browser's
- * 250ms and `ease`. `--dur-slow` and not `--dur`: this is the longest journey
- * anything in the app makes — a tile crossing most of a screen to reach the
- * stash — and the whole point of animating it is that the reader can follow
- * where it went. 170ms is the app's number for a control answering a press,
- * which is a different thing.
- *
- * While it runs, the gallery does not answer presses: the snapshots are a layer
- * over the page and Chromium routes every hit to the document element, whatever
- * `pointer-events` says on the pseudo-elements — measured, and there is nothing
- * to be done about it from here. The window is this duration plus about 160ms
- * of taking and putting away the pictures: 436ms measured here, against 352 at
- * `--dur` and 175 with the animation switched off altogether, so most of what
- * could be bought back would be bought from the legibility this is for. A press
- * lost in it costs a second press, and the window is shorter than the 450ms
- * hold that starts a move in the first place.
- */
 :root[data-transition='tiles']::view-transition-group(*),
 :root[data-transition='tiles']::view-transition-old(*),
 :root[data-transition='tiles']::view-transition-new(*) {
@@ -593,67 +394,11 @@ button.setting {
   animation-timing-function: var(--ease);
 }
 
-/*
- * And the page it crosses holds still. Left to itself the root cross-fades
- * under every transition, which washes the masthead, the stash line and the
- * footer out and back in around a tile that is merely moving — the page reads
- * as having been replaced rather than as having had one thing move across it.
- * Both snapshots unanimated is a cut, since the new one is painted over the
- * old; what is left moving is the tiles, which are the point.
- *
- * After the rule above, which would otherwise hand the root a duration to spend
- * on an animation it is not going to run.
- */
 :root[data-transition='tiles']::view-transition-old(root),
 :root[data-transition='tiles']::view-transition-new(root) {
   animation: none;
 }
 
-/*
- * A word of confirmation, said and gone.
- *
- * The same box a refusal comes in — see `p.notice` — without the red, because a
- * tile going into the stash is not a thing that went wrong. It was the page's
- * own ink inverted, in a bare pill, which read as quieter than what it was
- * carrying: the long press gives no sign until the tile has already gone, so
- * this line is the only thing that says where.
- *
- * A dark chip was tried here — the snackbar every phone has — and taken back.
- * It cannot be one colour: black on a light page is a card, black on the dark
- * theme's #101013 page is a card held off the lattice by nothing but the
- * shadow's hairline, so the ground has to step with the theme and stops being
- * the one thing it was chosen for. `--raised` is that ground, stepping with the
- * theme on purpose and already in tokens.css for it. The accent's soft pair
- * stood here for a while and did the job, but it spent the one colour this
- * chrome has on a sentence — and tokens.css keeps the accent for state, for
- * what is selected and what is on. The puzzle screen's introduction is the same
- * box for the same reason, and the two change together.
- *
- * At the head of the window rather than the foot: the reader's eye is on the
- * tile they just pressed, which is somewhere in the grid, and a line at the
- * bottom of a page forty tiles long can be most of a screen away from it. Comes
- * down from above, the way the puzzle screen's own floating note does.
- *
- * 5rem, which is where it stops fighting the masthead. The gallery has no bar
- * of its own to hang under and nothing here is sticky, so the number is
- * measured rather than derived: the body's 2rem of padding plus the 2.5rem
- * settings button, which is the tallest thing in the masthead, put its lower
- * edge at 72px on a phone, and 80 clears it. Wider than 48em the masthead grows
- * to 89 and this does dip into its box — with nothing in the way, because there
- * its title and its controls are at the two ends and the middle is empty, which
- * is exactly where a centred line lands. Checked at 360, 390, 768 and 1280.
- *
- * `pointer-events: none` throughout — the tiles it covers are tap targets and
- * stay ones.
- *
- * The name is what keeps it above the tiles it is about. `z-index` cannot: the
- * tiles are named for the length of a flight (see above), which lifts them into
- * the view-transition layer, and everything unnamed — this line included — is
- * flattened into one picture underneath. It came up *behind* the moving tiles
- * and only cleared them when the flight ended. Named, it is a picture of its
- * own, and the pictures are stacked in the order they were taken, which is
- * document order: this is the last thing the gallery renders.
- */
 p.notice-toast {
   position: fixed;
   top: 5rem;
@@ -695,22 +440,8 @@ footer p {
   margin: 0;
 }
 
-/* --- playing a puzzle ---------------------------------------------------
- *
- * Fixed to the viewport rather than flowing in the page, which takes it out
- * of the launcher's centred column and its padding: on a phone the board
- * should have the glass, not a column of it. dvh rather than vh so the bars
- * stay put as the browser's own chrome slides in and out.
- */
-
 .play {
-  /* Shared by the keys and the four fixed buttons, whose rows are sized
-     against each other: see --act-w. */
   --key-gap: 0.25rem;
-  /* Two of these and their gap span exactly what three keys and their gaps
-     do — the landscape rail is three keys across and the four fixed buttons
-     sit two by two at the foot of it, and rows of the same width read as one
-     block rather than two near misses. */
   --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
   position: fixed;
   inset: 0;
@@ -718,14 +449,8 @@ footer p {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  /* No top inset: the bar takes that one itself, so its plate reaches the top
-     of the screen rather than starting below the notch. */
   padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
-  /* The same lattice the launcher stands on, rather than a flat plate: it is
-     the one background the whole app shares. The board sits on it with its
-     own lit-plate shadow, so the grid reads as the surface the puzzle rests
-     on. */
   background-color: var(--bg);
   background-image: var(--grid-image);
   background-size: var(--grid-size);
@@ -736,16 +461,6 @@ footer p {
   visibility: hidden;
 }
 
-/*
- * None of the puzzle screen scrolls, so no swipe across it is a scroll — and
- * a downward one starting off the board is the easiest way to reload the page
- * by accident. The scrollable parts, the sheet and the landscape keypad, say
- * otherwise for themselves.
- */
-/* Gestures, not scrolling: a drag on the board is a move, and a pinch over the
-   keys is not a zoom. The selection and callout half of this rule went to
-   `body`, which is where "this is an interface" belongs — see the top of the
-   file. What is left is the part that really is about these four. */
 .play-bar,
 .play-board,
 .play-actions,
@@ -753,10 +468,6 @@ footer p {
   touch-action: none;
 }
 
-/* One line: back, which puzzle, how it is going, how it is played.
-
-   The chrome is lifted a layer so the board's shadow, which now has no padding
-   to spend itself in, passes under it rather than over its text. */
 .play-bar,
 .keypad,
 .play-actions {
@@ -769,30 +480,12 @@ footer p {
   flex: none;
   align-items: center;
   gap: 0.25rem;
-  /*
-   * A surface of its own, and the notch strip along with it.
-   *
-   * It used to have no background at all, so the page's lattice ran up through
-   * the title and the clock — which reads as the bar having been forgotten
-   * rather than as the bar being part of the board's surface. A plate and a
-   * hairline give it the edge the manual's bar has had all along, and the two
-   * are now the same object seen on two screens.
-   *
-   * The inset comes here rather than staying on `.play` because a coloured bar
-   * that stops below a notch leaves a band of latticed page above it, which
-   * looks like a mistake. Taking it means adding it back to the height: the
-   * box is border-box, so `min-height` would otherwise be spent on the inset
-   * and the row would come out short by exactly the notch.
-   */
   min-height: calc(3rem + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) 0.3rem 0;
   background-color: var(--surface);
   border-bottom: 1px solid var(--edge);
 }
 
-/* The bar's own buttons are bare: no fill until touched. A filled control up
-   here would compete with the board for the eye, and there is nothing else in
-   the bar for it to group with. */
 .play-bar .play-icon {
   display: grid;
   flex: none;
@@ -836,24 +529,12 @@ footer p {
   text-overflow: ellipsis;
 }
 
-/* The title, which is also the way to the other thirty-nine. Set as the
-   heading it replaces — no border, no fill — with only the caret to say it
-   opens. Padded to a thumb's worth of target without looking like a button. */
 .play-title {
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
   max-width: 100%;
-  /* A full thumb target, which the bar's own 3rem has room for. */
   min-height: var(--tap-h);
-  /* No negative margin. It used to pull the text flush with the container's
-     edge, which was safe while a back arrow sat in front of this and the
-     margin only tightened the gap between them. With the arrow gone the title
-     is the first thing in the bar, and the same margin pushed the button past
-     the left edge — where its rounded corners fall outside the viewport, so a
-     press showed a shape rounded on the right and cut square on the left. A
-     control that bleeds off the screen cannot have a radius; this one is a
-     control, so it sits inside. */
   padding: 0 0.4rem;
   border: 0;
   border-radius: var(--r-sm);
@@ -866,8 +547,6 @@ footer p {
   transition: background var(--dur) var(--ease);
 }
 
-/* The name needs its own box to clip in: a bare text node cannot carry an
-   ellipsis, and the caret must stay whole however long the name is. */
 .play-title > span {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -893,11 +572,6 @@ footer p {
   transform: rotate(180deg);
 }
 
-/*
- * The status line the puzzle writes: a pill, but only once there is something
- * in it, so an idle puzzle leaves no empty box in the bar. Tabular figures so
- * a running clock does not shove the words beside it about.
- */
 .play-status {
   flex: none;
   max-width: 55%;
@@ -907,10 +581,6 @@ footer p {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /* It is held to be read in full, and a long press on a run of text is how a
-     phone starts selecting it — which would put a selection handle and a
-     Copy/Share bar over the label being asked for. Everything else that answers
-     a hold is a button, which does not select. */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -921,26 +591,6 @@ footer p {
   background: var(--surface-2);
 }
 
-/*
- * --- a word the app says on its own -------------------------------------
- *
- * Two kinds of them: the back end refusing to do something, wherever that is
- * said (see ErrorNote.tsx for why there is one of those rather than the two
- * treatments there used to be), and the gallery confirming that a tile has been
- * put away or brought back. One shape for both — a glyph naming what happened,
- * then the sentence — because they are the same event seen twice: a press, and
- * a word about it in a place the reader was not looking.
- *
- * What differs is the colour, and only the colour. Red is a refusal in this
- * app and nothing else, so the confirmation takes the accent's own matched
- * pair; both pairs are in tokens.css with the contrast they were measured at.
- *
- * Selected as `p.notice…` and not `.notice…`: three of the refusals sit inside
- * a sheet, where `.sheet p` claims the colour at (0,1,1). Matching that
- * specificity and coming later is what lets the colour through — an override
- * without an `!important`, and the tag in the selector is true, since every
- * one of these is a paragraph.
- */
 p.notice {
   flex: none;
   display: flex;
@@ -951,7 +601,6 @@ p.notice {
   font-size: var(--t-sm);
 }
 
-/* The glyph sits on the first line of a sentence that may take three. */
 p.notice svg {
   flex: none;
   margin-top: 0.15rem;
@@ -961,23 +610,9 @@ p.notice-error {
   margin: 0.75rem 0 0;
   background: var(--danger-soft);
   color: var(--danger);
-  /* Room for ErrorNote's own scroll to leave, so the sentence it just brought
-     up is above the edge of the sheet rather than flush against it —
-     `nearest` otherwise lands it on the boundary, and the sheet's bottom
-     padding takes the last few pixels of it. */
   scroll-margin: 0.75rem;
 }
 
-/*
- * The two on the puzzle screen, floating over the top of the board: a refusal,
- * and the sentence a puzzle opens with the first time it is met.
- *
- * Absolute rather than a row in the column: a row would take that height off
- * the board for as long as the message stood, and shrink the puzzle to say a
- * sentence that leaves again in a few seconds. Anchored to the top of the board
- * area, which begins where the bar ends, so `top` is the gap from the bar and
- * has nothing to do with how tall the bar is or whether there is a notch.
- */
 .play-board {
   position: relative;
 }
@@ -993,27 +628,10 @@ p.notice.is-floating {
   animation: notice-in var(--dur) var(--ease);
 }
 
-/* The refusal alone takes no taps: it sits over a board that is being played
-   and leaves on its own, so it must never be the thing a tap lands on. The
-   introduction has a button in it and is closed by nothing else. */
 p.notice-error.is-floating {
   pointer-events: none;
 }
 
-/*
- * The introduction, and the gallery's toast with it: `--raised` over the page's
- * own ink, which is what `--raised` is in tokens.css for — the tone that has to
- * read as lifted off whatever it lands on, and the reason it is a token rather
- * than `--surface` is that on dark it lifts by getting lighter and on light by
- * getting whiter.
- *
- * Not the accent, which both of these wore for a while. tokens.css says what
- * the accent is for — "spent only on state: what is selected, what has focus,
- * what is on" — and a sentence is none of those. Blue on a board that is
- * already drawing in the collection's own #0000ff also had the note answering
- * the puzzle in the puzzle's colour. Red stays where it belongs, on the
- * refusal, and everything else here is the chrome's own achromatic ladder.
- */
 p.notice-intro {
   background: var(--raised);
   color: var(--text);
@@ -1023,14 +641,6 @@ p.notice-intro span {
   flex: 1;
 }
 
-/*
- * The close, which is the only way out of it.
- *
- * The glyph is 16px and the target around it is 44, which is the smallest thing
- * a thumb should be asked to hit; the padding that makes it and the negative
- * margin that takes it back out again leave the note the height of its own
- * sentence rather than the height of the target inside it.
- */
 p.notice-intro button {
   flex: none;
   margin: -0.85rem -0.85rem -0.85rem 0;
@@ -1053,13 +663,6 @@ p.notice-intro button:active {
   }
 }
 
-/*
- * Everything left over, and all of it. No padding: every pixel here is board,
- * and the flex basis of zero is what stops the board from growing the area it
- * is measured against — the two would otherwise chase each other. Nothing is
- * clipped either, so the board's shadow can fall outside its own box now that
- * there is no room set aside for it.
- */
 .play-board {
   display: grid;
   flex: 1 1 0;
@@ -1067,56 +670,20 @@ p.notice-intro button:active {
   min-height: 0;
 }
 
-/*
- * The board is a lit plate on the page. No background of its own, ever: the C
- * reads this element's computed background colour to seed every one of the
- * game's colours, gets nothing here exactly as it gets nothing from upstream's
- * page, and falls back to its own grey. An opaque colour here would repalette
- * all forty puzzles. The ring and shadow live outside the pixels, so nothing
- * the puzzle draws is covered or clipped.
- */
 .host-board {
   display: block;
-  /* The font the puzzle draws its own text in; upstream's page sets this too. */
   font-family: sans-serif;
   box-shadow: var(--shadow-board);
-  /* The board handles its own gestures; the page must not also scroll or
-     zoom under a finger that is drawing a line. */
   touch-action: none;
-  /* A long press on the board is our right click. iOS would otherwise answer
-     it with the selection callout, which touch-action does not suppress. */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
-/*
- * No ring, and `none` rather than nothing at all, because the base rule above
- * would otherwise draw one.
- *
- * The board is focusable so that arrow keys reach the puzzle, and that is all
- * the tabindex is for; it stays exactly as it was. But Chrome reads
- * `:focus-visible` generously for anything focusable only by tabindex — a
- * button suppresses the ring on a click and a canvas does not — so an ordinary
- * tap on the board lit a 2px accent outline round the whole puzzle, which
- * looks like the board has been selected rather than played.
- *
- * The ring was there to say "keys will land here", and the puzzles say it
- * better themselves: press an arrow and the game draws its own cursor on the
- * square it would act on. That is a real focus indicator, drawn where the
- * keyboard is actually pointing, and it is upstream's.
- */
 .host-board:focus,
 .host-board:focus-visible {
   outline: none;
 }
-
-/* --- buttons -----------------------------------------------------------
- *
- * One tonal shape, shared by the bottom row, the keypad, the sheet and the
- * dialogs. Filled rather than outlined: a 1px box around a word is the most
- * web-form thing a screen can contain, and this is meant to read as an app.
- */
 
 .play-actions button,
 .keypad button,
@@ -1155,28 +722,11 @@ p.notice-intro button:active {
   transform: scale(0.96);
 }
 
-/* Dimmed by colour alone. Fading it as well would put Undo below the contrast
-   a label needs to be read, and "unavailable" is not the same as "illegible". */
 .play-actions button:disabled {
   color: var(--text-3);
   cursor: default;
 }
 
-/* --- keys the puzzle asked for --- */
-
-/*
- * The keys, in one run: the ones that put something in a square first, then
- * the ones that ask something of the board, told apart by colour alone.
- *
- * A row is as many keys as the screen is wide — no count is chosen anywhere;
- * they wrap where the width says to, and a row that does not fill is centred
- * under the ones that did. Three rows are visible at most, and the rest
- * scrolls.
- *
- * Every key is a 40 square. Nothing here is stretched and nothing is wider
- * than anything else — the labels that would not fit are pictures now — so
- * the width a row does not use is margin.
- */
 .keypad {
   display: flex;
   flex: none;
@@ -1186,9 +736,6 @@ p.notice-intro button:active {
   max-height: calc(3 * var(--tap-w) + 2 * var(--key-gap) + 0.3rem);
   margin: 0 auto;
   overflow-y: auto;
-  /* The keypad is the one thing here that scrolls, so it is the one thing
-     that may be panned. Overlay or nothing: a classic scrollbar would sit
-     between the keys and the edge of the phone. */
   touch-action: pan-y;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -1209,38 +756,6 @@ p.notice-intro button:active {
   font-variant-numeric: tabular-nums;
 }
 
-/*
- * How many of this digit are still to be placed, in the corner of the key that
- * places it.
- *
- * Absolute, so the key stays the 40 square every other key is: this is a second
- * thing to read on a button already carrying one, and the moment it changed the
- * size of anything the row would stop being a grid.
- *
- * Top right, which is the only corner free of the two things around it — the
- * digit sits dead centre and the keypad scrolls under the row above. The digit
- * is 14px across the middle of the key and this is 11px in the top 12, so they
- * do not meet at any size the label reaches.
- *
- * Drawn in --text-2 rather than the accent. The accent means one thing on this
- * keypad already — "acts on the whole board", which is what tells the aid keys
- * from the digits — and a count is not that. Secondary text against
- * --surface-2 clears 7:1 in both themes, which is more than a number this small
- * needs and about what it wants.
- */
-/*
- * A key that is a picture of a board colour: Guess's pegs.
- *
- * A disc rather than the square the key already is, because it is a photograph
- * of the board and the board draws a peg with `draw_circle`. 22px inside a 40px
- * key — two more than the 20px a glyph gets, since a flat disc has no interior
- * detail to lose and the colour is the whole message; the rim is the board's
- * COL_FRAME, which is what keeps a pale peg off a pale key.
- *
- * The number, when the reader has asked for numbers, sits inside it exactly as
- * it does on the board. 0.75rem is the largest that fits two digits — there are
- * none, the tenth colour is drawn as 0 — and clears the rim at one digit.
- */
 .key-peg {
   display: grid;
   place-items: center;
@@ -1254,18 +769,6 @@ p.notice-intro button:active {
   font-variant-numeric: tabular-nums;
 }
 
-/*
- * The same swatch said as a maybe, for Map's second row — see `dotted` on
- * KeyLabel, and map.c:2872, where the board draws a stipple as a scatter of
- * dots rather than as a fill.
- *
- * 5px between dots and a 1.6px radius, which at 22 across gives sixteen of them
- * in the circle: enough that it reads as a texture and not as a pattern anybody
- * counts, and coarse enough to survive the smallest colour difference the four
- * have. The colour arrives as `color` rather than `background` so the gradient
- * can use it and the ground can stay the key's, which is the region's ground on
- * the board too.
- */
 .key-peg[data-dotted] {
   background: radial-gradient(currentColor 1.6px, transparent 1.7px) 0 0 / 5px 5px;
 }
@@ -1282,101 +785,20 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* --- the three kinds of press ------------------------------------------
- *
- * A ladder, spent on both rows along the foot of the board — the keys and the
- * buttons under them — and it climbs by whose the press is:
- *
- *   1. Plain — the ordinary press. A digit, a monster, clear; and below them
- *      undo, redo and the type list, which are the midend's own commands
- *      rather than keys at all. `--text` on `--surface-2`, which is what every
- *      button in the app is.
- *   2. The accent — a key the back end reads and has never offered a button
- *      for, here only because a finger cannot type it. M, H and J on the
- *      keypad; the four arrows and the two beside them below. This is the step
- *      the reader has to notice, because it is the difference between the
- *      press you make forty times and the one you make once.
- *   3. The accent, filled — ours rather than the game's. The three answered
- *      through the save file, and the menu, which is a sheet of this app's and
- *      the one button down there the puzzle knows nothing about.
- *
- * That the two rows agree is the point of doing it twice: a reader who has
- * learnt the tint on the keypad reads the arrows below it without being told
- * again. It also settles what the bottom row could never say before — the
- * arrows are the game's keyboard and the menu is not, and until now both were
- * simply buttons in a row.
- *
- * The keypad is laid out in that order too (engine/keys.ts), so up there the
- * ladder is climbed left to right rather than described in one place and
- * shuffled in another. The row below cannot be: its order is fixed by which
- * button a thumb should find without looking.
- *
- * Which of the last two gets the filled step is the only real choice here, and
- * it went to ours for a reason about the row rather than about the keys: our
- * three are always together and always three, so a fill reads them as one
- * block, while upstream's arrive one at a time (two on Unequal) and read
- * better as an accent among the digits. The other argument — that upstream's
- * are the heavier press, since M buries the marks you spent the game crossing
- * off and H overwrites them with the solver's — does not survive Dominosa,
- * whose upstream keys only light dominoes up and harm nothing. So: by whose
- * key it is, which is a fact, and not by what it costs, which varies.
- *
- * The tint is faint by contrast ratio — 1.07:1 against `--surface-2` — and
- * that number is the wrong one: the difference is nearly all hue, which
- * luminance does not measure. ΔE puts it at 11.2 on light and 22.5 on dark,
- * against 4.3 and 5.3 for the step from `--surface-2` to `--surface-3` that
- * every button on this screen already uses to say it has been pressed. It is
- * more than twice the difference the app asks a reader to see elsewhere.
- *
- * `--accent-soft` is spent once elsewhere, on the selected preset chip. Two
- * meanings for one tint, in two places that are never on screen together.
- */
 .keypad button[data-whose],
 .play-actions button[data-whose] {
   color: var(--accent);
 }
 
-/* Except when it has nothing to do, where the dim from further up wins. It has
-   to be said again rather than left to the cascade: the two selectors weigh the
-   same, and this block is the later one, so an accented key would have kept its
-   colour while disabled.
-
-   The cursor keys were the only ones that could be both until Guess's keyboard
-   became its keypad: its tick is drawn always and live only once there is a
-   whole guess to submit — see `needs` on KeyLabel — so a key up here can be out
-   now too. */
 .keypad button[data-whose]:disabled,
 .play-actions button[data-whose]:disabled {
   color: var(--text-3);
 }
 
-/*
- * And a swatch, which the rule above cannot reach: its colour is the board's,
- * painted inline from the running palette rather than taken from `color`, so
- * saying `--text-3` here would change nothing at all. Map's palette goes out
- * with the cursor it acts at, so this had to be answered.
- *
- * Opacity rather than a colour, because there is no dim version of "the third
- * colour" to name — and the ground it fades into is the key's own, which is the
- * same ground the glyph keys fade towards. 0.35 puts the step at ΔE 19 on light
- * and 15 on dark, against the 22 the glyphs move by; a swatch is a solid 22
- * across where a glyph is a stroke, so the smaller number reads as the same
- * amount of gone.
- */
 .keypad button:disabled .key-peg {
   opacity: 0.35;
 }
 
-/*
- * And a cursor key that is a mode rather than a move, while its mode is on.
- *
- * The surface every button on this screen already goes to under a finger, which
- * is the whole argument for it: these two are sticky modifiers — Sixteen's own
- * chapter says Enter "simulates holding down Control" — so a key that looks
- * held down is not a metaphor, it is what the key is. `--accent-soft` was the
- * other candidate and is spoken for: it means "ours" one button along, and the
- * menu is on screen at the same time.
- */
 .play-actions button[data-on] {
   background: var(--surface-3);
 }
@@ -1399,22 +821,6 @@ p.notice-intro button:active {
   background: var(--accent-soft-hover);
 }
 
-/*
- * And one of ours that is also a mode: Pattern's stroke key, on.
- *
- * The rule above had already spent this button's ground on saying "ours", so
- * the held-down surface two rules up could not be seen on it at all — measured
- * before this existed, on and off were the same pixels. Something had to give,
- * and it is not the "ours" tint: that one is a fact about the key and is read
- * across three screens, where the mode is read for as long as it is on.
- *
- * So the mode goes up a step in the same hue instead of sideways into another
- * one. Soft-to-solid is the loudest pair the palette has and this is the
- * loudest thing on the screen while it is on — four buttons stop doing what
- * they say and start painting, and a reader who forgets that paints a line
- * they did not want. `--accent` is spent elsewhere on "the primary action in a
- * sheet", which is modal and never on screen with this.
- */
 .play-actions button[data-whose='ours'][data-on] {
   background: var(--accent);
   color: var(--accent-on);
@@ -1430,47 +836,16 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
-/*
- * And the colour that mode is painting with: a ring, on the key that names it.
- *
- * This is the one place the answer to "what happens if I press an arrow now"
- * is written, so it has to be readable before the arrow is pressed rather than
- * after. It was `--surface-3` first — the held-down step every mode key on this
- * screen uses — and that is ΔE 4.3 on light and 5.3 on dark against the ground
- * beside it. Enough to confirm a press you have just made, not enough to be
- * read cold: with the mode on and black chosen, a reader could not say which of
- * the three it was.
- *
- * A ring rather than a ground, and that choice was made for us twice over. The
- * grounds are spoken for on this row — `--accent-soft` says "ours" one button
- * along and solid `--accent` says "that mode is on" — and a colour key's ground
- * is also what its glyph's black, white and grey are read against, so moving it
- * would change what the three keys look like as colours.
- *
- * Inset rather than an outline, which is what focus is drawn with, and inset
- * rather than the gallery's `::after` border, which is that rule's answer to a
- * tile already carrying three shadows. These buttons carry none, so the shadow
- * is free and needs no pseudo-element and no positioning.
- */
 .play-actions button[data-brush] {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-/* A monster, at the size the glyph beside it is drawn. Bigger than the 20px
-   icons because it is a picture rather than a mark: the same detail — two eyes,
-   two fangs — has to survive in it. */
 .key-art {
   display: block;
   width: 1.5rem;
   height: 1.5rem;
 }
 
-/* Held rather than pressed: what the button would have said, if it were big
-   enough to say it. Both rows along the foot of the board raise one — the keys
-   and the four fixed buttons — so it is named for the gesture and not for
-   either of them. Fixed, so the keypad's own scrolling does not clip it, and
-   so the four buttons, which are not in a scroller at all, can place it the
-   same way. */
 .hold-tip {
   position: fixed;
   z-index: 15;
@@ -1488,28 +863,14 @@ p.notice-intro button:active {
   animation: scrim-in var(--dur) var(--ease);
 }
 
-/* Under the thing that raised it, for the one that is raised from the top bar:
-   see ABOVE in useHoldTip. `top` is already the other edge of the button by the
-   time it gets here, so only the direction it grows in changes. */
 .hold-tip[data-below='true'] {
   transform: translate(-50%, 0) translateY(0.35rem);
 }
 
-/* --- the four ways out of the board --- */
-
-/* Four glyphs in the middle of the foot of the board. None of them needs more
-   room than another, and where the reader's thumb has learned to find one does
-   not move when the language changes — nor when the window does, now that the
-   leftover width is margin rather than four wider buttons. */
 .play-actions {
   display: flex;
   flex: none;
   justify-content: center;
-  /* Along the bottom, not the middle: the two blocks are the same height until
-     Inertia makes its own three keys tall, and the four buttons should stay
-     where a thumb has learnt to find them rather than drift down half a key.
-     What grows is the top of the block, which is the end nothing is reaching
-     for. */
   align-items: end;
   gap: var(--key-gap);
   width: 100%;
@@ -1518,10 +879,6 @@ p.notice-intro button:active {
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
-/* The four themselves, which are a row until something needs to stand beside
-   them. Grouped rather than left as children of the row above so that the
-   arrows can be the second group; with nothing beside them the two rules come
-   to the same picture they always did. */
 .play-acts {
   display: flex;
   gap: var(--key-gap);
@@ -1533,18 +890,6 @@ p.notice-intro button:active {
   height: var(--tap-w);
 }
 
-/*
- * The four arrow keys, as the cross they are drawn as everywhere else.
- *
- * Three columns, two rows, and every one placed by the direction it points
- * rather than by the order it was written in: a cross has a shape, and reading
- * that shape off `nth-child` would mean the markup could not be reordered
- * without the up key ending up on the left.
- *
- * Keys and not actions: each is exactly the square every puzzle key is, because
- * that is what they are — a keyboard's four keys, offered to a device that has
- * no keyboard.
- */
 .play-arrows {
   display: grid;
   grid-template-columns: repeat(3, var(--tap-w));
@@ -1572,33 +917,6 @@ p.notice-intro button:active {
   grid-area: 2 / 3;
 }
 
-/*
- * The two cells a cross leaves over, either side of the key at the top.
- *
- * They are what the arrows are for: something has to happen where the cursor
- * stops. Placing them here rather than in a row of their own is the whole
- * reason this costs nothing — the block is the same three keys across and two
- * keys tall it was with only the arrows in it, so the landscape rail's width
- * identity above is untouched.
- *
- * First on the left, second on the right, in the order engine/keys lists them:
- * the left of a pair is read first, and the first is the one a puzzle is played
- * with. A puzzle offering one key fills the left cell and leaves the right
- * empty, which is a gap in a cross rather than a hole in a row.
- */
-/*
- * A key that is out for the moment: still in its cell, just not painted.
- *
- * This is what one of our arming keys does to the rest of the row — the next
- * press belongs to the arming, so nothing else may take it. It was done by not
- * rendering them at all, and putting them back left a repaint artefact on iOS:
- * the button came back drawn as a fragment of itself, glyph clipped and no
- * background, every time, reported on a phone and not reproducible in Chromium,
- * where every attribute measures right. `visibility` keeps the box where it
- * already was, so coming back is a paint and not an insertion — and it takes
- * the key out of hit testing and off the accessibility tree while it is out,
- * which is what unmounting did.
- */
 .play-arrows button[data-off] {
   visibility: hidden;
 }
@@ -1611,26 +929,6 @@ p.notice-intro button:active {
   grid-area: 1 / 3;
 }
 
-/*
- * Three keys, and the cross moves down to make room for them.
- *
- * Pattern only, and the reason is that its three are one choice rather than
- * three jobs: a square is black, white or grey, and any of the three is one
- * press away from any other. Two buttons cannot say that. They can say it by
- * changing face — which is what upstream's two keys do, and what this replaced
- * — but a face that turns over on every press means the black button is no
- * longer a place your thumb knows, and this is a puzzle played by painting long
- * runs.
- *
- * So the block becomes the same three-by-three Inertia uses, filled the other
- * way round: a full row of keys at the top, the cross beneath it. It is a key
- * taller than the two-row form, which comes out of the board — the same trade
- * `[data-ways='8']` makes above, for the same reason, and the width the
- * landscape rail depends on is again untouched.
- *
- * Left to right in the order engine/keys lists them, which for Pattern is the
- * order its own chapter names the colours in.
- */
 .play-arrows[data-keys='3'] [data-act='first'],
 .play-arrows[data-keys='4'] [data-act='first'] {
   grid-area: 1 / 1;
@@ -1666,54 +964,11 @@ p.notice-intro button:active {
   grid-area: 3 / 3;
 }
 
-/*
- * The stroke key, and it costs nothing: three keys already push the cross into
- * the bottom two rows, which leaves the cells either side of the up arrow
- * empty — the same two `[data-ways='8']` fills with corners.
- *
- * Left of up rather than right, and that is not symmetry. It changes what the
- * cross does, so it wants to be read *before* the cross rather than after it,
- * and left is where reading starts.
- *
- * Placed by what it is rather than by which slot it landed in — it is the
- * fourth key on Pattern and the third on Tents and Range, and a button that
- * moved between puzzles because its row was a different length would be a
- * different button as far as a thumb is concerned. Tents and Range leave the
- * third cell of the top row empty rather than fill it, which is the price.
- *
- * The block is no wider and no taller than the three-key form, so nothing the
- * landscape rail measures moves.
- */
 .play-arrows[data-keys='3'] [data-act='sweep'],
 .play-arrows[data-keys='4'] [data-act='sweep'] {
   grid-area: 2 / 1;
 }
 
-/*
- * Eight ways out of a square rather than four, which is Inertia and nothing
- * else — see movesEightWays.
- *
- * The cross becomes the full three by three it was always a piece of: the four
- * corners fill in, and down drops out of the middle to the foot, where it
- * belongs once there is a row under it.
- *
- * The centre was empty on the grounds that a key there would have to mean
- * "stay", and a ball that rolls until it hits something has no such move. That
- * was an argument about *directions*, and it settles what may go there rather
- * than whether anything may: Inertia's one other key is the solver's replay,
- * which is not a direction at all, and the middle of a pad of directions is
- * where a thing that is not one is unmistakable. See CURSOR_KEYS.
- *
- * The block is no wider — still three keys — so the landscape rail's width is
- * untouched. It is a key taller, and that comes out of the board, which is the
- * trade this puzzle has no way around: half its directions were unreachable
- * without a numeric keypad.
- *
- * The two cells either side of the up key are the corners now, so the slot the
- * other thirty-nine puzzles put their first key in is spoken for; here it is
- * the middle instead. A puzzle wanting *two* keys and eight ways would have
- * nowhere to put the second. None does.
- */
 .play-arrows[data-ways='8'] [data-dir='down'] {
   grid-area: 3 / 2;
 }
@@ -1738,30 +993,10 @@ p.notice-intro button:active {
   grid-area: 3 / 3;
 }
 
-/*
- * With a cross beside them the four buttons pair off, and the row becomes two.
- *
- * Written in the order they are read — undo and redo above, the two that open
- * something below — which is what the grid gives for free by filling rows
- * first. Nothing is kept for a Type button that is not there: a puzzle whose
- * back end offers no presets simply has Menu at the start of the second row.
- *
- * The height this costs comes out of the board, which refits itself: the area
- * the board sits in is watched by a ResizeObserver (usePuzzleFit), so turning
- * the arrows on and off is a resize like any other.
- */
 .play[data-arrows='true'] .play-acts {
   display: grid;
   grid-template-columns: repeat(2, var(--act-w));
 }
-
-/* The menu used to be the one button in this row drawn differently, in the
-   accent, on the grounds that it opens something rather than doing something.
-   That reading survives and is now said in the same three steps the keypad
-   uses — it takes the filled one, as the only press down here the puzzle has
-   never heard of. See the ladder above; there is no rule of its own left. */
-
-/* --- the menu, over the board rather than under it --- */
 
 @keyframes scrim-in {
   from {
@@ -1792,8 +1027,6 @@ p.notice-intro button:active {
   width: 100%;
   max-height: 85dvh;
   overflow-y: auto;
-  /* Reaching the end of the sheet must not start scrolling the page behind
-     it, or hand the gesture on to the browser. */
   overscroll-behavior: contain;
   padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
   border-radius: var(--r-lg) var(--r-lg) 0 0;
@@ -1807,8 +1040,6 @@ p.notice-intro button:active {
   display: grid;
   place-items: center;
   height: 1.75rem;
-  /* Out to the sheet's own edges: the whole strip is the grab area, not just
-     the bar drawn in the middle of it. */
   margin: -0.5rem -1rem 0.4rem;
   touch-action: none;
   cursor: grab;
@@ -1825,9 +1056,6 @@ p.notice-intro button:active {
   background: var(--edge-strong);
 }
 
-/* Three of them, across the top of the sheet in one row at any width. They
-   are short words and they are the whole of what the sheet does to the game,
-   so they read as a row of choices rather than a list to work down. */
 .sheet-actions {
   display: flex;
   gap: 0.4rem;
@@ -1835,18 +1063,13 @@ p.notice-intro button:active {
 
 .sheet-actions button {
   flex: 1;
-  /* Or a button refuses to go narrower than its own label. */
   min-width: 0;
   min-height: var(--tap-h);
   padding: 0 0.4rem;
   font-size: var(--t-sm);
-  /* "New game" broken over two lines in a row of one-liners reads as two
-     buttons. A third of the sheet is enough for it on any phone still made. */
   white-space: nowrap;
 }
 
-/* Below that it is not, by about six pixels, and the glyph is what gives way:
-   these three say what they do in words. */
 @media (max-width: 22.5em) {
   .sheet-actions button svg {
     display: none;
@@ -1864,8 +1087,6 @@ p.notice-intro button:active {
   color: var(--text-2);
 }
 
-/* New game leads. It is what the sheet is opened for, and it is also the one
-   that throws the position away, so it should not look like its neighbours. */
 .sheet-actions button.is-primary {
   background: var(--accent);
   color: var(--accent-on);
@@ -1890,30 +1111,10 @@ p.notice-intro button:active {
   margin-top: 1.4rem;
 }
 
-/*
- * Except the one that opens a sheet, which has nothing above it to be kept
- * away from.
- *
- * This is a separator, and the Type sheet is the only one whose first child
- * after the handle is a section — the menu leads with its row of buttons, so
- * its sections all have a block above them and the rule does its job. In the
- * Type sheet it collapsed against the handle's own 0.4rem and won, which put
- * "TYPE" 34.4px below the grip against the menu's 18.4px. Two sheets, opened
- * from buttons beside each other, starting at different heights.
- */
 .sheet-handle + section {
   margin-top: 0;
 }
 
-/*
- * What a section of the sheet is called. One rule, because there is one kind
- * of thing being named: Type, Preferences, Game ID, Random seed. The two id
- * rows are labels rather than headings — each one names its own field, and a
- * heading would be lying about what it is attached to — but they sit at the
- * same level of the sheet as the other two, and they were set as field
- * captions: sentence case, `text-2`, two sizes larger. Two ways of writing the
- * same thing, one under the other.
- */
 .sheet h2,
 .sheet-id label {
   display: block;
@@ -1925,20 +1126,12 @@ p.notice-intro button:active {
   text-transform: uppercase;
 }
 
-/*
- * The sheet's prose, which a refusal is not. Without the exclusion this rule
- * and `p.notice-error` tie at (0,1,1) and the later one wins — and this one is
- * later, which is how the error notes in all three sheets came to be grey.
- * Excluding them here settles it by meaning rather than by line number.
- */
 .sheet p:not(.notice-error) {
   margin: 0;
   color: var(--text-2);
   font-size: var(--t-sm);
 }
 
-/* Presets as chips. A puzzle can offer twenty of these; as full-width rows
-   that is a screen of scrolling to reach the last one. */
 .sheet-presets,
 .sheet-presets ul {
   display: flex;
@@ -1976,21 +1169,6 @@ p.notice-intro button:active {
   font-weight: 600;
 }
 
-/*
- * "Default", on the one chip the puzzle came set to.
- *
- * Inside the chip, after the name, rather than a mark beside it: only one chip
- * in the list ever carries it, so the width it adds costs the row nothing, and
- * a word needs no key to read it.
- *
- * Held at --text-2 in both of the chip's states, which is the point of setting
- * it at all — the chip's own colour says whether this is the type you are
- * playing, and that is a different question from which one it started as. Both
- * can be true of the same chip, and when they are, the two have to stay
- * legible as two things. 5.5:1 at worst, over the tint.
- *
- * Not bold, even on the selected chip, which sets 600 on everything inside it.
- */
 .sheet-presets .sheet-preset-tag {
   color: var(--text-2);
   font-size: var(--t-2xs);
@@ -1998,8 +1176,6 @@ p.notice-intro button:active {
   letter-spacing: 0.02em;
 }
 
-/* Still a real radio — one choice, arrow keys through the group, announced as
-   such — just drawn to belong to the chip it sits in. */
 .sheet-presets input[type='radio'] {
   flex: none;
   width: 0.875rem;
@@ -2020,15 +1196,6 @@ p.notice-intro button:active {
   );
 }
 
-/*
- * The parameters, shown among the presets rather than in a dialog on top of
- * them. "Custom" is one of the types; these are what it means. They appear
- * when it is the type chosen and go when another one is.
- *
- * Rows rather than a form — a label and its control, one to a line, hairline
- * between — because that is what the rest of the app's settings look like,
- * and because a stack of full-width boxes is a wall on a phone.
- */
 .sheet-custom {
   margin-top: 1rem;
   animation: custom-in var(--dur) var(--ease);
@@ -2065,8 +1232,6 @@ p.notice-intro button:active {
   font-size: var(--t-sm);
 }
 
-/* The checkbox is written first and belongs last on the line, so that its
-   label starts where every other label starts. */
 .sheet-custom .dialog-boolean,
 .sheet-prefs .dialog-boolean {
   flex-direction: row-reverse;
@@ -2086,7 +1251,6 @@ p.notice-intro button:active {
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  /* Anything under 16px makes iOS zoom the page when the field is focused. */
   font-size: 1rem;
 }
 
@@ -2096,8 +1260,6 @@ p.notice-intro button:active {
   font-variant-numeric: tabular-nums;
 }
 
-/* A grid type or a difficulty is a word, not a number, and needs the room the
-   numbers do not. */
 .sheet-custom .dialog-choices select,
 .sheet-prefs .dialog-choices select {
   width: auto;
@@ -2125,16 +1287,6 @@ p.notice-intro button:active {
 }
 
 
-/*
- * The two addresses this position has, each one a field.
- *
- * They are laid out down the sheet rather than across it because an id is a
- * line of text, not a word: at half the sheet's width you can see about eight
- * characters of it, which is neither readable nor editable.
- *
- * The label goes above rather than beside for the same reason — everything
- * short enough to sit opposite its label already does, in the rows above.
- */
 .sheet-ids {
   display: flex;
   flex-direction: column;
@@ -2144,7 +1296,6 @@ p.notice-intro button:active {
 .sheet-id input {
   display: block;
   width: 100%;
-  /* Or it refuses to go narrower than the id it is holding. */
   min-width: 0;
   min-height: var(--tap-h);
   padding: 0 0.6rem;
@@ -2153,18 +1304,13 @@ p.notice-intro button:active {
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  /* Anything under 16px makes iOS zoom the page when the field is focused. */
   font-size: 1rem;
   font-variant-numeric: tabular-nums;
 }
 
-/* Square, and the same height as the field it belongs to. */
-/* Against the field it is about, not a paragraph's worth of space below it. */
 .sheet-id p.notice-error {
   margin-top: 0.35rem;
 }
-
-/* --- dialogs --- */
 
 .dialog-dimmer {
   position: fixed;
@@ -2174,10 +1320,6 @@ p.notice-intro button:active {
   place-items: center;
   padding: 1rem;
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  /* A scroll container of its own, so a dialog taller than the screen scrolls
-     here rather than being clipped, and a wheel or flick over the scrim stops
-     here instead of chaining to the page. useScrollLock holds the page; this
-     catches the gesture. */
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--scrim);
@@ -2206,10 +1348,6 @@ p.notice-intro button:active {
   letter-spacing: -0.015em;
 }
 
-/* The back end's own control rows, each of which carries its kind as a class.
-   A bare `.dialog label` would also catch the labels inside the settings rows
-   and the segmented control nested in one of them — which is exactly what it
-   was doing. */
 .dialog-string,
 .dialog-choices,
 .dialog-boolean {
@@ -2231,7 +1369,6 @@ p.notice-intro button:active {
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  /* Anything under 16px makes iOS zoom the page when the field is focused. */
   font-size: 1rem;
 }
 
@@ -2242,7 +1379,6 @@ p.notice-intro button:active {
   outline-offset: -2px;
 }
 
-/* Later than the shared rule above, so this display wins. */
 .dialog-boolean {
   display: flex;
   align-items: center;
@@ -2256,7 +1392,6 @@ p.notice-intro button:active {
   flex: none;
   width: 1.15rem;
   height: 1.15rem;
-  /* The gap is the spacing; a checkbox's own default margin is not. */
   margin: 0;
   accent-color: var(--accent);
 }
@@ -2289,13 +1424,10 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
-/* The manual's own prose, on request from the bar. */
 .dialog-prose {
   color: var(--text-2);
   font-size: var(--t-md);
   line-height: 1.6;
-  /* The chapters cite their sources, and some of those URLs are longer than a
-     phone is wide. */
   overflow-wrap: break-word;
 }
 
@@ -2329,46 +1461,11 @@ p.notice-intro button:active {
   background: var(--surface-2);
 }
 
-/* Long enough to be worth reading in, on a screen that has the room. Two
-   selectors and one block — taking a selector out once left the other one
-   dangling above the next rule, which sized the help dialog as though it were
-   the picture inside it. */
 .dialog-help,
 .dialog-settings {
   max-width: 30rem;
 }
 
-/*
- * The board above the blurb.
- *
- * A square, whatever shape the board came out, with the board fitted inside it
- * and the rest padded — by the builder, not by this rule.
- *
- * Square because forty pictures in one place should be one size, not forty: the
- * frame is the constant and the board varies within it. Twenty-eight are square
- * anyway; Guess is half as wide as it is tall and takes the same bite out of
- * the dialog as Net does.
- *
- * The padding is each board's own edge colour, filled in when the picture is
- * built (scripts/build-howto.mjs). This used to be an argument for having no
- * plate at all: the forty do not agree on a background — twenty-four are drawn
- * on #e6e6e6 and sixteen on #d5d5d5, the ones whose back end dims it to leave
- * room for a highlight — so one colour could not match them and a near match
- * was worse than none. A picture that brings its own settles it, and does so in
- * either theme, which a single CSS colour never could.
- *
- * The height is capped against the viewport as well, because in this layout the
- * picture is stacked above the words and takes its room out of theirs. The cap
- * bites below 405px of viewport — 40vh of that is 162 — which in practice means
- * it never fires: the shortest phone held upright is around 568. It is here for
- * a window someone has made short, not for a phone.
- *
- * It used to say it was for the landscape layout, and that was wrong by the
- * time the landscape layout became a grid: there the picture sits *beside* the
- * words, competes with them for width rather than height, and the cap was
- * shrinking it against an axis nothing was contending for — 150px instead of
- * 162, with 106px of empty column underneath it. Landscape overrides it below.
- */
 .help-art {
   display: block;
   width: min(10.125rem, 40vh);
@@ -2377,13 +1474,6 @@ p.notice-intro button:active {
   border-radius: var(--r-sm);
 }
 
-/*
- * The title and the cross that closes it, on one line.
- *
- * Nothing holds it there: the dialog is already a column whose middle is the
- * only part that scrolls (see `.dialog-help` below), so the row above it stays
- * where it was put.
- */
 .dialog-head {
   display: flex;
   align-items: flex-start;
@@ -2396,8 +1486,6 @@ p.notice-intro button:active {
   margin: 0;
 }
 
-/* The masthead's icon button, in a dialog: square, 2.5rem, the glyph inside it
-   half that. The cross is small; what you press is not. */
 .dialog-close {
   display: grid;
   place-items: center;
@@ -2426,9 +1514,6 @@ p.notice-intro button:active {
   color: var(--text);
 }
 
-/* The way to the chapter, as the last line of the blurb. The glyph sits on the
-   text rather than beside it, which is what makes it part of the sentence and
-   not a button that happens to be underlined. */
 .prose-more a {
   display: inline;
   font-weight: 500;
@@ -2439,9 +1524,6 @@ p.notice-intro button:active {
   vertical-align: -0.15em;
 }
 
-/* Some chapters run to a screenful and a half, so the prose scrolls inside the
-   dialog rather than the dialog scrolling: the title and the way out stay put,
-   which they would not if the whole thing moved. */
 .dialog-help {
   display: flex;
   flex-direction: column;
@@ -2459,8 +1541,6 @@ p.notice-intro button:active {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-
-/* --- pointer devices: more room, smaller targets --- */
 
 @media (min-width: 48em) {
   body {
@@ -2512,21 +1592,7 @@ p.notice-intro button:active {
   }
 }
 
-/*
- * Landscape on a phone: height is the scarce dimension and the board is what
- * needs it, so everything else goes down the right-hand side. Stacking the
- * keypad under the board here would leave a puzzle like Solo with barely a
- * hundred pixels of board.
- */
 @media (orientation: landscape) and (max-height: 30em) {
-  /*
-   * Nothing in the rail is stretched: every button in it is exactly the size a
-   * button has to be, and the rail is only as wide as the widest row of them.
-   * A puzzle with no keys gets a rail two buttons wide instead of three.
-   *
-   * Landscape is the one place where a button larger than it needs to be is
-   * taken straight out of the board, which is already the thing short of room.
-   */
   .play {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -2542,20 +1608,10 @@ p.notice-intro button:active {
     grid-area: 2 / 1 / 4 / 2;
   }
 
-  /*
-   * Three across, and no more — the rail is width taken from the board, and
-   * the board is what the screen is for. Past what the rail is tall enough to
-   * hold, the keys scroll. The height cap that portrait uses does not apply:
-   * here the rail's own height is the cap.
-   */
   .keypad {
     grid-area: 2 / 2 / 3 / 3;
     justify-self: center;
-    /* Vertically centred in the rail — `safe`, so a list taller than the
-       rail starts at the top of the scroll rather than above it. */
     align-content: safe center;
-    /* Three across at most, one key wide at least: Net's single key does not
-       hold a rail three keys wide. */
     width: max-content;
     max-width: calc(3 * var(--tap-w) + 2 * var(--key-gap));
     max-height: none;
@@ -2563,34 +1619,10 @@ p.notice-intro button:active {
     padding: 0.3rem 0;
   }
 
-  /*
-   * Six across once the arrows are in, because six is what the row below now
-   * comes to. The identity is exact and is the reason for both numbers:
-   *
-   *   6 keys      6 × 2.5    + 5 × 0.25                = 16.25rem
-   *   2×2 + cross (2 × 3.875 + 3 × 2.5) + 4 × 0.25     = 16.25rem
-   *
-   * which is the same trick `--act-w` was defined for one width down, where
-   * two of those buttons span exactly three keys. The rail has one width at a
-   * time and every row in it fills that width; a row that came up short would
-   * read as a mistake rather than as a smaller row.
-   *
-   * All of it is width taken off the board, and in this layout that is the one
-   * cost there is no way to spread — the rail is beside the puzzle, not under
-   * it. Which is why this is a thing the reader asks for rather than a thing
-   * they are given.
-   */
   .play[data-arrows='true'] .keypad {
     max-width: calc(6 * var(--tap-w) + 5 * var(--key-gap));
   }
 
-  /* Two by two at the foot of the rail, each row exactly as wide as the
-     keypad's three keys above. Four across would be a rail a third wider;
-     two rows cost height, which down here is the dimension going spare.
-
-     Always paired off here, arrows or no arrows: the rail is narrow by design,
-     and the 2×2 is what makes it so. The portrait rule that pairs them is the
-     conditional one. */
   .play-actions {
     grid-area: 3 / 2 / 4 / 3;
     justify-self: center;
@@ -2606,18 +1638,6 @@ p.notice-intro button:active {
     grid-template-columns: repeat(2, var(--act-w));
   }
 
-  /*
-   * How to play, in two columns under one title: the title across the top, and
-   * below it the board on the left and the words on the right.
-   *
-   * Height is scarce here for the same reason it is on the board screen, and
-   * stacked, the picture and the paragraph were each other's competition —
-   * either the picture pushed the words off the bottom or it went so small it
-   * showed nothing. Side by side neither has to give: the picture is a fixed
-   * square that never moves, and the reading happens in its own scroller. The
-   * dialog itself stops scrolling, which is what keeps the title where it was
-   * put; the sticky it uses in portrait has nothing to do here.
-   */
   .dialog-help {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -2631,13 +1651,6 @@ p.notice-intro button:active {
     grid-area: 1 / 1 / 2 / 3;
   }
 
-  /* Aligned with the first line of the text beside it, not floating in the
-     middle of however much of it there is.
-
-     Full size, against the portrait rule's viewport cap: a column of its own is
-     not room taken from the reading, which happens in the scroller next to it.
-     Height is what that cap measures, and height is the one thing this picture
-     is not short of here. */
   .help-art {
     grid-area: 2 / 1 / 3 / 2;
     align-self: start;
@@ -2651,8 +1664,6 @@ p.notice-intro button:active {
     overscroll-behavior: contain;
   }
 }
-
-/* --- moving between the gallery and a board ---------------------------- */
 
 @keyframes vt-out {
   to {
@@ -2675,8 +1686,6 @@ p.notice-intro button:active {
   animation: vt-in 260ms var(--ease) both;
 }
 
-/* --- not found --- */
-
 .game {
   padding: 2rem 0;
 }
@@ -2685,8 +1694,6 @@ p.notice-intro button:active {
   margin: 0 0 0.5rem;
   font-size: var(--t-xl);
 }
-
-/* --- less movement, where that is asked for --- */
 
 @media (prefers-reduced-motion: reduce) {
   *,

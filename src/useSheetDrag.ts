@@ -1,26 +1,7 @@
 import { useCallback, useRef } from 'react'
 
-/**
- * Pull the sheet down to close it.
- *
- * The grip is a promise, and it was not being kept: it looked draggable and
- * nothing happened. This makes it true.
- *
- * A drag starts from the handle, or from anywhere in the sheet that is not a
- * control and is not scrolled — a sheet that has been scrolled down should
- * scroll back up first, which is what the finger means there. Controls are
- * excluded outright, so no press on a button can be mistaken for a pull and no
- * click has to be swallowed afterwards.
- *
- * Not on wide screens: the sheet is a centred dialog there, with no bottom edge
- * to push it past.
- */
-
-/** Ignore the first few pixels; a press is not a drag. */
 const SLOP = 6
-/** Far enough to have meant it… */
 const DISMISS_PX = 88
-/** …or fast enough. A flick should not have to travel. */
 const DISMISS_VELOCITY = 0.4
 const OUT_MS = 180
 const BACK_MS = 220
@@ -73,7 +54,6 @@ export function useSheetDrag(onClose: () => void) {
 
     const travelled = e.clientY - d.from
     if (!d.live) {
-      // Upwards past the slop is a scroll, not a pull; let go of it.
       if (travelled < -SLOP) drag.current = null
       if (travelled < SLOP) return
       d.live = true

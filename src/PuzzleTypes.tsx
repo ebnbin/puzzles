@@ -5,37 +5,8 @@ import type { DialogSpec, Preset } from './engine/types'
 import { useStrings } from './i18n'
 import { useSheetDrag } from './useSheetDrag'
 
-/** The back end's index for the parameters; every real preset is at least 0. */
 const CUSTOM = -1
 
-/**
- * Which puzzle you are being set, and nothing else.
- *
- * Its own sheet beside the menu rather than a section inside it: the menu is
- * what you do to the game in front of you — undo it, restart it, give it away
- * — and this is what game you are given next. They are opened for different
- * reasons and one of them is a long list.
- *
- * The parameters open inside this sheet rather than in a dialog on top of it.
- * A dialog over a sheet is two layers deep for one choice, and they are not a
- * second question anyway: "Custom" is one of the types, and these are what it
- * means. Choosing it shows them; choosing a preset instead takes them away.
- *
- * Everything here takes effect as you do it. There is no button to press: a
- * preset is a new game the moment you pick it, and a parameter is a new game
- * the moment you settle it — leave the field, press Enter, tick the box. If
- * the back end will not have the numbers it says so underneath them, and the
- * game you were playing is still there.
- *
- * And the sheet stays up through all of it. Nothing you do here dismisses it,
- * so a size can be tried and tried again, and the one press that closes it is
- * yours.
- *
- * To the back end the parameters are still a modal dialog, which is why
- * showing and hiding them is `onOpenCustom` and `onCloseCustom` rather than
- * local state: something has to answer the config box the C is sitting in.
- * Picking a preset while it is open cancels it.
- */
 export default function PuzzleTypes({
   presets,
   selected,
@@ -49,17 +20,9 @@ export default function PuzzleTypes({
   onClose,
 }: {
   presets: Preset[]
-  /** Which preset the game being played matches; negative for none of them. */
   selected: number
-  /**
-   * And which one it was set to before anybody chose — see PuzzleHost, which
-   * takes it from the back end rather than assuming the top of the list, since
-   * on half the collection it is not that. Null when nothing has said.
-   */
   standard: number | null
-  /** The parameters, while they are shown. */
   custom: DialogSpec | null
-  /** What the back end said about the values, if it rejected them. */
   customError: string | null
   onSelectPreset: (value: number) => void
   onOpenCustom: () => void
@@ -71,37 +34,16 @@ export default function PuzzleTypes({
   const t = useStrings()
 
   const choosePreset = (value: number) => {
-    // The back end will not take a preset while it is sitting in the config
-    // box the parameters came from.
     if (custom) onCloseCustom()
     onSelectPreset(value)
   }
 
-  /*
-   * Open the parameters when they are what is in force.
-   *
-   * `selected` is the back end's own answer to which preset the current game
-   * matches — `midend_which_preset`, negative for none of them. Negative is
-   * therefore exactly the case where the chips above say nothing about the
-   * game you are playing, and the fields are the only description of it, so
-   * they start shown rather than behind another press.
-   *
-   * On mount only: collapsing them is an answer to a question, and it would
-   * be a poor one if the sheet asked again straight away.
-   */
   const open = useRef(onOpenCustom)
   open.current = onOpenCustom
   useEffect(() => {
     if (selected < 0) open.current()
   }, [])
 
-  /*
-   * Bring them into view when they appear, which nothing else will now do:
-   * on a puzzle with a long list of presets they open below the fold, and
-   * `nearest` scrolls the least that makes them visible. The dependency is
-   * the boolean, so this is when they appear rather than every time a value
-   * is settled and the back end hands back a fresh set.
-   */
   const paramsRef = useRef<HTMLDivElement>(null)
   const shown = !!custom
   useEffect(() => {
@@ -136,13 +78,7 @@ export default function PuzzleTypes({
 
         {custom && (
           <div className="sheet-custom" ref={paramsRef}>
-            {/* No autofocus. On a phone, focusing a field is the on-screen
-                keyboard coming up over half the sheet, and the first thing to
-                do with these is read them. */}
             <ConfigFields controls={custom.controls} onCommit={onCommitCustom} />
-            {/* The back end refuses a set of parameters by handing back a
-                sentence. It belongs against the fields that were refused, not
-                under the title bar behind this sheet. */}
             {customError && <ErrorNote text={customError} />}
           </div>
         )}
@@ -151,19 +87,6 @@ export default function PuzzleTypes({
   )
 }
 
-/**
- * Presets can nest; render the tree as grouped radios.
- *
- * Chips rather than a list of rows: a puzzle can offer twenty of these, and as
- * rows that is a screen of scrolling to reach the bottom one. They are real
- * radios — the group is a single choice, arrow keys should move through it, and
- * a screen reader should say so.
- *
- * "Custom…" is one of them. It arrives in the same list from the back end, with
- * a negative value where the others have their index, and it is a type like any
- * other: the difference is only that its parameters are shown below rather than
- * summed up in its name. Which is why choosing it needs its own callback.
- */
 function PresetList({
   presets,
   chosen,
@@ -172,9 +95,7 @@ function PresetList({
   onChooseCustom,
 }: {
   presets: Preset[]
-  /** The type in force, or CUSTOM while its parameters are being written. */
   chosen: number
-  /** The one the puzzle came set to, which is said on the chip. */
   standard: number | null
   onSelect: (value: number) => void
   onChooseCustom: () => void
@@ -185,16 +106,6 @@ function PresetList({
       {presets.map((preset, i) => {
         const custom = preset.value !== null && preset.value < 0
         const isChosen = custom ? chosen < 0 : chosen === preset.value
-        /*
-         * Said on the chip rather than shown as a mark, because a mark would
-         * have to be learnt and there is nowhere here to learn it. It rides
-         * inside the label, so it is part of what the radio is called — "6x6
-         * Normal, Default" — which is the same sentence the eye reads.
-         *
-         * Never on "Custom…", whose value is negative and could not be the
-         * answer to this anyway: a puzzle whose parameters match no preset
-         * reports -1, and PuzzleHost keeps that out by starting at null.
-         */
         const isStandard = !custom && standard !== null && standard === preset.value
         return (
           <li key={i}>
