@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Icon from './Icon'
+import ThemeToggle from './ThemeToggle'
 import { docHref, useLang, useStrings } from './i18n'
+import type { Lang } from './i18n'
 import './doc.css'
 
 let page: string | null = null
@@ -79,8 +81,13 @@ export default function DocViewer() {
   return open ? <Viewer file={open} depth={depth} /> : null
 }
 
+const LANGS: { value: Lang; label: string }[] = [
+  { value: 'en', label: 'EN' },
+  { value: 'zh', label: '中文' },
+]
+
 function Viewer({ file, depth }: { file: string; depth: number }) {
-  const [lang] = useLang()
+  const [lang, setLang] = useLang()
   const t = useStrings()
   const [html, setHtml] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
@@ -169,24 +176,39 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
     <div className="doc-viewer" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
       <header className="doc-viewer-top">
         <div className="doc-viewer-bar">
-        <button
-          type="button"
-          className="doc-viewer-btn"
-          aria-label={t.settings.manualBack}
-          disabled={depth === 0}
-          onClick={back}
-        >
-          <Icon name="back" size={20} />
-        </button>
-        <span className="doc-viewer-title">{t.settings.manual}</span>
-        <button
-          type="button"
-          className="doc-viewer-btn"
-          aria-label={t.play.close}
-          onClick={closeManual}
-        >
-          <Icon name="close" size={20} />
-        </button>
+          <button
+            type="button"
+            className="doc-viewer-btn"
+            aria-label={t.play.close}
+            onClick={closeManual}
+          >
+            <Icon name="close" size={20} />
+          </button>
+          <button
+            type="button"
+            className="doc-viewer-btn"
+            aria-label={t.settings.manualBack}
+            disabled={depth === 0}
+            onClick={back}
+          >
+            <Icon name="back" size={20} />
+          </button>
+          <span className="doc-viewer-title">{t.settings.manual}</span>
+          <div className="segmented" role="radiogroup" aria-label={t.settings.language}>
+            {LANGS.map((option) => (
+              <label key={option.value} data-selected={lang === option.value}>
+                <input
+                  type="radio"
+                  name="doc-lang"
+                  value={option.value}
+                  checked={lang === option.value}
+                  onChange={() => setLang(option.value)}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+          <ThemeToggle className="doc-viewer-btn" />
         </div>
       </header>
       <div className="doc-viewer-scroll" ref={scroller}>
