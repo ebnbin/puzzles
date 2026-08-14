@@ -1737,13 +1737,15 @@ p.notice-intro button:active {
   display: flex;
   flex: none;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.25rem;
   min-height: 3rem;
   padding: 0 max(0.5rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
   border-bottom: 1px solid var(--edge);
 }
 
 .doc-viewer-title {
+  flex: 1;
+  min-width: 0;
   font-size: var(--t-lg);
   font-weight: 600;
   letter-spacing: -0.015em;
