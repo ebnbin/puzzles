@@ -1,1440 +1,179 @@
+@import 'tailwindcss';
 @import './tokens.css';
 @import './segmented.css';
+@import './play.css';
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* 横屏矮窗(手机横过来):帮助弹窗等换紧凑布局 */
+@custom-variant squat (@media (orientation: landscape) and (max-height: 30em));
+
+/* Tailwind 语义名 → tokens.css 的既有变量。tokens.css 是颜色的 SSOT(它还被
+   build-doc.mjs 拼进静态手册),这里只映射、不定义新值。 */
+@theme inline {
+  --font-sans: var(--font);
+
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-raised: var(--raised);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--raised);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-foreground: var(--accent-on);
+  --color-primary-soft: var(--accent-soft);
+  --color-primary-soft-hover: var(--accent-soft-hover);
+  --color-primary-soft-foreground: var(--accent-soft-text);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--text-2);
+  --color-faint: var(--text-3);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--danger);
+  --color-destructive-soft: var(--danger-soft);
+  --color-border: var(--edge);
+  --color-border-strong: var(--edge-strong);
+  --color-input: var(--edge-strong);
+  --color-ring: var(--accent);
+  --color-scrim: var(--scrim);
+  --color-board: var(--board);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-sm);
+  --radius-lg: var(--r);
+  --radius-xl: var(--r-lg);
+
+  --text-2xs: var(--t-2xs);
+  --text-2xs--line-height: 1.3;
+  --text-xs: var(--t-xs);
+  --text-xs--line-height: 1.35;
+  --text-sm: var(--t-sm);
+  --text-sm--line-height: 1.45;
+  --text-base: var(--t-md);
+  --text-base--line-height: 1.5;
+  --text-lg: var(--t-lg);
+  --text-lg--line-height: 1.4;
+  --text-xl: var(--t-xl);
+  --text-xl--line-height: 1.3;
+  --text-2xl: var(--t-2xl);
+  --text-2xl--line-height: 1.15;
+  --text-3xl: var(--t-3xl);
+  --text-3xl--line-height: 1.1;
+
+  --ease-app: var(--ease);
+  --default-transition-timing-function: var(--ease);
+  --default-transition-duration: 170ms;
+
+  --animate-fade-in: fade-in var(--dur) var(--ease) backwards;
+  --animate-rise-in: rise-in var(--dur-slow) var(--ease) backwards;
+  --animate-drop-in: drop-in var(--dur) var(--ease);
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(12%);
+    }
+  }
+
+  @keyframes drop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.4rem);
+    }
+  }
 }
 
-html {
-  touch-action: manipulation;
-  overscroll-behavior: none;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-}
+@layer base {
+  html {
+    touch-action: manipulation;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-body {
-  margin: 0;
-  padding: 2rem max(1rem, env(safe-area-inset-left)) 3rem;
-  padding-bottom: max(3rem, env(safe-area-inset-bottom));
-  font-family: var(--font);
-  font-size: var(--t-md);
-  line-height: 1.5;
-  color: var(--text);
-  background-color: var(--bg);
-  background-image: var(--grid-image);
-  background-size: var(--grid-size);
-  background-position: var(--grid-position);
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    padding: 2rem max(1rem, env(safe-area-inset-right))
+      max(3rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    font-family: var(--font);
+    font-size: var(--t-md);
+    line-height: 1.5;
+    color: var(--text);
+    background-color: var(--bg);
+    background-image: var(--grid-image);
+    background-size: var(--grid-size);
+    background-position: var(--grid-position);
+    -webkit-font-smoothing: antialiased;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 
-#root {
-  max-width: 64rem;
-  margin: 0 auto;
-}
+  @media (min-width: 48em) {
+    body {
+      padding-top: 3rem;
+    }
+  }
 
-body {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
+  #root {
+    max-width: 64rem;
+    margin: 0 auto;
+  }
 
-input,
-textarea,
-.dialog-prose,
-footer p {
-  -webkit-touch-callout: default;
-  -webkit-user-select: text;
-  user-select: text;
-}
+  input,
+  textarea,
+  .dialog-prose,
+  footer p {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
 
-img {
-  -webkit-user-drag: none;
-}
+  img {
+    -webkit-user-drag: none;
+  }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 
-a {
-  color: var(--accent);
-  text-underline-offset: 2px;
-}
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 
-.textlink {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.25rem;
-  color: var(--accent);
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.textlink svg {
-  align-self: center;
-}
-
-@media (hover: hover) {
-  .textlink:hover {
-    text-decoration: underline;
+  a {
+    color: var(--accent);
+    text-decoration-line: underline;
     text-underline-offset: 2px;
   }
 }
 
-.masthead {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-bottom: 1.25rem;
+/* preflight 补偿:doc.css 是 app 与静态手册的共享源,静态页没有 preflight,
+   列表圆点靠浏览器默认;app 里被 preflight 清掉,只能在这侧补回。 */
+.doc-main ul {
+  list-style: disc;
 }
 
-.masthead .segmented + .masthead-icon {
-  margin-left: 0.6rem;
+.doc-main ol {
+  list-style: decimal;
 }
 
-.masthead-name {
-  flex: 1;
-  min-width: 0;
-}
-
-.masthead h1 {
-  margin: 0;
-  font-size: var(--t-2xl);
-  font-weight: 650;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-}
-
-.masthead-name p {
-  margin: 0.15rem 0 0;
-  overflow: hidden;
-  color: var(--text-2);
-  font-size: var(--t-xs);
-  line-height: 1.3;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.masthead-icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 0;
-  border-radius: var(--r-full);
-  background: none;
-  color: var(--text-2);
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
-}
-
-@media (hover: hover) {
-  .masthead-icon:hover {
-    background: var(--surface-2);
-    color: var(--text);
-  }
-}
-
-.masthead-icon:active {
-  background: var(--surface-3);
-  transform: scale(0.92);
-}
-
-.setting {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 0;
-  padding: 0.85rem 0;
-  color: var(--text);
-  font-size: var(--t-md);
-  user-select: none;
-}
-
-.setting + .setting {
-  border-top: 1px solid var(--edge);
-}
-
-.setting-link {
-  color: var(--text);
-  text-decoration: none;
-}
-
-.setting-link svg {
-  flex: none;
-  color: var(--text-3);
-}
-
-@media (hover: hover) {
-  .setting-link:hover .setting-text {
-    color: var(--accent);
-  }
-}
-
-.setting-text {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--t-md);
-  font-weight: 500;
-}
-
-.setting-text em {
-  display: block;
-  margin-top: 0.1rem;
-  color: var(--text-2);
-  font-size: var(--t-xs);
-  font-style: normal;
-  font-weight: 400;
-}
-
-.setting input[type='checkbox'] {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-button.setting {
-  width: 100%;
-  border: 0;
-  background: none;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-
-.setting-danger .setting-text,
-.setting-danger > svg {
-  color: var(--danger);
-}
-
-.setting-do {
-  flex: none;
-  padding: 0.4rem 0.9rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: var(--danger-soft);
-  color: var(--danger);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.games {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.games .games-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r);
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
-}
-
-.games-art {
-  display: block;
-  background: var(--board);
-  line-height: 0;
-}
-
-.games img {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-}
-
-.games strong {
-  display: block;
-  overflow: hidden;
-  padding: 0.45rem 0.5rem 0;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.games-desc {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  margin-bottom: 0.5rem;
-  padding: 0.05rem 0.5rem 0;
-  color: var(--text-2);
-  font-size: var(--t-2xs);
-  line-height: 1.3;
-}
-
-@media (hover: hover) {
-  .games .games-tile:hover {
-    box-shadow: var(--shadow-2);
-    transform: translateY(-2px);
-  }
-}
-
-.games .games-tile:active {
-  box-shadow: var(--shadow-1);
-  transform: scale(0.985);
-}
-
-.games [aria-current]::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2px solid var(--accent);
-  border-radius: var(--r);
-  pointer-events: none;
-}
-
-.games [aria-current] strong {
-  color: var(--accent);
-  font-weight: 650;
-}
-
-.games li {
-  position: relative;
-}
-
-.games-stow {
-  position: absolute;
-  top: 0.3rem;
-  right: 0.3rem;
-  display: none;
-  place-items: center;
-  width: 1.8rem;
-  height: 1.8rem;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-full);
-  background: var(--scrim);
-  color: #fff;
-  cursor: pointer;
-}
-
-@media (hover: hover) {
-  .games li:hover .games-stow,
-  .games li:focus-within .games-stow {
-    display: grid;
-  }
-}
-
-.games-stow:focus-visible {
-  display: grid;
-}
-
-.stash {
-  margin-top: 1.5rem;
-}
-
-.stash-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: var(--tap-h);
-  padding: 0 0.8rem;
-  border-radius: var(--r-full);
-  color: var(--text-2);
-  font-size: var(--t-sm);
-  font-weight: 500;
-}
-
-.stash-toggle svg:last-child {
-  transition: transform var(--dur) var(--ease);
-}
-
-.stash-toggle .is-up {
-  transform: rotate(180deg);
-}
-
-.games-stashed {
-  margin-top: 0.75rem;
-}
-
-.games-stashed .games-art {
-  opacity: 0.55;
-}
-
-@media (hover: hover) {
-  .games-stashed li:hover .games-art {
-    opacity: 1;
-  }
-}
-
-:root[data-transition='tiles']::view-transition-group(*),
-:root[data-transition='tiles']::view-transition-old(*),
-:root[data-transition='tiles']::view-transition-new(*) {
-  animation-duration: var(--dur-slow);
-  animation-timing-function: var(--ease);
-}
-
-:root[data-transition='tiles']::view-transition-old(root),
-:root[data-transition='tiles']::view-transition-new(root) {
-  animation: none;
-}
-
-p.notice-toast {
-  position: fixed;
-  top: 5rem;
-  left: 50%;
-  z-index: 50;
-  max-width: min(85vw, 22rem);
-  margin: 0;
-  background: var(--raised);
-  color: var(--text);
-  box-shadow: var(--shadow-2);
-  pointer-events: none;
-  transform: translateX(-50%);
-  /* 没有规则引用这个名字,但它是 toast 盖住飞行 tile 的唯一机制:tile 被命名后
-     提入 view-transition 层,z-index 对该层无效;快照按文档序堆叠,所以 toast
-     还必须是画廊最后渲染的元素。 */
-  view-transition-name: toast;
-  animation: toast-in var(--dur) var(--ease);
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-0.4rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  p.notice-toast {
-    animation: none;
-  }
-}
-
-footer {
-  margin-top: 2.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--edge);
-  color: var(--text-3);
-  font-size: var(--t-xs);
-}
-
-footer p {
-  margin: 0;
-}
-
-.play {
-  --key-gap: 0.25rem;
-  --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
-  background-color: var(--bg);
-  background-image: var(--grid-image);
-  background-size: var(--grid-size);
-  background-position: var(--grid-position);
-}
-
-.play[data-ready='false'] .host-board {
-  visibility: hidden;
-}
-
-.play-bar,
-.play-board,
-.play-actions,
-.keypad {
-  touch-action: none;
-}
-
-.play-bar,
-.keypad,
-.play-actions {
-  position: relative;
-  z-index: 1;
-}
-
-.play-bar {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 0.25rem;
-  min-height: calc(3rem + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) 0.3rem 0;
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--edge);
-}
-
-.play-bar .play-icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--tap-w);
-  height: var(--tap-h);
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-full);
-  background: none;
-  color: var(--text);
-  cursor: pointer;
-  text-decoration: none;
-  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
-}
-
-.play-bar .play-icon {
-  color: var(--text-2);
-}
-
-@media (hover: hover) {
-  .play-bar .play-icon:hover {
-    background: var(--surface-2);
-  }
-}
-
-.play-bar .play-icon:active {
-  background: var(--surface-3);
-  transform: scale(0.92);
-}
-
-.play-bar h1 {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  font-size: var(--t-lg);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.play-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  max-width: 100%;
-  min-height: var(--tap-h);
-  padding: 0 0.4rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: none;
-  color: inherit;
-  font: inherit;
-  letter-spacing: inherit;
-  cursor: pointer;
-  overflow: hidden;
-  transition: background var(--dur) var(--ease);
-}
-
-.play-title > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.play-title svg {
-  flex: none;
-  color: var(--text-3);
-  transition: transform var(--dur) var(--ease);
-}
-
-@media (hover: hover) {
-  .play-title:hover {
-    background: var(--surface-2);
-  }
-}
-
-.play-title:active {
-  background: var(--surface-3);
-}
-
-.play-title[aria-expanded='true'] svg {
-  transform: rotate(180deg);
-}
-
-.play-status {
-  flex: none;
-  max-width: 55%;
-  overflow: hidden;
-  color: var(--text-2);
-  font-size: var(--t-xs);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.play-status[data-filled='true'] {
-  padding: 0.2rem 0.65rem;
-  border-radius: var(--r-full);
-  background: var(--surface-2);
-}
-
-/* 带 p 前缀是特异性武器:要和 .sheet p 平权、靠靠后取胜;.sheet p:not(.notice-error)
-   的排除是同一约定的另一半,两处都不可「精简」。 */
-p.notice {
-  flex: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  padding: 0.5rem 0.7rem;
-  border-radius: var(--r-sm);
-  font-size: var(--t-sm);
-}
-
-p.notice svg {
-  flex: none;
-  margin-top: 0.15rem;
-}
-
-p.notice-error {
-  margin: 0.75rem 0 0;
-  background: var(--danger-soft);
-  color: var(--danger);
-  scroll-margin: 0.75rem;
-}
-
-.play-board {
-  position: relative;
-}
-
-p.notice.is-floating {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
-  left: 0.6rem;
-  z-index: 2;
-  margin: 0;
-  box-shadow: var(--shadow-2);
-  animation: notice-in var(--dur) var(--ease);
-}
-
-p.notice-error.is-floating {
-  pointer-events: none;
-}
-
-p.notice-intro {
-  background: var(--raised);
-  color: var(--text);
-}
-
-p.notice-intro span {
-  flex: 1;
-}
-
-p.notice-intro button {
-  flex: none;
-  margin: -0.85rem -0.85rem -0.85rem 0;
-  padding: 0.85rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-p.notice-intro button:active {
-  opacity: 0.6;
-}
-
-@keyframes notice-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.4rem);
-  }
-}
-
-.play-board {
-  display: grid;
-  flex: 1 1 0;
-  place-items: center;
-  min-height: 0;
-}
-
-/* 永不设 background:引擎读 canvas 的计算背景色播种整套调色板(defaultColour
-   透明→null→上游自己的 0.9 灰),连显式写「同样的」#e6e6e6 都不行(230/255≠0.9,
-   会挪一批游戏的衍生色)。font-family 同理,引擎拿它当谜题画字的字体。 */
-.host-board {
-  display: block;
-  font-family: sans-serif;
-  box-shadow: var(--shadow-board);
-  touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.host-board:focus,
-.host-board:focus-visible {
-  outline: none;
-}
-
-.play-actions button,
-.keypad button,
-.sheet-actions button,
-.dialog-buttons button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text);
-  font: inherit;
-  font-size: var(--t-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease),
-    color var(--dur) var(--ease);
-}
-
-@media (hover: hover) {
-  .play-actions button:hover:not(:disabled),
-  .keypad button:hover,
-  .sheet-actions button:hover,
-  .dialog-buttons button:hover {
-    background: var(--surface-3);
-  }
-}
-
-.play-actions button:active:not(:disabled),
-.keypad button:active,
-.sheet-actions button:active,
-.dialog-buttons button:active {
-  background: var(--surface-3);
-  transform: scale(0.96);
-}
-
-.play-actions button:disabled {
-  color: var(--text-3);
-  cursor: default;
-}
-
-.keypad {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--key-gap);
-  max-height: calc(3 * var(--tap-w) + 2 * var(--key-gap) + 0.3rem);
-  margin: 0 auto;
-  overflow-y: auto;
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  padding: 0.3rem 0.4rem 0;
-}
-
-.keypad::-webkit-scrollbar {
-  display: none;
-}
-
-.keypad button {
-  position: relative;
-  width: var(--tap-w);
-  height: var(--tap-w);
-  padding: 0;
-  border-radius: var(--r-sm);
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.key-peg {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border: 1px solid;
-  border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.key-peg[data-dotted] {
-  background: radial-gradient(currentColor 1.6px, transparent 1.7px) 0 0 / 5px 5px;
-}
-
-.key-left {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  color: var(--text-2);
-  font-size: var(--t-2xs);
-  font-weight: 500;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-
-.keypad button[data-whose],
-.play-actions button[data-whose] {
-  color: var(--accent);
-}
-
-.keypad button[data-whose]:disabled,
-.play-actions button[data-whose]:disabled {
-  color: var(--text-3);
-}
-
-.keypad button:disabled .key-peg {
-  opacity: 0.35;
-}
-
-.play-actions button[data-on] {
-  background: var(--surface-3);
-}
-
-.keypad button[data-whose='ours'],
-.play-actions button[data-whose='ours'] {
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-}
-
-@media (hover: hover) {
-  .keypad button[data-whose='ours']:hover,
-  .play-actions button[data-whose='ours']:hover:not(:disabled) {
-    background: var(--accent-soft-hover);
-  }
-}
-
-.keypad button[data-whose='ours']:active,
-.play-actions button[data-whose='ours']:active {
-  background: var(--accent-soft-hover);
-}
-
-.play-actions button[data-whose='ours'][data-on] {
-  background: var(--accent);
-  color: var(--accent-on);
-}
-
-@media (hover: hover) {
-  .play-actions button[data-whose='ours'][data-on]:hover:not(:disabled) {
-    background: var(--accent-hover);
-  }
-}
-
-.play-actions button[data-whose='ours'][data-on]:active {
-  background: var(--accent-hover);
-}
-
-.play-actions button[data-brush] {
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.key-art {
-  display: block;
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.hold-tip {
-  position: fixed;
-  z-index: 15;
-  max-width: 10rem;
-  padding: 0.3rem 0.55rem;
-  border-radius: var(--r-sm);
-  background: var(--text);
-  color: var(--bg);
-  font-size: var(--t-xs);
-  line-height: 1.3;
-  text-align: center;
-  white-space: normal;
-  pointer-events: none;
-  transform: translate(-50%, -100%) translateY(-0.35rem);
-  animation: scrim-in var(--dur) var(--ease);
-}
-
-.hold-tip[data-below='true'] {
-  transform: translate(-50%, 0) translateY(0.35rem);
-}
-
-.play-actions {
-  display: flex;
-  flex: none;
-  justify-content: center;
-  align-items: end;
-  gap: var(--key-gap);
-  width: 100%;
-  max-width: 26rem;
-  margin: 0 auto;
-  padding: 0.3rem 0.4rem 0.4rem;
-}
-
-.play-acts {
-  display: flex;
-  gap: var(--key-gap);
-}
-
-.play-acts button {
-  flex: none;
-  width: var(--act-w);
-  height: var(--tap-w);
-}
-
-.play-arrows {
-  display: grid;
-  grid-template-columns: repeat(3, var(--tap-w));
-  gap: var(--key-gap);
-}
-
-.play-arrows button {
-  width: var(--tap-w);
-  height: var(--tap-w);
-}
-
-.play-arrows [data-dir='up'] {
-  grid-area: 1 / 2;
-}
-
-.play-arrows [data-dir='left'] {
-  grid-area: 2 / 1;
-}
-
-.play-arrows [data-dir='down'] {
-  grid-area: 2 / 2;
-}
-
-.play-arrows [data-dir='right'] {
-  grid-area: 2 / 3;
-}
-
-/* 暂时退场的键用 visibility,不能改条件渲染或 display:none:iOS 真机上按钮卸载
-   再插回会画成残片(字形被裁、无背景);visibility 保住盒子,回来只是重画,
-   且照样退出命中与无障碍树。 */
-.play-arrows button[data-off] {
-  visibility: hidden;
-}
-
-.play-arrows [data-act='first'] {
-  grid-area: 1 / 1;
-}
-
-.play-arrows [data-act='second'] {
-  grid-area: 1 / 3;
-}
-
-.play-arrows[data-keys='3'] [data-act='first'],
-.play-arrows[data-keys='4'] [data-act='first'] {
-  grid-area: 1 / 1;
-}
-
-.play-arrows[data-keys='3'] [data-act='second'],
-.play-arrows[data-keys='4'] [data-act='second'] {
-  grid-area: 1 / 2;
-}
-
-.play-arrows[data-keys='3'] [data-act='third'],
-.play-arrows[data-keys='4'] [data-act='third'] {
-  grid-area: 1 / 3;
-}
-
-.play-arrows[data-keys='3'] [data-dir='up'],
-.play-arrows[data-keys='4'] [data-dir='up'] {
-  grid-area: 2 / 2;
-}
-
-.play-arrows[data-keys='3'] [data-dir='left'],
-.play-arrows[data-keys='4'] [data-dir='left'] {
-  grid-area: 3 / 1;
-}
-
-.play-arrows[data-keys='3'] [data-dir='down'],
-.play-arrows[data-keys='4'] [data-dir='down'] {
-  grid-area: 3 / 2;
-}
-
-.play-arrows[data-keys='3'] [data-dir='right'],
-.play-arrows[data-keys='4'] [data-dir='right'] {
-  grid-area: 3 / 3;
-}
-
-.play-arrows[data-keys='3'] [data-act='sweep'],
-.play-arrows[data-keys='4'] [data-act='sweep'] {
-  grid-area: 2 / 1;
-}
-
-.play-arrows[data-ways='8'] [data-dir='down'] {
-  grid-area: 3 / 2;
-}
-
-.play-arrows[data-ways='8'] [data-act='first'] {
-  grid-area: 2 / 2;
-}
-
-.play-arrows[data-ways='8'] [data-dir='upLeft'] {
-  grid-area: 1 / 1;
-}
-
-.play-arrows[data-ways='8'] [data-dir='upRight'] {
-  grid-area: 1 / 3;
-}
-
-.play-arrows[data-ways='8'] [data-dir='downLeft'] {
-  grid-area: 3 / 1;
-}
-
-.play-arrows[data-ways='8'] [data-dir='downRight'] {
-  grid-area: 3 / 3;
-}
-
-.play[data-arrows='true'] .play-acts {
-  display: grid;
-  grid-template-columns: repeat(2, var(--act-w));
-}
-
-@keyframes scrim-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes sheet-in {
-  from {
-    transform: translateY(12%);
-    opacity: 0;
-  }
-}
-
-.sheet-dimmer {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: flex-end;
-  background: var(--scrim);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-  animation: scrim-in var(--dur) var(--ease) backwards;
-}
-
-.sheet {
-  width: 100%;
-  max-height: 85dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: var(--surface);
-  box-shadow: var(--shadow-3);
-  animation: sheet-in var(--dur-slow) var(--ease) backwards;
-  will-change: transform;
-}
-
-.sheet-handle {
-  display: grid;
-  place-items: center;
-  height: 1.75rem;
-  margin: -0.5rem -1rem 0.4rem;
-  touch-action: none;
-  cursor: grab;
-}
-
-.sheet-handle:active {
-  cursor: grabbing;
-}
-
-.sheet-grip {
-  width: 2.25rem;
-  height: 0.25rem;
-  border-radius: var(--r-full);
-  background: var(--edge-strong);
-}
-
-.sheet-actions {
-  display: flex;
-  gap: 0.4rem;
-}
-
-.sheet-actions button {
-  flex: 1;
-  min-width: 0;
-  min-height: var(--tap-h);
-  padding: 0 0.4rem;
-  font-size: var(--t-sm);
-  white-space: nowrap;
-}
-
-@media (max-width: 22.5em) {
-  .sheet-actions button svg {
-    display: none;
-  }
-}
-
-@media (min-width: 48em) {
-  .sheet-actions button {
-    padding: 0 0.9rem;
-  }
-}
-
-.sheet-actions button svg {
-  flex: none;
-  color: var(--text-2);
-}
-
-.sheet-actions button.is-primary {
-  background: var(--accent);
-  color: var(--accent-on);
-  font-weight: 600;
-}
-
-.sheet-actions button.is-primary svg {
-  color: inherit;
-}
-
-@media (hover: hover) {
-  .sheet-actions button.is-primary:hover {
-    background: var(--accent-hover);
-  }
-}
-
-.sheet-actions button.is-primary:active {
-  background: var(--accent-hover);
-}
-
-.sheet section {
-  margin-top: 1.4rem;
-}
-
-.sheet-handle + section {
-  margin-top: 0;
-}
-
-.sheet h2,
-.sheet-id label {
-  display: block;
-  margin: 0 0 0.5rem;
-  color: var(--text-3);
-  font-size: var(--t-2xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.sheet p:not(.notice-error) {
-  margin: 0;
-  color: var(--text-2);
-  font-size: var(--t-sm);
-}
-
-.sheet-presets,
-.sheet-presets ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.sheet-presets ul {
-  width: 100%;
-  margin-top: 0.4rem;
-  padding-left: 0.75rem;
-}
-
-.sheet-presets label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: 2.25rem;
-  padding: 0 0.75rem;
-  border-radius: var(--r-full);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
-}
-
-.sheet-presets label[data-selected='true'] {
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-  font-weight: 600;
-}
-
-.sheet-presets .sheet-preset-tag {
-  color: var(--text-2);
-  font-size: var(--t-2xs);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.sheet-presets input[type='radio'] {
-  flex: none;
-  width: 0.875rem;
-  height: 0.875rem;
-  margin: 0;
-  border: 1.5px solid var(--edge-strong);
-  border-radius: 50%;
-  appearance: none;
-  transition: border-color var(--dur) var(--ease);
-}
-
-.sheet-presets input[type='radio']:checked {
-  border-color: currentColor;
-  background-image: radial-gradient(
-    circle at center,
-    currentColor 0 42%,
-    transparent 46%
-  );
-}
-
-.sheet-custom {
-  margin-top: 1rem;
-  animation: custom-in var(--dur) var(--ease);
-}
-
-@keyframes custom-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.3rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet-custom {
-    animation: none;
-  }
-}
-
-.sheet-custom .dialog-string,
-.sheet-custom .dialog-choices,
-.sheet-custom .dialog-boolean,
-.sheet-prefs .dialog-string,
-.sheet-prefs .dialog-choices,
-.sheet-prefs .dialog-boolean {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 2.75rem;
-  margin: 0;
-  padding: 0.35rem 0;
-  border-top: 1px solid var(--edge);
-  color: var(--text);
-  font-size: var(--t-sm);
-}
-
-.sheet-custom .dialog-boolean,
-.sheet-prefs .dialog-boolean {
-  flex-direction: row-reverse;
-}
-
-.sheet-custom .dialog-string input,
-.sheet-custom .dialog-choices select,
-.sheet-prefs .dialog-string input,
-.sheet-prefs .dialog-choices select {
-  flex: none;
-  width: 7rem;
-  min-height: 2.25rem;
-  margin: 0;
-  padding: 0 0.5rem;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
-}
-
-.sheet-custom .dialog-string input,
-.sheet-prefs .dialog-string input {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.sheet-custom .dialog-choices select,
-.sheet-prefs .dialog-choices select {
-  width: auto;
-  max-width: 62%;
-  padding-right: 0.25rem;
-}
-
-.sheet-custom .dialog-boolean input,
-.sheet-prefs .dialog-boolean input {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-
-.sheet-preset-group {
-  width: 100%;
-  color: var(--text-3);
-  font-size: var(--t-2xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-
-.sheet-ids {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-}
-
-.sheet-id input {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--tap-h);
-  padding: 0 0.6rem;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
-  font-variant-numeric: tabular-nums;
-}
-
-.sheet-id p.notice-error {
-  margin-top: 0.35rem;
-}
-
-.dialog-dimmer {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background: var(--scrim);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-  animation: scrim-in var(--dur) var(--ease) backwards;
-}
-
-.dialog {
-  width: 100%;
-  max-width: 26rem;
-  max-height: 85dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 1.25rem;
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-3);
-  animation: sheet-in var(--dur-slow) var(--ease) backwards;
-}
-
-.dialog h2 {
-  margin: 0 0 1rem;
-  font-size: var(--t-lg);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-
-.dialog-string,
-.dialog-choices,
-.dialog-boolean {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: var(--text-2);
-  font-size: var(--t-sm);
-}
-
-.dialog-string input,
-.dialog-choices select {
-  display: block;
-  width: 100%;
-  min-height: 2.75rem;
-  margin-top: 0.3rem;
-  padding: 0.35rem 0.6rem;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--r-sm);
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
-}
-
-.dialog-string input:focus-visible,
-.dialog-choices select:focus-visible {
-  border-color: var(--accent);
-  outline: 1px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.dialog-boolean {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  min-height: 2.75rem;
-  margin-bottom: 0.25rem;
-  color: var(--text);
-}
-
-.dialog-boolean input {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-.dialog-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-
-.dialog-buttons button {
-  flex: 1;
-  min-height: var(--tap-h);
-  padding: 0 1rem;
-}
-
-.dialog-buttons button[type='submit'] {
-  background: var(--accent);
-  color: var(--accent-on);
-  font-weight: 600;
-}
-
-@media (hover: hover) {
-  .dialog-buttons button[type='submit']:hover {
-    background: var(--accent-hover);
-  }
-}
-
-.dialog-buttons button[type='submit']:active {
-  background: var(--accent-hover);
-}
-
+/* 帮助弹窗和后端报错里的 halibut HTML 正文 */
 .dialog-prose {
   color: var(--text-2);
   font-size: var(--t-md);
@@ -1448,12 +187,14 @@ p.notice-intro button:active {
   margin: 0 0 0.8rem;
 }
 
-.dialog-prose > :last-child {
+.dialog-prose > :last-child,
+.dialog-prose p:last-child {
   margin-bottom: 0;
 }
 
 .dialog-prose ul {
   padding-left: 1.15rem;
+  list-style: disc;
 }
 
 .dialog-prose li {
@@ -1472,210 +213,7 @@ p.notice-intro button:active {
   background: var(--surface-2);
 }
 
-.dialog-help,
-.dialog-settings {
-  max-width: 30rem;
-}
-
-.help-art {
-  display: block;
-  width: min(10.125rem, 40vh);
-  aspect-ratio: 1;
-  margin: 0 auto 1rem;
-  border-radius: var(--r-sm);
-}
-
-.dialog-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.dialog-head h2 {
-  margin: 0;
-}
-
-.dialog-close {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin: -0.6rem -0.6rem 0 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-full);
-  background: none;
-  color: var(--text-2);
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
-}
-
-@media (hover: hover) {
-  .dialog-close:hover {
-    background: var(--surface-2);
-    color: var(--text);
-  }
-}
-
-.dialog-close:active {
-  background: var(--surface-3);
-  color: var(--text);
-}
-
-.prose-more a {
-  display: inline;
-  font-weight: 500;
-}
-
-.prose-more svg {
-  margin-left: 0.3rem;
-  vertical-align: -0.15em;
-}
-
-.dialog-help {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.dialog-help .dialog-head,
-.help-art {
-  flex: none;
-}
-
-.dialog-help .dialog-prose {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-@media (min-width: 48em) {
-  body {
-    padding-top: 3rem;
-  }
-
-  .masthead h1 {
-    font-size: var(--t-3xl);
-  }
-
-  .games {
-    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-    gap: 0.75rem;
-  }
-
-  .play-bar {
-    gap: 0.4rem;
-    padding: 0 0.5rem;
-  }
-
-  .play-actions {
-    padding: 0.5rem;
-  }
-
-  .sheet-dimmer {
-    align-items: center;
-    justify-content: center;
-  }
-
-  .sheet {
-    width: min(100%, 34rem);
-    max-height: 80dvh;
-    padding: 1.25rem;
-    border-radius: var(--r-lg);
-  }
-
-  .sheet-handle {
-    display: none;
-  }
-
-
-  .dialog-buttons {
-    justify-content: flex-end;
-  }
-
-  .dialog-buttons button {
-    flex: 0 0 auto;
-    min-width: 5.5rem;
-  }
-}
-
-@media (orientation: landscape) and (max-height: 30em) {
-  .play {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto 1fr auto;
-  }
-
-  .play-bar {
-    grid-area: 1 / 1 / 2 / 3;
-    min-height: 2.75rem;
-  }
-
-  .play-board {
-    grid-area: 2 / 1 / 4 / 2;
-  }
-
-  .keypad {
-    grid-area: 2 / 2 / 3 / 3;
-    justify-self: center;
-    align-content: safe center;
-    width: max-content;
-    max-width: calc(3 * var(--tap-w) + 2 * var(--key-gap));
-    max-height: none;
-    margin: 0;
-    padding: 0.3rem 0;
-  }
-
-  .play[data-arrows='true'] .keypad {
-    max-width: calc(6 * var(--tap-w) + 5 * var(--key-gap));
-  }
-
-  .play-actions {
-    grid-area: 3 / 2 / 4 / 3;
-    justify-self: center;
-    width: max-content;
-    max-width: none;
-    margin: 0;
-    gap: var(--key-gap);
-    padding: 0.3rem 0;
-  }
-
-  .play-acts {
-    display: grid;
-    grid-template-columns: repeat(2, var(--act-w));
-  }
-
-  .dialog-help {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    column-gap: 1.25rem;
-    max-width: 42rem;
-    overflow: hidden;
-  }
-
-  .dialog-help .dialog-head {
-    grid-area: 1 / 1 / 2 / 3;
-  }
-
-  .help-art {
-    grid-area: 2 / 1 / 3 / 2;
-    align-self: start;
-    margin: 0;
-    width: 10.125rem;
-  }
-
-  .dialog-help .dialog-prose {
-    grid-area: 2 / 2 / 3 / 3;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-}
-
+/* 换屏(画廊↔谜题)的整页过场 */
 @keyframes vt-out {
   to {
     opacity: 0;
@@ -1697,13 +235,24 @@ p.notice-intro button:active {
   animation: vt-in 260ms var(--ease) both;
 }
 
-.game {
-  padding: 2rem 0;
+/* 画廊收卡/亮卡的磁贴飞行 */
+:root[data-transition='tiles']::view-transition-group(*),
+:root[data-transition='tiles']::view-transition-old(*),
+:root[data-transition='tiles']::view-transition-new(*) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease);
 }
 
-.game h1 {
-  margin: 0 0 0.5rem;
-  font-size: var(--t-xl);
+:root[data-transition='tiles']::view-transition-old(root),
+:root[data-transition='tiles']::view-transition-new(root) {
+  animation: none;
+}
+
+/* 没有规则引用这个名字,但它是 toast 盖住飞行 tile 的唯一机制:tile 被命名后
+   提入 view-transition 层,z-index 对该层无效;快照按文档序堆叠,所以 toast
+   还必须是画廊最后渲染的元素。 */
+.toast {
+  view-transition-name: toast;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1720,100 +269,4 @@ p.notice-intro button:active {
   ::view-transition-new(*) {
     animation: none !important;
   }
-}
-
-/* 手册阅读层:盖在一切之上;正文样式来自 doc.css,和独立手册页同一份源 */
-.doc-viewer {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  padding-top: env(safe-area-inset-top);
-  background: var(--bg);
-}
-
-.doc-viewer-top {
-  flex: none;
-  border-bottom: 1px solid var(--edge);
-}
-
-.doc-viewer-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  max-width: 44rem;
-  margin: 0 auto;
-  min-height: 3.25rem;
-  padding: 0 max(0.375rem, env(safe-area-inset-right)) 0 max(0.375rem, env(safe-area-inset-left));
-}
-
-.doc-viewer-btn {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-full);
-  background: none;
-  color: var(--text-2);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-@media (hover: hover) {
-  .doc-viewer-btn:hover:not(:disabled) {
-    background: var(--surface-2);
-    color: var(--text);
-  }
-}
-
-.doc-viewer-btn:active:not(:disabled) {
-  background: var(--surface-3);
-  transform: scale(0.92);
-}
-
-.doc-viewer-btn:disabled {
-  color: var(--text-3);
-  cursor: default;
-}
-
-.doc-viewer-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  font-size: var(--t-lg);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.doc-viewer-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.doc-viewer-note {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  max-width: 44rem;
-  margin: 0 auto;
-  padding: 2rem max(1rem, env(safe-area-inset-left));
-  color: var(--text-2);
-}
-
-.doc-viewer-note button {
-  padding: 0.35rem 0.8rem;
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
 }

@@ -64,7 +64,7 @@ export function HoldTip({ tip }: { tip: Tip | null }) {
   if (!tip) return null
   return (
     <div
-      className="hold-tip"
+      className="pointer-events-none fixed z-[15] max-w-40 -translate-x-1/2 translate-y-[calc(-100%-0.35rem)] animate-fade-in whitespace-normal rounded-md bg-foreground px-[0.55rem] py-[0.3rem] text-center text-xs leading-[1.3] text-background data-[below=true]:translate-y-[0.35rem]"
       role="status"
       data-below={tip.below ? 'true' : undefined}
       style={{ left: tip.left, top: tip.top }}

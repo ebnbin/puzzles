@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Icon from './Icon'
+import { Button } from '@/components/ui/button'
 import { docHref, useLang, useStrings } from './i18n'
 import './doc.css'
 
@@ -162,36 +163,43 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
   }
 
   return (
-    <div className="doc-viewer" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
-      <header className="doc-viewer-top">
-        <div className="doc-viewer-bar">
-        <button
-          type="button"
-          className="doc-viewer-btn"
-          aria-label={t.settings.manualBack}
-          disabled={depth === 0}
-          onClick={back}
-        >
-          <Icon name="back" size={20} />
-        </button>
-        <span className="doc-viewer-title">{t.settings.manual}</span>
-        <button
-          type="button"
-          className="doc-viewer-btn"
-          aria-label={t.play.close}
-          onClick={closeManual}
-        >
-          <Icon name="close" size={20} />
-        </button>
+    <div
+      className="fixed inset-0 z-[60] flex flex-col bg-background pt-[env(safe-area-inset-top)]"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.settings.manual}
+    >
+      <header className="flex-none border-b border-border">
+        <div className="mx-auto flex min-h-[3.25rem] w-full max-w-[44rem] items-center gap-[0.35rem] pl-[max(0.375rem,env(safe-area-inset-left))] pr-[max(0.375rem,env(safe-area-inset-right))]">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.settings.manualBack}
+            disabled={depth === 0}
+            onClick={back}
+          >
+            <Icon name="back" size={20} />
+          </Button>
+          <span className="min-w-0 flex-1 truncate text-lg font-semibold tracking-[-0.015em]">
+            {t.settings.manual}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.play.close}
+            onClick={closeManual}
+          >
+            <Icon name="close" size={20} />
+          </Button>
         </div>
       </header>
-      <div className="doc-viewer-scroll" ref={scroller}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" ref={scroller}>
         {failed ? (
-          <p className="doc-viewer-note">
+          <p className="mx-auto flex max-w-[44rem] items-center gap-3 py-8 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-muted-foreground">
             {t.settings.manualFailed}
-            <button type="button" onClick={() => setTries((n) => n + 1)}>
+            <Button variant="outline" size="sm" onClick={() => setTries((n) => n + 1)}>
               {t.settings.manualRetry}
-            </button>
+            </Button>
           </p>
         ) : html !== null ? (
           <main className="doc-main" onClick={follow} dangerouslySetInnerHTML={{ __html: html }} />

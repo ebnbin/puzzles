@@ -1,4 +1,5 @@
 import PuzzleHost from './PuzzleHost'
+import { Button } from '@/components/ui/button'
 import { useStrings } from './i18n'
 import { useGame } from './i18n/games'
 import { showGallery } from './view'
@@ -9,13 +10,13 @@ export default function GamePage({ name }: { name: string }) {
 
   if (!game) {
     return (
-      <main className="game">
-        <h1>{t.notFound.title}</h1>
+      <main className="py-8">
+        <h1 className="mb-2 text-xl font-semibold">{t.notFound.title}</h1>
         <p>
           {t.notFound.body(name)}{' '}
-          <button type="button" className="textlink" onClick={showGallery}>
+          <Button variant="link" size="bare" onClick={showGallery}>
             {t.notFound.back}
-          </button>
+          </Button>
         </p>
       </main>
     )

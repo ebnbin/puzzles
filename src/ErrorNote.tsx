@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Icon from './Icon'
+import { Notice } from '@/components/ui/notice'
+import { cn } from '@/lib/utils'
 
 export default function ErrorNote({
   text,
@@ -15,15 +17,15 @@ export default function ErrorNote({
   }, [floating])
 
   return (
-    <p
-      className={
-        floating ? 'notice notice-error is-floating' : 'notice notice-error'
-      }
+    <Notice
+      tone="error"
+      floating={floating}
       role="alert"
       ref={ref}
+      className={cn(floating ? 'pointer-events-none' : 'mt-3 scroll-m-3')}
     >
       <Icon name="alert" size={16} />
       <span>{text}</span>
-    </p>
+    </Notice>
   )
 }

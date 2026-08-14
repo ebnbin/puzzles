@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Dialog from './Dialog'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHead } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 import ErrorNote from './ErrorNote'
 import Icon from './Icon'
 import Introduction from './Introduction'
@@ -64,6 +66,7 @@ import type {
 } from './engine/types'
 import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
+import { keycap } from './keycap'
 import { showGallery } from './view'
 import { useArrows } from './useArrows'
 import { useHelp } from './useHelp'
@@ -567,13 +570,7 @@ export default function PuzzleHost({
     if (!ready) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (e.key === 'Escape') {
-        if (typesOpen) closeTypes()
-        else if (menuOpen) closeMenu()
-        else return
-        e.preventDefault()
-        return
-      }
+      // Escape 关弹层不在这里:Radix 的 dismissable layer 自管,且只有最顶层响应。
       if (dialog || helpOpen || typesOpen || menuOpen) return
       // 棋盘聚焦时后端已经吃过这一按,defaultPrevented 挡二次处理(否则一按两撤);
       // 走 api.key 而不是直接 undo():快捷键可能被玩家关掉,有的游戏把这些字母当走子。
@@ -589,16 +586,7 @@ export default function PuzzleHost({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [
-    ready,
-    dialog,
-    menuOpen,
-    typesOpen,
-    closeTypes,
-    closeMenu,
-    helpOpen,
-    acted,
-  ])
+  }, [ready, dialog, menuOpen, typesOpen, helpOpen, acted])
 
   const markAction = useCallback(
     (action: KeyAction) => {
@@ -713,41 +701,48 @@ export default function PuzzleHost({
   const keyCount = shownKeys.filter(Boolean).length
 
   return (
-    <div className="play" data-ready={ready} data-arrows={arrows ? 'true' : undefined}>
-      <header className="play-bar">
-        <h1>
+    <div
+      className="play fixed inset-0 z-[1] flex h-dvh flex-col pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+      data-ready={ready}
+      data-arrows={arrows ? 'true' : undefined}
+    >
+      <header className="play-bar relative z-[1] flex min-h-[calc(3rem+env(safe-area-inset-top))] flex-none touch-none items-center gap-1 border-b border-border bg-surface px-[0.3rem] pt-[env(safe-area-inset-top)] md:gap-[0.4rem] md:px-2">
+        <h1 className="min-w-0 flex-1 whitespace-nowrap text-lg font-semibold tracking-[-0.015em]">
           <button
             type="button"
-            className="play-title"
+            className="inline-flex min-h-9 max-w-full items-center gap-[0.15rem] overflow-hidden rounded-md px-[0.4rem] transition-[background-color] hover:enabled:bg-secondary active:enabled:bg-surface-3"
             onClick={showGallery}
             aria-label={`${title} — ${t.play.switcher}`}
           >
-            <span>{title}</span>
-            <Icon name="caret" size={18} />
+            <span className="truncate">{title}</span>
+            <Icon name="caret" size={18} className="shrink-0 text-faint" />
           </button>
         </h1>
         <span
-          className="play-status"
+          className="max-w-[55%] flex-none select-none truncate text-xs tabular-nums text-muted-foreground data-[filled=true]:rounded-full data-[filled=true]:bg-secondary data-[filled=true]:px-[0.65rem] data-[filled=true]:py-[0.2rem]"
           data-filled={!!status}
           aria-live="polite"
           {...(status ? holdToAsk(status) : {})}
         >
           {status}
         </span>
-        <ThemeToggle className="play-icon" />
-        <button
-          type="button"
-          className="play-icon"
+        <ThemeToggle size="iconBar" />
+        <Button
+          variant="ghost"
+          size="iconBar"
           aria-label={t.play.help}
           aria-haspopup="dialog"
           aria-expanded={helpOpen}
           onClick={() => setHelpOpen(true)}
         >
           <Icon name="help" />
-        </button>
+        </Button>
       </header>
 
-      <div className="play-board" ref={areaRef}>
+      <div
+        className="play-board relative grid min-h-0 flex-1 touch-none place-items-center"
+        ref={areaRef}
+      >
         {error && (
           <ErrorNote
             floating
@@ -786,10 +781,11 @@ export default function PuzzleHost({
         onPress={pressKey}
       />
 
-      <nav className="play-actions">
-        <div className="play-acts">
-          <button
-            type="button"
+      <nav className="play-actions relative z-[1] mx-auto flex w-full max-w-[26rem] flex-none touch-none items-end justify-center gap-(--key-gap) px-[0.4rem] pb-[0.4rem] pt-[0.3rem] md:p-2">
+        <div className="play-acts flex gap-(--key-gap)">
+          <Button
+            size="bare"
+            className="h-10 w-(--act-w)"
             aria-label={t.play.undo}
             disabled={!undoRedo.undo}
             {...holdToAsk(t.play.undo)}
@@ -799,9 +795,10 @@ export default function PuzzleHost({
             }}
           >
             <Icon name="undo" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="bare"
+            className="h-10 w-(--act-w)"
             aria-label={t.play.redo}
             disabled={!undoRedo.redo}
             {...holdToAsk(t.play.redo)}
@@ -811,10 +808,11 @@ export default function PuzzleHost({
             }}
           >
             <Icon name="redo" />
-          </button>
+          </Button>
           {presets && (
-            <button
-              type="button"
+            <Button
+              size="bare"
+              className="h-10 w-(--act-w)"
               aria-label={t.types.title}
               aria-haspopup="dialog"
               aria-expanded={typesOpen}
@@ -826,11 +824,12 @@ export default function PuzzleHost({
               }}
             >
               <Icon name="type" />
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
-            data-whose="ours"
+          <Button
+            variant="soft"
+            size="bare"
+            className="h-10 w-(--act-w)"
             aria-label={t.play.menu}
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
@@ -843,7 +842,7 @@ export default function PuzzleHost({
             }}
           >
             <Icon name="menu" />
-          </button>
+          </Button>
         </div>
 
         {arrows && (
@@ -862,9 +861,10 @@ export default function PuzzleHost({
               const marking = !shoving && stroke && 'sweep' in arrow ? arrow : null
               const icon = shoving ? shoving.shove : marking ? marking.sweep : arrow.icon
               return (
-              <button
+              <Button
                 key={dir}
-                type="button"
+                size="bare"
+                className={keycap}
                 data-dir={dir}
                 data-whose="upstream"
                 aria-label={
@@ -884,7 +884,7 @@ export default function PuzzleHost({
                 }}
               >
                 <Icon name={icon} />
-              </button>
+              </Button>
               )
             })}
 
@@ -895,9 +895,10 @@ export default function PuzzleHost({
                 const armed = primed === i
                 const blind = !labels.enter && !labels.space
                 return (
-                  <button
+                  <Button
                     key={cursor.icon}
-                    type="button"
+                    size="bare"
+                    className={keycap}
                     data-act={cellOf[i]}
                     data-off={off || undefined}
                     data-whose="ours"
@@ -915,14 +916,15 @@ export default function PuzzleHost({
                     }}
                   >
                     <Icon name={cursor.icon} />
-                  </button>
+                  </Button>
                 )
               }
               if (cursor.sweeps) {
                 return (
-                  <button
+                  <Button
                     key={cursor.icon}
-                    type="button"
+                    size="bare"
+                    className={keycap}
                     data-act="sweep"
                     data-off={off || undefined}
                     data-whose="ours"
@@ -940,15 +942,16 @@ export default function PuzzleHost({
                     }}
                   >
                     <Icon name={cursor.icon} />
-                  </button>
+                  </Button>
                 )
               }
               if (cursor.paints || cursor.arms) {
                 const on = cursor.arms ? maybe && awake : false
                 return (
-                  <button
+                  <Button
                     key={cursor.icon}
-                    type="button"
+                    size="bare"
+                    className={keycap}
                     data-act={cellOf[i]}
                     data-off={off || undefined}
                     data-whose="ours"
@@ -967,7 +970,7 @@ export default function PuzzleHost({
                     }}
                   >
                     <Icon name={cursor.icon} />
-                  </button>
+                  </Button>
                 )
               }
               const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake)
@@ -979,9 +982,10 @@ export default function PuzzleHost({
               const said = t.play.cursor[says]
               const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake)
               return (
-                <button
+                <Button
                   key={cursor.does ?? cursor.key}
-                  type="button"
+                  size="bare"
+                  className={keycap}
                   data-act={cellOf[i]}
                   data-off={off || undefined}
                   data-whose="upstream"
@@ -1021,7 +1025,7 @@ export default function PuzzleHost({
                   }}
                 >
                   <Icon name={icon} />
-                </button>
+                </Button>
               )
             })}
           </div>
@@ -1032,36 +1036,50 @@ export default function PuzzleHost({
 
       {helpOpen && (
         <Dialog
-          label={`${t.play.help} — ${title}`}
-          title={t.play.help}
-          onClose={closeHelp}
-          className="dialog-help"
+          open
+          onOpenChange={(open) => {
+            if (!open) closeHelp()
+          }}
         >
-          <img
-            className="help-art"
-            src={`/howto/${name}-${theme}.png`}
-            alt={t.play.picture(title)}
-            draggable={false}
-          />
-          <div className="dialog-prose">
-            {help ? (
-              <div dangerouslySetInnerHTML={{ __html: help }} />
-            ) : (
-              <p>{objective}</p>
+          <DialogContent
+            aria-label={`${t.play.help} — ${title}`}
+            className={cn(
+              'flex max-w-[30rem] flex-col overflow-y-hidden',
+              'squat:grid squat:max-w-[42rem] squat:grid-cols-[auto_minmax(0,1fr)] squat:grid-rows-[auto_minmax(0,1fr)] squat:gap-x-5',
             )}
-            <p className="prose-more">
-              <a
-                href={docHref(lang, `${name}.html`)}
-                onClick={(e) => {
-                  e.preventDefault()
-                  closeHelp()
-                  openManual(`${name}.html`)
-                }}
-              >
-                {t.play.fullInstructions}
-              </a>
-            </p>
-          </div>
+          >
+            <DialogHead
+              title={t.play.help}
+              close={t.play.close}
+              className="squat:col-span-2"
+            />
+            <img
+              className="mx-auto mb-4 block aspect-square w-[min(10.125rem,40vh)] flex-none rounded-md squat:m-0 squat:w-[10.125rem] squat:self-start"
+              src={`/howto/${name}-${theme}.png`}
+              alt={t.play.picture(title)}
+              draggable={false}
+            />
+            <div className="dialog-prose min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              {help ? (
+                <div dangerouslySetInnerHTML={{ __html: help }} />
+              ) : (
+                <p>{objective}</p>
+              )}
+              <p>
+                <a
+                  className="font-medium"
+                  href={docHref(lang, `${name}.html`)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    closeHelp()
+                    openManual(`${name}.html`)
+                  }}
+                >
+                  {t.play.fullInstructions}
+                </a>
+              </p>
+            </div>
+          </DialogContent>
         </Dialog>
       )}
 

@@ -3,9 +3,12 @@ import ConfigFields from './ConfigFields'
 import ErrorNote from './ErrorNote'
 import Icon from './Icon'
 import type { IconName } from './Icon'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Overline } from '@/components/ui/overline'
+import { Sheet } from '@/components/ui/sheet'
 import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
-import { useSheetDrag } from './useSheetDrag'
 
 type Action = 'newGame' | 'restart' | 'solve'
 
@@ -50,7 +53,6 @@ export default function PuzzleMenu({
   onAction: (action: Action) => void
   onClose: () => void
 }) {
-  const { ref, handlers } = useSheetDrag(onClose)
   const t = useStrings()
 
   const open = useRef(onOpenPrefs)
@@ -60,66 +62,60 @@ export default function PuzzleMenu({
   }, [])
 
   return (
-    <div className="sheet-dimmer" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t.menu.title}
-        ref={ref}
-        onClick={(e) => e.stopPropagation()}
-        {...handlers}
-      >
-        <div className="sheet-handle" aria-hidden="true">
-          <div className="sheet-grip" />
-        </div>
+    <Sheet label={t.menu.title} onClose={onClose}>
+      <div className="flex gap-[0.4rem]">
+        {ACTIONS.filter((a) => a.action !== 'solve' || canSolve).map((a) => (
+          <Button
+            key={a.action}
+            variant={a.action === 'newGame' ? 'primary' : 'secondary'}
+            size="bare"
+            className="min-h-9 min-w-0 flex-1 px-[0.4rem] text-sm md:px-[0.9rem]"
+            onClick={() => onAction(a.action)}
+          >
+            <Icon
+              name={a.icon}
+              className={
+                a.action === 'newGame'
+                  ? 'max-[360px]:hidden'
+                  : 'text-muted-foreground max-[360px]:hidden'
+              }
+            />
+            {t.menu[a.action]}
+          </Button>
+        ))}
+      </div>
 
-        <div className="sheet-actions">
-          {ACTIONS.filter((a) => a.action !== 'solve' || canSolve).map((a) => (
-            <button
-              key={a.action}
-              type="button"
-              className={a.action === 'newGame' ? 'is-primary' : undefined}
-              onClick={() => onAction(a.action)}
-            >
-              <Icon name={a.icon} />
-              {t.menu[a.action]}
-            </button>
-          ))}
-        </div>
-
-        {permalink && (
-          <section className="sheet-ids">
+      {permalink && (
+        <section className="mt-6 flex flex-col gap-[0.9rem]">
+          <TextRow
+            kind="desc"
+            label={t.menu.gameId}
+            value={permalink.desc}
+            error={textError?.kind === 'desc' ? textError.message : null}
+            onSubmit={onSubmitText}
+          />
+          {permalink.seed !== null && (
             <TextRow
-              kind="desc"
-              label={t.menu.gameId}
-              value={permalink.desc}
-              error={textError?.kind === 'desc' ? textError.message : null}
+              kind="seed"
+              label={t.menu.seed}
+              value={permalink.seed}
+              error={textError?.kind === 'seed' ? textError.message : null}
               onSubmit={onSubmitText}
             />
-            {permalink.seed !== null && (
-              <TextRow
-                kind="seed"
-                label={t.menu.seed}
-                value={permalink.seed}
-                error={textError?.kind === 'seed' ? textError.message : null}
-                onSubmit={onSubmitText}
-              />
-            )}
-          </section>
-        )}
+          )}
+        </section>
+      )}
 
-        {prefs && prefs.controls.length > 0 && (
-          <section>
-            <h2>{t.menu.preferences}</h2>
-            <div className="sheet-prefs">
-              <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
-              {prefsError && <ErrorNote text={prefsError} />}
-            </div>
-          </section>
-        )}
-      </div>
-    </div>
+      {prefs && prefs.controls.length > 0 && (
+        <section className="mt-6">
+          <Overline>{t.menu.preferences}</Overline>
+          <div>
+            <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
+            {prefsError && <ErrorNote text={prefsError} />}
+          </div>
+        </section>
+      )}
+    </Sheet>
   )
 }
 
@@ -154,9 +150,11 @@ function TextRow({
   }
 
   return (
-    <div className="sheet-id">
-      <label htmlFor={id}>{label}</label>
-      <input
+    <div>
+      <Overline asChild>
+        <label htmlFor={id}>{label}</label>
+      </Overline>
+      <Input
         id={id}
         type="text"
         value={text}
@@ -164,6 +162,7 @@ function TextRow({
         autoComplete="off"
         autoCapitalize="off"
         autoCorrect="off"
+        className="tabular-nums"
         onChange={(e) => setText(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {

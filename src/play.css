@@ -1,0 +1,193 @@
+/* 游戏页的结构层:canvas 契约、方向键矩阵、横屏布局。数据属性由 PuzzleHost 和
+   engine/keys.ts 驱动,是布局逻辑不是视觉语言,所以留在 CSS 而不铺进 JSX。 */
+
+.play {
+  --key-gap: 0.25rem;
+  --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
+  background-color: var(--bg);
+  background-image: var(--grid-image);
+  background-size: var(--grid-size);
+  background-position: var(--grid-position);
+}
+
+.play[data-ready='false'] .host-board {
+  visibility: hidden;
+}
+
+/* 永不设 background:引擎读 canvas 的计算背景色播种整套调色板(defaultColour
+   透明→null→上游自己的 0.9 灰),连显式写「同样的」#e6e6e6 都不行(230/255≠0.9,
+   会挪一批游戏的衍生色)。font-family 同理,引擎拿它当谜题画字的字体。 */
+.host-board {
+  display: block;
+  font-family: sans-serif;
+  box-shadow: var(--shadow-board);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.host-board:focus,
+.host-board:focus-visible {
+  outline: none;
+}
+
+.play-arrows {
+  display: grid;
+  grid-template-columns: repeat(3, var(--tap-w));
+  gap: var(--key-gap);
+}
+
+.play-arrows button {
+  width: var(--tap-w);
+  height: var(--tap-w);
+}
+
+.play-arrows [data-dir='up'] {
+  grid-area: 1 / 2;
+}
+
+.play-arrows [data-dir='left'] {
+  grid-area: 2 / 1;
+}
+
+.play-arrows [data-dir='down'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows [data-dir='right'] {
+  grid-area: 2 / 3;
+}
+
+/* 暂时退场的键用 visibility,不能改条件渲染或 display:none:iOS 真机上按钮卸载
+   再插回会画成残片(字形被裁、无背景);visibility 保住盒子,回来只是重画,
+   且照样退出命中与无障碍树。 */
+.play-arrows button[data-off] {
+  visibility: hidden;
+}
+
+.play-arrows [data-act='first'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows [data-act='second'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-keys='3'] [data-act='first'],
+.play-arrows[data-keys='4'] [data-act='first'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows[data-keys='3'] [data-act='second'],
+.play-arrows[data-keys='4'] [data-act='second'] {
+  grid-area: 1 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-act='third'],
+.play-arrows[data-keys='4'] [data-act='third'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-keys='3'] [data-dir='up'],
+.play-arrows[data-keys='4'] [data-dir='up'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-dir='left'],
+.play-arrows[data-keys='4'] [data-dir='left'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows[data-keys='3'] [data-dir='down'],
+.play-arrows[data-keys='4'] [data-dir='down'] {
+  grid-area: 3 / 2;
+}
+
+.play-arrows[data-keys='3'] [data-dir='right'],
+.play-arrows[data-keys='4'] [data-dir='right'] {
+  grid-area: 3 / 3;
+}
+
+.play-arrows[data-keys='3'] [data-act='sweep'],
+.play-arrows[data-keys='4'] [data-act='sweep'] {
+  grid-area: 2 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='down'] {
+  grid-area: 3 / 2;
+}
+
+.play-arrows[data-ways='8'] [data-act='first'] {
+  grid-area: 2 / 2;
+}
+
+.play-arrows[data-ways='8'] [data-dir='upLeft'] {
+  grid-area: 1 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='upRight'] {
+  grid-area: 1 / 3;
+}
+
+.play-arrows[data-ways='8'] [data-dir='downLeft'] {
+  grid-area: 3 / 1;
+}
+
+.play-arrows[data-ways='8'] [data-dir='downRight'] {
+  grid-area: 3 / 3;
+}
+
+.play[data-arrows='true'] .play-acts {
+  display: grid;
+  grid-template-columns: repeat(2, var(--act-w));
+}
+
+@media (orientation: landscape) and (max-height: 30em) {
+  .play {
+    display: grid;
+    grid-template:
+      'bar bar' auto
+      'board keys' 1fr
+      'board acts' auto / 1fr auto;
+  }
+
+  .play-bar {
+    grid-area: bar;
+    min-height: 2.75rem;
+  }
+
+  .play-board {
+    grid-area: board;
+  }
+
+  .keypad {
+    grid-area: keys;
+    justify-self: center;
+    align-content: safe center;
+    width: max-content;
+    max-width: calc(3 * var(--tap-w) + 2 * var(--key-gap));
+    max-height: none;
+    margin: 0;
+    padding: 0.3rem 0;
+  }
+
+  .play[data-arrows='true'] .keypad {
+    max-width: calc(6 * var(--tap-w) + 5 * var(--key-gap));
+  }
+
+  .play-actions {
+    grid-area: acts;
+    justify-self: center;
+    width: max-content;
+    max-width: none;
+    margin: 0;
+    gap: var(--key-gap);
+    padding: 0.3rem 0;
+  }
+
+  .play-acts {
+    display: grid;
+    grid-template-columns: repeat(2, var(--act-w));
+  }
+}

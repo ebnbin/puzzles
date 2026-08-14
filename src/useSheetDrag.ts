@@ -5,7 +5,7 @@ const DISMISS_PX = 88
 const DISMISS_VELOCITY = 0.4
 const OUT_MS = 180
 const BACK_MS = 220
-// 必须和 index.css 里 sheet 变居中 dialog 的断点(48em)一致,两处一起改。
+// 必须和 Sheet(components/ui/sheet.tsx)变居中卡片的断点(md=48rem)一致,两处一起改。
 const DESKTOP = '(min-width: 48em)'
 const CONTROLS = 'button, a, input, select, textarea, label'
 
@@ -37,7 +37,7 @@ export function useSheetDrag(onClose: () => void) {
 
     const target = e.target as HTMLElement
     if (target.closest(CONTROLS)) return
-    if (!target.closest('.sheet-handle') && el.scrollTop > 0) return
+    if (!target.closest('[data-sheet-grip]') && el.scrollTop > 0) return
 
     drag.current = {
       id: e.pointerId,

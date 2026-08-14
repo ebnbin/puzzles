@@ -1,11 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
 import ErrorNote from './ErrorNote'
+import { Overline } from '@/components/ui/overline'
+import { RadioGroup, RadioGroupChip } from '@/components/ui/radio-group'
+import { Sheet } from '@/components/ui/sheet'
 import type { DialogSpec, Preset } from './engine/types'
 import { useStrings } from './i18n'
-import { useSheetDrag } from './useSheetDrag'
 
 const CUSTOM = -1
+
+const isCustom = (preset: Preset) =>
+  preset.value !== null && preset.value < 0
 
 export default function PuzzleTypes({
   presets,
@@ -30,13 +35,18 @@ export default function PuzzleTypes({
   onCommitCustom: () => void
   onClose: () => void
 }) {
-  const { ref, handlers } = useSheetDrag(onClose)
   const t = useStrings()
 
-  const choosePreset = (value: number) => {
+  const chosen = custom ? CUSTOM : selected
+
+  const choose = (value: string) => {
+    if (value === 'custom') {
+      onOpenCustom()
+      return
+    }
     // 参数的 config box 开着时后端不接受 preset:选之前必须先把它关掉。
     if (custom) onCloseCustom()
-    onSelectPreset(value)
+    onSelectPreset(Number(value))
   }
 
   const open = useRef(onOpenCustom)
@@ -52,96 +62,62 @@ export default function PuzzleTypes({
   }, [shown])
 
   return (
-    <div className="sheet-dimmer" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t.types.title}
-        ref={ref}
-        onClick={(e) => e.stopPropagation()}
-        {...handlers}
-      >
-        <div className="sheet-handle" aria-hidden="true">
-          <div className="sheet-grip" />
+    <Sheet label={t.types.title} onClose={onClose}>
+      <section>
+        <Overline>{t.types.title}</Overline>
+        <RadioGroup
+          value={chosen < 0 ? 'custom' : String(chosen)}
+          onValueChange={choose}
+          className="flex flex-wrap gap-[0.4rem]"
+        >
+          <PresetItems presets={presets} standard={standard} />
+        </RadioGroup>
+      </section>
+
+      {custom && (
+        <div className="mt-4 animate-drop-in" ref={paramsRef}>
+          <ConfigFields controls={custom.controls} onCommit={onCommitCustom} />
+          {customError && <ErrorNote text={customError} />}
         </div>
-
-        <section>
-          <h2>{t.types.title}</h2>
-          <PresetList
-            presets={presets}
-            chosen={custom ? CUSTOM : selected}
-            standard={standard}
-            onSelect={choosePreset}
-            onChooseCustom={onOpenCustom}
-          />
-        </section>
-
-        {custom && (
-          <div className="sheet-custom" ref={paramsRef}>
-            <ConfigFields controls={custom.controls} onCommit={onCommitCustom} />
-            {customError && <ErrorNote text={customError} />}
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </Sheet>
   )
 }
 
-function PresetList({
+function PresetItems({
   presets,
-  chosen,
   standard,
-  onSelect,
-  onChooseCustom,
 }: {
   presets: Preset[]
-  chosen: number
   standard: number | null
-  onSelect: (value: number) => void
-  onChooseCustom: () => void
 }) {
   const t = useStrings()
   return (
-    <ul className="sheet-presets">
-      {presets.map((preset, i) => {
-        const custom = preset.value !== null && preset.value < 0
-        const isChosen = custom ? chosen < 0 : chosen === preset.value
-        const isStandard = !custom && standard !== null && standard === preset.value
-        return (
-          <li key={i}>
-            {preset.submenu ? (
-              <>
-                <span className="sheet-preset-group">{preset.name}</span>
-                <PresetList
-                  presets={preset.submenu}
-                  chosen={chosen}
-                  standard={standard}
-                  onSelect={onSelect}
-                  onChooseCustom={onChooseCustom}
-                />
-              </>
-            ) : (
-              <label
-                className={custom ? 'sheet-preset-custom' : undefined}
-                data-selected={isChosen}
-                data-standard={isStandard || undefined}
-              >
-                <input
-                  type="radio"
-                  name="preset"
-                  checked={isChosen}
-                  onChange={() =>
-                    custom ? onChooseCustom() : onSelect(preset.value as number)
-                  }
-                />
-                {preset.name}
-                {isStandard && <span className="sheet-preset-tag">{t.types.standard}</span>}
-              </label>
+    <>
+      {presets.map((preset, i) =>
+        preset.submenu ? (
+          <Fragment key={i}>
+            <span className="w-full text-2xs font-semibold uppercase tracking-[0.06em] text-faint">
+              {preset.name}
+            </span>
+            <div className="flex w-full flex-wrap gap-[0.4rem] pl-3">
+              <PresetItems presets={preset.submenu} standard={standard} />
+            </div>
+          </Fragment>
+        ) : (
+          <RadioGroupChip
+            key={i}
+            value={isCustom(preset) ? 'custom' : String(preset.value)}
+          >
+            {preset.name}
+            {!isCustom(preset) && standard !== null && standard === preset.value && (
+              <span className="text-2xs font-medium tracking-[0.02em] text-muted-foreground">
+                {t.types.standard}
+              </span>
             )}
-          </li>
-        )
-      })}
-    </ul>
+          </RadioGroupChip>
+        ),
+      )}
+    </>
   )
 }

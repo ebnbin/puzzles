@@ -2,6 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import Icon from './Icon'
 import LauncherSettings from './LauncherSettings'
 import ThemeToggle from './ThemeToggle'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { readRecent, setPlaying } from './engine/saves'
 import { useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
@@ -35,10 +37,11 @@ function swallowTapAfterHold() {
   window.addEventListener('pointercancel', sweep, { capture: true, once: true })
 }
 
+const GRID =
+  'grid grid-cols-[repeat(auto-fill,minmax(6.75rem,1fr))] gap-2 md:grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] md:gap-3'
+
 export default function Launcher() {
-  // 存的是打开设置那一刻的滚动位置,不是布尔:scroll lock 把文档钉在顶上,
-  // 期间 window.scrollY 恒为 0,切后台/关页时记录要用 settingsAt ?? scrollY。
-  const [settingsAt, setSettingsAt] = useState<number | null>(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const t = useStrings()
   const [lang, setLang] = useLang()
@@ -117,7 +120,7 @@ export default function Launcher() {
   }, [])
 
   useEffect(() => {
-    const record = () => rememberGalleryScroll(settingsAt ?? window.scrollY)
+    const record = () => rememberGalleryScroll(window.scrollY)
     const onHidden = () => {
       if (document.visibilityState === 'hidden') record()
     }
@@ -127,15 +130,14 @@ export default function Launcher() {
       document.removeEventListener('visibilitychange', onHidden)
       window.removeEventListener('pagehide', record)
     }
-  }, [settingsAt])
+  }, [])
 
   useEffect(() => {
     setPlaying(false)
   }, [])
 
-  const settingsOpen = settingsAt !== null
-  const openSettings = () => setSettingsAt(window.scrollY)
-  const closeSettings = useCallback(() => setSettingsAt(null), [])
+  const openSettings = () => setSettingsOpen(true)
+  const closeSettings = useCallback(() => setSettingsOpen(false), [])
 
   const tile = (game: GameText, stashed: boolean) => {
     const here = game.name === current
@@ -153,11 +155,15 @@ export default function Launcher() {
   }
 
   return (
-    <div className="launcher">
-      <header className="masthead">
-        <div className="masthead-name">
-          <h1>{t.brand}</h1>
-          <p>{t.tagline}</p>
+    <div>
+      <header className="mb-5 flex items-center gap-1">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-[650] tracking-[-0.025em] md:text-3xl">
+            {t.brand}
+          </h1>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {t.tagline}
+          </p>
         </div>
         <div
           className="segmented"
@@ -177,26 +183,28 @@ export default function Launcher() {
             </label>
           ))}
         </div>
-        <ThemeToggle className="masthead-icon" />
-        <button
-          type="button"
-          className="masthead-icon"
+        <ThemeToggle size="icon" className="ml-[0.6rem]" />
+        <Button
+          variant="ghost"
+          size="icon"
           aria-label={t.launcher.settings}
           aria-haspopup="dialog"
           aria-expanded={settingsOpen}
           onClick={openSettings}
         >
           <Icon name="prefs" />
-        </button>
+        </Button>
       </header>
 
-      <ul className="games">{shown.map((game) => tile(game, false))}</ul>
+      <ul className={cn('games', GRID)}>
+        {shown.map((game) => tile(game, false))}
+      </ul>
 
       {away.length > 0 && (
-        <section className="stash">
+        <section className="mt-6">
           <button
             type="button"
-            className="stash-toggle"
+            className="flex min-h-9 items-center gap-[0.45rem] rounded-full px-[0.8rem] text-sm font-medium text-muted-foreground"
             aria-expanded={hiddenOpen}
             style={
               flyingToStash ? { viewTransitionName: `tile-${moving}` } : undefined
@@ -205,35 +213,40 @@ export default function Launcher() {
           >
             <Icon name="eyeOff" size={16} />
             {t.launcher.hidden(away.length)}
-            <Icon name="caret" size={16} className={hiddenOpen ? 'is-up' : undefined} />
+            <Icon
+              name="caret"
+              size={16}
+              className={cn('transition-transform', hiddenOpen && 'rotate-180')}
+            />
           </button>
           {hiddenOpen && (
-            <ul className="games games-stashed">
+            <ul className={cn('games mt-3', GRID)}>
               {away.map((game) => tile(game, true))}
             </ul>
           )}
         </section>
       )}
 
-      <footer>
+      <footer className="mt-10 border-t border-border pt-5 text-xs text-faint">
         <p>
           {t.launcher.credit} {t.launcher.source}{' '}
-          <a
-            className="textlink"
-            href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/"
-          >
-            chiark.greenend.org.uk
-            <Icon name="external" size={14} />
-          </a>
+          <Button asChild variant="link" size="bare">
+            <a href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/">
+              chiark.greenend.org.uk
+              <Icon name="external" size={14} />
+            </a>
+          </Button>
         </p>
       </footer>
 
-      {settingsAt !== null && (
-        <LauncherSettings lockAt={settingsAt} onClose={closeSettings} />
-      )}
+      {settingsOpen && <LauncherSettings onClose={closeSettings} />}
 
       {toast && (
-        <p key={toast.key} className="notice notice-toast" role="status">
+        <p
+          key={toast.key}
+          role="status"
+          className="toast pointer-events-none fixed left-1/2 top-20 z-50 flex max-w-[min(85vw,22rem)] -translate-x-1/2 animate-drop-in items-start gap-[0.4rem] rounded-md bg-raised px-[0.7rem] py-2 text-sm text-foreground shadow-(--shadow-2) [&_svg]:mt-[0.15rem] [&_svg]:shrink-0"
+        >
           <Icon name={toast.hidden ? 'eyeOff' : 'eye'} size={16} />
           <span>{toast.text}</span>
         </p>
@@ -274,10 +287,13 @@ function Tile({
   const up = () => window.clearTimeout(timer.current)
 
   return (
-    <li>
+    <li className="group/tile relative">
       <button
         type="button"
-        className="games-tile"
+        className={cn(
+          'games-tile flex h-full w-full flex-col items-stretch overflow-hidden rounded-lg bg-card text-left shadow-(--shadow-1) transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-(--shadow-2) active:scale-[0.985] active:shadow-(--shadow-1)',
+          here && 'ring-2 ring-inset ring-primary',
+        )}
         data-game={game.name}
         ref={tileRef}
         aria-current={here ? 'true' : undefined}
@@ -289,7 +305,12 @@ function Tile({
         onContextMenu={(e) => e.preventDefault()}
         onClick={() => openGame(game.name)}
       >
-        <span className="games-art">
+        <span
+          className={cn(
+            'block bg-board leading-[0]',
+            hidden && 'opacity-55 group-hover/tile:opacity-100',
+          )}
+        >
           {/* 故意不加 loading="lazy":服务器对 /tiles 回 no-cache,lazy 图在滚入
               视口那一刻付一次 revalidation 往返,从游戏返回画廊还要再付;
               四十张小 PNG 比空白便宜。 */}
@@ -300,14 +321,24 @@ function Tile({
             height={256}
             decoding="async"
             draggable={false}
+            className="block aspect-square h-auto w-full"
           />
         </span>
-        <strong>{game.displayName}</strong>
-        <span className="games-desc">{game.description}</span>
+        <strong
+          className={cn(
+            'block truncate px-2 pt-[0.45rem] text-sm font-semibold tracking-[-0.01em]',
+            here && 'font-[650] text-primary',
+          )}
+        >
+          {game.displayName}
+        </strong>
+        <span className="mb-2 line-clamp-2 px-2 pt-[0.05rem] text-2xs text-muted-foreground">
+          {game.description}
+        </span>
       </button>
       <button
         type="button"
-        className="games-stow"
+        className="absolute right-[0.3rem] top-[0.3rem] hidden size-[1.8rem] place-items-center rounded-full bg-scrim text-white focus-visible:grid group-hover/tile:grid [@media(hover:hover)]:group-focus-within/tile:grid"
         aria-label={label}
         title={label}
         onClick={() => onToggle(game)}

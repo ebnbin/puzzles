@@ -1,25 +1,55 @@
 import { useEffect, useRef, useState } from 'react'
-import Dialog from './Dialog'
 import Icon from './Icon'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHead } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
 import { forgetEverything } from './engine/saves'
 import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
 import { setArrows, useArrows } from './useArrows'
-import { useScrollLock } from './useScrollLock'
 
 const ARMED_MS = 3000
 
-export default function LauncherSettings({
-  lockAt,
-  onClose,
+const ROW = 'flex items-center gap-4 py-[0.85rem]'
+
+function SettingText({
+  title,
+  hint,
+  danger,
+  hintRole,
+  className,
 }: {
-  lockAt: number
-  onClose: () => void
+  title: string
+  hint: string
+  danger?: boolean
+  hintRole?: 'status'
+  className?: string
 }) {
+  return (
+    <span className={cn('min-w-0 flex-1', className)}>
+      <span
+        className={cn(
+          'block text-base font-medium',
+          danger && 'text-destructive',
+        )}
+      >
+        {title}
+      </span>
+      <span
+        role={hintRole}
+        className="mt-0.5 block text-xs font-normal text-muted-foreground"
+      >
+        {hint}
+      </span>
+    </span>
+  )
+}
+
+export default function LauncherSettings({ onClose }: { onClose: () => void }) {
   const t = useStrings()
   const [lang] = useLang()
   const arrows = useArrows()
-  useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
   const timer = useRef(0)
@@ -44,62 +74,70 @@ export default function LauncherSettings({
 
   return (
     <Dialog
-      label={t.settings.title}
-      title={t.settings.title}
-      onClose={onClose}
-      className="dialog-settings"
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
     >
-      <label className="setting">
-        <span className="setting-text">
-          {t.settings.arrows}
-          <em>{t.settings.arrowsHint}</em>
-        </span>
-        <input
-          type="checkbox"
-          checked={arrows}
-          onChange={(e) => setArrows(e.target.checked)}
-        />
-      </label>
+      <DialogContent className="max-w-[30rem]">
+        <DialogHead title={t.settings.title} close={t.play.close} />
 
-      <a
-        className="setting setting-link"
-        href={docHref(lang)}
-        onClick={(e) => {
-          e.preventDefault()
-          onClose()
-          openManual()
-        }}
-      >
-        <span className="setting-text">
-          {t.settings.manual}
-          <em>{t.settings.manualHint}</em>
-        </span>
-        <Icon name="caret" size={18} />
-      </a>
+        <div className="divide-y divide-border">
+          <label className={ROW}>
+            <SettingText title={t.settings.arrows} hint={t.settings.arrowsHint} />
+            <Switch
+              checked={arrows}
+              onCheckedChange={(checked) => setArrows(checked)}
+            />
+          </label>
 
-      {asking ? (
-        <div className="setting setting-danger">
-          <span className="setting-text">
-            {t.settings.erase}
-            <em role="status">{t.settings.eraseWhat}</em>
-          </span>
-          <button type="button" className="setting-do" onClick={erase} autoFocus={byKeyboard.current}>
-            {t.settings.eraseConfirm}
-          </button>
+          <a
+            className={cn(ROW, 'group text-foreground no-underline')}
+            href={docHref(lang)}
+            onClick={(e) => {
+              e.preventDefault()
+              onClose()
+              openManual()
+            }}
+          >
+            <SettingText
+              title={t.settings.manual}
+              hint={t.settings.manualHint}
+              className="[@media(hover:hover)]:group-hover:text-primary"
+            />
+            <Icon name="caret" size={18} className="shrink-0 text-faint" />
+          </a>
+
+          {asking ? (
+            <div className={ROW}>
+              <SettingText
+                title={t.settings.erase}
+                hint={t.settings.eraseWhat}
+                hintRole="status"
+                danger
+              />
+              <Button
+                variant="destructive"
+                size="sm"
+                className="shrink-0"
+                onClick={erase}
+                autoFocus={byKeyboard.current}
+              >
+                {t.settings.eraseConfirm}
+              </Button>
+            </div>
+          ) : (
+            <button type="button" className={cn(ROW, 'w-full text-left')} onClick={arm}>
+              <SettingText
+                title={t.settings.erase}
+                hint={t.settings.eraseHint}
+                danger
+              />
+              <Icon name="trash" size={18} className="shrink-0 text-destructive" />
+            </button>
+          )}
         </div>
-      ) : (
-        <button
-          type="button"
-          className="setting setting-link setting-danger"
-          onClick={arm}
-        >
-          <span className="setting-text">
-            {t.settings.erase}
-            <em>{t.settings.eraseHint}</em>
-          </span>
-          <Icon name="trash" size={18} />
-        </button>
-      )}
+      </DialogContent>
     </Dialog>
   )
 }
