@@ -271,4 +271,4 @@ pearl)。**写进去的词必须对两个键都只属于第二层**(flood 的 Ad
 - **金丝雀**:只剩 cube 和 fifteen 没有光标键,而且是因为它们没有光标——用例里反着断言这一条。
 
 四个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade`)何时跑、
-守什么,见 CLAUDE.md。
+守什么,见各脚本和被测文件的头部注释。

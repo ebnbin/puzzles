@@ -1,3 +1,7 @@
+// 走存档门:midend_deserialise 把 MOVE 直接交给 execute_move,不经 interpret_move,
+// 所以能不伪造手势就喂走子(map.ts 的调色板也走这条路)。这个模块没有提交进仓库的
+// 自动检查:正确性是「模型和引擎对得上」,要起 vite preview 用 playwright 喂存档
+// 真跑引擎验证,别只信 build 绿。
 import type { Board } from './board'
 import { readKeen } from './keen'
 import { readSolo } from './solo'

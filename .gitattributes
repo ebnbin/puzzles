@@ -2,7 +2,7 @@
 vendor/sgtpuzzles/** linguist-vendored
 vendor/sgtpuzzles/** -diff
 
-# 生成物,与 CLAUDE.md 的生成物表一一对应,加一个要同时改两处
+# 生成物:不进语言统计,diff 里折叠
 public/engine/** linguist-generated
 public/doc/** linguist-generated
 public/help/en.json linguist-generated

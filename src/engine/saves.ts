@@ -1,5 +1,5 @@
 // 这些 key 已经发布:改名 = 用户的存档、设置、隐藏列表全部作废。读取一律容忍
-// 垃圾值,所以「加」是安全的,「改」和「删」不是。全表见 CLAUDE.md「不再免费」一节。
+// 垃圾值,所以「加」是安全的,「改」和「删」不是。
 const PLAYING = 'puzzles.playing'
 const RECENT = 'puzzles.recent'
 const SCROLL = 'puzzles.scroll'
