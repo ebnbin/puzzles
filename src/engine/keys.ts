@@ -2744,6 +2744,25 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
    * there is anything to do at all (tracks.c:1268), and where there is not the
    * label is empty and the button goes out — which is how a clue square, whose
    * track is given, keeps its answer.
+   *
+   * Switches, and upstream's own: each key lays its mark and clears it on a
+   * second press (tracks.c:2176-2186), so the four transitions are one press
+   * each with nothing kept here. That is what Tents had to read the save file
+   * for and what Singles pays two moves for.
+   *
+   * So they are drawn as switches too: the glyph is fixed and the ground says
+   * which way it is set. The face on a marked cell used to be a cleared square,
+   * which is the same button turning over on every press, and the shape is what
+   * a thumb hunts for in a row. `faces` still spells the word out, which the
+   * `does` switches cannot — a screen reader hears "clear this square" while the
+   * picture stays the key's own.
+   *
+   * `does` would be wrong here, which is the reason this pair keeps `faces`
+   * while the rest of the family moved: both keys report "Clear" and it means
+   * two different things. On an edge carrying a track, Enter says "Clear" and
+   * Space says nothing at all — no cross may go on a track (tracks.c:2121) — so
+   * a cross key hunting for its own "Clear" would find Enter's and rub out the
+   * track. Same trap as Dominosa's; see `BOTH`.
    */
   tracks: [
     {
@@ -2752,7 +2771,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'track',
       faces: {
         Track: { icon: 'track', says: 'track' },
-        Clear: { icon: 'emptyCell', says: 'clearSquare', on: true },
+        Clear: { icon: 'track', says: 'clearSquare', on: true },
       },
     },
     {
@@ -2761,7 +2780,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       says: 'noTrack',
       faces: {
         X: { icon: 'crossSquare', says: 'noTrack' },
-        Clear: { icon: 'emptyCell', says: 'clearSquare', on: true },
+        Clear: { icon: 'crossSquare', says: 'clearSquare', on: true },
       },
     },
   ],
