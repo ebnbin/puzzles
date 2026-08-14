@@ -433,6 +433,14 @@ const RULES: Record<
     })),
 
     // Nothing to put in a square — only the key that was out of reach.
+  /*
+   * Galaxies' hint, which is a move rather than a display toggle: `solver_obvious`
+   * fills in every square that follows without a guess and the diff comes back as
+   * a real move (galaxies.c:2888). It was the last puzzle in the collection with
+   * a substantive hint and no way to ask for it — no keyboard row at all, and one
+   * key beside the arrows already spending itself on seven other words.
+   */
+  galaxies: () => [HINT],
   net: () => [JUMBLE],
   fifteen: () => [HINT],
   bridges: () => [HINT],
