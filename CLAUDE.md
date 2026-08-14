@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## 这是什么
 
 Simon Tatham's Portable Puzzle Collection 的 Web 前端:40 个谜题的 C 源码
