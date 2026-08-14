@@ -1736,6 +1736,7 @@ p.notice-intro button:active {
   background-image: var(--grid-image);
   background-size: var(--grid-size);
   background-position: var(--grid-position);
+  animation: sheet-in var(--dur-slow) var(--ease) backwards;
 }
 
 .doc-viewer-top {
