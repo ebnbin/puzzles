@@ -1054,6 +1054,7 @@ export default function PuzzleHost({
                 href={docHref(lang, `${name}.html`)}
                 onClick={(e) => {
                   e.preventDefault()
+                  closeHelp()
                   openManual(`${name}.html`)
                 }}
               >
