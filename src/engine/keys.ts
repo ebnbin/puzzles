@@ -836,6 +836,27 @@ export type CursorKey = {
    * See `SECOND` for how the level is read, and `ACT` in PuzzleHost for why the
    * slots keep their places when one of them empties.
    */
+  /**
+   * The other key's word for "I can take off what is in this one's way", for a
+   * pair whose two marks cannot share a cell.
+   *
+   * Tracks is the one. A track and a cross exclude each other, so upstream
+   * refuses the cross on a tracked edge outright and reports nothing for it
+   * (tracks.c:2121) — the button went dark, and getting a cross there meant
+   * pressing the *track* key first, which is the one thing the reader is not
+   * asking for. With this, the press does both: the other key takes its mark
+   * off and this one lands, one press, two moves on the undo chain. Singles'
+   * bargain, and Singles' price.
+   *
+   * `twice` next door is the same idea where one key does both halves; here the
+   * clearing belongs to the neighbour, so the pair has to be named.
+   *
+   * Not every clearing lets this key act: Tracks refuses a track where the
+   * squares either side already have their two exits, and no label says so
+   * before the fact. So the press is tried and put back — see `clears`, and the
+   * undo in PuzzleHost.
+   */
+  replaces?: string
   level?: 1 | 2
   /**
    * Or, for a key that changes job as the puzzle goes along: a face per word
@@ -1653,6 +1674,22 @@ export const overwrites = (cursor: CursorKey, labels: KeyLabels) =>
   labels.space !== cursor.does &&
   !!(labels.enter || labels.space)
 
+/**
+ * The key to press before this one, when what is in the cell has to come off
+ * first and only the other key can take it off. Null when that is not the case.
+ *
+ * Read off the words the way everything else here is: this key is offered
+ * nothing, and its neighbour is offering the word that means "clear". See
+ * `replaces`.
+ */
+export const clears = (cursor: CursorKey, labels: KeyLabels): string | null => {
+  if (!cursor.replaces) return null
+  const mineNow = cursor.key === 'Enter' ? labels.enter : labels.space
+  const theirs = cursor.key === 'Enter' ? labels.space : labels.enter
+  if (mineNow || theirs !== cursor.replaces) return null
+  return cursor.key === 'Enter' ? ' ' : 'Enter'
+}
+
 export const wouldSend = (
   name: string,
   cursor: CursorKey,
@@ -1674,7 +1711,10 @@ export const wouldSend = (
     if (cursor.faces) {
       const face = cursor.faces[mine(name, cursor, labels)]
       // `idle` is a face worn while the button waits, so it shows and is out.
-      return face && !face.idle ? cursor.key : null
+      if (face) return face.idle ? null : cursor.key
+      // And the key with nothing to say for itself because the other mark is in
+      // the way, which is a press rather than a refusal. See `replaces`.
+      return clears(cursor, labels) ? cursor.key : null
     }
   }
   return doesNothing(cursor.key, labels) ? null : cursor.key
@@ -2773,6 +2813,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         Track: { icon: 'track', says: 'track' },
         Clear: { icon: 'track', says: 'clearSquare', on: true },
       },
+      replaces: 'Clear',
     },
     {
       key: ' ',
@@ -2782,6 +2823,7 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
         X: { icon: 'crossSquare', says: 'noTrack' },
         Clear: { icon: 'crossSquare', says: 'clearSquare', on: true },
       },
+      replaces: 'Clear',
     },
   ],
 

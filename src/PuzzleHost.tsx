@@ -11,6 +11,7 @@ import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 import {
   asMaybes,
+  clears,
   cursorKeys,
   dragWalked,
   faceOf,
@@ -2089,6 +2090,26 @@ export default function PuzzleHost({
                     // something the reader stopped asking for two presses ago.
                     setPrimed(null)
                     if (key === null) return
+                    /*
+                     * The other mark first, where it is in the way and only the
+                     * other key can take it off. See `replaces` in engine/keys.
+                     *
+                     * Then the labels are read again — `api.key` rewrites them
+                     * before it returns, so `labelsRef` is already the new board
+                     * — and the press is put back if this key still cannot act.
+                     * Tracks has that state: a track wants two free exits either
+                     * side and nothing says so until it is refused. Undoing is
+                     * what keeps a press that achieved nothing from leaving half
+                     * of itself behind.
+                     */
+                    const first = clears(cursor, labels)
+                    if (first) {
+                      sendKey(first)
+                      const now = { ...labelsRef.current, opened: opened ?? undefined, walked }
+                      if (wouldSend(name, cursor, now, awake) === null) apiRef.current?.undo()
+                      else sendKey(key)
+                      return
+                    }
                     // A switch that is already set empties the square instead,
                     // and for Tents that swap happens here rather than in
                     // `wouldSend`, which only ever sees the words. `set` is the
