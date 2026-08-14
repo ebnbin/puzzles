@@ -1031,6 +1031,23 @@ export type KeyLabels = {
    * abandon — the button left standing does what it says either way.
    */
   opened?: string
+  /**
+   * And, for Pearl, whether the drag that is open has been walked.
+   *
+   * `current_key_label` answers "Stop" from the moment it opens
+   * (pearl.c:1989) — open and empty reads the same as open and three squares
+   * long. The difference is the whole of what its tick means: closing an empty
+   * drag falls into the click branch and writes nothing (pearl.c:2311-2325), so
+   * the tick would be doing the X's job. Upstream keeps the length in
+   * `ui->ndragcoords`, and no save carries it — `encode_ui` is NULL
+   * (pearl.c:2817).
+   *
+   * Exact but for one corner: an arrow into the wall does not lengthen the drag
+   * (`update_ui_drag` stops there) and this counts it, which leaves the tick
+   * live where a press would close an empty drag. That is what the X does, so
+   * the miss costs a press and nothing else.
+   */
+  walked?: boolean
 }
 
 /**
@@ -1252,6 +1269,20 @@ export const opens = (name: string, key: string, labels: KeyLabels) =>
     ? labels.enter === 'Mark'
     : // Signpost is idle exactly while both words are on the wire; see `opener`.
       name === 'signpost' && labels.space !== '')
+
+/**
+ * What a key leaves Pearl's "has the drag been walked" bit at, or null for a key
+ * that says nothing about it. See `walked` on KeyLabels for why the bit exists.
+ *
+ * Either select key answers false: one opens a drag, which starts empty, and
+ * the other ends or abandons one, after which the bit is not read. An arrow
+ * answers true. Everything else — `h`, a stray letter — leaves it alone.
+ */
+export const dragWalked = (name: string, key: string): boolean | null => {
+  if (name !== 'pearl') return null
+  if (key === 'Enter' || key === ' ') return false
+  return key.startsWith('Arrow') ? true : null
+}
 
 /** Whether this key, sent unmodified, would bring that puzzle's cursor up. */
 export const wakesCursor = (name: string, key: string) =>
@@ -1707,6 +1738,7 @@ const mine = (name: string, cursor: CursorKey, labels: KeyLabels) => {
    * opened the link is the finisher, its neighbour the abandon, and each is
    * held out on the squares where it would do the other's job. See `opener`.
    */
+  if (name === 'pearl' && word === 'Stop' && !labels.walked) return UNTRODDEN
   if (name === 'signpost' && labels.space === '' && word && labels.opened) {
     if (cursor.key === labels.opened) return word === 'Cancel' ? PENDING : word
     return word === 'Cancel' ? word : IDLING
@@ -1739,6 +1771,9 @@ const PENDING = '\0waiting'
  * at any moment while a link is open.
  */
 const IDLING = '\0idling'
+
+/** And Pearl's tick before its drag has been walked. See `walked` on KeyLabels. */
+const UNTRODDEN = '\0untrodden'
 
 /**
  * The face a key should be wearing: its picture, its word, and whether to draw
@@ -2982,6 +3017,9 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
       faces: {
         Start: { icon: 'drawLine', says: 'startLoop' },
         Stop: { icon: 'done', says: 'endLoop', on: true },
+        // Still the tick, and out: a drag nobody has walked closes with nothing
+        // drawn, which is the key beside it. See `walked` on KeyLabels.
+        [UNTRODDEN]: { icon: 'done', says: 'endLoop', on: true, idle: true },
       },
     },
     { key: '', icon: 'crossNext', says: 'crossNext', primes: { shift: true }, level: 1 },

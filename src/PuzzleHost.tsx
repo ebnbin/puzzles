@@ -12,6 +12,7 @@ import { createPuzzle } from './engine/createPuzzle'
 import {
   asMaybes,
   cursorKeys,
+  dragWalked,
   faceOf,
   holding,
   overwrites,
@@ -257,6 +258,12 @@ export default function PuzzleHost({
    * corrects this from the labels the moment they can say.
    */
   const [opened, setOpened] = useState<string | null>(null)
+  /**
+   * And whether Pearl's open drag has been walked, which its labels do not say
+   * and no save carries. See `walked` on KeyLabels, and `dragWalked` for what
+   * each key leaves it at.
+   */
+  const [walked, setWalked] = useState(false)
   /*
    * The same two words again, in a ref, because one caller cannot wait for a
    * render: the arrow that has just walked Sixteen's cursor off the board needs
@@ -1109,6 +1116,10 @@ export default function PuzzleHost({
     const plain = !e.shiftKey && !e.ctrlKey
     if (plain && wakesCursor(name, e.key)) setAwake(true)
     if (plain && opens(name, e.key, labelsRef.current)) setOpened(e.key)
+    if (plain) {
+      const walk = dragWalked(name, e.key)
+      if (walk !== null) setWalked(walk)
+    }
     // And the copy of Map's cursor follows a physical arrow as readily as one of
     // ours: this is the only other place a key reaches the back end.
     if (grid && plain) spot.current = stepCursor(spot.current, e.key, grid)
@@ -1395,6 +1406,10 @@ export default function PuzzleHost({
       // select keys, and none of them is ever sent modified.
       if (wakesCursor(name, key)) setAwake(true)
       if (!mod && opens(name, key, labelsRef.current)) setOpened(key)
+      if (!mod) {
+        const walk = dragWalked(name, key)
+        if (walk !== null) setWalked(walk)
+      }
       if (grid) {
         spot.current = stepCursor(spot.current, key, grid)
         // The quadrant the cursor lands on depends on the arrow that took it
@@ -1431,7 +1446,7 @@ export default function PuzzleHost({
    * would move the arrow the arming is waiting for.
    */
   const shownKeys = acts.map((cursor) =>
-    inMenu(name, cursor, { ...labels, opened: opened ?? undefined }, awake),
+    inMenu(name, cursor, { ...labels, opened: opened ?? undefined, walked }, awake),
   )
   const cellOf = shownKeys.reduce<(string | undefined)[]>((out, shown) => {
     out.push(shown ? ACT[out.filter(Boolean).length] : undefined)
@@ -1973,7 +1988,7 @@ export default function PuzzleHost({
               // was a press ago: Sixteen's turn into the mode they have switched
               // on, Rectangles' into Done and Cancel once a drag is open. See
               // faceOf, and `faces` in keys.ts for why the back end decides it.
-              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
+              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined, walked }, awake)
               /*
                * A switch shows the state it is in rather than the press it is
                * about to make: held down exactly while the square under the
@@ -1993,7 +2008,7 @@ export default function PuzzleHost({
                 // the board rather than the words. See `held` and engine/tents.
                 (!!cursor.switches && held === cursor.key)
               const said = t.play.cursor[says]
-              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined }, awake)
+              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined, walked }, awake)
               return (
                 <button
                   // The key it sends, not the word it is showing: two of these
