@@ -75,15 +75,8 @@ export const en = {
     eraseHint: 'Games, settings, and what is hidden',
     eraseWhat: 'This cannot be undone',
     eraseConfirm: 'Erase',
-    /**
-     * The arrows scheme, as one switch for the whole app. It says arrow keys
-     * and means the whole block — the cross, the keys beside it, and on Guess
-     * the row of colours that stands in for it. The hint says what they are
-     * for rather than what they are: the reader deciding this is the one
-     * whose boards are too small to tap exactly.
-     */
     arrows: 'Arrow keys',
-    arrowsHint: 'On-screen keys that move a cursor square by square, for boards too small to tap exactly',
+    arrowsHint: 'Play with buttons instead of tapping the board',
   },
 
   play: {

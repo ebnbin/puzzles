@@ -31,7 +31,7 @@ export const zh: Strings = {
     eraseWhat: '此操作无法撤销',
     eraseConfirm: '确认清除',
     arrows: '方向键',
-    arrowsHint: '屏幕内的按键，把光标一格一格挪过去；格子太小点不准时用',
+    arrowsHint: '用按键操作，不必直接点棋盘',
   },
 
   play: {
