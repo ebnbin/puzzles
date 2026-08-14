@@ -352,7 +352,9 @@ app 已经上线(<https://puzzles.ebnbin.dev/>),下面这些东西一旦有人�
   「其余一律当 light」这条是**值**的语义改过一次而 key 没改的例子:主题曾经有第三档
   「跟随系统」,老用户存着 `system`。因为读的时候本来就容忍垃圾值,去掉那一档不需要动
   key——`system` 自然落进 light。手册读同一个 key,所以 `useTheme` 会把它规范化写回
-  `light`,否则两边会对同一个从没选过的读者给出不同答案。
+  `light`,否则两边会对同一个从没选过的读者给出不同答案。`puzzles.arrows` 是第二个例子:
+  它存过「开了方向键的游戏名数组」,后来方向键变成全局开关,同一个 key 改存 `'true'`/`'false'`,
+  只认 `'true'`——老的数组读出来自然是关,正好是默认值,谁也不用迁移。
 - **`public/` 里的 URL**:`/engine/**`、`/doc/**`、`/help/**`、`/tiles|howto|art/**`、
   `/og.png`、`/manifest.webmanifest`、`/sw.js`。多数情况下改路径不会让谁崩掉(service worker
   按整条 URL 存,老条目只是变成垃圾),但有三处不是。`/og.png`:Slack、Discord 这些按 URL

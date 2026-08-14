@@ -541,6 +541,20 @@ const PAD_ONLY = new Set(['guess'])
 export const offersArrows = (name: string) => !NO_ARROWS.has(name) && !PAD_ONLY.has(name)
 
 /**
+ * Whether this puzzle's keypad IS its arrow-key scheme, so the switch that
+ * shows the arrows everywhere else shows this row here.
+ *
+ * Guess, and it follows from PAD_ONLY above: everything an arrow would do
+ * there is done by the swatches, so the row of colours is what "the on-screen
+ * keys" means on that puzzle. Decided when the arrows became one global
+ * setting — the alternative was a switch that visibly does nothing on one
+ * puzzle, which reads as the switch being broken. Everything the row offered
+ * stays reachable by touch when it is off: the palette is painted on the
+ * board and pegs are placed by dragging from it (guess.c:858).
+ */
+export const padIsArrows = (name: string) => PAD_ONLY.has(name)
+
+/**
  * The puzzles whose keypad arrives with the arrows, because without them the
  * keys have no way to be aimed.
  *

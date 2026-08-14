@@ -75,6 +75,15 @@ export const en = {
     eraseHint: 'Games, settings, and what is hidden',
     eraseWhat: 'This cannot be undone',
     eraseConfirm: 'Erase',
+    /**
+     * The arrows scheme, as one switch for the whole app. It says arrow keys
+     * and means the whole block — the cross, the keys beside it, and on Guess
+     * the row of colours that stands in for it. The hint says what they are
+     * for rather than what they are: the reader deciding this is the one
+     * whose boards are too small to tap exactly.
+     */
+    arrows: 'Arrow keys',
+    arrowsHint: 'On-screen keys that move a cursor square by square, for boards too small to tap exactly',
   },
 
   play: {
@@ -522,18 +531,6 @@ export const en = {
     restart: 'Restart',
     solve: 'Solve',
     preferences: 'Preferences',
-    /**
-     * Ours, and the only row in that section that is: everything above it comes
-     * out of the compiled back end and is in English whatever the reader has
-     * chosen. Last in the list for that reason as well as by request — the
-     * puzzle's own settings are what the heading promises, and this is the app
-     * adding one of its own underneath them.
-     *
-     * It says arrows and means the whole block, which on Guess is a pair of
-     * arrows and a bar of colours. Naming the rest would make the row longer
-     * than what it switches on, and the reader sees what arrives.
-     */
-    arrows: 'Show arrow keys',
     gameId: 'Game ID',
     seed: 'Random seed',
   },

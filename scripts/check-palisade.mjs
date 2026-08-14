@@ -43,7 +43,7 @@ const browser = await chromium.launch(
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true })
 await page.goto(URL_BASE)
 await page.evaluate(() => {
-  localStorage.setItem('puzzles.arrows', '["palisade"]')
+  localStorage.setItem('puzzles.arrows', 'true')
   localStorage.removeItem('puzzles.playing')
 })
 await page.goto(URL_BASE, { waitUntil: 'networkidle' })

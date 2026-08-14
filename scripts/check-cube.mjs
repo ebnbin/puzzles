@@ -91,7 +91,7 @@ const page = await browser.newPage({ viewport: { width: 420, height: 900 } })
 await page.goto(URL)
 // The arrows are a per-puzzle preference and off by default; this is the block
 // under test, so it has to be on.
-await page.evaluate(() => localStorage.setItem('puzzles.arrows', '["cube"]'))
+await page.evaluate(() => localStorage.setItem('puzzles.arrows', 'true'))
 await page.goto(URL, { waitUntil: 'networkidle' })
 await page.getByRole('button', { name: /^Cube/ }).first().click()
 await page.waitForFunction(() => !!window.__puzzle)

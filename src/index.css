@@ -299,6 +299,16 @@ a {
   font-weight: 400;
 }
 
+/* The switch row's checkbox, drawn the size and colour the dialogs draw
+   theirs, so the same kind of control reads as the same kind of thing. */
+.setting input[type='checkbox'] {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 /*
  * --- the one row that destroys something ---------------------------------
  *

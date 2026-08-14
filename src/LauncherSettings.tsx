@@ -3,6 +3,7 @@ import Dialog from './Dialog'
 import Icon from './Icon'
 import { forgetEverything } from './engine/saves'
 import { docHref, useLang, useStrings } from './i18n'
+import { setArrows, useArrows } from './useArrows'
 import { useScrollLock } from './useScrollLock'
 
 /**
@@ -39,6 +40,7 @@ export default function LauncherSettings({
   // Read-only here: the language is set on the launcher itself, but the
   // manual's address depends on it.
   const [lang] = useLang()
+  const arrows = useArrows()
   // The launcher scrolls; it must not do so under its own settings. The
   // offset is the launcher's, caught before the dialog scrolled it away.
   useScrollLock(lockAt)
@@ -103,6 +105,24 @@ export default function LauncherSettings({
       onClose={onClose}
       className="dialog-settings"
     >
+      {/* The one live setting in here, so it comes first. One answer for the
+          whole app — which way of playing suits this reader — where it used to
+          be asked again in every puzzle's menu; the reasons are on useArrows.
+          A native checkbox like the ones in the puzzles' own preference
+          sheets, because from where the reader sits it is the same kind of
+          thing: a switch in a list of switches. */}
+      <label className="setting">
+        <span className="setting-text">
+          {t.settings.arrows}
+          <em>{t.settings.arrowsHint}</em>
+        </span>
+        <input
+          type="checkbox"
+          checked={arrows}
+          onChange={(e) => setArrows(e.target.checked)}
+        />
+      </label>
+
       {/* A tab of its own, which it was before and is again for a reason
           that has changed. The objection was that a new tab put the manual
           outside the app's history; the app has no history now, so there is

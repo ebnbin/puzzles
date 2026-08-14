@@ -1,36 +1,34 @@
 import { useSyncExternalStore } from 'react'
 
 /**
- * The puzzles the reader has asked for a set of arrow keys on.
+ * Whether the reader wants the arrow-key scheme: the on-screen cross, the keys
+ * beside it, and the two keypads that only aim through it (Map's swatches) or
+ * stand in for it (Guess's whole row — see `padIsArrows` in engine/keys).
  *
- * Every one of these games moves a cursor around its board with the arrow keys
- * — see `readsArrows` in engine/keys.ts for the one that does not — and until
- * now that was reachable only from a keyboard. A phone has none, so the whole
- * of the keyboard half of thirty-nine puzzles was off the table on the device
- * most of them are played on.
+ * One answer for the whole app, where it used to be one per puzzle. The
+ * per-puzzle shape was built on "which puzzle deserves a row taken off its
+ * board is the reader's call", and that reasoning still holds — what it missed
+ * is what the row *is*. The arrows are one of three ways of playing (mouse and
+ * keyboard, touch, arrows), and which of those suits someone is a fact about
+ * their hands and their screen, not about Cube versus Solo. Forty copies of
+ * the same answer were forty chances to be surprised that a setting made in
+ * one game did nothing in the next.
  *
- * Off by default, and per puzzle rather than once for all of them. The four
- * keys are not free: they take a row from the board in portrait and a third of
- * the width of the rail in landscape, and that is a bad trade in Solo, where
- * the digits do the work, and a good one in Cube, where the arrows *are* the
- * game. Which of those a puzzle is, is the reader's call and not ours to
- * average.
- *
- * A set of names under one key, the way the put-away games are kept: presence
- * is the flag, so an absent name and a fresh install say the same thing. A
- * module-level store rather than a context, like the theme, the language and
- * the hidden games — the menu writes it and the board reads it, and the two
- * must agree within the frame.
+ * The key survives from the per-puzzle era and the value's meaning changed
+ * under it, the same move puzzles.theme made when its third state was
+ * retired: only the string 'true' means on, and everything else — including
+ * the arrays of game names the old code stored here — reads as off, which is
+ * the default. So old values expire silently, and neither direction can
+ * throw: this read does not parse, and the old read wrapped its parse in a
+ * try/catch and fell back to nothing chosen.
  */
-
 const KEY = 'puzzles.arrows'
 
-function read(): Set<string> {
+function read(): boolean {
   try {
-    const stored = JSON.parse(window.localStorage.getItem(KEY) ?? '[]')
-    return new Set(Array.isArray(stored) ? stored.filter((n) => typeof n === 'string') : [])
+    return window.localStorage.getItem(KEY) === 'true'
   } catch {
-    return new Set()
+    return false
   }
 }
 
@@ -38,13 +36,10 @@ let current = read()
 
 const listeners = new Set<() => void>()
 
-export function toggleArrows(name: string) {
-  // A fresh Set, because the old one has been handed out as a snapshot.
-  const next = new Set(current)
-  if (!next.delete(name)) next.add(name)
-  current = next
+export function setArrows(on: boolean) {
+  current = on
   try {
-    window.localStorage.setItem(KEY, JSON.stringify([...next]))
+    window.localStorage.setItem(KEY, String(on))
   } catch {
     // Private browsing or a blocked store — the choice just won't persist.
   }
@@ -60,6 +55,6 @@ function subscribe(listener: () => void) {
 
 const snapshot = () => current
 
-export function useArrows(): Set<string> {
+export function useArrows(): boolean {
   return useSyncExternalStore(subscribe, snapshot, snapshot)
 }

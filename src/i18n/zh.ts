@@ -30,6 +30,8 @@ export const zh: Strings = {
     eraseHint: '存档、设置，以及隐藏的谜题',
     eraseWhat: '此操作无法撤销',
     eraseConfirm: '确认清除',
+    arrows: '方向键',
+    arrowsHint: '屏幕内的按键，把光标一格一格挪过去；格子太小点不准时用',
   },
 
   play: {
@@ -227,7 +229,6 @@ export const zh: Strings = {
     restart: '重新开始',
     solve: '求解',
     preferences: '偏好设置',
-    arrows: '显示方向键',
     gameId: 'Game ID',
     seed: '随机种子',
   },

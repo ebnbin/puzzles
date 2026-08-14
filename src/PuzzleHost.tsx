@@ -22,6 +22,7 @@ import {
   inMenu,
   HOLD_BUTTON,
   keysFor,
+  padIsArrows,
   heads,
   keysFollowArrows,
   movesEightWays,
@@ -63,7 +64,7 @@ import type {
 } from './engine/types'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
-import { toggleArrows, useArrows } from './useArrows'
+import { useArrows } from './useArrows'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -291,14 +292,14 @@ export default function PuzzleHost({
    */
   const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
   /*
-   * Whether this puzzle is showing the four arrows, and whether it is even
-   * allowed to be asked. Null for Loopy, which reads no cursor key — see
-   * `offersArrows` — Loopy, which reads no cursor key, and Guess, whose keyboard
-   * is the keypad alone. Everywhere else it is the reader's own answer, off
-   * until they say otherwise.
+   * Whether the reader wants the arrow-key scheme — one answer for the whole
+   * app, set in the launcher's settings — and whether this puzzle can act on
+   * it. Loopy cannot (it reads no cursor key) and Guess has no cross to draw;
+   * see `offersArrows`. Guess still answers the setting, just not here: its
+   * keypad is its arrow scheme, and the `keys` memo below is where that lands.
    */
-  const chosen = useArrows()
-  const arrows = offersArrows(name) ? chosen.has(name) : null
+  const wanted = useArrows()
+  const arrows = wanted && offersArrows(name)
   /*
    * Where Map's cursor is, which is the one thing its palette needs and the one
    * thing no save file can say — `encode_ui` is NULL there (map.c:3347). Null
@@ -908,12 +909,19 @@ export default function PuzzleHost({
    */
   const keys = useMemo(() => {
     const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
-    // And, on the one puzzle whose keys have no other way to be aimed, whether
-    // the arrows are out. Each key says for itself whether it needs them — see
+    // And the arrows setting, wherever the keypad answers to it. On Guess the
+    // keypad IS the arrow scheme, so the switch takes the whole row; on Map
+    // the swatches can only be aimed through the cursor, so they go out with
+    // it. Each of Map's keys says for itself whether it needs aiming — see
     // `aimed` in engine/types, and keysFollowArrows for why the list is one name.
-    const shown = keysFollowArrows(name) && !arrows ? all.filter((k) => !k.aimed) : all
+    const shown =
+      padIsArrows(name) && !wanted
+        ? []
+        : keysFollowArrows(name) && !arrows
+          ? all.filter((k) => !k.aimed)
+          : all
     return maybe ? asMaybes(shown) : shown
-  }, [arrows, maybe, name, permalink, prefs])
+  }, [arrows, maybe, name, permalink, prefs, wanted])
 
   // The parameters, which is the part of the game id before the colon: a new
   // grid is a new natural size, and nothing else about the id changes it.
@@ -2268,8 +2276,6 @@ export default function PuzzleHost({
           permalink={permalink}
           prefs={inline?.kind === 'prefs' ? inline.spec : null}
           prefsError={inlineError}
-          arrows={arrows}
-          onToggleArrows={() => toggleArrows(name)}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           textError={textError}

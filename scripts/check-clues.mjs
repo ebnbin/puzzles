@@ -45,7 +45,7 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasT
 page.on('pageerror', (e) => console.log('  [pageerror]', e.message))
 await page.goto(URL_BASE)
 await page.evaluate(() => {
-  localStorage.setItem('puzzles.arrows', '["map"]')
+  localStorage.setItem('puzzles.arrows', 'true')
   localStorage.removeItem('puzzles.playing')
   localStorage.removeItem('puzzles.save.map')
 })
