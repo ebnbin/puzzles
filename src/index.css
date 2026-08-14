@@ -733,6 +733,7 @@ p.notice-intro button:active {
 
 .play-actions button:disabled {
   color: var(--text-3);
+  opacity: 0.4;
   cursor: default;
 }
 
@@ -1783,6 +1784,7 @@ p.notice-intro button:active {
 
 .doc-viewer-btn:disabled {
   color: var(--text-3);
+  opacity: 0.4;
   cursor: default;
 }
 
