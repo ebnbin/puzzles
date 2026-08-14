@@ -1,27 +1,3 @@
-/**
- * The picture in the README: the gallery on a desktop, and on a phone beside it.
- *
- * Two shots at one height, so they sit together without either being scaled to
- * fit the other. They differ in every way this screen can differ: a desktop
- * window and a phone, light and dark, English and Chinese. Three facts about it
- * in one picture, and none of them needing a caption.
- *
- * A screenshot is a generated artefact like every other picture here, so it is
- * taken by a script rather than by hand. Not for tidiness — a shot taken by
- * hand is a shot nobody can retake the same way. This one fixes the things that
- * would otherwise drift between one and the next: the sizes, the languages, the
- * scroll position, and above all an empty store, so the gallery is the one a
- * visitor sees on their first load and not one wearing whatever was left over
- * from testing — a ring on some puzzle, four games in the stash.
- *
- * At one device pixel per CSS pixel, deliberately. The composed image comes out
- * about 1750 wide, GitHub lays a README out at about 880, so a browser on a
- * retina display asks for very nearly exactly these pixels. Doubling would
- * quadruple the file for nothing anyone would see.
- *
- * Output is docs/, not public/: this is for the repository page and has no
- * business being deployed with the app.
- */
 import fs from 'node:fs'
 import path from 'node:path'
 import { chromium } from 'playwright'
@@ -30,33 +6,16 @@ import { root, BASE, CHROMIUM } from './lib/pictures.mjs'
 const OUT = path.join(root, 'docs')
 const FILE = 'gallery.png'
 
-/**
- * And the card a link to the app unfurls into, which is a second picture of the
- * same thing and so belongs to the same script.
- *
- * 1200x630 is what every unfurler asks for, and the gallery at that size is
- * already the card: the name and the line under it at the top left, two rows of
- * boards below. Nothing is composed, captioned or mocked up — what is shared is
- * a photograph of what arrives when the link is followed, which is the only
- * promise a share card should make.
- *
- * This one goes to public/, unlike the README's: it has to be served.
- */
 const CARD = { theme: 'light', lang: 'en', width: 1200, height: 630 }
 const CARD_OUT = path.join(root, 'public')
 const CARD_FILE = 'og.png'
 
-/**
- * A desktop window and a phone, sharing a height so neither has to be resized
- * to stand beside the other.
- */
 const SHOTS = [
   { theme: 'light', lang: 'en', width: 1280, height: 844 },
   { theme: 'dark', lang: 'zh', width: 390, height: 844 },
 ]
 const SCALE = 1
 
-/** The gap between the two, and the ground behind them. */
 const GAP = 32
 const PLATE = '#8a8a8f'
 
@@ -68,7 +27,6 @@ const shot = async (browser, { theme, lang, width, height }) => {
   })
   const page = await context.newPage()
   await page.goto(BASE, { waitUntil: 'load' })
-  // A first visit, with nothing remembered.
   await page.evaluate((want) => {
     localStorage.clear()
     localStorage.setItem('puzzles.theme', want.theme)
@@ -76,7 +34,6 @@ const shot = async (browser, { theme, lang, width, height }) => {
   }, { theme, lang })
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
-  // Every thumbnail decoded, or the shot catches the grey plates under them.
   await page.waitForFunction(
     () =>
       document.querySelectorAll('.games img').length === 40 &&

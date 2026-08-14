@@ -1,11 +1,8 @@
-# Upstream source, kept verbatim — exclude from language stats and collapse in
-# diffs so it doesn't drown out our own changes.
+# 上游原样副本:不进语言统计,diff 里折叠
 vendor/sgtpuzzles/** linguist-vendored
 vendor/sgtpuzzles/** -diff
 
-# Generated, and listed in CLAUDE.md against the script that generates it. Off
-# the language stats and out of the diff, because none of it is written here and
-# a rebuild of the manual would otherwise read as ninety changed files.
+# 生成物,与 CLAUDE.md 的生成物表一一对应,加一个要同时改两处
 public/engine/** linguist-generated
 public/doc/** linguist-generated
 public/help/en.json linguist-generated

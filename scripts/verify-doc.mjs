@@ -1,15 +1,3 @@
-/*
- * Checks the one promise the manual's restyling makes: that it did not touch
- * a word of it.
- *
- * Runs halibut again into a scratch directory and compares what came out with
- * what is between <main> and </main> in the published pages, byte for byte.
- * The Chinese tree cannot be compared against halibut — it is a translation —
- * so it is compared against the English structurally instead: same tag
- * sequence, same anchors, same link targets. That is what keeps every
- * cross-reference in 45 translated pages resolving.
- */
-
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -18,7 +6,6 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DOC = join(ROOT, 'public/doc')
-/** One directory per language, neither of them the default. See build-doc.mjs. */
 const EN = join(DOC, 'en')
 const ZH = join(DOC, 'zh')
 
@@ -29,7 +16,6 @@ const bad = (m) => {
   failures++
 }
 
-/** What the page actually says, without the chrome wrapped around it. */
 function body(html) {
   const open = html.indexOf('<main class="doc-main">\n')
   const close = html.lastIndexOf('\n</main>')
@@ -42,7 +28,6 @@ const tags = (html) =>
 const attrs = (html, name) =>
   (html.match(new RegExp(`${name}="[^"]*"`, 'g')) ?? []).join('|')
 
-// --- the English pages are halibut's, unmodified -------------------------
 const scratch = mkdtempSync(join(tmpdir(), 'puzzles-doc-'))
 try {
   execFileSync(
@@ -84,7 +69,6 @@ try {
   rmSync(scratch, { recursive: true, force: true })
 }
 
-// --- the head every page needed and never had ----------------------------
 {
   const trees = [
     ['en', EN, 'en'],
@@ -96,16 +80,11 @@ try {
       const html = readFileSync(join(dir, f), 'utf8')
       return !(
         html.includes('<meta name="viewport" content="width=device-width') &&
-        // Versioned, so the worker cannot pin an old one. See build-doc.mjs.
         /<link rel="stylesheet" href="\/doc\/doc\.css\?v=[0-9a-f]{8}">/.test(html) &&
         html.includes('<meta charset="utf-8">') &&
         html.includes("localStorage.getItem('puzzles.theme')") &&
-        // Every page opens at its top, never a screenful down at its own
-        // chapter anchor. See the head script in build-doc.mjs.
         html.includes("location.hash === '#' + self") &&
         html.includes(`<html lang="${htmlLang}">`) &&
-        // Both classes: the app's shared control, and the hook the head
-        // script listens on. See topBar in build-doc.mjs.
         html.includes('class="segmented doc-lang"')
       )
     })
@@ -115,11 +94,6 @@ try {
   }
 }
 
-/* --- the bar says what this is a tab of, in either language ---------------
- * The app's name, untranslated, in both trees — see BRAND in build-doc.mjs.
- * A tree that translated it would be saying the collection is called something
- * else here, which is the one thing this bar is not free to do.
- */
 {
   const wrong = []
   for (const [label, dir] of [['en', EN], ['zh', ZH]])
@@ -135,7 +109,6 @@ try {
     : bad(`${wrong.length} pages do not, e.g. ${wrong[0]}`)
 }
 
-// --- the translation is the same document --------------------------------
 {
   const files = readdirSync(EN).filter((f) => f.endsWith('.html'))
   const problems = []
@@ -157,15 +130,6 @@ try {
     : bad(problems.slice(0, 5).join('; '))
 }
 
-// --- the app's own links land somewhere ----------------------------------
-/*
- * "Full instructions" points at a bare page, no fragment, and lands at the
- * top. That is only right while the page really is the whole chapter for that
- * puzzle and nothing else, so it is the page's own first heading that gets
- * checked: if upstream ever moved a puzzle into a chapter it shares, the top
- * of the page would stop being the right place to arrive and this would say
- * so.
- */
 {
   const games = JSON.parse(readFileSync(join(ROOT, 'src/games.json'), 'utf8'))
   const dead = []

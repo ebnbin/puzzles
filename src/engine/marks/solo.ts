@@ -5,30 +5,6 @@ import type { Board } from './board'
 import { gridMoves } from './board'
 import { cageDigits } from './cage'
 
-/**
- * Solo: rows, columns and blocks, plus the diagonals of an X board and the
- * cages of a Killer one.
- *
- * The blocks are the interesting part of the description. A rectangular board
- * does not write them down at all — they are `(y/c)*c + (x/r)`, which is `r`
- * wide and `c` tall, so a 2x3 board has blocks three across and two down. A
- * jigsaw board has no formula and spells its blocks out; a Killer board spells
- * out a second set of blocks for its cages, and then a grid holding each cage's
- * total in one of its squares.
- */
-
-/**
- * The parameters, read the way solo.c's `decode_params` reads them.
- *
- * Two turns in it. The leading number is both dimensions unless an `x` supplies
- * the second; and a `j` collapses the blocks into one row of `c*r`, which is
- * how a jigsaw board says its blocks are not rectangles and live in the
- * description instead. `x` after the size is the diagonals, `k` is Killer.
- *
- * Where the C eats an unknown character and carries on, this refuses. A
- * parameter string with something in it we have never seen is a board whose
- * rules we cannot claim to know.
- */
 function params(
   text: string,
 ): { c: number; r: number; xtype: boolean; killer: boolean } | null {
@@ -62,12 +38,10 @@ function params(
       at += 1
       killer = true
     } else if (ch === 'r' || ch === 'm' || ch === 'a') {
-      // Symmetry, which says nothing about how the board is played.
       at += 1
       if (ch === 'm' && text[at] === 'd') at += 1
       while (at < text.length && text[at] >= '0' && text[at] <= '9') at += 1
     } else if (ch === 'd') {
-      // Difficulty, likewise: it shaped the deal and is spent.
       at += 1
       if (!'tbiaeu'.includes(text[at])) return null
       at += 1
@@ -81,7 +55,6 @@ function params(
   return { c, r, xtype, killer }
 }
 
-/** Every block holds exactly `size` squares, and there are exactly `size`. */
 function blocksAreSound(block: number[], size: number): boolean {
   const counts = new Array<number>(size).fill(0)
   for (const b of block) {
@@ -98,8 +71,6 @@ export function readSolo(lines: Field[]): Board | null {
   const size = c * r
   const area = size * size
 
-  // The initial state is built from PRIVDESC where there is one, which is what
-  // the midend does; Solo has never written one, and this costs a line.
   const described = runLengthGrid(find(lines, 'PRIVDESC') ?? find(lines, 'DESC') ?? '', area)
   if (!described) return null
 
@@ -132,21 +103,11 @@ export function readSolo(lines: Field[]): Board | null {
     each: size,
     clues: described.grid,
     groups,
-    // Solo has no move of its own beyond the three the grid games share.
     moves: gridMoves(size),
   }
 
   if (!killer) return board
 
-  /*
-   * The cages, which is the whole of what a Killer board says: its grid of
-   * clues is empty, so without these there is nothing at all to eliminate from
-   * and the key does exactly what upstream's `M` does.
-   *
-   * Two more sections of description — the cage shapes, then a grid carrying
-   * each cage's total in one of its squares and nothing in the others
-   * (solo.c reads it back the same way, scanning a cage for the non-zero).
-   */
   if (rest[0] !== ',') return null
   const cageSection = rest.slice(1).split(',')[0]
   const cage = dividerBlocks(cageSection, size, { open: 26, repeats: false })
@@ -164,11 +125,6 @@ export function readSolo(lines: Field[]): Board | null {
   board.narrow = (candidates, values) => {
     for (const { cells, total } of cages) {
       if (!total) continue
-      // A cage's squares are all in one block often enough, but never
-      // guaranteed to share a row or column — so what may not repeat inside it
-      // is only what the groups already say. Killer's own rule is that a cage
-      // holds no digit twice, which solo.c's solver uses and which is stated
-      // here rather than derived.
       const allowed = cageDigits(cells, total, 'a', size, candidates, values, true)
       if (!allowed) continue
       cells.forEach((cell, i) => {

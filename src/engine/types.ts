@@ -1,16 +1,7 @@
-/**
- * The contract between the compiled puzzle and its host.
- *
- * `PuzzleApi` is what the C code exposes: every way the interface can act on
- * the game. `PuzzleCallbacks` is the other direction: everything the game
- * wants shown, delivered as data rather than as DOM. Together they are the
- * whole of what upstream's emccpre.js and emcclib.js used to do to the page.
- */
 import type { KeyIcon } from '../Icon'
 
 export interface Preset {
   name: string
-  /** Null for a submenu heading, which carries `submenu` instead. */
   value: number | null
   submenu?: Preset[]
 }
@@ -22,14 +13,9 @@ export type DialogControl =
 
 export interface DialogSpec {
   title: string
-  /**
-   * Live objects — the C side reads `value` back off them when the dialog is
-   * accepted, so an editor must assign to it rather than copy.
-   */
   controls: DialogControl[]
 }
 
-/** Everything the interface may ask of the running game. */
 export interface PuzzleApi {
   mousedown(x: number, y: number, button: number): boolean
   mousemove(x: number, y: number, buttons: number): boolean
@@ -43,13 +29,6 @@ export interface PuzzleApi {
     ctrl: number,
   ): boolean
 
-  /**
-   * Upstream's own entry point for "the room has changed", and the one thing
-   * here nothing calls: its guard compares device pixels against logical ones
-   * and is wrong exactly where this app asks the question. `rescale` reaches
-   * the same midend_size without it. The reasoning, and the symptom it caused,
-   * are at the call site in usePuzzleFit.
-   */
   resize(w: number, h: number): void
   restoreSize(): void
   rescale(): void
@@ -70,205 +49,33 @@ export interface PuzzleApi {
   saveGame(): string
   loadGame(text: string): void
 
-  /**
-   * Advance the animation clock by hand, in seconds. Only meaningful once
-   * stopTimer has taken the frame loop away from requestAnimationFrame.
-   */
   tick(seconds: number): void
 
-  /** Stop the frame timer. Must be called when the puzzle is discarded. */
   stopTimer(): void
 }
 
-/**
- * The keys the interface answers itself, because the back end has none to be
- * given: the marks a square can still take, the value where only one is left,
- * and taking every mark off again. See engine/marks for why that arithmetic
- * cannot be asked of the C — and why the first two point opposite ways.
- */
 export type KeyAction = 'possible' | 'single' | 'blank'
 
 export interface KeyLabel {
-  /**
-   * Midend button value. Every puzzle that asks for keys asks only for
-   * ASCII ones, so this reaches the game as a one-character `key` string.
-   *
-   * Zero for a key that carries an `action` instead: there is no button to
-   * send, and no button value means none is sent by accident.
-   */
   button: number
-  /**
-   * Answered here rather than forwarded. The board still ends up changed —
-   * through the save file, which is the only door a move can be put through
-   * without the back end having interpreted a gesture into it.
-   */
   action?: KeyAction
-  /** What to show on the key, for the ones that are a character. */
   label?: string
-  /**
-   * The value this key puts in a square, as the game numbers it.
-   *
-   * Not the same as the character on the key, which is why it is carried rather
-   * than read off `label`: Unequal draws 1..order as 0..order-1 once order
-   * passes nine, so its `0` key places a 1. Only the puzzle that owns the
-   * encoding can say, and keys.ts is where that lives.
-   *
-   * Absent on a key that puts nothing in a square — everything with a `whose`,
-   * and Dominosa's digits, which light dominoes up rather than filling anything
-   * in.
-   */
   value?: number
-  /**
-   * The glyph to show instead, named as `Icon` knows it. A key whose
-   * character means nothing to anyone who has never seen the keyboard —
-   * backspace, or M for "fill in the pencil marks" — is a picture, and what
-   * it does is said in words on a long press.
-   */
   icon?: KeyIcon
-  /**
-   * The board's own colour number this key is a picture of, and the number to
-   * draw its rim and its digit in — for the keys that put a colour rather than
-   * a symbol into a square. Guess's pegs are all of them.
-   *
-   * Numbers rather than colour strings, because the string is not knowable
-   * here: what the board draws with is the game's own palette put through the
-   * dark-board rewrite, and only the renderer holds the result. PuzzleHost
-   * looks these up and PuzzleKeypad paints them, so a swatch cannot agree with
-   * the board in one theme and disagree in the other.
-   *
-   * Which slot is which is the game's business, so it is stated in keys.ts
-   * beside the rule that builds these keys.
-   */
   slot?: number
   ink?: number
-  /**
-   * Drawn as marks rather than as a fill, for a key that offers a colour as a
-   * maybe. Map's stipples are the only ones: its board scatters a dot per
-   * candidate colour across the region (map.c:2872), so the key is dots too.
-   */
   dotted?: boolean
-  /**
-   * Acts where the arrow buttons put the cursor, and is therefore worth nothing
-   * without them.
-   *
-   * Nearly every key in the collection acts at a cursor, so this is not that
-   * question — it is whether a *touch* can put the cursor where the reader
-   * wants. In Solo a tap on the square does it, so the digits work with the
-   * arrows off. Map has no such path at all: a press on its board starts a drag
-   * and hides the cursor without moving it (map.c:2552), so the palette can only
-   * ever reach whichever region the cursor was last left on. See
-   * `keysFollowArrows`, which is what reads this.
-   */
   aimed?: boolean
-  /**
-   * The word the back end's own Enter key must be reporting for this key to be
-   * live, for a key that is otherwise always drawn.
-   *
-   * Guess's tick, and so far only that. `current_key_label` says "Submit" only
-   * once the guess is complete (guess.c:547), so the key can be dimmed from the
-   * same channel that names it — and a tick that greys out is the honest
-   * picture: this is where the guess gets marked, once there is a whole one.
-   * The same argument as `CursorFace.idle`, one row down.
-   */
   needs?: string
-  /**
-   * What this key puts in the region under the cursor, answered on this side
-   * through the save file — see engine/map, which is the second thing to use
-   * that door and the first to need to know where the cursor is.
-   *
-   * `colour` is the game's own numbering, 0 to 3, and -1 empties the region.
-   * `pencil` turns one bit of the stipple over instead of setting the colour,
-   * which is what upstream's right-drag does.
-   */
   paints?: { colour: number; pencil?: boolean }
-  /**
-   * Turns a key that clears what is *under* the write head into one that clears
-   * what is *behind* it, which is what a key drawn as a backspace has to mean.
-   *
-   * `step` is the arrow that means "behind", and it is always taken: a guess is
-   * typed left to right, so the head is always one past the last thing typed and
-   * clearing in place would always be the wrong peg. engine/keys carries the
-   * measurement that settled it, and the reading this replaced.
-   *
-   * PuzzleHost is where this is carried out, and where the count that stops it
-   * at the start of a row lives — see `advances`.
-   */
   behind?: { step: string }
-  /**
-   * Writes at the write head and moves it on, and how many places the head has
-   * to run through — which is what tells the backspace beside it how far back it
-   * may go.
-   *
-   * Guess's swatches, and the number is its pegs. The head is `ui->peg_cur` and
-   * a digit advances it (guess.c:946), stopping at the Submit slot past the last
-   * peg; nothing on this side can read it, since `encode_ui` writes the row and
-   * the holds and not the head. So PuzzleHost keeps a count, and this is the
-   * ceiling that count is held to.
-   */
   advances?: number
-  /**
-   * And the key that ends the row, so the count goes back to zero.
-   *
-   * Guess's tick. Stated rather than inferred from `needs`, which happens to be
-   * on the same key: one says when the key is live and the other says what it
-   * does to the head, and a later key could want either without the other.
-   */
   restarts?: boolean
-  /**
-   * Walks the board's own selector onto this key's value before pressing it.
-   *
-   * Guess's alone, and it settles an argument the board was having with itself.
-   * Its colour bar draws a ring round whichever colour `ui->colour_cur` names,
-   * and `Enter` places that one — but a digit key places its own colour and
-   * never moves the ring (guess.c:940). Press 3 and then Enter and the second
-   * peg is the colour the ring still points at, not the one just pressed. On a
-   * keyboard that is invisible: the reader typed the 3. With a row of coloured
-   * buttons on screen there are two things answering "which colour is chosen"
-   * and they disagree.
-   *
-   * The ring cannot be read — `encode_ui` stores the pegs and the holds and not
-   * the cursor (guess.c:467) — but it does not have to be. `move_cursor` clamps
-   * rather than wraps when its `wrap` is false, which is what Guess passes
-   * (guess.c:928), so pressing one arrow `span` times pins the selector at that
-   * end from wherever it was, and `at` presses of the other walks it to a known
-   * place. Derived, like Cube's arrows, rather than remembered.
-   *
-   * Both ends are named because the nearer one is cheaper and which is nearer
-   * depends on the key: this is `span + at` presses, and `at` is the distance
-   * from whichever end `home` is.
-   *
-   * It fails safe if upstream ever passes `wrap = true`: the walk would land
-   * somewhere arbitrary, but the peg is still placed by the key's own digit, so
-   * the loss is the ring disagreeing again — the state this repairs — and never
-   * a peg of the wrong colour.
-   */
   aims?: { home: string; step: string; span: number; at: number }
-  /**
-   * Whose key this is, which is what tells the three looks apart.
-   *
-   * Absent is the ordinary key: a digit, a monster, clear. `upstream` is a
-   * letter the back end already reads and has never offered a button for — M,
-   * H, J — which exists here only because a touch device cannot type it.
-   * `ours` is a key no back end has heard of, answered on this side through
-   * the save file; there are three, and engine/marks is all of them.
-   *
-   * It is three values rather than a flag because it is three things on the
-   * screen, and the same three are now spent on the row of buttons below the
-   * keypad as well — see index.css, where the ladder is set out once for both.
-   *
-   * It was called `aid` while the keypad was the only place it applied, and
-   * that word meant "acts on the whole board rather than on one square". True
-   * of M and of H; false of an arrow key and false of the menu, both of which
-   * wear the same two looks down there. What is left once those arrived is the
-   * axis the two rows really share, which is whose the press is — and which
-   * this field was already sorting by.
-   */
   whose?: 'upstream' | 'ours'
 }
 
-/** Everything the running game wants the interface to show. */
 export interface PuzzleCallbacks {
-  /** Presets are null when the back end offers neither presets nor configuration. */
   onReady(presets: Preset[] | null, api: PuzzleApi): void
   onError(message: string): void
   onStatus(text: string | null): void
@@ -278,15 +85,12 @@ export interface PuzzleCallbacks {
   onPresetSelected(index: number): void
   onSolveRemoved(): void
   onDialog(spec: DialogSpec | null): void
-  /** The puzzle has started or finished animating. */
   onTimer(running: boolean): void
 }
 
 declare global {
   interface Window {
-    /** The running puzzle, for the icon build and the browser tests. */
     __puzzle?: PuzzleApi
-    /** Whether the puzzle is mid-animation. */
     __animating?: boolean
   }
 }

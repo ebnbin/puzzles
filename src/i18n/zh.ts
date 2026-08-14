@@ -1,11 +1,8 @@
-/** Every word the app says for itself, in Simplified Chinese. */
 import type { Strings } from './en'
 
 export const zh: Strings = {
-  /** The collection's name. Not translated — it is what it is called. */
   brand: 'Puzzles',
 
-  /** In English here too, deliberately; see the note beside it in en.ts. */
   tagline: 'Think between vibes.',
 
   launcher: {
@@ -37,7 +34,6 @@ export const zh: Strings = {
   play: {
     help: '玩法',
     picture: (name: string) => `${name} 的棋盘`,
-    /** Leads out of the one-paragraph blurb and into the manual proper. */
     fullInstructions: '完整说明',
     close: '关闭',
     undo: '撤销',
@@ -79,43 +75,21 @@ export const zh: Strings = {
       sweep: '边走边涂：方向键把走过的格子涂成选中的颜色',
       carryTile: '方向键带着这个方块一起走',
       holdPlace: '方向键让方块从这一格穿过',
-      /* 手册自己的译法:doc-zh/twiddle.html 写的就是「逆时针或顺时针旋转」。 */
       turnLeft: '逆时针旋转',
       turnRight: '顺时针旋转',
-      /* 手册的说法（doc-zh/sixteen.html，netslide 那章指过去）：「用回车键让该行/列沿所
-         指示的方向移动」。方向由棋盘上高亮的那个箭头指示，所以这里只说动哪一条。 */
       slide: '推动这一行或这一列',
       pushLine: '顺着箭头把这一行推一格',
       pullLine: '把这一行往回拉一格',
-      /* 手册自己的译法（doc-zh/mines.html）：「在覆盖着的方格上按回车键会揭开它，在已揭开
-         的方格上按回车键则会清除其周围」。 */
-      /* 手册自己的译法（doc-zh/samegame.html）：「选中」「移除」，「区域」也是它自己的词
-         ——「由不止一个同色方格构成的相邻区域」。 */
-      /* 手册自己的译法（doc-zh/flip.html）：「翻转该方格及其关联的方格」。 */
-      /* 手册自己的译法（doc-zh/guess.html）：「把所选颜色的棋子放置到选定的位置上」
-         「添加保留标记」；「保留」是它自己的词。 */
-      /* 手册自己的译法（doc-zh/pegs.html）：「当指示器位于某枚棋子上时按回车键，再按一个
-         方向键，就会让该棋子朝那个方向跳跃」——「跳跃」是它自己的词。 */
       jump: '方向键让这枚棋子跳过去',
       unjump: '取消这次跳跃',
-      /* 手册自己的译法（doc-zh/dominosa.html）：「放置一张覆盖它们的骨牌」「在它们之间画一
-         条线，你可以用它来提醒自己：你已经知道这两个数字不会被同一张骨牌覆盖」。 */
-      /* 手册自己的译法（doc-zh/untangle.html）：「按 Enter 键会切换是否拖动当前高亮的点。
-         按 Tab 键或空格键会在所有点之间循环切换。」 */
       drag: '拿起或放下这个点',
       cycle: '循环到下一个点',
-      /* 手册自己的译法（doc-zh/blackbox.html）：「按 Enter 键会发射一束激光或添加一个新的球
-         位置猜测，按空格键则会锁定一个格子、一行或一列」「会出现一个黑色圆点来标记该猜测；
-         再次单击可移除所猜的球」「点击它就会检查你的猜测」。 */
       fire: '从这里发射一束激光',
       ball: '在这里猜一个球',
       unball: '移除所猜的球',
       check: '检查你的猜测',
       lockCell: '锁定这个格子、这一行或这一列',
       unlockCell: '解除这个格子、这一行或这一列的锁定',
-      /* 九个「往格子里放东西」的游戏，各取自己那一章的译法（doc-zh/）：slant 的两个符号是
-         手册自己写的字符；tents 的「绿色」是那一章的说法，不是「没有帐篷」的委婉语；
-         singles 的圆圈和 range 的点是两个游戏里两种不同的标记，不合并。 */
       backslash: '在这里放一个 \\',
       slash: '在这里放一个 /',
       noLine: '让这一格空着',
@@ -134,7 +108,6 @@ export const zh: Strings = {
       emptySquare: '把这一格清空',
       fillSquare: '把这一格涂黑',
       dotSquare: '打个点：这一格肯定不是黑的',
-      /* magnets 的两个标记按上游画出来的样子命名（空白骨牌、两个问号），含义写在句子里。 */
       plus: '在这里放一个 +',
       minus: '在这里放一个 −',
       blankDomino: '把这张骨牌标成空白',
@@ -143,12 +116,8 @@ export const zh: Strings = {
       noTrack: '打叉：这里不可能有轨道',
       floodFill: '用这个颜色淹没左上角',
       advance: '重放求解器的下一步',
-      /* palisade 的两个按开关命名，理由和 untangle 一样：后端不报，没有词可跟。 */
       edge: '画上或擦掉这道墙',
       noEdge: '标记或取消「这里没有墙」',
-      /* 最后五个「开一个动作再收尾」的游戏，各取自己那一章的译法：bridges 的「完成」是那一章
-         对「这座岛我摆好了」的说法，map 的「点画」是它自己的动词，galaxies 的「箭头」是它
-         丢进格子里、用来记住这格属于哪个点的记号。 */
       startBridge: '从这座岛开始架桥',
       endBridge: '把桥搭到这里',
       islandDone: '标记或取消标记这座岛已完成',
@@ -169,8 +138,6 @@ export const zh: Strings = {
       cancelArrow: '把箭头放回去',
       drawEdge: '在这里画一条边',
       clearEdge: '擦掉这条边',
-      /* 手册（doc-zh/map.html）把那个记号叫「点画」，含义是「这个区域可能是这个颜色」。
-         这个键说的是「下一个颜色键会做什么」，所以写成一句预告而不是一个状态名。 */
       maybeMode: '下一个颜色：只是标记「可能」',
       clearRegion: '清空这个区域',
       domino: '放一张骨牌盖住这两格',
@@ -200,8 +167,6 @@ export const zh: Strings = {
     possible: '只留下仍然可能的铅笔标记',
     single: '填入答案唯一的格子',
     blank: '清空所有铅笔标记',
-    /* 上游 M 的说法照搬手册自己的译法:doc-zh/keen.html 写的是「按 M 键将在每个
-       尚未填入主数字的方格中填入一整套铅笔标记」。 */
     marks: '填入一整套铅笔标记',
     hint: '提示',
     jumble: '重新打乱',
@@ -209,15 +174,10 @@ export const zh: Strings = {
     vampire: '吸血鬼',
     zombie: '僵尸',
     left: (digit: string, count: number) => `${digit}，还有 ${count} 个没填`,
-    /* guess 的两个。「提交」是上游自己的词（guess.c:547）；「保留」写成一句指令
-       而不是一个状态，因为它就是指令——先按它再按数字，说的是接下来这一枚怎么处理。 */
     done: '提交这次猜测',
     lock: '把这一格保留到下次猜测',
     highlight: (n: string) => `高亮含 ${n} 的骨牌`,
-    /* 手册（doc-zh/guess.html）把它们叫「颜色」，编号是 guess.c 自己的 COL_1..COL_10。 */
     peg: (n: number) => `颜色 ${n}`,
-    /* map 的调色板。编号从 1 起：数按钮的人从 1 数起，而这个号码不会出现在读者
-       看得到的任何地方。「可能是」是上游对点画的说法（手册里右键拖拽那一段）。 */
     fillRegion: (n: number) => `把这个区域填成颜色 ${n}`,
     maybeRegion: (n: number) => `标记这个区域可能是颜色 ${n}`,
     clearRegion: '清空这个区域',

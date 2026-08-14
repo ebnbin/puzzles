@@ -2,53 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- viewport-fit=cover lets the page reach under a notch; the padding in
-         index.css keeps content clear of it. -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <!-- One value, kept in step with the resolved theme by the script below
-         and by useTheme; a media-scoped pair would ignore a manual choice. -->
     <meta name="theme-color" content="#fafaf9" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Puzzles" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <!-- All four are the same drawing at four sizes, built by
-         scripts/build-appicon.mjs out of two of the gallery's own tiles. A PNG
-         and not an SVG since it became a photograph of two boards; the one it
-         replaced was a drawing of a Net-shaped tree, which was a picture of one
-         puzzle standing in for forty. Sized here rather than left to the
-         browser, because a tab strip shrinking 512 pixels of two boards down to
-         sixteen gets mush. -->
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
-    <!-- iOS reads only this one, and only a PNG: given an SVG it falls back to
-         a screenshot of the page as the home-screen icon. -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Puzzles</title>
-    <!-- The line the masthead carries, said again where a link is unfurled: a
-         share card and a search result get the title and this, and nothing
-         else. In English under either language, for the reason i18n/en.ts
-         gives beside it. The manifest's description is a different job — it is
-         read in an install prompt, by someone with no page in front of them to
-         explain it — and stays a plain account of what this is. -->
     <meta name="description" content="Think between vibes." />
-    <!--
-      What a link to this becomes when it is pasted somewhere.
-
-      Absolute, because an unfurler is not on this page and has no base to
-      resolve against — the one place in the app that has to name where it is
-      served from, alongside the sitemap build-doc.mjs writes.
-
-      The picture is the gallery at exactly the size a card is shown at, taken
-      by scripts/build-shot.mjs: what is shared is a photograph of what arrives
-      when the link is followed, which is the only promise a card should make.
-      It is also the one image here whose address must not change — Slack,
-      Discord and the rest cache a card by its URL and will go on showing what
-      they fetched the first time.
-    -->
     <link rel="canonical" href="https://puzzles.ebnbin.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Puzzles" />
@@ -63,17 +30,10 @@
       content="The gallery: forty puzzle boards as thumbnails, under the name Puzzles."
     />
     <meta name="twitter:card" content="summary_large_image" />
-    <!--
-      Resolve the theme and the language before anything is painted. useTheme
-      and i18n do exactly this once React is up; without it here, a reader who
-      has chosen dark gets a white page for a frame first, and the document
-      claims to be in English until the bundle runs.
-    -->
+    <!-- 首帧前解析主题和语言,避免闪白/闪英文。这段逻辑和 useTheme、i18n、
+         build-doc.mjs 里的同一段必须联动改。 -->
     <script>
       ;(function () {
-        // Only `dark` is dark. Absent, `system` from a version that offered it,
-        // or anything else is light — the machine is not consulted, here or
-        // anywhere else. This is useTheme's `read`, in one line.
         var dark = false
         try {
           dark = localStorage.getItem('puzzles.theme') === 'dark'
@@ -93,17 +53,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!--
-      The whole app is script, so without script this is a blank page — and a
-      blank page is the one answer that tells a visitor nothing at all. There is
-      no fallback to build: forty puzzles are forty compiled programs. But the
-      manual is plain HTML that needs none of this, so the page that cannot run
-      says what it is and points at the part that still works.
-
-      Unstyled on purpose: index.css arrives with the bundle, and a stylesheet
-      link here would be a second request made by every visitor who will never
-      see what it paints.
-    -->
     <noscript>
       <p style="margin: 2rem; font-family: system-ui, sans-serif; line-height: 1.6">
         <strong>Puzzles</strong> — forty logic puzzles by Simon Tatham, compiled
