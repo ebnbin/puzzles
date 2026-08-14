@@ -1,3 +1,5 @@
+// 填值清不清该格候选,每个游戏答案不同(四个格子游戏的 R 顺手清,Undead 只有 E 清,
+// 而且屏幕上看不出来——放了怪物的格子不画标记),所以 set 自带 clears,各游戏各自声明。
 export type Step =
   | { kind: 'set'; square: number; value: number; clears: boolean }
   | { kind: 'toggle'; square: number; value: number }
