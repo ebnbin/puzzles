@@ -89,11 +89,20 @@ for (let round = 0; round < ROUNDS; round++) {
   // Somewhere the reader might plausibly have walked to.
   for (let i = 0; i < 3 + next(9); i++) await arrow(['Right', 'Down', 'Left', 'Up'][next(4)])
   /*
-   * Then a colour the region has not already got. A press that plays nothing is
-   * right — a region already that colour, or a clue — but it checks nothing, and
-   * a first colour picked blind comes up empty often enough to leave the run
-   * with two or three cases in it. Four tries settles it: only a clue refuses
-   * all four.
+   * A clue is skipped by *reading* the palette, not by pressing it: the
+   * swatches dim on a clue now (see check-clues.mjs, which tests exactly
+   * that), and playwright's click on a disabled button does not return "no
+   * move played" — it waits for the button to enable until the run times
+   * out. This loop predated the dimming and did the polite thing instead,
+   * which stopped being possible the day the dimming landed.
+   */
+  if (await page.getByRole('button', { name: /^Fill this region with colour 1$/ }).isDisabled())
+    continue
+  /*
+   * Then a colour the region has not already got. A press that plays nothing
+   * checks nothing, and a first colour picked blind comes up empty often
+   * enough to leave the run with two or three cases in it. Four tries
+   * settles it: only a clue refuses all four, and clues were skipped above.
    */
   let colour = next(4) + 1
   let before = await moves()
@@ -104,7 +113,7 @@ for (let round = 0; round < ROUNDS; round++) {
     await page.waitForTimeout(250)
     after = await moves()
   }
-  if (after.length === before.length) continue      // a clue
+  if (after.length === before.length) continue
 
   const played = /MOVE\s*:\d+:(\d|C):(\d+)/.exec(after[after.length - 1])
   const paintedRegion = played ? Number(played[2]) : null
@@ -143,13 +152,22 @@ const count = async (what, want, act) => {
 const swatch = (re) => () => page.getByRole('button', { name: re }).click()
 const FILL_1 = /^Fill this region with colour 1$/
 const EMPTY = /^Empty this region$/
-// The maybes are the same four swatches with the modifier armed — see `arms` on
-// CursorKey — so a stipple is two presses, and the modifier is spent by the one
-// that follows it.
+/*
+ * The maybes are the same four swatches with the mode on — see `arms` on
+ * CursorKey. A mode, not a one-shot: nothing spends it, so it is put back off
+ * afterwards, or every case after this one would find the palette wearing
+ * dots. This helper assumed the one-shot lifetime the key had at first, and
+ * kept assuming it after a858eb4 made the key sticky — its third press turned
+ * the mode *off* and then waited for a label only the mode shows, which is
+ * where every run died. The check scripts age like the docs do: nothing
+ * fails when the behaviour under them moves.
+ */
+const MAYBE = /^Next colour: mark it as a maybe$/
 const MAYBE_2 = () => async () => {
-  await page.getByRole('button', { name: /^Next colour: mark it as a maybe$/ }).click()
-  await page.waitForTimeout(120)
+  await page.getByRole('button', { name: MAYBE }).click()
   await page.getByRole('button', { name: /^Mark this region as possibly colour 2$/ }).click()
+  await page.getByRole('button', { name: MAYBE }).click()
+  await page.waitForTimeout(120)
 }
 /*
  * First find a region the cases can be run on. The random walk leaves the cursor
@@ -159,6 +177,11 @@ const MAYBE_2 = () => async () => {
  */
 let ready = false
 for (let i = 0; i < 40 && !ready; i++) {
+  // Same rule as the walk above: read the dimming, never click into it.
+  if (await page.getByRole('button', { name: FILL_1 }).isDisabled()) {
+    await arrow(i % 5 === 4 ? 'Down' : 'Right')
+    continue
+  }
   const before = (await moves()).length
   await swatch(FILL_1)()
   await page.waitForTimeout(200)

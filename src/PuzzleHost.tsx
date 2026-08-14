@@ -330,19 +330,25 @@ export default function PuzzleHost({
   /*
    * Whether Map's palette is offering maybes rather than colours.
    *
-   * A modifier and not a mode: the first colour pressed spends it. The board
-   * draws a stipple as a scatter of dots (map.c:2872), so while this is on the
-   * swatches wear the dots and say so — see `asMaybes`, and `arms` on
-   * CursorKey, which is the button that sets it.
+   * A mode, not a one-shot: it stays on until its key is pressed again. It
+   * began as the other thing — a modifier the next colour spent — and the
+   * stroke mode below lit exactly the same way while it lasted, so the press
+   * that ended one was the press that kept the other going and nothing on
+   * screen said which key was which kind. One lifetime for both is the fix,
+   * and it went this way round because the stroke mode cannot be one-shot:
+   * painting a run is the whole of what it is for. This sentence had it
+   * backwards for a while, and scripts/check-map.mjs — written against it —
+   * could not pass until both were put right.
+   *
+   * The board draws a stipple as a scatter of dots (map.c:2872), so while
+   * this is on the swatches wear the dots and say so — see `asMaybes`, and
+   * `arms` on CursorKey, which is the button that turns it over.
    */
   const [maybe, setMaybe] = useState(false)
   /*
    * The stroke mode, and which key it is painting with — Pattern's, and see
-   * `sweeps` and `brush` on CursorKey.
-   *
-   * A mode where the one above is a modifier, and the difference is what each
-   * is for: Map's arms the *next* press, this one arms every arrow until it is
-   * turned off, because painting a run means walking without stopping to rearm.
+   * `sweeps` and `brush` on CursorKey. The same lifetime as the mode above,
+   * for the reason above.
    *
    * The colour is the slot number of a key with a `brush`, so pressing a colour
    * chooses it. Zero rather than "none": the mode has to be painting something
@@ -1181,7 +1187,10 @@ export default function PuzzleHost({
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen || typesOpen) return
+      // Both sheets, not just one of them: with the menu open and focus on a
+      // plain button, `n` used to deal a new game behind it — measured, the
+      // DESC changed under an open menu — while the types sheet blocked it.
+      if (dialog || helpOpen || typesOpen || menuOpen) return
       /*
        * The board had it first and spent it. Undo, redo and new game are the
        * back end's own one-key shortcuts, so with the board focused the press
@@ -1782,7 +1791,10 @@ export default function PuzzleHost({
                 // Keep focus on the board, the same way the keypad does.
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  const armed = primed === null ? null : acts[primed].primes
+                  // Optional-chained not out of habit: nothing clears `primed`
+                  // when `acts` changes shape, which no puzzle with an arming
+                  // key does today — this is the backstop for the day one does.
+                  const armed = primed === null ? null : (acts[primed]?.primes ?? null)
                   /*
                    * Spent by the press only if the press landed, which is not
                    * fussiness: upstream sets `dragging` *before* it tries to
@@ -2144,7 +2156,11 @@ export default function PuzzleHost({
                     const first = clears(cursor, labels)
                     if (first) {
                       sendKey(first)
-                      const now = { ...labelsRef.current, opened: opened ?? undefined, walked }
+                      // The full label set, the same one every other call gets:
+                      // today no puzzle has both `replaces` and `holds`, but a
+                      // recheck that quietly reads less than the first check is
+                      // how that assumption would fail without a symptom.
+                      const now = { ...labelsRef.current, opened: opened ?? undefined, walked, stand }
                       if (wouldSend(name, cursor, now, awake) === null) apiRef.current?.undo()
                       else sendKey(key)
                       return
