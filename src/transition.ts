@@ -1,3 +1,5 @@
+// 换屏幕和画廊收卡都走这里:feature test、reduced-motion、把 React 渲染塞进
+// 被捕获帧的 flushSync,三样别在别处写第二遍。
 import { flushSync } from 'react-dom'
 
 type ViewTransition = { finished: Promise<void> }
@@ -13,6 +15,8 @@ export function canTransition(): boolean {
   )
 }
 
+// 第二次 transition 会让浏览器放弃第一次,而被放弃那次的 finished 在新一次接管
+// root 之后才 settle:live 计数防老 transition 的收尾把新一次的 data-transition 扒掉。
 let live = 0
 
 export function withViewTransition(

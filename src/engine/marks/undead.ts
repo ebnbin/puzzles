@@ -36,6 +36,9 @@ type Sight = {
   ends: [number, number]
 }
 
+// 镜前算 vampire、镜后算 ghost(手册:vampire 在镜中隐形,ghost 只在镜中可见),
+// zombie 恒算;同一格被视线穿过两次就计两次,手册明说——累加不是重复计数 bug,
+// 也别凭民俗直觉对调 ghost/vampire。
 function weigh(walk: number[]): Map<number, Record<number, number>> {
   const out = new Map<number, Record<number, number>>()
   let mirrored = false
@@ -194,6 +197,9 @@ export function readUndead(lines: Field[]): Board | null {
             if (values[square]) fixed += weight[values[square]]
             else open.push([square, weight])
           }
+          // 视线上有「空着且零候选」的格子就整条线跳过:那只说明玩家已把棋盘弄
+          // 矛盾,对线上其余格子什么都说明不了;不跳过 Math.min/max 会吃空数组
+          // 得 ±Infinity,把候选成片清空。
           if (open.some(([square]) => candidates[square].size === 0)) continue
 
           const least = new Map<number, number>()

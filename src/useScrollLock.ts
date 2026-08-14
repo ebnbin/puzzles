@@ -1,5 +1,7 @@
 import { useLayoutEffect } from 'react'
 
+// y 必须由调用方在打开 overlay 的那次点击时捕获传入:打开 dialog 时浏览器自己的
+// focus 滚动先把文档滚回顶部,effect 里再读 scrollY 只会读到 0。
 export function useScrollLock(y: number) {
   useLayoutEffect(() => {
     const body = document.body

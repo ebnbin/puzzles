@@ -5,6 +5,7 @@ const DISMISS_PX = 88
 const DISMISS_VELOCITY = 0.4
 const OUT_MS = 180
 const BACK_MS = 220
+// 必须和 index.css 里 sheet 变居中 dialog 的断点(48em)一致,两处一起改。
 const DESKTOP = '(min-width: 48em)'
 const CONTROLS = 'button, a, input, select, textarea, label'
 

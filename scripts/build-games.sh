@@ -10,6 +10,9 @@ OUT_ENGINE="$ROOT/public/engine"
 
 EMSDK_VERSION=6.0.4
 
+# emscripten 6.x 拒绝上游默认的老浏览器目标,这三条地板是编得过的最低值。
+# 产物和上游官网的二进制不同是正常的(他们开 assertions,体积约两倍):
+# cmp 保证的等同只存在于我们自己的两次构建之间。
 MIN_CHROME_VERSION=85
 MIN_FIREFOX_VERSION=79
 MIN_SAFARI_VERSION=150000
@@ -41,6 +44,8 @@ echo "==> building manual"
 node "$ROOT/scripts/build-doc.mjs"
 
 echo "==> building ES modules"
+# 不能用 --pre-js 附加我们的 wrapper:emcc 对它是追加不是替换,两份都会跑,
+# 上游对 Module 的整体赋值会丢掉宿主传入的对象。所以整树拷贝后换掉两个文件。
 rm -rf "$BUILD/src-esm"
 cp -r "$SRC" "$BUILD/src-esm"
 cp "$ROOT/engine/puzzle-pre.js" "$BUILD/src-esm/emccpre.js"

@@ -1,6 +1,13 @@
+/*
+ * 上游 emccpre.js 的替身(emcc --pre-js):不碰 DOM,只把请求转发给宿主对象。
+ * MODULARIZE 下工厂以 var Module = moduleArg 开头,这里只能往 Module 上并东西;
+ * 照上游那样整体赋值 var Module = {...} 会把调用者传入的宿主全丢掉。
+ * 换这层绝不能影响 .wasm,build-games.sh 用 cmp 保证。
+ */
 var PZ = Module['puzzle'];
 
 Module['noExitRuntime'] = true;
+/* main() 只认 # 开头的 argv[1](它期待的是 URL fragment),空串 = 随机发牌。 */
 Module['arguments'] = [PZ.gameId ? '#' + PZ.gameId : ''];
 
 var command;

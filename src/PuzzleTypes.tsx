@@ -34,6 +34,7 @@ export default function PuzzleTypes({
   const t = useStrings()
 
   const choosePreset = (value: number) => {
+    // 参数的 config box 开着时后端不接受 preset:选之前必须先把它关掉。
     if (custom) onCloseCustom()
     onSelectPreset(value)
   }

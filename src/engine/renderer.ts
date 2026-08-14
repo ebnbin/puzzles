@@ -52,6 +52,8 @@ export class CanvasRenderer {
     return true
   }
 
+  // 两种主题都返回 null,是故意的:浅色棋盘要逐像素等于上游,深色由 palette.ts
+  // 整表翻译,谁都不要浏览器的默认色掺进来。
   defaultColour(): [number, number, number] | null {
     const css = window.getComputedStyle(this.onscreen).backgroundColor
     const m = css.match(
@@ -113,6 +115,8 @@ export class CanvasRenderer {
     this.tape = fn ? [] : null
   }
 
+  // map 和 palisade 都从这份录像读事实(线索表、光标框):改了录制要跑
+  // scripts/check-map.mjs、check-clues.mjs、check-palisade.mjs。
   record(): void {
     this.tape = []
   }
@@ -123,6 +127,8 @@ export class CanvasRenderer {
     return tape
   }
 
+  // 只有 BACKGROUND 槽直接查表:背景槽在 FIGURE 游戏里另兼第二职,统一走 ink()
+  // 会把暗色棋盘刷灰;非背景的 rect 是画图不是铺底(Undead 的瞳孔是 1x1 rect)。
   rect(x: number, y: number, w: number, h: number, colour: number) {
     this.tape?.push({ kind: 'rect', x, y, w, h, colour })
     this.ctx.fillStyle = colour === BACKGROUND ? this.colours[colour] : this.ink(colour)
@@ -140,6 +146,8 @@ export class CanvasRenderer {
     this.ctx.restore()
   }
 
+  // width===1 是上游 draw_line 与 draw_thick_line 的分界:细线是 figure 笔画走
+  // ink(),粗线是棋盘家具查表(Undead 的镜子是唯一的 thick line)。
   line(x1: number, y1: number, x2: number, y2: number, width: number, colour: number) {
     const { ctx } = this
     const css = width === 1 ? this.ink(colour) : this.colours[colour]
@@ -253,6 +261,7 @@ export class CanvasRenderer {
     return midpoint
   }
 
+  // text 永远查表、不走 ink():按 figure 例外回浅色的那张表是被有意撤掉的方案,不要恢复。
   text(
     x: number,
     y: number,

@@ -52,6 +52,8 @@ const arrow = async (d) => {
 const ours = () => page.evaluate(() => document.querySelector('.keypad button').disabled)
 const theirs = () => page.evaluate(() => {
   const api = window.__puzzle
+  // 读 STATEPOS、不数 MOVE 行:序列化含被 undo 的走子,数行曾让这个检查认可过
+  // 一个坏 reader。
   const pos = (s) => Number(/^STATEPOS\s*:\d+:(\d+)/m.exec(s)?.[1] ?? -1)
   const before = pos(api.saveGame())
   api.key(0, 'Enter', '', 0, 0, 0)

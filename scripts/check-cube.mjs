@@ -6,6 +6,9 @@ const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
 const LABELS = ['Left', 'Right', 'Up', 'Down']
 const OPPOSITE = [1, 0, 3, 2]
 
+// 这份走位模型是照 cube.c:325-467 独立重写的第二份,只用于决定往哪走、绝不作为
+// 期望值;不能改成 import src/engine/cube.ts——与被测代码共享实现,共同的错误
+// 就互相印证了,检查从此永远通过、什么也不测。
 function squares(solid, d1, d2) {
   const out = []
   if (solid === 'c') {

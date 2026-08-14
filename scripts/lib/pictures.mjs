@@ -45,11 +45,16 @@ export async function openBoard(browser, { game, theme, viewport = { width: 900,
       localStorage.clear()
       localStorage.setItem('puzzles.recent', name)
       localStorage.setItem('puzzles.playing', '1')
+      // 主题必须写 puzzles.theme:app 自己解析主题、不问系统,context 的
+      // colorScheme 对它无效,漏写则暗色图静默拍成亮图。introduced 要预置,
+      // 否则首访的介绍浮层会被拍进棋盘。
       localStorage.setItem('puzzles.theme', want)
       localStorage.setItem('puzzles.introduced', JSON.stringify([name]))
     },
     { name: game, want: theme },
   )
+  // 写完 localStorage 必须经 about:blank 再回来:对同一地址的第二次 goto
+  // 不会重新加载,种下的状态到不了 app。
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
   await page.waitForFunction(() => document.querySelector('.host-board')?.width > 0, null, {
@@ -99,6 +104,8 @@ export const boardSize = (page) =>
     return { w: c.width, h: c.height }
   })
 
+// 补方底色取棋盘左上角的实际像素,不能查调色板:Untangle 的角是外边距 #e6e6e6
+// 而非它的 COL_BACKGROUND #bbbbbb,查表会在缩略图两侧露缝。
 export const cornerColour = (page) =>
   page.evaluate(() => {
     const d = document.querySelector('.host-board').getContext('2d').getImageData(0, 0, 1, 1).data

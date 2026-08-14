@@ -1,3 +1,5 @@
+// 三个真 dialog(设置、玩法、后端 config box)共用的壳:scrim、卡片、aria、Escape。
+// 底部拉起的 sheet 不是 dialog,不进这里;sheet 叠层时 Escape 关哪层由 PuzzleHost 排。
 import { useEffect } from 'react'
 import Icon from './Icon'
 import { useStrings } from './i18n'

@@ -1,3 +1,6 @@
+// 两块屏幕(画廊、谜题)互相替换,没有层级:地址永远是 /,全 app 只有一次
+// replaceState,Back 从哪块都离开 app——这是语义不是缺陷。不要引入 router,
+// 也不要往 hash 里塞状态;被拆掉的正是「假装它们是层级」的那套复杂度。
 import { useSyncExternalStore } from 'react'
 import { readScroll, writeScroll } from './engine/saves'
 import { withViewTransition } from './transition'

@@ -137,6 +137,8 @@ body {
   letter-spacing: -0.015em;
 }
 
+/* scroll-margin 必须落在 a[name] 上:halibut 输出 HTML4 命名锚,fragment 滚到的
+   是标题里那个空 <a>;同样的 margin 写在 h1/h2/h3 上看起来对但不生效。 */
 .doc-main a[name] {
   scroll-margin-top: 4.5rem;
 }

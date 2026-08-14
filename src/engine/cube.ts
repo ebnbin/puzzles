@@ -1,5 +1,11 @@
+// 把上游的网格几何在这一侧重写了一遍,为的是给滚不过去的方向置灰。模型漂了
+// 的表现是「能按的键被灰掉」,这是唯一读者报不上来的故障:错灰的按钮和该灰的
+// 长得一模一样。升级 vendor/sgtpuzzles 后必须跑 scripts/check-cube.mjs。
 import { done, fields, find } from './marks/save'
 
+// ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);
+// MOVES 的字母和每个 Square.dirs 的下标都按同一套编号,不可为可读性重排——
+// rolls() 末行用下标当方向过滤,重排后灰键落到错误方向而 build 全绿。
 export const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'] as const
 const LEFT = 0
 const RIGHT = 1
@@ -20,6 +26,9 @@ export function parseParams(text: string): Params | null {
   return { solid: m[1], d1, d2 }
 }
 
+// 输出顺序必须逐格等于上游 enum_grid_squares 的回调顺序(cube.c:325-467):
+// 数组下标就是 DESC 里的起始格号和走子所指的格号;三角网格每行先下三角、后上
+// 三角,即上游两个循环的先后。改遍历顺序 = 模型与引擎的格号静默错位。
 function squares({ solid, d1, d2 }: Params): Square[] {
   const out: Square[] = []
   if (solid === 'c') {

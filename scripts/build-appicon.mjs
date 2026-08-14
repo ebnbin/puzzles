@@ -13,8 +13,13 @@ const SEAM = '#000000'
 
 const WIDTH = 4
 
+// 先 2048 再缩是算好的:tiles 是 256 的像素画,须 8x 整数放大且 smoothing off;
+// 缩到 512 时 4x4 平均恰好整落在 8x8 块内,格线不糊,而对角缝和圆角恰恰靠这次
+// 平均抗锯齿。改 CANVAS 必须保持这套整除关系。
 const CANVAS = 2048
 
+// 四个都出正方形、不自带圆角:iOS/Android 都会按自己的形状再裁一次,预圆角会
+// 被裁出一圈底色环;manifest 的 purpose "any maskable" 说的就是「随便裁」。
 const SIZES = [
   { file: 'icon-512.png', size: 512 },
   { file: 'icon-192.png', size: 192 },

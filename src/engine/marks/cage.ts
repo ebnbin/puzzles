@@ -2,6 +2,9 @@ const LIMIT = 200_000
 
 export type CageOp = 'a' | 'm' | 's' | 'd'
 
+// 返回 null 的意思是「这个 cage 放着别动」(枚举超限或无解都是),调用方
+// continue,不是整盘拒绝——无解只说明玩家棋盘已矛盾,清空该 cage 的候选同样
+// 是错的方向:标记多了只是不整洁,少了就是错。
 export function cageDigits(
   cells: number[],
   value: number,
@@ -9,6 +12,9 @@ export function cageDigits(
   size: number,
   candidates: Set<number>[],
   digits: number[],
+  // Killer 传 true(cage 内数字不得重复是上游明文规则,且 cage 不保证同行同列,
+  // 从 groups 推不出来);Keen 传 false(cage 内允许重复,只受拉丁方限制)。
+  // 两个布尔不能「统一」,统一哪边都会写错标记。
   distinct: boolean,
 ): Set<number>[] | null {
   const count = cells.length

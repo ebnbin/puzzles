@@ -53,6 +53,8 @@ export function usePuzzleFit(
 
       if (!natural.current) natural.current = naturalSize(api, renderer)
 
+      // 报给后端的是封顶后的房间,不是真实面积:后端在 new game/换 preset/改偏好/
+      // 读档后会自己重新量,答真实面积等于放那些路径越过 MAX_ZOOM。
       const w = Math.min(width, natural.current.w * MAX_ZOOM)
       const h = Math.min(height, natural.current.h * MAX_ZOOM)
 
@@ -62,6 +64,8 @@ export function usePuzzleFit(
       if (key === last) return
       last = key
 
+      // rescale 不是笔误:正门 resize() 的守卫拿设备像素比逻辑像素,2x 屏且要到
+      // 2 倍自然尺寸时恰好相等——midend_size 已跑而 canvas 没动,首次点击才局部重画。
       api.rescale()
     }
 

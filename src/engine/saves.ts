@@ -1,3 +1,5 @@
+// 这些 key 已经发布:改名 = 用户的存档、设置、隐藏列表全部作废。读取一律容忍
+// 垃圾值,所以「加」是安全的,「改」和「删」不是。全表和各 key 的语义见 CLAUDE.md。
 const PLAYING = 'puzzles.playing'
 const RECENT = 'puzzles.recent'
 const SCROLL = 'puzzles.scroll'
@@ -8,6 +10,8 @@ const MAGIC = 'SAVEFILE'
 
 const STATES = /^NSTATES\s*:\d+:(\d+)$/m
 
+// 问 NSTATES>1,不能问 midend_can_undo(它跨局保留 undo,新发牌后也为真)。
+// 读不懂的存档一律按「玩过」:代价不对称——多一次白写 vs 丢玩家一局。
 export function isPlayed(game: string): boolean {
   const found = STATES.exec(game)
   return found ? Number(found[1]) > 1 : true
@@ -85,6 +89,8 @@ export function writeScroll(y: number): void {
   }
 }
 
+// 内存副本不是优化:localStorage 被禁(隐私模式/配额)时读回永远是「没介绍过」,
+// 会话内副本是介绍语不反复弹的唯一屏障。
 let introduced: Set<string> | null = null
 
 function read(): Set<string> {
@@ -115,6 +121,8 @@ export function markIntroduced(name: string): void {
 
 export function forgetEverything(): void {
   try {
+    // 先收集完 key 再删:边枚举边 removeItem 会让 store.key(i) 实时重新编号,
+    // 隔一个跳一个,「全部忘掉」只删一半。
     const store = window.localStorage
     const mine: string[] = []
     for (let i = 0; i < store.length; i++) {

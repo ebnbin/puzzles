@@ -179,6 +179,9 @@ export default function PuzzleHost({
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
 
+  // 读棋盘要 load 存档,而 midend_deserialise 又让 onPermalinks 发新对象(desc 不变):
+  // 这条链只能以 desc 字符串为依赖,reading 挡的就是这个环。「补全」成对象依赖或
+  // 删掉守卫,每次按键都会清空 clues、重置光标。
   const reading = useRef(false)
   useEffect(() => {
     const api = apiRef.current
@@ -264,6 +267,9 @@ export default function PuzzleHost({
     if (ready && owesIntroduction(name)) setIntro(true)
   }, [ready, name])
 
+  // StrictMode 在开发下同步跑 effect→cleanup→effect,而 wasm 没有 teardown:
+  // startedRef 挡住第二次启动;cleanup 用 microtask 缓期执行——真卸载没有下一次
+  // 运行来翻案,被 StrictMode 立刻复活的则什么都不杀。
   useEffect(() => {
     effectAlive.current = true
     liveRef.current = true
@@ -293,6 +299,8 @@ export default function PuzzleHost({
             } finally {
               restoring.current = false
             }
+            // 没走过子的存档也要先 load 再用 newGame 盖掉,不能跳过 load:
+            // 存档里还有玩家选的参数(尺寸、难度),参数要活下来,棋盘不留。
             if (restored && !isPlayed(saved)) api.newGame()
           }
           setPresets(list)
@@ -320,6 +328,8 @@ export default function PuzzleHost({
           readRolls()
           readHeld()
         },
+        // emcc.c 先报 CURSOR_SELECT2 再报 CURSOR_SELECT,这里的形参序(space, enter)
+        // 是故意的;types.ts 里叫 (lsk, csk) 是同一对的另一套名字,不是谁写反了。
         onKeyLabels: (space, enter) => {
           labelsRef.current = { enter, space }
           setOpened((was) => opener(name, { enter, space }, was))
@@ -332,12 +342,17 @@ export default function PuzzleHost({
           spot.current = { x: 0, y: 0 }
           setTyped(0)
         },
+        // 第一次报的一定是默认预设:emcc.c 建菜单时先调 select_appropriate_preset(),
+        // 读存档和玩家选择都在其后,所以「第一个赢」拿到的就是 default_params()。
+        // 四十个游戏里二十个的默认不是列表第一项,这个值不能猜。
         onPresetSelected: (index) => {
           setStandard((first) => first ?? index)
           setSelected(index)
         },
         onSolveRemoved: () => setCanSolve(false),
         onDialog: (spec) => {
+          // game ID 和 seed 也是 config box,但只有一个字段、值早已在手:
+          // 借用而不显示,box 的答案在路过这里时被截下。
           if (spec && borrowed.current) {
             borrowed.current.spec = spec
             return
@@ -409,10 +424,13 @@ export default function PuzzleHost({
     const renderer = rendererRef.current
     if (!renderer || !ready) return
     if (!renderer.setDark(theme === 'dark')) return
+    // rescale 而不是 resize:resize_puzzle 只在算出的尺寸变了才重画,这里尺寸没变。
     apiRef.current?.rescale()
   }, [theme, ready])
 
   const [swatches, setSwatches] = useState<ReadonlyMap<number, string>>(NO_SWATCHES)
+  // 必须是 effect,且声明在上面翻主题的 effect 之后:那个 effect 才把 renderer 的
+  // 调色表翻面,effect 按声明顺序跑,这里是新颜色存在的第一刻;memo 会读到旧主题。
   useEffect(() => {
     const renderer = rendererRef.current
     if (!renderer || !ready) return
@@ -441,6 +459,8 @@ export default function PuzzleHost({
     (kind: InlineKind) => {
       const api = apiRef.current
       if (!api || dialog || inlineRef.current) return
+      // 后端只有一个 config box(game ID、参数、偏好共用),打开了就必须有人回答;
+      // pending 标签先立好,说明这次要的是哪一个。
       inlinePending.current = kind
       ask(api, kind)
     },
@@ -554,6 +574,8 @@ export default function PuzzleHost({
         return
       }
       if (dialog || helpOpen || typesOpen || menuOpen) return
+      // 棋盘聚焦时后端已经吃过这一按,defaultPrevented 挡二次处理(否则一按两撤);
+      // 走 api.key 而不是直接 undo():快捷键可能被玩家关掉,有的游戏把这些字母当走子。
       if (e.defaultPrevented) return
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
