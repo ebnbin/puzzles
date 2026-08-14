@@ -46,14 +46,20 @@ git push --force-with-lease
 `--force-with-lease` 而不是 `--force`,而且只对自己的分支。**任何情况下都不要对 `main`
 做 force push。**
 
-### 自己合,还是停下来问
+### 合并:开 PR,然后停下
 
-检查绿了就自己合,不用等谁批准——单人仓库里自己 approve 自己是仪式,不是检查。真正的检查
-是 `npm run build` 和预览页面上的那一眼。
+**任何 PR,未经 owner 明确确认,Claude 不得合并。** 检查绿了也一样。`npm run build` 能
+证明代码没有坏,证明不了这个改动是 owner 此刻想让真实读者拿到的东西——上不上线是 owner
+的决定,不是检查的推论。把 PR 链接和检查结果交出来,然后停在那里。
 
-但改到「已经发布了,这几样改起来不再免费」那节列的任何一条,先问:localStorage 的 key、
-`public/` 里的 URL、`sw.js` 的 `CACHE`、`manifest.webmanifest` 的 `id`、`vercel.json` 里的
-`Cache-Control`。那些是不可逆的,而不可逆正是要有人拍板的理由。
+「确认」指看得见的明确表态:owner 在会话里说了「合并」,或者自己在 GitHub 上点了按钮。
+确认之后 Claude 代为合并是允许的(rebase merge,见上节)。但「没有问题,开始」是在批准
+动手做,不是在批准上线——把前者读成后者,正是这条规则会被写下来的原因。
+
+改到「已经发布了,这几样改起来不再免费」那节列的任何一条——localStorage 的 key、`public/`
+里的 URL、`sw.js` 的 `CACHE`、`manifest.webmanifest` 的 `id`、`vercel.json` 里的
+`Cache-Control`——要问得更早:动手之前就问。那些是不可逆的,该讨论的不是「合不合」,
+而是「做不做」。
 
 ### 预览
 
