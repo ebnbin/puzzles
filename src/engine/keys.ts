@@ -2762,6 +2762,36 @@ const CURSOR_KEYS: Record<string, CursorKey[]> = {
   ],
 
   /*
+   * Mosaic, whose two keys are Unruly's cycle wound both ways, and whose labels
+   * are Unruly's word for word (mosaic.c:1037-1044). It has not been given the
+   * pair of colour switches beside it because nobody has asked for that yet;
+   * this is the entry as it stood, put back after a careless edit took it out
+   * with its neighbour's.
+   */
+  mosaic: [
+    {
+      key: 'Enter',
+      icon: 'black',
+      says: 'blackSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+    {
+      key: ' ',
+      icon: 'white',
+      says: 'whiteSquare',
+      faces: {
+        Black: { icon: 'black', says: 'blackSquare' },
+        White: { icon: 'white', says: 'whiteSquare' },
+        Empty: { icon: 'emptyCell', says: 'emptySquare' },
+      },
+    },
+  ],
+
+  /*
    * Range's three, Pattern's shape rather than the cycle upstream reads.
    *
    * Its two keys are a cycle wound both ways — empty steps to a dot steps to a
