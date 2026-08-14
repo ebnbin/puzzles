@@ -66,6 +66,7 @@ export default function LauncherSettings({
         href={docHref(lang)}
         onClick={(e) => {
           e.preventDefault()
+          onClose()
           openManual()
         }}
       >
