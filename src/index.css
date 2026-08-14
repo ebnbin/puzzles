@@ -44,6 +44,7 @@ body {
 input,
 textarea,
 .dialog-prose,
+.doc-main,
 footer p {
   -webkit-touch-callout: default;
   -webkit-user-select: text;
