@@ -165,20 +165,19 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
     <div className="doc-viewer" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
       <header className="doc-viewer-top">
         <div className="doc-viewer-bar">
-        {depth > 0 ? (
-          <button
-            type="button"
-            className="dialog-close"
-            aria-label={t.settings.manualBack}
-            onClick={back}
-          >
-            <Icon name="back" size={20} />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="doc-viewer-btn"
+          aria-label={t.settings.manualBack}
+          disabled={depth === 0}
+          onClick={back}
+        >
+          <Icon name="back" size={20} />
+        </button>
         <span className="doc-viewer-title">{t.settings.manual}</span>
         <button
           type="button"
-          className="dialog-close"
+          className="doc-viewer-btn"
           aria-label={t.play.close}
           onClick={closeManual}
         >
