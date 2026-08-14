@@ -1730,11 +1730,16 @@ p.notice-intro button:active {
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--grid-image);
+  background-size: var(--grid-size);
+  background-position: var(--grid-position);
 }
 
 .doc-viewer-top {
   flex: none;
+  background-color: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--edge);
 }
 
@@ -1796,6 +1801,9 @@ p.notice-intro button:active {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  font-size: var(--t-md);
+  line-height: 1.7;
+  text-wrap: pretty;
 }
 
 .doc-viewer-note {

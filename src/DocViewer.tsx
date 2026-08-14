@@ -61,12 +61,16 @@ const subscribe = (listener: () => void) => {
 
 const cache = new Map<string, string>()
 
-// 提取锚和 verify-doc 用的是同一对标记,那边逐页校验过它的存在。
+// 提取锚和 verify-doc 用的是同一对标记,那边逐页校验过它的存在;
+// 连同 <main> 和 licence 页脚一起原样搬进来,让 doc.css 直接认。
 const body = (html: string): string => {
   const open = html.indexOf('<main class="doc-main">')
+  if (open < 0) throw new Error('doc page without <main>')
+  const foot = html.lastIndexOf('</footer>')
+  if (foot >= 0) return html.slice(open, foot + '</footer>'.length)
   const close = html.lastIndexOf('</main>')
-  if (open < 0 || close < 0) throw new Error('doc page without <main>')
-  return html.slice(html.indexOf('>', open) + 1, close)
+  if (close < 0) throw new Error('doc page without </main>')
+  return html.slice(open, close + '</main>'.length)
 }
 
 export default function DocViewer() {
@@ -194,7 +198,7 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
             </button>
           </p>
         ) : html !== null ? (
-          <main className="doc-main" onClick={follow} dangerouslySetInnerHTML={{ __html: html }} />
+          <div onClick={follow} dangerouslySetInnerHTML={{ __html: html }} />
         ) : null}
       </div>
     </div>
