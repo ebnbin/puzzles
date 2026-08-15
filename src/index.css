@@ -945,9 +945,12 @@ p.notice-intro button:active {
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
+/* padding 和 .play-arrows 的一样,只是这一块不画底板:两块内边距对称,里面的键
+   才会按构造对齐。底板那块少了这一圈,方向键会整体高出 4px。 */
 .play-acts {
   display: flex;
   gap: var(--key-gap);
+  padding: var(--key-gap);
 }
 
 .play-acts button {
