@@ -55,6 +55,13 @@ export interface PuzzleApi {
 
   // 丢弃 puzzle 前必须调用:wasm 没有 teardown,计时中的 rAF 链会抓着死实例永远跑。
   stopTimer(): void
+
+  // 以下五个是后开的洞(见 scripts/build-games.sh 的 EXPORTS)。全部可选,因为
+  // sw.js 对 /engine/** 是 stale-while-revalidate:老用户第一次访问跑的是上一版
+  // 引擎,那时它们不存在。每个调用点都要能降级,不能假设有。
+  status?(): number
+  requestKeys?(): { button: number; label: string | null }[]
+  freezeTimer?(proportion: number): void
 }
 
 export type KeyAction = 'possible' | 'single' | 'blank'

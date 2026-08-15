@@ -10,6 +10,22 @@ OUT_ENGINE="$ROOT/public/engine"
 
 EMSDK_VERSION=6.0.4
 
+# 上游 emcc_export_list 的逐字副本 + 我们额外要的几个。emcc 对 -sEXPORTED_FUNCTIONS
+# 是覆盖不是追加,所以只能整份重述;上游那 20 条少一条,JS 侧就会有入口凭空消失。
+# 两次构建喂同一份,cmp 才继续证明「换 JS 不动二进制」。
+# 加的这几个上游自己不调用,今天会被裁掉,导出即是把它们请回来(每个几百字节)。
+EXPORTS='
+_mouseup,_mousedown,_mousemove,_key,
+_timer_callback,_command,
+_get_text_format,_free_text_format,
+_get_save_file,_free_save_file,_load_game,
+_dlg_return_sval,_dlg_return_ival,
+_resize_puzzle,_restore_puzzle_size,_rescale_puzzle,
+_prefs_load_callback,_malloc,_free,_main,
+_midend_status,_midend_request_keys,_free_keys,_midend_freeze_timer'
+EXPORTS="$(echo "$EXPORTS" | tr -d ' \n')"
+LINK_FLAGS="-sEXPORTED_FUNCTIONS=[$EXPORTS]"
+
 # emscripten 6.x 拒绝上游默认的老浏览器目标,这三条地板是编得过的最低值。
 # 产物和上游官网的二进制不同是正常的(他们开 assertions,体积约两倍):
 # cmp 保证的等同只存在于我们自己的两次构建之间。
@@ -35,7 +51,8 @@ emcmake cmake -S "$SRC" -B "$BUILD/web" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DMIN_CHROME_VERSION="$MIN_CHROME_VERSION" \
   -DMIN_FIREFOX_VERSION="$MIN_FIREFOX_VERSION" \
-  -DMIN_SAFARI_VERSION="$MIN_SAFARI_VERSION"
+  -DMIN_SAFARI_VERSION="$MIN_SAFARI_VERSION" \
+  -DCMAKE_EXE_LINKER_FLAGS="$LINK_FLAGS"
 
 echo "==> compiling (reference)"
 cmake --build "$BUILD/web" --parallel "$(nproc)"
@@ -58,7 +75,7 @@ emcmake cmake -S "$BUILD/src-esm" -B "$BUILD/esm" -G Ninja \
   -DMIN_CHROME_VERSION="$MIN_CHROME_VERSION" \
   -DMIN_FIREFOX_VERSION="$MIN_FIREFOX_VERSION" \
   -DMIN_SAFARI_VERSION="$MIN_SAFARI_VERSION" \
-  -DCMAKE_EXE_LINKER_FLAGS="-sSTRICT_JS=0 -sMODULARIZE=1 -sEXPORT_ES6=1"
+  -DCMAKE_EXE_LINKER_FLAGS="$LINK_FLAGS -sSTRICT_JS=0 -sMODULARIZE=1 -sEXPORT_ES6=1"
 
 cmake --build "$BUILD/esm" --parallel "$(nproc)"
 

@@ -263,6 +263,9 @@ mergeInto(LibraryManager.library, {
     },
 
     js_load_prefs: function(me) {
+        /* 上游唯一一次把 midend 指针交给 JS。存下来是 puzzle-pre.js 里那几个
+           midend_* 直调的前提;这一路在 main() 里无条件走到,早于 js_post_init。 */
+        puzzle_me = me;
         var prefsdata = PZ.loadPrefs();
         if (prefsdata === undefined || prefsdata === null) return;
         var lenbytes = lengthBytesUTF8(prefsdata) + 1;
