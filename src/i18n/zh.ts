@@ -48,6 +48,7 @@ export const zh: Strings = {
     menu: '菜单',
     switcher: '全部谜题',
     keypad: '谜题按键',
+    over: '这一局结束了',
     error: '启动这个谜题时出错。',
     arrows: {
       group: '方向键',

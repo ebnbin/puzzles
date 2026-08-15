@@ -638,6 +638,40 @@ p.notice-error.is-floating {
   pointer-events: none;
 }
 
+/* 一局走到头之后贴着棋盘底边浮出来,正好落在按键区上方。绝对定位不是装饰:进文档流
+   会把棋盘挤小,areaRef 上的 ResizeObserver 会跟着重排一次,棋盘在收尾时抖一下。 */
+.play-over {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  animation: over-in var(--dur) var(--ease);
+}
+
+.play-over button {
+  flex: 0 1 10rem;
+  min-height: var(--tap-h);
+  padding: 0 0.9rem;
+  box-shadow: var(--shadow-2);
+}
+
+@keyframes over-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-over {
+    animation: none;
+  }
+}
+
 p.notice-intro {
   background: var(--raised);
   color: var(--text);
@@ -697,7 +731,8 @@ p.notice-intro button:active {
 .play-actions button,
 .keypad button,
 .sheet-actions button,
-.dialog-buttons button {
+.dialog-buttons button,
+.play-over button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -718,7 +753,8 @@ p.notice-intro button:active {
   .play-actions button:hover:not(:disabled),
   .keypad button:hover,
   .sheet-actions button:hover,
-  .dialog-buttons button:hover {
+  .dialog-buttons button:hover,
+  .play-over button:hover {
     background: var(--surface-3);
   }
 }
@@ -726,7 +762,8 @@ p.notice-intro button:active {
 .play-actions button:active:not(:disabled),
 .keypad button:active,
 .sheet-actions button:active,
-.dialog-buttons button:active {
+.dialog-buttons button:active,
+.play-over button:active {
   background: var(--surface-3);
   transform: scale(0.96);
 }
@@ -1100,13 +1137,15 @@ p.notice-intro button:active {
   color: var(--text-2);
 }
 
-.sheet-actions button.is-primary {
+.sheet-actions button.is-primary,
+.play-over button.is-primary {
   background: var(--accent);
   color: var(--accent-on);
   font-weight: 600;
 }
 
-.sheet-actions button.is-primary svg {
+.sheet-actions button.is-primary svg,
+.play-over button.is-primary svg {
   color: inherit;
 }
 
