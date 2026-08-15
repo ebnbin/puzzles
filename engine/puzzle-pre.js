@@ -15,6 +15,12 @@ var timer_callback;
 var dlg_return_sval, dlg_return_ival;
 var prefs_load_callback;
 
+/* midend 指针:上游只在 js_load_prefs 这一处把它交给 JS(为的是让 JS 再传回
+   prefs_load_callback)。下面几个 midend_* 直调都靠它,所以取值只能在调用那一刻,
+   attach 的时候它还是 0。 */
+var puzzle_me = 0;
+var midend_status, midend_request_keys, free_keys, midend_freeze_timer;
+
 var timer = null;
 var timer_reference;
 
@@ -36,6 +42,13 @@ function initPuzzle() {
     prefs_load_callback = Module.cwrap('prefs_load_callback', 'void',
                                        ['number', 'number']);
 
+    midend_status = Module.cwrap('midend_status', 'number', ['number']);
+    midend_request_keys = Module.cwrap('midend_request_keys', 'number',
+                                       ['number', 'number']);
+    free_keys = Module.cwrap('free_keys', 'void', ['number', 'number']);
+    midend_freeze_timer = Module.cwrap('midend_freeze_timer', 'void',
+                                       ['number', 'number']);
+
     PZ.attach({
         mousedown: Module.cwrap('mousedown', 'boolean',
                                 ['number', 'number', 'number']),
@@ -49,6 +62,32 @@ function initPuzzle() {
         resize: Module.cwrap('resize_puzzle', 'void', ['number', 'number']),
         restoreSize: Module.cwrap('restore_puzzle_size', 'void', []),
         rescale: Module.cwrap('rescale_puzzle', 'void', []),
+
+        status: function() { return midend_status(puzzle_me); },
+
+        /* key_label 是 { char *label; int button; },label 在前;上游要求用
+           free_keys 释放,不能自己 free。 */
+        requestKeys: function() {
+            var np = _malloc(4);
+            var keys = midend_request_keys(puzzle_me, np);
+            var n = getValue(np, 'i32');
+            _free(np);
+            if (!keys) return [];
+            var out = [];
+            for (var i = 0; i < n; i++) {
+                var label = getValue(keys + i * 8, '*');
+                out.push({
+                    button: getValue(keys + i * 8 + 4, 'i32'),
+                    label: label ? UTF8ToString(label) : null,
+                });
+            }
+            free_keys(keys, n);
+            return out;
+        },
+
+        freezeTimer: function(proportion) {
+            midend_freeze_timer(puzzle_me, proportion);
+        },
 
         enterGameId: function() { command(0); },
         enterSeed: function() { command(1); },
