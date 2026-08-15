@@ -7,6 +7,7 @@
   --surface-3: #e4e4e2;
   --raised: #ffffff;
   --edge: #e4e4e2;
+  --edge-key: #c2c2be;
   --edge-strong: #8a8a90;
 
   /* 不是设计选色,是 Pattern 运行中棋盘的实测值;dark 那组 = palette.ts 对同三色
@@ -77,6 +78,7 @@
   --surface-3: #2c2c34;
   --raised: #2c2c34;
   --edge: #26262d;
+  --edge-key: #43434f;
   --edge-strong: #6b6b7d;
 
   --cell-full: #0d0d0d;
