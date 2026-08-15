@@ -1,6 +1,8 @@
 // 重新实现上游 request_keys() 的结果(emcc.c 不调用它),按 game id 里的参数推;
 // 认不出的 id 一律不显示键盘,而不是显示错的。逐游戏的判据和踩过的坑在 docs/keys.md,
 // 改这里要同步改它。
+// 这份推导和上游的真答案对不对得上,由 scripts/check-keys.mjs 去问引擎
+// (midend_request_keys 已经导出);改 RULES、升级 vendor 之后跑它。
 import type { IconName } from '../Icon'
 import { COLOURS } from './map'
 import type { Border, Stand } from './palisade'
