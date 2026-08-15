@@ -72,28 +72,14 @@ export async function dealIconPosition(page, { game, redos }) {
   const proportion = redos.get(game)
   if (proportion === undefined) return { proportion }
 
-  const duration = await page.evaluate(async () => {
+  // freezeTimer 直接把动画按比例定在某一帧(midend_freeze_timer 设 anim_pos 后
+  // 重画并停表)。以前要先按 0.01 秒一步测出动画多长、再重放到比例点,量出来的
+  // 长度还带着一个量化误差。
+  await page.evaluate((p) => {
     const api = window.__puzzle
     api.redo()
-    api.stopTimer()
-    let t = 0
-    while (window.__animating && t < 5) {
-      api.tick(0.01)
-      t += 0.01
-    }
-    return t
-  })
-  await page.evaluate((text) => window.__puzzle.loadGame(text), save)
-  await page.waitForTimeout(300)
-  await page.evaluate(
-    ({ d, p }) => {
-      const api = window.__puzzle
-      api.redo()
-      api.stopTimer()
-      api.tick(d * p)
-    },
-    { d: duration, p: proportion },
-  )
+    api.freezeTimer(p)
+  }, proportion)
   await page.waitForTimeout(200)
   return { proportion }
 }
