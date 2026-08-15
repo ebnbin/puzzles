@@ -25,16 +25,21 @@ const at = () =>
     return m ? Number(m[1]) : NaN
   })
 
+// palisade 的「画边」「画叉」钉在 4、6 号格(编号见 src/engine/pad.ts),文档序即
+// 格子序,所以 nth(0)/nth(1) 就是这两个。
+const ACTS = ".play-arrows [data-slot='4'], .play-arrows [data-slot='6']"
+const WAY = { left: 1, down: 2, right: 3, up: 5 }
+
 const claims = () =>
-  page.evaluate(() =>
-    [...document.querySelectorAll('.play-arrows [data-act]')].map((b) => ({
+  page.evaluate((sel) =>
+    [...document.querySelectorAll(sel)].map((b) => ({
       dim: b.disabled,
       down: b.hasAttribute('data-on'),
     })),
-  )
+  ACTS)
 
-const press = (i) => page.locator('.play-arrows [data-act]').nth(i).click({ force: true })
-const arrow = (d) => page.locator(`.play-arrows [data-dir=${d}]`).click()
+const press = (i) => page.locator(ACTS).nth(i).click({ force: true })
+const arrow = (d) => page.locator(`.play-arrows [data-slot='${WAY[d]}']`).click()
 const undo = (n) => page.evaluate((k) => { for (let i = 0; i < k; i++) window.__puzzle.undo() }, n)
 
 const WALK = ['right', 'down', 'left', 'down', 'right', 'right', 'up', 'left']
