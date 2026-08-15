@@ -832,54 +832,75 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-.keypad button[data-whose],
-.play-actions button[data-whose] {
-  color: var(--accent);
+/* 四类按钮各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
+     区域 A(.keypad)  二类实心键面 · 四类只描边 · 三类圆角,和下面的方向键认亲
+     区域 B(.play-actions)  一类扁平只剩图标 · 三类实心圆
+   两区之间一道发丝线。改这里要同步 docs/keys.md 的分类,判据在 types.ts 的 KeyKind。 */
+
+.keypad button[data-kind='aid'] {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--edge);
+  color: var(--text-2);
 }
 
-.keypad button[data-whose]:disabled,
-.play-actions button[data-whose]:disabled {
+@media (hover: hover) {
+  .keypad button[data-kind='aid']:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.keypad button[data-kind='aid']:active {
+  background: var(--surface-2);
+}
+
+.keypad button[data-kind='aid']:disabled {
+  box-shadow: inset 0 0 0 1px var(--edge);
   color: var(--text-3);
+}
+
+.keypad button[data-kind='aim'],
+.play-arrows button {
+  border-radius: var(--r-full);
+}
+
+.play-acts button {
+  background: none;
+  color: var(--text-2);
+}
+
+@media (hover: hover) {
+  .play-acts button:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.play-acts button:active:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.play-actions {
+  border-top: 1px solid var(--edge);
 }
 
 .keypad button:disabled .key-peg {
   opacity: 0.35;
 }
 
+/* 上膛、刷、涂色这些「模式亮着」的状态,只出现在区域 B 的伴生键上。 */
 .play-actions button[data-on] {
-  background: var(--surface-3);
-}
-
-.keypad button[data-whose='ours'],
-.play-actions button[data-whose='ours'] {
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-}
-
-@media (hover: hover) {
-  .keypad button[data-whose='ours']:hover,
-  .play-actions button[data-whose='ours']:hover:not(:disabled) {
-    background: var(--accent-soft-hover);
-  }
-}
-
-.keypad button[data-whose='ours']:active,
-.play-actions button[data-whose='ours']:active {
-  background: var(--accent-soft-hover);
-}
-
-.play-actions button[data-whose='ours'][data-on] {
   background: var(--accent);
   color: var(--accent-on);
 }
 
 @media (hover: hover) {
-  .play-actions button[data-whose='ours'][data-on]:hover:not(:disabled) {
+  .play-actions button[data-on]:hover:not(:disabled) {
     background: var(--accent-hover);
   }
 }
 
-.play-actions button[data-whose='ours'][data-on]:active {
+.play-actions button[data-on]:active {
   background: var(--accent-hover);
 }
 
@@ -937,10 +958,19 @@ p.notice-intro button:active {
   height: var(--tap-w);
 }
 
+/* 方向键连着它的伴生键一起坐在一块底板上:整簇读作一个部件,和左边那四个
+   扁平的固定键分得开。十字的空格露出底板,正是 d-pad 该有的样子。 */
 .play-arrows {
   display: grid;
   grid-template-columns: repeat(3, var(--tap-w));
   gap: var(--key-gap);
+  padding: var(--key-gap);
+  border-radius: var(--r);
+  background: var(--surface-2);
+}
+
+.play-arrows button {
+  background: var(--surface);
 }
 
 .play-arrows button {

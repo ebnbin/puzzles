@@ -22,19 +22,19 @@ function digits(count: number, startAtZero = false): KeyLabel[] {
     const shown = first + i
     const button =
       shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
-    return { button, label: String.fromCharCode(button), value: i + 1 }
+    return { kind: 'need', button, label: String.fromCharCode(button), value: i + 1 }
   })
 }
 
-const CLEAR: KeyLabel = { button: 8, icon: 'clear' }
+const CLEAR: KeyLabel = { kind: 'need', button: 8, icon: 'clear' }
 
-const MARKS: KeyLabel = { button: 'M'.charCodeAt(0), icon: 'marks', whose: 'upstream' }
-const HINT: KeyLabel = { button: 'H'.charCodeAt(0), icon: 'hint', whose: 'upstream' }
-const JUMBLE: KeyLabel = { button: 'J'.charCodeAt(0), icon: 'jumble', whose: 'upstream' }
+const MARKS: KeyLabel = { kind: 'aid', button: 'M'.charCodeAt(0), icon: 'marks', whose: 'upstream' }
+const HINT: KeyLabel = { kind: 'aid', button: 'H'.charCodeAt(0), icon: 'hint', whose: 'upstream' }
+const JUMBLE: KeyLabel = { kind: 'aid', button: 'J'.charCodeAt(0), icon: 'jumble', whose: 'upstream' }
 
-const POSSIBLE: KeyLabel = { button: 0, action: 'possible', icon: 'possible', whose: 'ours' }
-const SINGLE: KeyLabel = { button: 0, action: 'single', icon: 'single', whose: 'ours' }
-const BLANK: KeyLabel = { button: 0, action: 'blank', icon: 'blank', whose: 'ours' }
+const POSSIBLE: KeyLabel = { kind: 'aid', button: 0, action: 'possible', icon: 'possible', whose: 'ours' }
+const SINGLE: KeyLabel = { kind: 'aid', button: 0, action: 'single', icon: 'single', whose: 'ours' }
+const BLANK: KeyLabel = { kind: 'aid', button: 0, action: 'blank', icon: 'blank', whose: 'ours' }
 
 function params(gameId: string): string {
   return gameId.split(':')[0]
@@ -85,11 +85,12 @@ const COL_MAP = 2
 
 const LABELLED = 'Label colours with numbers'
 
-const ERASE: KeyLabel = { ...CLEAR, behind: { step: 'ArrowLeft' } }
+const ERASE: KeyLabel = { ...CLEAR, kind: 'aim', behind: { step: 'ArrowLeft' } }
 
-const HOLD: KeyLabel = { button: ' '.charCodeAt(0), icon: 'lock', whose: 'upstream' }
+const HOLD: KeyLabel = { kind: 'aim', button: ' '.charCodeAt(0), icon: 'lock', whose: 'upstream' }
 
 const SUBMIT: KeyLabel = {
+  kind: 'aim',
   restarts: true,
   button: 13,
   icon: 'done',
@@ -132,6 +133,7 @@ const RULES: Record<
     const letters = preference(prefs, MONSTERS) === MONSTERS.indexOf('Letters')
     return [
       ...UNDEAD.map(({ letter, icon }): KeyLabel => ({
+        kind: 'need',
         button: letter.charCodeAt(0),
         ...(letters ? { label: letter } : { icon }),
       })),
@@ -155,6 +157,7 @@ const RULES: Record<
         const button = '0'.charCodeAt(0) + ((i + 1) % 10)
         const fromTop = i <= (n - 1) / 2
         return {
+          kind: 'aim',
           button,
           ...(labelled ? { label: String.fromCharCode(button) } : {}),
           slot: COL_1 + i,
@@ -177,10 +180,10 @@ const RULES: Record<
 
   map: () =>
     Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
+      kind: 'aim',
       button: 0,
       slot: COL_MAP + i,
       paints: { colour: i },
-      aimed: true,
       whose: 'ours',
     })),
 
@@ -195,6 +198,7 @@ const RULES: Record<
     if (n === null) return null
     return digits(n + 1, true).map(({ value: _, ...key }): KeyLabel => ({
       ...key,
+      kind: 'aid',
       whose: 'upstream',
     }))
   },
@@ -210,18 +214,12 @@ const PAD_ONLY = new Set(['guess'])
 
 export const offersArrows = (name: string) => !NO_ARROWS.has(name) && !PAD_ONLY.has(name)
 
-export const padIsArrows = (name: string) => PAD_ONLY.has(name)
-
-const KEYS_WITH_ARROWS = new Set(['map'])
-
 export const asMaybes = (keys: KeyLabel[]): KeyLabel[] =>
   keys.map((k) =>
     k.paints && k.paints.colour >= 0
       ? { ...k, dotted: true, paints: { ...k.paints, pencil: true } }
       : k,
   )
-
-export const keysFollowArrows = (name: string) => KEYS_WITH_ARROWS.has(name)
 
 export const heads = (name: string) => name === 'guess'
 

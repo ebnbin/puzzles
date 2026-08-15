@@ -66,7 +66,16 @@ export interface PuzzleApi {
 
 export type KeyAction = 'possible' | 'single' | 'blank'
 
+// 区域 A 的键属于哪一类。判据是 docs/keys.md 那条,不是「常不常用」:
+//   need 没有它这一局玩不完(擦不掉写错的数就填不完)
+//   aid  它做的事都能一步一步用别的方式做到(提示、铺标记、高亮)
+//   aim  方向键方案的一部分,跟 puzzles.arrows 一起来去;只有 map 的色板和
+//        guess 的整排落在区域 A,别的都在下面那条 .play-arrows 里
+// 样式和「关方向键时藏谁」都只看它,所以是必填——漏标一个 tsc 就会说话。
+export type KeyKind = 'need' | 'aid' | 'aim'
+
 export interface KeyLabel {
+  kind: KeyKind
   button: number
   action?: KeyAction
   label?: string
@@ -75,7 +84,6 @@ export interface KeyLabel {
   slot?: number
   ink?: number
   dotted?: boolean
-  aimed?: boolean
   needs?: string
   paints?: { colour: number; pencil?: boolean }
   behind?: { step: string }

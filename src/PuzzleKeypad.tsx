@@ -95,7 +95,7 @@ export default function PuzzleKeypad({
             <button
               key={i}
               type="button"
-              data-whose={key.whose}
+              data-kind={key.kind}
               // 给 scripts/check-keys.mjs 用:键面上的 button 码要和上游
               // midend_request_keys() 报的那组对得上。app 内没有读者。
               data-button={key.button}
