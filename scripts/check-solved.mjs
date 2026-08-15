@@ -55,12 +55,17 @@ if ((await status()) === null) {
   process.exit(0)
 }
 
-// 一、求解器解出的不算
+// 一、求解器解出的不记,但浮层照抬——浮层认「结束」,不认「谁解的」。
+// 开局第一个动作就是求解,考的是启动时那次基线补得对不对。
 await page.evaluate(() => window.__puzzle.solve())
 await page.evaluate(() => window.__puzzle.tick(1))
+await page.waitForTimeout(300)
 if ((await status()) !== 1) fail('solve() 之后 status 应当是 +1')
 else if (await stored()) fail('求解器解出的被记成了完成:', await stored())
-else ok('求解器解出的不算')
+else ok('求解器解出的不记')
+if (!(await page.locator('.play-over').isVisible()))
+  fail('开局直接求解,浮层没抬起来')
+else ok('求解器结束的一局也抬浮层')
 
 // 二、玩家自己解出的算
 await open()
@@ -72,7 +77,35 @@ else {
   else ok(`玩家自己解出的记下了(${steps} 步)`, after)
 }
 
-// 三、undo 再 redo 不重复记。清掉存档里的记录,重报的话它会重新出现。
+// 三、收尾浮层:结束时抬起来,关掉之后不再自己冒出来,回到进行中再重新武装
+const over = page.locator('.play-over')
+if (!(await over.isVisible())) fail('解出之后没有抬出收尾浮层')
+else ok('结束时抬出收尾浮层')
+
+if (process.env.SHOT) {
+  await page.waitForTimeout(600)
+  await page.screenshot({ path: process.env.SHOT })
+}
+
+await page.getByRole('group').getByRole('button').nth(1).click()
+await page.waitForTimeout(200)
+if (await over.isVisible()) fail('按了关闭,浮层还在')
+else ok('关掉就收起来')
+
+await page.evaluate(() => {
+  const api = window.__puzzle
+  api.undo(); api.tick(1)
+})
+await page.waitForTimeout(200)
+await page.evaluate(() => {
+  const api = window.__puzzle
+  api.redo(); api.tick(1)
+})
+await page.waitForTimeout(200)
+if (!(await over.isVisible())) fail('回到进行中再解出一次,浮层没有重新抬起来')
+else ok('回到进行中会重新武装')
+
+// 四、undo 再 redo 不重复记。清掉存档里的记录,重报的话它会重新出现。
 await page.evaluate((k) => localStorage.removeItem(k), SOLVED)
 await page.evaluate(() => {
   const api = window.__puzzle
@@ -83,7 +116,7 @@ await page.waitForTimeout(200)
 if (await stored()) fail('undo 再 redo 之后重报了一次:', await stored())
 else ok('undo 再 redo 不重复记')
 
-// 四、重开一局之后,新的一局可以再记
+// 五、重开一局之后,新的一局可以再记
 await page.evaluate(() => window.__puzzle.newGame())
 await page.waitForTimeout(300)
 if ((await status()) === 1) fail('新一局不该是已解出状态')

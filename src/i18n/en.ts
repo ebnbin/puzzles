@@ -43,6 +43,7 @@ export const en = {
     menu: 'Menu',
     switcher: 'All puzzles',
     keypad: 'Puzzle keys',
+    over: 'This game is over',
     error: 'Something went wrong starting this puzzle.',
     arrows: {
       group: 'Arrow keys',

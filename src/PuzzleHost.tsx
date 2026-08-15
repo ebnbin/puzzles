@@ -234,29 +234,39 @@ export default function PuzzleHost({
   // 当前这一局的 desc,给完成判定当身份用。要 ref 不要 state:判定跑在
   // onUndoRedo 里,那时 setPermalink 排的这一轮渲染还没落地。
   const here = useRef<string | null>(null)
-  const wasSolved = useRef<{ desc: string; solved: boolean } | null>(null)
+  const wasStatus = useRef<{ desc: string; status: number } | null>(null)
   // 会话内的闩锁不是 alreadySolved 的冗余:localStorage 被禁(隐私模式/配额)时那边
   // 读回永远是「没报过」,undo 再 redo 就会一路重报。
   const reported = useRef<string | null>(null)
+  const [over, setOver] = useState(false)
 
-  // 玩家自己解出这一局时走这里。触发点是 onUndoRedo——emcc.c 的 post_move() 在
-  // 每次输入后都发它,是 JS 侧唯一「状态可能变了」的信号。
+  // 一局走到头(解出或输掉)时抬起收尾浮层,玩家自己解出时再记一笔。触发点是
+  // onUndoRedo——emcc.c 的 post_move() 在每次输入后都发它,是 JS 侧唯一
+  // 「状态可能变了」的信号。
   //
-  // 三道闸,少一道都会多报:
-  // 一、只认 0→+1 的沿。一局的第一次观察永远不报,否则读档读到一局已解出的、
-  //     以及启动时「随机局(0) → 读档后的解出局(+1)」这一跳都会误报。
-  // 二、求解器解出的不算——midend_status() 不区分,得回存档里看。
-  // 三、报过就不再报,跨重载也不再报(undo 完再 redo 会让沿重新出现一次)。
-  const noteSolved = useCallback(() => {
+  // 两件事共用一次 status(),但闸门不同:浮层认「结束」,所以求解器解出的也抬;
+  // 记录认「玩家自己解出」,求解器解出的不算。
+  //
+  // 一律只认沿,不认状态:一局的第一次观察永远不算,否则读档读到一局已经结束的、
+  // 以及启动时「随机局(0) → 读档后的结束局(±1)」这一跳都会误触发。回到进行中
+  // (undo 回去)就重新武装,浮层也跟着收起来——关掉之后不再自己冒出来,靠的就是
+  // 「已经过了那道沿」。
+  const checkStatus = useCallback(() => {
     const api = apiRef.current
     // 旧引擎没有这个洞:sw.js 让老用户第一次访问跑上一版,这时安静降级。
     if (!api?.status) return
     const desc = here.current
     if (!desc) return
-    const solved = api.status() === 1
-    const seen = wasSolved.current
-    wasSolved.current = { desc, solved }
-    if (seen?.desc !== desc || seen.solved || !solved) return
+    const now = api.status()
+    const seen = wasStatus.current
+    wasStatus.current = { desc, status: now }
+    if (now === 0) {
+      setOver(false)
+      return
+    }
+    if (seen?.desc !== desc || seen.status !== 0) return
+    setOver(true)
+    if (now !== 1) return
     if (reported.current === desc || alreadySolved(name, desc)) return
     if (usedSolver(api.saveGame())) return
     reported.current = desc
@@ -344,6 +354,11 @@ export default function PuzzleHost({
           countLeft()
           readRolls()
           readHeld()
+          // 补一次基线:main() 里的 post_move() 早于 js_post_init(),那一次
+          // onUndoRedo 到达时 apiRef 还是空的,checkStatus 什么都没记下。不补的话
+          // 「这一局的第一次观察」会落在玩家的第一个动作上,那个动作要是直接把
+          // 局面走完(比如开局就求解),沿就丢了。
+          checkStatus()
         },
         onError: (message) => {
           if (restoring.current) {
@@ -363,7 +378,7 @@ export default function PuzzleHost({
           countLeft()
           readRolls()
           readHeld()
-          noteSolved()
+          checkStatus()
         },
         // emcc.c 先报 CURSOR_SELECT2 再报 CURSOR_SELECT,这里的形参序(space, enter)
         // 是故意的;types.ts 里叫 (lsk, csk) 是同一对的另一套名字,不是谁写反了。
@@ -813,6 +828,25 @@ export default function PuzzleHost({
           onKeyDown={onKeyDown}
           {...pointer}
         />
+        {over && (
+          <div className="play-over" role="group" aria-label={t.play.over}>
+            <button
+              type="button"
+              className="is-primary"
+              onClick={() => {
+                setOver(false)
+                act((a) => a.newGame())
+              }}
+            >
+              <Icon name="add" />
+              {t.menu.newGame}
+            </button>
+            <button type="button" onClick={() => setOver(false)}>
+              <Icon name="close" />
+              {t.play.close}
+            </button>
+          </div>
+        )}
       </div>
 
       <PuzzleKeypad
