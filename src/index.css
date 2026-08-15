@@ -874,13 +874,6 @@ p.notice-intro button:active {
   border-radius: var(--r-full);
 }
 
-/* 区域 B 坐在自己的一层地上,上边一道能看见的线。两区都只有空心键的游戏
-   (方向键关掉的 Net 就是)全靠这一层认边界。 */
-.play-actions {
-  border-top: 1px solid var(--edge-key);
-  background: var(--surface);
-}
-
 .keypad button:disabled .key-peg {
   opacity: 0.35;
 }
