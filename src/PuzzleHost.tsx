@@ -22,9 +22,7 @@ import {
   inMenu,
   HOLD_BUTTON,
   keysFor,
-  padIsArrows,
   heads,
-  keysFollowArrows,
   movesEightWays,
   opener,
   opens,
@@ -455,14 +453,11 @@ export default function PuzzleHost({
 
   const keys = useMemo(() => {
     const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
-    const shown =
-      padIsArrows(name) && !wanted
-        ? []
-        : keysFollowArrows(name) && !arrows
-          ? all.filter((k) => !k.aimed)
-          : all
+    // 关掉方向键只藏三类。以前是按游戏名把整份键表丢掉(guess)或按 aimed 过滤
+    // (map),前一种把 guess 的提示键——四类,和方向键没关系——也一起埋了。
+    const shown = wanted ? all : all.filter((k) => k.kind !== 'aim')
     return maybe ? asMaybes(shown) : shown
-  }, [arrows, maybe, name, permalink, prefs, wanted])
+  }, [maybe, name, permalink, prefs, wanted])
 
   usePuzzleFit(
     areaRef,
@@ -901,7 +896,6 @@ export default function PuzzleHost({
           )}
           <button
             type="button"
-            data-whose="ours"
             aria-label={t.play.menu}
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
@@ -937,7 +931,6 @@ export default function PuzzleHost({
                 key={dir}
                 type="button"
                 data-dir={dir}
-                data-whose="upstream"
                 aria-label={
                   shoving
                     ? t.play.arrows.shove[shoving.dir]
@@ -971,7 +964,6 @@ export default function PuzzleHost({
                     type="button"
                     data-act={cellOf[i]}
                     data-off={off || undefined}
-                    data-whose="ours"
                     data-on={armed || undefined}
                     aria-pressed={armed}
                     disabled={blind}
@@ -996,7 +988,6 @@ export default function PuzzleHost({
                     type="button"
                     data-act="sweep"
                     data-off={off || undefined}
-                    data-whose="ours"
                     data-on={painting || undefined}
                     aria-pressed={painting}
                     disabled={asleep}
@@ -1022,7 +1013,6 @@ export default function PuzzleHost({
                     type="button"
                     data-act={cellOf[i]}
                     data-off={off || undefined}
-                    data-whose="ours"
                     data-on={on || undefined}
                     aria-pressed={cursor.arms ? on : undefined}
                     aria-label={t.play.cursor[cursor.says]}
@@ -1055,7 +1045,6 @@ export default function PuzzleHost({
                   type="button"
                   data-act={cellOf[i]}
                   data-off={off || undefined}
-                  data-whose="upstream"
                   data-on={set || undefined}
                   data-brush={
                     painting && cursor.brush && picksBrush && i === brushAt ? 'true' : undefined
