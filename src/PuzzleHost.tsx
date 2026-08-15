@@ -43,15 +43,18 @@ import { squareAt, tentsGrid } from './engine/tents'
 import type { Square } from './engine/tents'
 import type { Clues, Paint, Spot } from './engine/map'
 import {
+  alreadySolved,
   clearSave,
   isPlayed,
   markIntroduced,
+  markSolved,
   owesIntroduction,
   readSave,
   setPlaying,
   writeRecent,
   writeSave,
 } from './engine/saves'
+import { usedSolver } from './engine/solved'
 import type { CanvasRenderer } from './engine/renderer'
 import { readStand, type Stand } from './engine/palisade'
 import type {
@@ -228,6 +231,38 @@ export default function PuzzleHost({
     setError(null)
   }, [])
 
+  // 当前这一局的 desc,给完成判定当身份用。要 ref 不要 state:判定跑在
+  // onUndoRedo 里,那时 setPermalink 排的这一轮渲染还没落地。
+  const here = useRef<string | null>(null)
+  const wasSolved = useRef<{ desc: string; solved: boolean } | null>(null)
+  // 会话内的闩锁不是 alreadySolved 的冗余:localStorage 被禁(隐私模式/配额)时那边
+  // 读回永远是「没报过」,undo 再 redo 就会一路重报。
+  const reported = useRef<string | null>(null)
+
+  // 玩家自己解出这一局时走这里。触发点是 onUndoRedo——emcc.c 的 post_move() 在
+  // 每次输入后都发它,是 JS 侧唯一「状态可能变了」的信号。
+  //
+  // 三道闸,少一道都会多报:
+  // 一、只认 0→+1 的沿。一局的第一次观察永远不报,否则读档读到一局已解出的、
+  //     以及启动时「随机局(0) → 读档后的解出局(+1)」这一跳都会误报。
+  // 二、求解器解出的不算——midend_status() 不区分,得回存档里看。
+  // 三、报过就不再报,跨重载也不再报(undo 完再 redo 会让沿重新出现一次)。
+  const noteSolved = useCallback(() => {
+    const api = apiRef.current
+    // 旧引擎没有这个洞:sw.js 让老用户第一次访问跑上一版,这时安静降级。
+    if (!api?.status) return
+    const desc = here.current
+    if (!desc) return
+    const solved = api.status() === 1
+    const seen = wasSolved.current
+    wasSolved.current = { desc, solved }
+    if (seen?.desc !== desc || seen.solved || !solved) return
+    if (reported.current === desc || alreadySolved(name, desc)) return
+    if (usedSolver(api.saveGame())) return
+    reported.current = desc
+    markSolved(name, desc)
+  }, [name])
+
   useEffect(() => {
     if (!error) return
     const timer = window.setTimeout(() => setError(null), 3000)
@@ -328,6 +363,7 @@ export default function PuzzleHost({
           countLeft()
           readRolls()
           readHeld()
+          noteSolved()
         },
         // emcc.c 先报 CURSOR_SELECT2 再报 CURSOR_SELECT,这里的形参序(space, enter)
         // 是故意的;types.ts 里叫 (lsk, csk) 是同一对的另一套名字,不是谁写反了。
@@ -337,6 +373,7 @@ export default function PuzzleHost({
           setLabels({ enter, space })
         },
         onPermalinks: (desc, seed) => {
+          here.current = desc
           setPermalink({ desc, seed })
           queueSave()
           setAwake(false)
