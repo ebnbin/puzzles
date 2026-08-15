@@ -896,6 +896,7 @@ export default function PuzzleHost({
           )}
           <button
             type="button"
+            className="is-menu"
             aria-label={t.play.menu}
             aria-haspopup="dialog"
             aria-expanded={menuOpen}

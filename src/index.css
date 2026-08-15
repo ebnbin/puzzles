@@ -850,22 +850,19 @@ p.notice-intro button:active {
   background: var(--surface-3);
 }
 
-.keypad button[data-kind='aid'],
-.play-acts button {
+.keypad button[data-kind='aid'] {
   background: none;
   color: var(--text-2);
 }
 
 @media (hover: hover) {
-  .keypad button[data-kind='aid']:hover:not(:disabled),
-  .play-acts button:hover:not(:disabled) {
+  .keypad button[data-kind='aid']:hover:not(:disabled) {
     background: var(--surface-2);
     color: var(--text);
   }
 }
 
-.keypad button[data-kind='aid']:active,
-.play-acts button:active:not(:disabled) {
+.keypad button[data-kind='aid']:active {
   background: var(--surface-2);
 }
 
@@ -954,6 +951,22 @@ p.notice-intro button:active {
   flex: none;
   width: var(--act-w);
   height: var(--tap-w);
+  border: 0;
+}
+
+.play-acts button.is-menu {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+@media (hover: hover) {
+  .play-acts button.is-menu:hover:not(:disabled) {
+    background: var(--accent-soft-hover);
+  }
+}
+
+.play-acts button.is-menu:active {
+  background: var(--accent-soft-hover);
 }
 
 /* 方向键连着它的伴生键一起坐在一块底板上:整簇读作一个部件,和左边那四个
