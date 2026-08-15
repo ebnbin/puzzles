@@ -9,31 +9,16 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
+import { asMaybes, HOLD_BUTTON, keysFor, heads, READS_PREFS } from './engine/keys'
 import {
-  asMaybes,
-  buries,
-  clears,
-  cursorKeys,
   dragWalked,
-  faceOf,
-  holding,
-  laid,
-  overwrites,
-  inMenu,
-  HOLD_BUTTON,
-  keysFor,
-  heads,
-  movesEightWays,
+  offersArrows,
   opener,
   opens,
-  READS_PREFS,
-  offersArrows,
-  shovesTiles,
-  silent,
+  padKeys,
   wakesCursor,
-  wouldSend,
-} from './engine/keys'
-import type { KeyLabels } from './engine/keys'
+} from './engine/pad'
+import type { KeyLabels, PadContext, Slot } from './engine/pad'
 import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import { clueAt, mapSize, paintRegion, readClues, stepCursor } from './engine/map'
@@ -84,24 +69,6 @@ const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
   single: placeSingles,
   blank: clearMarks,
 }
-
-const NUMPAD = 3
-
-const ARROWS = [
-  { dir: 'up', key: 'ArrowUp', where: 0, icon: 'arrowUp', shove: 'pushUp', sweep: 'sweepUp' },
-  { dir: 'left', key: 'ArrowLeft', where: 0, icon: 'arrowLeft', shove: 'pushLeft', sweep: 'sweepLeft' },
-  { dir: 'down', key: 'ArrowDown', where: 0, icon: 'arrowDown', shove: 'pushDown', sweep: 'sweepDown' },
-  { dir: 'right', key: 'ArrowRight', where: 0, icon: 'arrowRight', shove: 'pushRight', sweep: 'sweepRight' },
-] as const
-
-const DIAGONALS = [
-  { dir: 'upLeft', key: '7', where: NUMPAD, icon: 'arrowUpLeft' },
-  { dir: 'upRight', key: '9', where: NUMPAD, icon: 'arrowUpRight' },
-  { dir: 'downLeft', key: '1', where: NUMPAD, icon: 'arrowDownLeft' },
-  { dir: 'downRight', key: '3', where: NUMPAD, icon: 'arrowDownRight' },
-] as const
-
-const ACT = ['first', 'second', 'third', 'fourth'] as const
 
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
@@ -154,11 +121,7 @@ export default function PuzzleHost({
   const [typed, setTyped] = useState(0)
   const [maybe, setMaybe] = useState(false)
   const [sweeping, setSweeping] = useState(false)
-  const [brush, setBrush] = useState(0)
-  const acts = useMemo(() => cursorKeys(name, prefs), [name, prefs])
-  const brushAt = acts[brush]?.brush ? brush : acts.findIndex((k) => k.brush)
-  const stroking = brushAt >= 0 ? acts[brushAt].brush : undefined
-  const picksBrush = acts.filter((k) => k.brush).length > 1
+  const [brush, setBrush] = useState<Slot | null>(null)
   const desc = permalink?.desc
   const grid = useMemo(
     () =>
@@ -175,7 +138,7 @@ export default function PuzzleHost({
   const clues = useRef<Clues | null>(null)
   const [onClue, setOnClue] = useState(false)
   const [held, setHeld] = useState<Square | null>(null)
-  const [primed, setPrimed] = useState<number | null>(null)
+  const [primed, setPrimed] = useState<Slot | null>(null)
   const [left, setLeft] = useState<Map<number, number> | null>(null)
   const [rolling, setRolls] = useState<Set<string> | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -747,17 +710,29 @@ export default function PuzzleHost({
     return () => renderer.watch(null)
   }, [name, ready])
 
-  const asleep = silent(labels)
-  const painting = sweeping && !asleep
-
-  const shownKeys = acts.map((cursor) =>
-    inMenu(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake),
-  )
-  const cellOf = shownKeys.reduce<(string | undefined)[]>((out, shown) => {
-    out.push(shown ? ACT[out.filter(Boolean).length] : undefined)
-    return out
-  }, [])
-  const keyCount = shownKeys.filter(Boolean).length
+  const pad: PadContext = {
+    name,
+    labels: { ...labels, opened: opened ?? undefined, walked, stand },
+    awake,
+    sweeping,
+    onClue,
+    maybe,
+    held,
+    rolling,
+    primed,
+    brush,
+    words: t.play,
+    send: sendKey,
+    save: () => apiRef.current?.saveGame(),
+    undo: () => apiRef.current?.undo(),
+    prime: setPrimed,
+    paint,
+    toggleMaybe: () => setMaybe((was) => !was),
+    toggleSweep: () => setSweeping((was) => !was),
+    setBrush,
+    labelsNow: () => ({ ...labelsRef.current, opened: opened ?? undefined, walked, stand }),
+  }
+  const arrowPad = padKeys(name, prefs, pad)
 
   return (
     <div className="play" data-ready={ready} data-arrows={arrows ? 'true' : undefined}>
@@ -912,179 +887,39 @@ export default function PuzzleHost({
           </button>
         </div>
 
-        {arrows && (
+        {arrows && arrowPad.keys.length > 0 && (
           <div
             className="play-arrows"
-            data-ways={movesEightWays(name) ? '8' : undefined}
-            data-keys={keyCount >= 3 ? String(keyCount) : undefined}
+            style={{ gridTemplateRows: `repeat(${arrowPad.rows}, var(--tap-w))` }}
             role="group"
             aria-label={t.play.arrows.group}
           >
-            {[...ARROWS, ...(movesEightWays(name) ? DIAGONALS : [])].map((arrow) => {
-              const stroke = painting ? stroking : undefined
-              const { dir, key, where } = arrow
-              const shoving =
-                'shove' in arrow && shovesTiles(name, labels) ? arrow : null
-              const marking = !shoving && stroke && 'sweep' in arrow ? arrow : null
-              const icon = shoving ? shoving.shove : marking ? marking.sweep : arrow.icon
-              return (
+            {/* 一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。方向键不给 tip:
+                它要连着点,长按问一句会把连点打断。 */}
+            {arrowPad.keys.map((key) => (
               <button
-                key={dir}
+                key={key.slot}
                 type="button"
-                data-dir={dir}
-                aria-label={
-                  shoving
-                    ? t.play.arrows.shove[shoving.dir]
-                    : marking
-                      ? t.play.arrows.paint[marking.dir]
-                      : t.play.arrows[dir]
-                }
-                disabled={rolling ? !rolling.has(key) : undefined}
+                data-slot={key.slot}
+                data-on={key.on || undefined}
+                data-off={key.gone || undefined}
+                data-brush={key.ring ? 'true' : undefined}
+                style={{ gridRow: key.row, gridColumn: key.col }}
+                disabled={key.dead}
+                aria-pressed={key.pressed}
+                aria-label={key.says}
+                {...(key.tip ? holdToAsk(key.tip) : {})}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  const armed = primed === null ? null : (acts[primed]?.primes ?? null)
-                  const before = armed ? apiRef.current?.saveGame() : undefined
-                  sendKey(key, where, armed ?? stroke)
-                  if (armed && apiRef.current?.saveGame() !== before) setPrimed(null)
+                  if (key.tip && wasHeld()) return
+                  acted()
+                  key.press()
+                  canvasRef.current?.focus()
                 }}
               >
-                <Icon name={icon} />
+                <Icon name={key.icon} />
               </button>
-              )
-            })}
-
-            {acts.map((cursor, i) => {
-              if (!shownKeys[i]) return null
-              const off = primed !== null && i !== primed
-              if (cursor.primes) {
-                const armed = primed === i
-                const blind = !labels.enter && !labels.space
-                return (
-                  <button
-                    key={cursor.icon}
-                    type="button"
-                    data-act={cellOf[i]}
-                    data-off={off || undefined}
-                    data-on={armed || undefined}
-                    aria-pressed={armed}
-                    disabled={blind}
-                    aria-label={t.play.cursor[cursor.says]}
-                    onMouseDown={(e) => e.preventDefault()}
-                    {...holdToAsk(t.play.cursor[cursor.says])}
-                    onClick={() => {
-                      if (wasHeld()) return
-                      acted()
-                      setPrimed((was) => (was === i ? null : i))
-                      canvasRef.current?.focus()
-                    }}
-                  >
-                    <Icon name={cursor.icon} />
-                  </button>
-                )
-              }
-              if (cursor.sweeps) {
-                return (
-                  <button
-                    key={cursor.icon}
-                    type="button"
-                    data-act="sweep"
-                    data-off={off || undefined}
-                    data-on={painting || undefined}
-                    aria-pressed={painting}
-                    disabled={asleep}
-                    aria-label={t.play.cursor[cursor.says]}
-                    onMouseDown={(e) => e.preventDefault()}
-                    {...holdToAsk(t.play.cursor[cursor.says])}
-                    onClick={() => {
-                      if (wasHeld()) return
-                      acted()
-                      setSweeping((was) => !was)
-                      canvasRef.current?.focus()
-                    }}
-                  >
-                    <Icon name={cursor.icon} />
-                  </button>
-                )
-              }
-              if (cursor.paints || cursor.arms) {
-                const on = cursor.arms ? maybe && awake : false
-                return (
-                  <button
-                    key={cursor.icon}
-                    type="button"
-                    data-act={cellOf[i]}
-                    data-off={off || undefined}
-                    data-on={on || undefined}
-                    aria-pressed={cursor.arms ? on : undefined}
-                    aria-label={t.play.cursor[cursor.says]}
-                    disabled={!awake || (cursor.paints !== undefined && onClue)}
-                    onMouseDown={(e) => e.preventDefault()}
-                    {...holdToAsk(t.play.cursor[cursor.says])}
-                    onClick={() => {
-                      if (wasHeld()) return
-                      acted()
-                      if (cursor.paints) paint(cursor.paints)
-                      else setMaybe((was) => !was)
-                      canvasRef.current?.focus()
-                    }}
-                  >
-                    <Icon name={cursor.icon} />
-                  </button>
-                )
-              }
-              const { icon, says, on } = faceOf(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake)
-              const set =
-                on ||
-                holding(cursor, labels) ||
-                laid(cursor, { ...labels, stand }) ||
-                (!!cursor.switches && held === cursor.key)
-              const said = t.play.cursor[says]
-              const key = wouldSend(name, cursor, { ...labels, opened: opened ?? undefined, walked, stand }, awake)
-              return (
-                <button
-                  key={cursor.does ?? cursor.key}
-                  type="button"
-                  data-act={cellOf[i]}
-                  data-off={off || undefined}
-                  data-on={set || undefined}
-                  data-brush={
-                    painting && cursor.brush && picksBrush && i === brushAt ? 'true' : undefined
-                  }
-                  aria-pressed={
-                    cursor.instead
-                      ? set
-                      : cursor.faces
-                        ? !!on
-                        : cursor.brush && picksBrush
-                          ? painting && i === brushAt
-                          : undefined
-                  }
-                  aria-label={said}
-                  disabled={key === null && (!cursor.lit || asleep)}
-                  {...holdToAsk(said)}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    if (wasHeld()) return
-                    if (cursor.brush) setBrush(i)
-                    setPrimed(null)
-                    if (key === null) return
-                    const first = clears(cursor, labels)
-                    if (first) {
-                      sendKey(first)
-                      const now = { ...labelsRef.current, opened: opened ?? undefined, walked, stand }
-                      if (wouldSend(name, cursor, now, awake) === null) apiRef.current?.undo()
-                      else sendKey(key)
-                      return
-                    }
-                    sendKey(set && cursor.switches ? cursor.switches : key)
-                    if (overwrites(cursor, labels)) sendKey(key)
-                    if (buries(cursor, { ...labels, stand })) sendKey(key)
-                  }}
-                >
-                  <Icon name={icon} />
-                </button>
-              )
-            })}
+            ))}
           </div>
         )}
       </nav>
