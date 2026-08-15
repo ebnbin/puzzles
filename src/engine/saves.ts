@@ -4,6 +4,7 @@ const PLAYING = 'puzzles.playing'
 const RECENT = 'puzzles.recent'
 const SCROLL = 'puzzles.scroll'
 const INTRODUCED = 'puzzles.introduced'
+const SOLVED = 'puzzles.solved'
 const save = (name: string) => `puzzles.save.${name}`
 
 const MAGIC = 'SAVEFILE'
@@ -36,6 +37,27 @@ export function writeSave(name: string, text: string): void {
 export function clearSave(name: string): void {
   try {
     window.localStorage.removeItem(save(name))
+  } catch {
+  }
+}
+
+// 记「哪一局已经报过完成」,一个游戏只记最近一局的 desc。存在的理由是跨重载去重:
+// 完成后 undo 再 redo 会让 status 重新走一次 0→+1,只有会话内的闩锁挡不住重载。
+export function alreadySolved(name: string, desc: string): boolean {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(SOLVED) ?? '{}')
+    return stored?.[name] === desc
+  } catch {
+    return false
+  }
+}
+
+export function markSolved(name: string, desc: string): void {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(SOLVED) ?? '{}')
+    const next = stored && typeof stored === 'object' ? stored : {}
+    next[name] = desc
+    window.localStorage.setItem(SOLVED, JSON.stringify(next))
   } catch {
   }
 }
