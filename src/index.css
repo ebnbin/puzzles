@@ -838,10 +838,13 @@ p.notice-intro button:active {
    四类之中没有一个是无边框的:边框是「这是个可按的东西」的唯一线索,
    底色在 --bg 上只差几个百分点,单靠它读不出来。 */
 
-/* 实心的那两类填 --surface-3:填充要对「页面底」有对比才读得出,填白色
-   (#ffffff 对 --bg #fafaf9 只差 2%)等于没填。方向键在底板上是例外,那里
-   对比由底板给,键面反而要浅。 */
-.keypad button[data-kind='need'],
+/* 二类回到重构之前:无边框的实心浅灰。三类填 --surface-3——填充要对「页面底」
+   有对比才读得出,填白色(#ffffff 对 --bg #fafaf9 只差 2%)等于没填;方向键
+   在底板上是例外,那里对比由底板给,键面反而要浅。 */
+.keypad button[data-kind='need'] {
+  border: 0;
+}
+
 .keypad button[data-kind='aim'] {
   background: var(--surface-3);
 }
