@@ -452,7 +452,9 @@ footer p {
      40/2 + 2 = 22;压缩档那行键窄成 36,跟着变 36/2 + 2 = 20。 */
   --pad-r: calc(var(--tap-w) / 2 + var(--key-rim));
   --pad-r-tight: calc((var(--tap-w) - var(--key-gap)) / 2 + var(--key-rim));
-  --act-w: calc(1.5 * var(--tap-w) + var(--key-gap));
+  /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽,顶行铺过去
+     才算得清。这条等式就是 --act-w 这个定义的全部用处。 */
+  --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
   /* 键盘总宽,两种排法必须算出同一个数:
        下两行  3×tap-w + 2×act-w + 4×gap + 2×rim = 6×tap-w + 7×gap
        满七格  7×(tap-w − gap) + 6×rim + 2×rim   = 7×tap-w − 3×gap
@@ -970,7 +972,7 @@ p.notice-intro button:active {
    顶行不吃这些列,自己排(见 .pad-top)。 */
 .play-keys {
   display: grid;
-  grid-template-columns: repeat(3, var(--tap-w)) calc(2 * var(--act-w) + var(--key-gap));
+  grid-template-columns: repeat(3, var(--tap-w)) calc(2 * var(--act-w) + 2 * var(--key-gap));
   gap: var(--key-gap);
   padding: var(--key-rim);
   width: var(--keys-w);
@@ -980,6 +982,8 @@ p.notice-intro button:active {
   grid-row: span 2 / -1;
   grid-column: 4;
   gap: var(--key-gap);
+  /* 第四列比这一块宽一道缝,靠这条把它推到右边:两块之间因此是两道缝。 */
+  margin-left: var(--key-gap);
   padding: 0;
 }
 
