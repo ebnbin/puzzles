@@ -1,25 +1,23 @@
-// 方向键那一块(区域 B 右边的底板)。13 个格子的编号从下往上、每行从左到右,
+// 方向键那一块(区域 B 右边的底板)。**最多 3×3**,格子编号从下往上、每行从左到右,
 // 和屏幕的自上而下反着——记反了整块就翻个个儿:
-//      7  8  9 10 11 12 13     顶行 3–7 格,右对齐,多出来的往左长
-//               4  5  6        中行 3 格
-//               1  2  3        底行 3 格
-// 整条键盘是一个 4 列的网格:后三列是方向键的核心,第一列整块塞那四个固定键。
-// 顶行不吃这些列,自己一张定宽格子的小网格,右对齐、往左长到固定键的上方;三行
-// 的格子一样是死的,没人注册的格子是个洞,不是缩一格。
-// 满 7 格时那一行的键窄一道缝、缝减半,省出来的正好够第七个键,整块宽度不变
-// (算式和它的前提写在 index.css 的 --keys-w 上),代价是这一档和下面两行对不齐。
+//      7  8  9
+//      4  5  6
+//      1  2  3
+// 整条键盘是一个 4 列的网格:第一列整块塞那四个固定键,后三列是方向键这九格。
+// 九格对四十个游戏够用,前提是 Guess 和 Map 的颜色键不在这儿——它们在区域 A
+// (keys.ts 的 'aim' 类),跟着同一个开关来去。别往这儿加第十格:上一版为了塞下
+// Guess 的十种颜色扩到过 13 格,连带出一个窄键窄缝的压缩档,判据见 docs/keys.md。
 // 每个游戏把自己的键钉死在格子号上,没人注册的行整行不画,块就矮一截。注册项是
 // 数据加方法:face() 回答「这一刻长什么样」(null = 这一刻不摆),press() 收 ctx
 // 自己动手;亮、按不动、描边、退场这些状态位对每个键一视同仁,用不用由 face()
 // 说了算。逐游戏的判据在 docs/keys.md,改这里要同步改它。
 import type { IconName } from '../Icon'
 import { preference } from './keys'
-import { COLOURS } from './map'
 import type { Paint } from './map'
 import type { Border, Stand } from './palisade'
 import type { DialogControl } from './types'
 
-export type Slot = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13
+export type Slot = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 // 核心三列就是网格的前三列。顶行不吃列,自己排。
 const CORE_COL = 1
@@ -41,23 +39,14 @@ export type PadWords = {
   }
   cursor: Record<CursorWord, string>
   keys: {
-    peg(n: number): string
-    fillRegion(n: number): string
-    maybeRegion(n: number): string
     clear: string
     done: string
     lock: string
   }
 }
 
-// 色块用的是引擎调色板的下标,不是 CSS 颜色:颜色要等 renderer 翻完主题才有,
-// 这一层只说要哪一号。
-export type PadPeg = { fill: number; ink?: number; label?: string; dotted?: boolean }
-
 export type PadFace = {
-  // 图标和色块二选一。
   icon?: IconName
-  peg?: PadPeg
   says: string
   // 长按才问的那句;不给就是长按无话可说(方向键要连按,不能被提示打断)。
   tip?: string
@@ -68,11 +57,9 @@ export type PadFace = {
 }
 
 type PadEntry = {
-  // 数据只留框架自己要用的:上膛之后方向键要带的修饰键、这个键是哪把刷子、
-  // 它要引擎调色板里的哪几号(渲染前要先问 renderer 讨颜色,来不及等 face)。
+  // 数据只留框架自己要用的:上膛之后方向键要带的修饰键、这个键是哪把刷子。
   mod?: Mod
   brush?: Mod
-  palette?: number[]
   // 方向键。上膛时退场的是别的功能键,方向键得留着,不然上了膛就没处走。
   moves?: true
   face(ctx: PadHere): PadFace | null
@@ -83,8 +70,7 @@ type Pad = Partial<Record<Slot, PadEntry | PadEntry[]>>
 
 export type PadButton = PadFace & {
   slot: Slot
-  // CSS 的行列号,从上往下、从左往右数——已经把格子号翻过来了。顶行的键不吃
-  // 那张大网格的列,col 是它在自己那张小网格里的第几列(1..7)。
+  // CSS 的行列号,从上往下、从左往右数——已经把格子号翻过来了。
   row: number
   col: number
   gone: boolean
@@ -103,8 +89,6 @@ export type PadContext = {
   rolling: ReadonlySet<string> | null
   primed: Slot | null
   brush: Slot | null
-  // guess 这一行已经落了几颗钉子:退格和提交都看它。
-  typed: number
   words: PadWords
   send(key: string, where?: number, mod?: Mod): void
   save(): string | undefined
@@ -114,7 +98,6 @@ export type PadContext = {
   toggleMaybe(): void
   toggleSweep(): void
   setBrush(slot: Slot): void
-  setTyped(next: (was: number) => number): void
   // 连发时要「刚发完那一下之后」的标签,渲染时拿的那份已经过期了。
   labelsNow(): KeyLabels
 }
@@ -652,64 +635,22 @@ const PENCIL: CursorKey = { key: 'Enter', icon: 'pencil', says: 'pencil' }
 
 const CURSOR_MODE = ['Half-grid', 'Full-grid']
 
-// 引擎调色板里这几号是我们按名字认下来的:map 的四个区域色从 2 号起,guess 的
-// 钉子色从 6 号起、边框借 1 号。升级 vendor 后要重新核对。
-const COL_MAP = 2
-const COL_FRAME = 1
-const COL_1 = 6
-
-const LABELLED = 'Label colours with numbers'
-
-function flag(prefs: readonly DialogControl[], label: string): boolean {
-  for (const control of prefs)
-    if (control.kind === 'boolean' && control.label === label) return control.value
-  return false
-}
-
-// map 的一个区域色。短按实色、开着「可能」时按下去是铅笔色,键面也跟着变点状,
-// 和以前区域 A 那排的规矩一样。
-const tint = (i: number): PadEntry => ({
-  palette: [COL_MAP + i],
+// guess 的三个功能键全是上游自己的键,脸和死活一律读 current_key_label——
+// 它报什么,我们照抄什么。三处置灰对应上游那三个 if,不是我们定的判据。
+const PLACE: PadEntry = {
   face: (ctx) => {
-    const said = ctx.maybe
-      ? ctx.words.keys.maybeRegion(i + 1)
-      : ctx.words.keys.fillRegion(i + 1)
+    const at = ctx.labels.enter === 'Submit'
     return {
-      peg: { fill: COL_MAP + i, dotted: ctx.maybe },
-      says: said,
-      tip: said,
-      dead: !ctx.awake || ctx.onClue,
+      icon: at ? 'done' : 'primary',
+      says: at ? ctx.words.keys.done : ctx.words.cursor.place,
+      tip: at ? ctx.words.keys.done : ctx.words.cursor.place,
+      dead: !ctx.labels.enter,
     }
   },
-  press: (ctx) => ctx.paint({ colour: i, pencil: ctx.maybe }),
-})
-
-// guess 的一颗颜色钉。上游没有「跳到第几种颜色」的键,只能先把光标顶到一头再
-// 一步步走回来——span 走满一趟保证到头,at 是从那头数过来第几个。
-const colour = (i: number, n: number, pegs: number, labelled: boolean): PadEntry => {
-  const char = String.fromCharCode('0'.charCodeAt(0) + ((i + 1) % 10))
-  const fromTop = i <= (n - 1) / 2
-  const home = fromTop ? 'ArrowUp' : 'ArrowDown'
-  const step = fromTop ? 'ArrowDown' : 'ArrowUp'
-  const at = fromTop ? i : n - 1 - i
-  return {
-    palette: [COL_1 + i, COL_FRAME],
-    face: (ctx) => ({
-      peg: { fill: COL_1 + i, ink: COL_FRAME, label: labelled ? char : undefined },
-      says: ctx.words.keys.peg(i + 1),
-      tip: ctx.words.keys.peg(i + 1),
-    }),
-    press: (ctx) => {
-      for (let k = 0; k < n; k++) ctx.send(home)
-      for (let k = 0; k < at; k++) ctx.send(step)
-      ctx.send(char)
-      ctx.setTyped((was) => Math.min(was + 1, pegs))
-    },
-  }
+  press: (ctx) => ctx.send('\r'),
 }
 
-// 上游只在光标不在「看结果」位上时才收这个键,别处按下去是条哑弹——它报不报
-// "Hold" 就是那一位的传感器。
+// 光标停在「看结果」位时上游 return NULL。
 const HOLD: PadEntry = {
   face: (ctx) => ({
     icon: 'lock',
@@ -720,65 +661,17 @@ const HOLD: PadEntry = {
   press: (ctx) => ctx.send(' '),
 }
 
-// 退格要先把光标退一格再删:上游的删除删的是光标所在那颗,而落完一颗之后光标
-// 已经站到下一颗上了。
+// 清掉光标那颗,光标不动——上游的 '\b' 就是这样。它在「看结果」位上没有守卫,
+// 会去读写 curr_pegs->pegs[npegs](只分配了 npegs 个),所以那一位必须灰掉:
+// 这是越界的唯一一道拦。
 const ERASE: PadEntry = {
   face: (ctx) => ({
     icon: 'clear',
     says: ctx.words.keys.clear,
     tip: ctx.words.keys.clear,
-    dead: ctx.typed === 0,
+    dead: ctx.labels.enter !== 'Place',
   }),
-  press: (ctx) => {
-    if (ctx.typed === 0) return
-    ctx.send('ArrowLeft')
-    ctx.send('Backspace')
-    ctx.setTyped((was) => Math.max(was - 1, 0))
-  },
-}
-
-// 提交完要自己把光标从「看结果」位拉回头一颗钉。上游只在提交不了的时候才归位
-// (guess.c 的 game_changed_state),而锁定带过来的钉子本身就够提交时它不归位,
-// 光标赖在那儿——数字键那一支带着 peg_cur < npegs 的守卫,整排颜色键就变成哑弹。
-// 允许留空时锁一颗就中,不许留空时锁满一行也中。
-const submit = (pegs: number): PadEntry => ({
-  face: (ctx) => ({
-    icon: 'done',
-    says: ctx.words.keys.done,
-    tip: ctx.words.keys.done,
-    dead: ctx.labels.enter !== 'Submit',
-  }),
-  press: (ctx) => {
-    ctx.send('\r')
-    for (let k = 0; k < pegs; k++) ctx.send('ArrowLeft')
-    ctx.setTyped(() => 0)
-  },
-})
-
-// 只为占住一格:注册了就算进行宽,face 回 null 就不画。用在 guess 顶行数字块的
-// 尾巴上——顶行的格子和下面两行一样是死的,少一个键是个洞,不是缩一格。
-const VOID: PadEntry = { face: () => null, press: () => {} }
-
-// guess:颜色按 1-2-3 / 4-5-6 / 7-8-9 铺满核心那三列,竖着对齐;第 10 颗没地方了,
-// 溢出到 9 右边那格。锁定/删除/确定这三个必须同行相邻,占顶行最左的三格(只有两行
-// 时顶行就是中行)。10 色那一档顶行满七格、走压缩宽,和下面两行对不上——只有这一档。
-const guessPad = (id: string, prefs: readonly DialogControl[]): Pad => {
-  const m = id.split(':')[0].match(/^c(\d+)p(\d+)g\d+/)
-  if (!m) return {}
-  const n = +m[1]
-  const pegs = +m[2]
-  if (n < 2 || n > 10 || pegs < 1) return {}
-  const labelled = flag(prefs, LABELLED)
-  const pad: Pad = {}
-  for (let i = 0; i < n; i++)
-    pad[(i < 6 ? i + 1 : i + 4) as Slot] = colour(i, n, pegs, labelled)
-  // 顶行有数字时,那个数字块钉死三格宽(10、11、12),没排到的格子占着不画。
-  if (n >= 7) for (let slot = n + 4; slot <= 12; slot++) pad[slot as Slot] = VOID
-  const first = n <= 3 ? 4 : 7
-  pad[first as Slot] = HOLD
-  pad[(first + 1) as Slot] = ERASE
-  pad[(first + 2) as Slot] = submit(pegs)
-  return pad
+  press: (ctx) => ctx.send('\b'),
 }
 
 type Table = Pad | ((id: string, prefs: readonly DialogControl[]) => Pad)
@@ -1024,10 +917,13 @@ const PAD: Record<string, Table> = {
     1: step('left'), 2: step('down'), 3: step('right'), 5: step('up'),
     4: region({ key: '', icon: 'stipple', says: 'maybeMode', arms: true }),
     6: region({ key: '', icon: 'clear', says: 'clearRegion', paints: { colour: -1 } }),
-    ...Object.fromEntries(Array.from({ length: COLOURS }, (_, i) => [7 + i, tint(i)])),
   },
 
-  guess: guessPad,
+  // 只有左右:上下在上游是选颜色的,那件事被区域 A 那排圆键顶替了。2、5 因此空着。
+  guess: {
+    1: step('left'), 3: step('right'),
+    4: PLACE, 5: ERASE, 6: HOLD,
+  },
 
   // 唯一走八方的:斜向占满四角,中间那格留给「一直滑到底」。
   inertia: {
@@ -1264,35 +1160,18 @@ const tableOf = (name: string, id: string, prefs: readonly DialogControl[]): Pad
 const slotsOf = (table: Pad) =>
   (Object.keys(table).map(Number).sort((a, b) => a - b) as Slot[])
 
-// 这块键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有
-// 的,face() 里只写得下号码。
-export function padPalette(
-  name: string,
-  id: string,
-  prefs: readonly DialogControl[],
-): number[] {
-  const table = tableOf(name, id, prefs)
-  const want = new Set<number>()
-  for (const slot of slotsOf(table))
-    for (const one of tenants(table, slot)) for (const n of one.palette ?? []) want.add(n)
-  return [...want]
-}
-
 export function padKeys(
   name: string,
   id: string,
   prefs: readonly DialogControl[],
   ctx: PadContext,
-): { rows: number; keys: PadButton[]; top: PadButton[]; wide: number; tight: boolean } {
+): { rows: number; keys: PadButton[] } {
   const table = tableOf(name, id, prefs)
   const slots = slotsOf(table)
-  if (slots.length === 0) return { rows: 0, keys: [], top: [], wide: 0, tight: false }
+  if (slots.length === 0) return { rows: 0, keys: [] }
 
-  // 行数和顶行宽度都按「注册了什么」算,不按「这一刻摆着什么」:键来来去去时
-  // 块不该跟着蹦。
+  // 行数按「注册了什么」算,不按「这一刻摆着什么」:键来来去去时块不该跟着蹦。
   const rows = Math.max(...slots.map(rowOf))
-  const ups = slots.filter((slot) => slot >= 7)
-  const wide = ups.length === 0 ? 0 : Math.max(3, ...ups.map((slot) => slot - 6))
 
   const brushes = slots.filter((slot) => tenants(table, slot).some((one) => one.brush))
   const brushAt =
@@ -1309,22 +1188,21 @@ export function padKeys(
   }
 
   const keys: PadButton[] = []
-  const top: PadButton[] = []
   for (const slot of slots) {
     const mine: PadHere = { ...here, slot }
     for (const one of tenants(table, slot)) {
       const face = one.face(mine)
       if (!face) continue
-      ;(slot >= 7 ? top : keys).push({
+      keys.push({
         ...face,
         slot,
         row: rows + 1 - rowOf(slot),
-        col: slot >= 7 ? slot - 6 : colOf(slot),
+        col: colOf(slot),
         gone: !one.moves && ctx.primed !== null && ctx.primed !== slot,
         press: () => one.press(mine),
       })
       break
     }
   }
-  return { rows, keys, top, wide, tight: wide === 7 }
+  return { rows, keys }
 }

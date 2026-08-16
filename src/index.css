@@ -448,21 +448,15 @@ footer p {
   --key-gap: 0.25rem;
   /* 底板往键外撑半道缝:撑满一道两块就贴上了,这 2px 是方向键和功能键之间的净空。 */
   --key-rim: calc(var(--key-gap) / 2);
-  /* 底板圆角 = 键的圆角 + rim,两层才同心。方向键是胶囊,圆角取短边的一半:常规档
-     40/2 + 2 = 22;压缩档那行键窄成 36,跟着变 36/2 + 2 = 20。 */
   /* 底板色。按不动的键也填它——键面整个沉进板里,只剩一个淡图标浮着,是这一块
      里最强的一个「现在按不动」的信号。两处必须同值,所以走同一个变量。 */
   --pad-bg: var(--surface-2);
+  /* 底板圆角 = 键的圆角 + rim,两层才同心。方向键是正圆,圆角取一半:40/2 + 2。 */
   --pad-r: calc(var(--tap-w) / 2 + var(--key-rim));
-  --pad-r-tight: calc((var(--tap-w) - var(--key-gap)) / 2 + var(--key-rim));
-  /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽,顶行铺过去
-     才算得清。这条等式就是 --act-w 这个定义的全部用处。 */
+  /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽。这条等式就是
+     --act-w 这个定义的全部用处。 */
   --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
-  /* 键盘总宽,两种排法必须算出同一个数:
-       下两行  3×tap-w + 2×act-w + 4×gap + 2×rim = 6×tap-w + 7×gap
-       满七格  7×(tap-w − gap) + 6×rim + 2×rim   = 7×tap-w − 3×gap
-     两式相等要求 --tap-w 恰是 --key-gap 的 10 倍。动其中一个就得连着动另一个,
-     否则满 13 格的 guess 会比别的游戏宽出去一截。 */
+  /* 键盘总宽 = 3×tap-w + 2×act-w + 4×gap + 2×rim = 6×tap-w + 7×gap。 */
   --keys-w: calc(6 * var(--tap-w) + 7 * var(--key-gap));
   position: fixed;
   inset: 0;
@@ -852,10 +846,11 @@ p.notice-intro button:active {
 /* 四类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
      一类 实心无边框(Menu 另填 accent-soft)
      二类 实心无边框
-     四类 同样实心,多一圈边框、字色淡一档
-     三类 实心带边框,整簇坐在一块底板上
-   区域 A 的键是 --r-sm 的圆角矩形,方向键是胶囊(见 --r-full 那条);底板圆角
-   跟着键走,规则写在 --pad-r 上。 */
+     四类 实心带边框、字色淡一档
+     三类 和四类同一套键面,但是**圆的**——它有两个住处(方向键那块底板上,
+          以及区域 A 里 Map/Guess 的色板),圆是把后者和上面两类分开的唯一记号
+   区域 A 的一类二类四类是 --r-sm 的圆角矩形;三类不论在哪都是正圆。底板圆角跟着
+   键走,规则写在 --pad-r 上。 */
 
 /* 二类回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='need'] {
@@ -876,15 +871,22 @@ p.notice-intro button:active {
   }
 }
 
+/* 三类落在区域 A 时:键面同方向键,形状改成正圆——旁边的一类二类四类都是圆角
+   矩形,圆是「这是方向键的伴生键」唯一的记号。 */
+.keypad button[data-kind='aim'] {
+  border-radius: var(--r-full);
+  background: var(--surface);
+}
+
+.keypad button[data-kind='aim']:disabled .key-peg {
+  opacity: 0.35;
+}
+
 /* 按不动的键填底板色,边框照旧:键面和底板齐平、轮廓还在——读作「这儿有个键,
    现在按不动」,而不是「这儿没有键」。底色必须和底板同值,所以两处都走 --pad-bg。
    这条要排在 [data-on] 前面:亮着但暂时按不动的键继续亮着。 */
 .play-arrows button:disabled {
   background: var(--pad-bg);
-}
-
-.play-arrows button:disabled .key-peg {
-  opacity: 0.35;
 }
 
 /* 上膛、刷、涂色这些「模式亮着」的状态,只出现在区域 B 的伴生键上。 */
@@ -978,8 +980,7 @@ p.notice-intro button:active {
 }
 
 /* 整条键盘是一张 4 列的网格:整块塞那四个固定键的一列 + 方向键的核心三列。
-   列线起了名(acts/c1/c2/c3/core-end),pad.ts 只管报 1、2、3。
-   顶行不吃这些列,自己排(见 .pad-top)。 */
+   列线起了名(acts/c1/c2/c3/core-end),pad.ts 只管报 1、2、3。 */
 .play-keys {
   display: grid;
   grid-template-columns:
@@ -1005,38 +1006,6 @@ p.notice-intro button:active {
   display: contents;
 }
 
-/* 顶行不吃大网格的列:它自己是一张定宽格子的小网格(--top 格,由 pad.ts 按注册到
-   的最大格号给),自己带底板,所以长几格就多宽。格子是死的,没人注册的那格是个洞,
-   不是缩一格——和下面两行一个规矩。常规档沿用下面那 44 的节距,右对齐,所以最右
-   三格正好压在 c1/c2/c3 上,第四格起长到固定键的上方。右下角要收成直角,底板才和
-   下面连成一个 Γ;左下角是长出去那截的下沿,圆的。 */
-.pad-top {
-  z-index: 1;
-  grid-row: 1;
-  grid-column: 1 / -1;
-  justify-self: end;
-  display: grid;
-  grid-template-columns: repeat(var(--top), var(--tap-w));
-  gap: var(--key-gap);
-  width: max-content;
-  margin: calc(-1 * var(--key-rim));
-  padding: var(--key-rim);
-  border-radius: var(--pad-r) var(--pad-r) 0 var(--pad-r);
-  background: var(--pad-bg);
-}
-
-/* 满七格的那一档:键窄一道缝、缝减半,省出来的正好够第七个键,总宽和别的档一样。
-   代价是节距掉到 38,这一行和下面两行一格都对不上(最右那格除外)。 */
-.pad-top[data-tight] {
-  grid-template-columns: repeat(var(--top), calc(var(--tap-w) - var(--key-gap)));
-  gap: var(--key-rim);
-  border-radius: var(--pad-r-tight) var(--pad-r-tight) 0 var(--pad-r-tight);
-}
-
-.pad-top[data-tight] button {
-  width: calc(var(--tap-w) - var(--key-gap));
-}
-
 .pad-floor {
   z-index: 0;
   grid-column: c1 / core-end;
@@ -1049,8 +1018,6 @@ p.notice-intro button:active {
   z-index: 1;
 }
 
-/* 胶囊:--r-full 会被 CSS 按短边等比收到「短边的一半」,所以 40×40 是正圆,
-   压缩档的 36×40 是短边全圆、长边留 4px 直线。不写死数值,键一改形状自己跟上。 */
 .play-arrows button {
   width: var(--tap-w);
   height: var(--tap-w);
