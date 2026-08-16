@@ -897,10 +897,10 @@ export default function PuzzleHost({
               aria-hidden="true"
               style={{ gridRow: `1 / span ${arrowPad.rows}` }}
             />
-            {fixedKeys}
             {/* display:contents,让这些键直接落进上面那张网格,同时留住这一层的
                 role 和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。
-                方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
+                方向键不给 tip:它要连着点,长按问一句会把连点打断。
+                这一块排在固定键前面,是为了让 tab 顺序跟着屏幕从左到右走。 */}
             <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
               {arrowPad.top.length > 0 && (
                 <div className="pad-top" data-tight={arrowPad.tight ? '' : undefined}>
@@ -909,6 +909,7 @@ export default function PuzzleHost({
               )}
               {arrowPad.keys.map(padKey)}
             </div>
+            {fixedKeys}
           </div>
         ) : (
           fixedKeys
