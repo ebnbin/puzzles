@@ -22,25 +22,6 @@ const art = (icon: KeyIcon, theme: Resolved) =>
     <Icon name={icon as KeyGlyph} />
   )
 
-const peg = (key: KeyLabel, swatches: ReadonlyMap<number, string>) => {
-  const fill = key.slot === undefined ? undefined : swatches.get(key.slot)
-  if (!fill) return null
-  const ink = key.ink === undefined ? undefined : swatches.get(key.ink)
-  return (
-    <span
-      className="key-peg"
-      data-dotted={key.dotted ? '' : undefined}
-      style={{
-        [key.dotted ? 'color' : 'background']: fill,
-        borderColor: ink ?? 'transparent',
-        ...(key.dotted ? {} : { color: ink }),
-      }}
-    >
-      {key.label}
-    </span>
-  )
-}
-
 const countOn = (key: KeyLabel, left: Map<number, number> | null) => {
   if (key.value === undefined || !left) return null
   const n = left.get(key.value)
@@ -50,33 +31,21 @@ const countOn = (key: KeyLabel, left: Map<number, number> | null) => {
 export default function PuzzleKeypad({
   keys,
   left,
-  swatches,
-  dead,
   onPress,
 }: {
   keys: KeyLabel[]
   left: Map<number, number> | null
-  swatches: ReadonlyMap<number, string>
-  dead: (key: KeyLabel) => boolean
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
   const theme = useResolvedTheme()
 
   const describe = (key: KeyLabel) =>
-    key.paints
-      ? key.paints.colour < 0
-        ? t.keys.clearRegion
-        : key.paints.pencil
-          ? t.keys.maybeRegion(key.paints.colour + 1)
-          : t.keys.fillRegion(key.paints.colour + 1)
-      : key.icon
-        ? t.keys[key.icon]
-        : key.slot !== undefined
-          ? t.keys.peg(key.value ?? 0)
-          : key.whose
-            ? t.keys.highlight(key.label ?? '')
-            : undefined
+    key.icon
+      ? t.keys[key.icon]
+      : key.whose
+        ? t.keys.highlight(key.label ?? '')
+        : undefined
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
@@ -86,11 +55,10 @@ export default function PuzzleKeypad({
     <>
       <div className="keypad" role="group" aria-label={t.play.keypad}>
         {/* React key 用下标、不用 key.button:我们这侧回答的键 button 全是 0,
-            Map 的九个 swatch 会撞 key;列表每次发牌整体重建、局内从不重排。 */}
+            会互相撞 key;列表每次发牌整体重建、局内从不重排。 */}
         {keys.map((key, i) => {
           const said = describe(key)
           const count = countOn(key, left)
-          const swatch = peg(key, swatches)
           return (
             <button
               key={i}
@@ -99,9 +67,8 @@ export default function PuzzleKeypad({
               // 给 scripts/check-keys.mjs 用:键面上的 button 码要和上游
               // midend_request_keys() 报的那组对得上。app 内没有读者。
               data-button={key.button}
-              disabled={dead(key)}
               aria-label={
-                key.icon || key.slot !== undefined
+                key.icon
                   ? said
                   : count !== null
                     ? t.keys.left(key.label ?? '', count)
@@ -116,10 +83,9 @@ export default function PuzzleKeypad({
                 onPress(key)
               }}
             >
-              {swatch ??
-                (key.icon
-                  ? art(key.icon, theme)
-                  : (key.label ?? String.fromCharCode(key.button)))}
+              {key.icon
+                ? art(key.icon, theme)
+                : (key.label ?? String.fromCharCode(key.button))}
               {count !== null && (
                 <span className="key-left" aria-hidden="true">
                   {count}

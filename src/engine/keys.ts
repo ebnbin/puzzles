@@ -3,7 +3,6 @@
 // 判据和踩过的坑在 docs/keys.md,改这里要同步改它。方向键那一块在 pad.ts。
 // 这份推导和上游的真答案对不对得上,由 scripts/check-keys.mjs 去问引擎
 // (midend_request_keys 已经导出);改 RULES、升级 vendor 之后跑它。
-import { COLOURS } from './map'
 import type { DialogControl, KeyLabel } from './types'
 
 const MAX_SYMBOLS = 36
@@ -62,12 +61,6 @@ export function preference(
   return null
 }
 
-function flag(prefs: readonly DialogControl[], label: string): boolean {
-  for (const control of prefs)
-    if (control.kind === 'boolean' && control.label === label) return control.value
-  return false
-}
-
 const MONSTERS = ['Pictures', 'Letters']
 
 const UNDEAD = [
@@ -75,26 +68,6 @@ const UNDEAD = [
   { letter: 'V', icon: 'vampire' },
   { letter: 'Z', icon: 'zombie' },
 ] as const
-
-const COL_FRAME = 1
-const COL_1 = 6
-
-const COL_MAP = 2
-
-const LABELLED = 'Label colours with numbers'
-
-const ERASE: KeyLabel = { ...CLEAR, kind: 'aim', behind: { step: 'ArrowLeft' } }
-
-const HOLD: KeyLabel = { kind: 'aim', button: ' '.charCodeAt(0), icon: 'lock', whose: 'upstream' }
-
-const SUBMIT: KeyLabel = {
-  kind: 'aim',
-  restarts: true,
-  button: 13,
-  icon: 'done',
-  needs: 'Submit',
-  whose: 'upstream',
-}
 
 const RULES: Record<
   string,
@@ -142,48 +115,9 @@ const RULES: Record<
       BLANK,
     ]
   },
-  guess(p, prefs) {
-    const m = p.match(/^c(\d+)p(\d+)g\d+/)
-    if (!m) return null
-    const n = +m[1]
-    const pegs = +m[2]
-    if (n < 2 || n > 10 || pegs < 1) return null
-    const labelled = flag(prefs, LABELLED)
-    return [
-      HOLD,
-      ...Array.from({ length: n }, (_, i): KeyLabel => {
-        const button = '0'.charCodeAt(0) + ((i + 1) % 10)
-        const fromTop = i <= (n - 1) / 2
-        return {
-          kind: 'aim',
-          button,
-          ...(labelled ? { label: String.fromCharCode(button) } : {}),
-          slot: COL_1 + i,
-          ink: COL_FRAME,
-          value: i + 1,
-          advances: pegs,
-          aims: {
-            home: fromTop ? 'ArrowUp' : 'ArrowDown',
-            step: fromTop ? 'ArrowDown' : 'ArrowUp',
-            span: n,
-            at: fromTop ? i : n - 1 - i,
-          },
-        }
-      }),
-      ERASE,
-      SUBMIT,
-      HINT,
-    ]
-  },
-
-  map: () =>
-    Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
-      kind: 'aim',
-      button: 0,
-      slot: COL_MAP + i,
-      paints: { colour: i },
-      whose: 'ours',
-    })),
+  // guess 的颜色钉、保留、退格、确定全在方向键那块(pad.ts),这里只剩提示;
+  // map 一个键都不剩,整排不画。
+  guess: () => [HINT],
 
   galaxies: () => [HINT],
   net: () => [JUMBLE],
@@ -205,13 +139,6 @@ const RULES: Record<
 // 键盘长什么样要问偏好设置的游戏:PuzzleHost 见到这些名字,才会在偏好可能
 // 动过之后回来重读一遍。
 export const READS_PREFS = new Set(['undead', 'guess', 'palisade'])
-
-export const asMaybes = (keys: KeyLabel[]): KeyLabel[] =>
-  keys.map((k) =>
-    k.paints && k.paints.colour >= 0
-      ? { ...k, dotted: true, paints: { ...k.paints, pencil: true } }
-      : k,
-  )
 
 export const heads = (name: string) => name === 'guess'
 

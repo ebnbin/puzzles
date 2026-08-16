@@ -49,7 +49,10 @@ const arrow = async (d) => {
   await page.locator(`.play-arrows button[aria-label="${d}"]`).click()
   await page.waitForTimeout(40)
 }
-const ours = () => page.evaluate(() => document.querySelector('.keypad button').disabled)
+// 7 号格是 map 的第一个颜色键(编号见 src/engine/pad.ts):它灰着就是我们认为
+// 光标站在线索上。按格子号找、不按名字,名字会跟着「可能」模式换。
+const ours = () =>
+  page.evaluate(() => document.querySelector(".play-arrows [data-slot='7']").disabled)
 const theirs = () => page.evaluate(() => {
   const api = window.__puzzle
   // 读 STATEPOS、不数 MOVE 行:序列化含被 undo 的走子,数行曾让这个检查认可过

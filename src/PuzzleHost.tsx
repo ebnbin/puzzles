@@ -9,13 +9,15 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { asMaybes, HOLD_BUTTON, keysFor, heads, READS_PREFS } from './engine/keys'
+import KeyPeg from './KeyPeg'
+import { HOLD_BUTTON, keysFor, heads, READS_PREFS } from './engine/keys'
 import {
   dragWalked,
   offersArrows,
   opener,
   opens,
   padKeys,
+  padPalette,
   wakesCursor,
 } from './engine/pad'
 import type { KeyLabels, PadContext, Slot } from './engine/pad'
@@ -414,13 +416,10 @@ export default function PuzzleHost({
     }
   }, [name])
 
-  const keys = useMemo(() => {
-    const all = permalink ? keysFor(name, decodeURIComponent(permalink.desc), prefs) : []
-    // 关掉方向键只藏三类。以前是按游戏名把整份键表丢掉(guess)或按 aimed 过滤
-    // (map),前一种把 guess 的提示键——四类,和方向键没关系——也一起埋了。
-    const shown = wanted ? all : all.filter((k) => k.kind !== 'aim')
-    return maybe ? asMaybes(shown) : shown
-  }, [maybe, name, permalink, prefs, wanted])
+  const id = permalink ? decodeURIComponent(permalink.desc) : ''
+  const keys = useMemo(() => keysFor(name, id, prefs), [id, name, prefs])
+
+  const padInk = useMemo(() => padPalette(name, id, prefs), [id, name, prefs])
 
   usePuzzleFit(
     areaRef,
@@ -446,14 +445,12 @@ export default function PuzzleHost({
     const renderer = rendererRef.current
     if (!renderer || !ready) return
     const next = new Map<number, string>()
-    for (const key of keys)
-      for (const slot of [key.slot, key.ink]) {
-        if (slot === undefined) continue
-        const css = renderer.colour(slot)
-        if (css) next.set(slot, css)
-      }
+    for (const slot of padInk) {
+      const css = renderer.colour(slot)
+      if (css) next.set(slot, css)
+    }
     setSwatches((was) => (was.size === 0 && next.size === 0 ? was : next))
-  }, [keys, theme, ready])
+  }, [padInk, theme, ready])
 
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
@@ -624,14 +621,6 @@ export default function PuzzleHost({
     [acted],
   )
 
-  const dead = useCallback(
-    (key: KeyLabel) =>
-      (key.needs !== undefined && labels.enter !== key.needs) ||
-      (key.behind !== undefined && typed === 0) ||
-      (key.paints !== undefined && (!awake || onClue)),
-    [awake, labels.enter, onClue, typed],
-  )
-
   const paint = useCallback((p: Paint) => {
     const api = apiRef.current
     if (!api || !awake) return
@@ -650,33 +639,11 @@ export default function PuzzleHost({
       return
     }
     acted()
-    if (key.paints) {
-      paint(key.paints)
-      canvasRef.current?.focus()
-      return
-    }
-    const send = (sent: string, code = 0) => {
-      if (wakesCursor(name, sent)) setAwake(true)
-      return api.key(code, sent, '', 0, 0, 0)
-    }
-    if (key.behind) {
-      if (typed > 0) {
-        send(key.behind.step)
-        send('Backspace', 8)
-        setTyped((n) => Math.max(n - 1, 0))
-      }
-      canvasRef.current?.focus()
-      return
-    }
-    if (key.aims) {
-      for (let i = 0; i < key.aims.span; i++) send(key.aims.home)
-      for (let i = 0; i < key.aims.at; i++) send(key.aims.step)
-    }
-    send(String.fromCharCode(key.button))
-    if (key.advances !== undefined) setTyped((n) => Math.min(n + 1, key.advances!))
-    if (key.restarts) setTyped(0)
+    const sent = String.fromCharCode(key.button)
+    if (wakesCursor(name, sent)) setAwake(true)
+    api.key(0, sent, '', 0, 0, 0)
     canvasRef.current?.focus()
-  }, [acted, markAction, name, paint, typed])
+  }, [acted, markAction, name])
 
   const sendKey = useCallback(
     (key: string, where = 0, mod?: { shift?: true; ctrl?: true }) => {
@@ -721,7 +688,8 @@ export default function PuzzleHost({
     rolling,
     primed,
     brush,
-    words: t.play,
+    typed,
+    words: { ...t.play, keys: t.keys },
     send: sendKey,
     save: () => apiRef.current?.saveGame(),
     undo: () => apiRef.current?.undo(),
@@ -730,9 +698,72 @@ export default function PuzzleHost({
     toggleMaybe: () => setMaybe((was) => !was),
     toggleSweep: () => setSweeping((was) => !was),
     setBrush,
+    setTyped,
     labelsNow: () => ({ ...labelsRef.current, opened: opened ?? undefined, walked, stand }),
   }
-  const arrowPad = padKeys(name, prefs, pad)
+  const arrowPad = padKeys(name, id, prefs, pad)
+
+  const fixedKeys = (
+          <div className="play-acts">
+            <button
+              type="button"
+              aria-label={t.play.undo}
+              disabled={!undoRedo.undo}
+              {...holdToAsk(t.play.undo)}
+              onClick={() => {
+                if (wasHeld()) return
+                act((a) => a.undo())
+              }}
+            >
+              <Icon name="undo" />
+            </button>
+            <button
+              type="button"
+              aria-label={t.play.redo}
+              disabled={!undoRedo.redo}
+              {...holdToAsk(t.play.redo)}
+              onClick={() => {
+                if (wasHeld()) return
+                act((a) => a.redo())
+              }}
+            >
+              <Icon name="redo" />
+            </button>
+            {presets && (
+              <button
+                type="button"
+                aria-label={t.types.title}
+                aria-haspopup="dialog"
+                aria-expanded={typesOpen}
+                {...holdToAsk(t.types.title)}
+                onClick={() => {
+                  if (wasHeld()) return
+                  closeMenu()
+                  setTypesOpen(true)
+                }}
+              >
+                <Icon name="type" />
+              </button>
+            )}
+            <button
+              type="button"
+              className="is-menu"
+              aria-label={t.play.menu}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+              {...holdToAsk(t.play.menu)}
+              onClick={() => {
+                if (wasHeld()) return
+                closeTypes()
+                setTextError(null)
+                setMenuOpen(true)
+              }}
+            >
+              <Icon name="menu" />
+            </button>
+          </div>
+  )
+
 
   return (
     <div className="play" data-ready={ready} data-arrows={arrows ? 'true' : undefined}>
@@ -819,108 +850,69 @@ export default function PuzzleHost({
         )}
       </div>
 
-      <PuzzleKeypad
-        keys={keys}
-        left={left}
-        swatches={swatches}
-        dead={dead}
-        onPress={pressKey}
-      />
+      <PuzzleKeypad keys={keys} left={left} onPress={pressKey} />
 
       <nav className="play-actions">
-        <div className="play-acts">
-          <button
-            type="button"
-            aria-label={t.play.undo}
-            disabled={!undoRedo.undo}
-            {...holdToAsk(t.play.undo)}
-            onClick={() => {
-              if (wasHeld()) return
-              act((a) => a.undo())
-            }}
-          >
-            <Icon name="undo" />
-          </button>
-          <button
-            type="button"
-            aria-label={t.play.redo}
-            disabled={!undoRedo.redo}
-            {...holdToAsk(t.play.redo)}
-            onClick={() => {
-              if (wasHeld()) return
-              act((a) => a.redo())
-            }}
-          >
-            <Icon name="redo" />
-          </button>
-          {presets && (
-            <button
-              type="button"
-              aria-label={t.types.title}
-              aria-haspopup="dialog"
-              aria-expanded={typesOpen}
-              {...holdToAsk(t.types.title)}
-              onClick={() => {
-                if (wasHeld()) return
-                closeMenu()
-                setTypesOpen(true)
-              }}
-            >
-              <Icon name="type" />
-            </button>
-          )}
-          <button
-            type="button"
-            className="is-menu"
-            aria-label={t.play.menu}
-            aria-haspopup="dialog"
-            aria-expanded={menuOpen}
-            {...holdToAsk(t.play.menu)}
-            onClick={() => {
-              if (wasHeld()) return
-              closeTypes()
-              setTextError(null)
-              setMenuOpen(true)
-            }}
-          >
-            <Icon name="menu" />
-          </button>
-        </div>
-
-        {arrows && arrowPad.keys.length > 0 && (
+        {arrows && arrowPad.keys.length > 0 ? (
           <div
-            className="play-arrows"
+            className="play-keys"
             style={{ gridTemplateRows: `repeat(${arrowPad.rows}, var(--tap-w))` }}
-            role="group"
-            aria-label={t.play.arrows.group}
           >
-            {/* 一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。方向键不给 tip:
-                它要连着点,长按问一句会把连点打断。 */}
-            {arrowPad.keys.map((key) => (
-              <button
-                key={key.slot}
-                type="button"
-                data-slot={key.slot}
-                data-on={key.on || undefined}
-                data-off={key.gone || undefined}
-                data-brush={key.ring ? 'true' : undefined}
-                style={{ gridRow: key.row, gridColumn: key.col }}
-                disabled={key.dead}
-                aria-pressed={key.pressed}
-                aria-label={key.says}
-                {...(key.tip ? holdToAsk(key.tip) : {})}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  if (key.tip && wasHeld()) return
-                  acted()
-                  key.press()
-                  canvasRef.current?.focus()
+            {arrowPad.floors.map((floor) => (
+              <div
+                key={floor.wing ? 'wing' : 'core'}
+                className="pad-floor"
+                data-wing={floor.wing ? '' : undefined}
+                data-notch={!floor.wing && arrowPad.floors.length > 1 ? '' : undefined}
+                aria-hidden="true"
+                style={{
+                  gridRow: `${floor.row} / span ${floor.rows}`,
+                  gridColumn: `${floor.col} / span ${floor.cols}`,
                 }}
-              >
-                <Icon name={key.icon} />
-              </button>
+              />
             ))}
+            {fixedKeys}
+            {/* display:contents,让这些键直接落进上面那张 7 列的网格,同时留住
+                这一层的 role 和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号
+                算好。方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
+            <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
+              {arrowPad.keys.map((key) => (
+                <button
+                  key={key.slot}
+                  type="button"
+                  data-slot={key.slot}
+                  data-on={key.on || undefined}
+                  data-off={key.gone || undefined}
+                  data-brush={key.ring ? 'true' : undefined}
+                  style={{ gridRow: key.row, gridColumn: key.col }}
+                  disabled={key.dead}
+                  aria-pressed={key.pressed}
+                  aria-label={key.says}
+                  {...(key.tip ? holdToAsk(key.tip) : {})}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (key.tip && wasHeld()) return
+                    acted()
+                    key.press()
+                    canvasRef.current?.focus()
+                  }}
+                >
+                  {key.peg ? (
+                    <KeyPeg
+                      fill={swatches.get(key.peg.fill)}
+                      ink={key.peg.ink === undefined ? undefined : swatches.get(key.peg.ink)}
+                      label={key.peg.label}
+                      dotted={key.peg.dotted}
+                    />
+                  ) : (
+                    key.icon && <Icon name={key.icon} />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
+        ) : (
+          fixedKeys
         )}
       </nav>
 
