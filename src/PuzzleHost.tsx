@@ -53,6 +53,7 @@ import type {
 import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
+import { useAid } from './useAid'
 import { useArrows } from './useArrows'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
@@ -119,6 +120,7 @@ export default function PuzzleHost({
   const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
   const wanted = useArrows()
   const arrows = wanted && offersArrows(name)
+  const helping = useAid()
   const spot = useRef<Spot>({ x: 0, y: 0 })
   const [typed, setTyped] = useState(0)
   const [maybe, setMaybe] = useState(false)
@@ -417,7 +419,10 @@ export default function PuzzleHost({
   }, [name])
 
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
-  const keys = useMemo(() => keysFor(name, id, prefs), [id, name, prefs])
+  const keys = useMemo(() => {
+    const all = keysFor(name, id, prefs)
+    return helping ? all : all.filter((k) => k.kind !== 'aid')
+  }, [helping, id, name, prefs])
 
   const padInk = useMemo(() => padPalette(name, id, prefs), [id, name, prefs])
 

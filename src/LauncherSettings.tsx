@@ -4,6 +4,7 @@ import Icon from './Icon'
 import { forgetEverything } from './engine/saves'
 import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
+import { setAid, useAid } from './useAid'
 import { setArrows, useArrows } from './useArrows'
 import { useScrollLock } from './useScrollLock'
 
@@ -19,6 +20,7 @@ export default function LauncherSettings({
   const t = useStrings()
   const [lang] = useLang()
   const arrows = useArrows()
+  const aid = useAid()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -58,6 +60,18 @@ export default function LauncherSettings({
           type="checkbox"
           checked={arrows}
           onChange={(e) => setArrows(e.target.checked)}
+        />
+      </label>
+
+      <label className="setting">
+        <span className="setting-text">
+          {t.settings.aid}
+          <em>{t.settings.aidHint}</em>
+        </span>
+        <input
+          type="checkbox"
+          checked={aid}
+          onChange={(e) => setAid(e.target.checked)}
         />
       </label>
 

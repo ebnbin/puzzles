@@ -50,6 +50,12 @@
 就是整块 `.play-arrows` 不画,区域 A 一个字节都不用过滤。Map 因此没有区域 A(它的键
 全是三类),Guess 只剩一个提示键。`KeyKind` 也因此只剩 `need` / `aid` 两个值。
 
+四类另有一个开关(`puzzles.aid`,见 `useAid.ts`),关掉就整批不画。**默认开,而且
+只认字面的 `'false'`**:垃圾值和读不出来都算开——宁可多给几个键,也不要因为一次读
+失败把提示键弄没了(方向键那个默认相反,只认 `'true'`)。整排都是四类的游戏
+(net、guess、dominosa、galaxies、fifteen、bridges、range、pearl)关掉之后区域 A
+整排不画,棋盘因此多一行。
+
 ## 现在的形状
 
 方向键是**一个全局设置**,默认关,开关在首页的设置面板里(`puzzles.arrows`,见 `useArrows.ts`)。
