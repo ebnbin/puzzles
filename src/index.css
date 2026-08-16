@@ -867,9 +867,11 @@ p.notice-intro button:active {
   border: 0;
 }
 
-/* 四类底色和二类一样走通则,只差一圈边框和淡一档的字色:填白等于没填(--surface
-   在 --bg 上只差 2%),空着又比二类轻太多,边框才是这两类之间读得出的那条线。 */
+/* 四类和方向键同一套:白键面 + 一圈边框,字色淡一档。于是整个底部只有两种键面
+   ——有边框的填 --surface(四类、方向键),没边框的填 --surface-2(一类、二类)。
+   白在 --bg 上只差 2%,读出「这是个键」靠的是边框,不是那层填充。 */
 .keypad button[data-kind='aid'] {
+  background: var(--surface);
   color: var(--text-2);
 }
 
