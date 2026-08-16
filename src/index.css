@@ -450,6 +450,9 @@ footer p {
   --key-rim: calc(var(--key-gap) / 2);
   /* 底板圆角 = 键的圆角 + rim,两层才同心。方向键是胶囊,圆角取短边的一半:常规档
      40/2 + 2 = 22;压缩档那行键窄成 36,跟着变 36/2 + 2 = 20。 */
+  /* 底板色。按不动的键也填它——键面整个沉进板里,只剩一个淡图标浮着,是这一块
+     里最强的一个「现在按不动」的信号。两处必须同值,所以走同一个变量。 */
+  --pad-bg: var(--surface-2);
   --pad-r: calc(var(--tap-w) / 2 + var(--key-rim));
   --pad-r-tight: calc((var(--tap-w) - var(--key-gap)) / 2 + var(--key-rim));
   /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽,顶行铺过去
@@ -1011,7 +1014,7 @@ p.notice-intro button:active {
   margin: calc(-1 * var(--key-rim));
   padding: var(--key-rim);
   border-radius: var(--pad-r) var(--pad-r) var(--pad-r) 0;
-  background: var(--surface-3);
+  background: var(--pad-bg);
 }
 
 /* 满七格的那一档:键窄一道缝、缝减半,省出来的正好够第七个键,总宽和别的档一样。
@@ -1030,7 +1033,7 @@ p.notice-intro button:active {
   grid-column: 1 / 4;
   margin: calc(-1 * var(--key-rim));
   border-radius: var(--pad-r);
-  background: var(--surface-3);
+  background: var(--pad-bg);
 }
 
 .play-keys button {
