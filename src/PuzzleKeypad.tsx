@@ -1,4 +1,5 @@
 import Icon from './Icon'
+import KeyPeg from './KeyPeg'
 import type { KeyArt, KeyGlyph, KeyIcon } from './Icon'
 import type { KeyLabel } from './engine/types'
 import { useStrings } from './i18n'
@@ -31,21 +32,31 @@ const countOn = (key: KeyLabel, left: Map<number, number> | null) => {
 export default function PuzzleKeypad({
   keys,
   left,
+  swatches,
+  dead,
   onPress,
 }: {
   keys: KeyLabel[]
   left: Map<number, number> | null
+  swatches: ReadonlyMap<number, string>
+  dead: (key: KeyLabel) => boolean
   onPress: (key: KeyLabel) => void
 }) {
   const t = useStrings()
   const theme = useResolvedTheme()
 
   const describe = (key: KeyLabel) =>
-    key.icon
-      ? t.keys[key.icon]
-      : key.whose
-        ? t.keys.highlight(key.label ?? '')
-        : undefined
+    key.paints
+      ? key.paints.pencil
+        ? t.keys.maybeRegion(key.value ?? 0)
+        : t.keys.fillRegion(key.value ?? 0)
+      : key.icon
+        ? t.keys[key.icon]
+        : key.slot !== undefined
+          ? t.keys.peg(key.value ?? 0)
+          : key.whose
+            ? t.keys.highlight(key.label ?? '')
+            : undefined
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
@@ -59,6 +70,15 @@ export default function PuzzleKeypad({
         {keys.map((key, i) => {
           const said = describe(key)
           const count = countOn(key, left)
+          const swatch =
+            key.slot === undefined ? null : (
+              <KeyPeg
+                fill={swatches.get(key.slot)}
+                ink={key.ink === undefined ? undefined : swatches.get(key.ink)}
+                label={key.label}
+                dotted={key.dotted}
+              />
+            )
           return (
             <button
               key={i}
@@ -67,8 +87,9 @@ export default function PuzzleKeypad({
               // 给 scripts/check-keys.mjs 用:键面上的 button 码要和上游
               // midend_request_keys() 报的那组对得上。app 内没有读者。
               data-button={key.button}
+              disabled={dead(key)}
               aria-label={
-                key.icon
+                key.icon || key.slot !== undefined
                   ? said
                   : count !== null
                     ? t.keys.left(key.label ?? '', count)
@@ -83,9 +104,10 @@ export default function PuzzleKeypad({
                 onPress(key)
               }}
             >
-              {key.icon
-                ? art(key.icon, theme)
-                : (key.label ?? String.fromCharCode(key.button))}
+              {swatch ??
+                (key.icon
+                  ? art(key.icon, theme)
+                  : (key.label ?? String.fromCharCode(key.button)))}
               {count !== null && (
                 <span className="key-left" aria-hidden="true">
                   {count}

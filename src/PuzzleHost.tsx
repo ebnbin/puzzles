@@ -9,15 +9,13 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import KeyPeg from './KeyPeg'
-import { HOLD_BUTTON, keysFor, heads, READS_PREFS } from './engine/keys'
+import { asMaybes, HOLD_BUTTON, keysFor, READS_PREFS } from './engine/keys'
 import {
   dragWalked,
   offersArrows,
   opener,
   opens,
   padKeys,
-  padPalette,
   wakesCursor,
 } from './engine/pad'
 import type { KeyLabels, PadButton, PadContext, Slot } from './engine/pad'
@@ -122,7 +120,6 @@ export default function PuzzleHost({
   const arrows = wanted && offersArrows(name)
   const helping = useAid()
   const spot = useRef<Spot>({ x: 0, y: 0 })
-  const [typed, setTyped] = useState(0)
   const [maybe, setMaybe] = useState(false)
   const [sweeping, setSweeping] = useState(false)
   const [brush, setBrush] = useState<Slot | null>(null)
@@ -358,7 +355,6 @@ export default function PuzzleHost({
           queueSave()
           setAwake(false)
           spot.current = { x: 0, y: 0 }
-          setTyped(0)
         },
         // 第一次报的一定是默认预设:emcc.c 建菜单时先调 select_appropriate_preset(),
         // 读存档和玩家选择都在其后,所以「第一个赢」拿到的就是 default_params()。
@@ -421,10 +417,15 @@ export default function PuzzleHost({
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
   const keys = useMemo(() => {
     const all = keysFor(name, id, prefs)
-    return helping ? all : all.filter((k) => k.kind !== 'aid')
-  }, [helping, id, name, prefs])
+    const mine = maybe ? asMaybes(all) : all
+    return mine.filter((k) => (k.kind === 'aid' ? helping : k.kind !== 'aim' || arrows))
+  }, [arrows, helping, id, maybe, name, prefs])
 
-  const padInk = useMemo(() => padPalette(name, id, prefs), [id, name, prefs])
+  // 圆键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有的。
+  const padInk = useMemo(
+    () => [...new Set(keys.flatMap((k) => [k.slot, k.ink]))].filter((n) => n !== undefined),
+    [keys],
+  )
 
   usePuzzleFit(
     areaRef,
@@ -454,7 +455,12 @@ export default function PuzzleHost({
       const css = renderer.colour(slot)
       if (css) next.set(slot, css)
     }
-    setSwatches((was) => (was.size === 0 && next.size === 0 ? was : next))
+    // 比内容不比身份:padInk 每次重算都是新数组,照身份换会白白多一轮渲染。
+    setSwatches((was) =>
+      was.size === next.size && [...next].every(([n, css]) => was.get(n) === css)
+        ? was
+        : next,
+    )
   }, [padInk, theme, ready])
 
   const act = useCallback(
@@ -462,7 +468,6 @@ export default function PuzzleHost({
       if (!apiRef.current || dialog) return
       acted()
       fn(apiRef.current)
-      setTyped(0)
       canvasRef.current?.focus()
     },
     [dialog, acted],
@@ -566,10 +571,6 @@ export default function PuzzleHost({
       if (walk !== null) setWalked(walk)
     }
     if (grid && plain) spot.current = stepCursor(spot.current, e.key, grid)
-    if (plain && heads(name)) {
-      if (e.key === 'ArrowLeft') setTyped((n) => Math.max(n - 1, 0))
-      else if (e.key === 'ArrowRight' || /^[0-9]$/.test(e.key)) setTyped((n) => n + 1)
-    }
     if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
       e.preventDefault()
     if (READS_PREFS.has(name)) readPrefs()
@@ -644,11 +645,37 @@ export default function PuzzleHost({
       return
     }
     acted()
-    const sent = String.fromCharCode(key.button)
-    if (wakesCursor(name, sent)) setAwake(true)
-    api.key(0, sent, '', 0, 0, 0)
+    if (key.paints) {
+      paint(key.paints)
+      canvasRef.current?.focus()
+      return
+    }
+    const send = (sent: string) => {
+      if (wakesCursor(name, sent)) setAwake(true)
+      api.key(0, sent, '', 0, 0, 0)
+    }
+    if (key.aims) {
+      for (let i = 0; i < key.aims.span; i++) send(key.aims.home)
+      for (let i = 0; i < key.aims.at; i++) send(key.aims.step)
+      // 顶完再问一次标签:上下只动调色板光标,钉子光标没动,所以这时的答案照样准。
+      // 光标要是停在「看结果」位,这一下 Enter 就是交卷了——那时候什么都不发。
+      if (labelsRef.current.enter === 'Place') send('\r')
+      canvasRef.current?.focus()
+      return
+    }
+    send(String.fromCharCode(key.button))
     canvasRef.current?.focus()
-  }, [acted, markAction, name])
+  }, [acted, markAction, name, paint])
+
+  // 区域 A 谁按不动。三类(圆键)各有各的判据:map 的看光标醒没醒、在不在线索上,
+  // guess 的看上游收不收 Enter——两者都不是我们自己定的规矩。
+  const deadKey = useCallback(
+    (key: KeyLabel) =>
+      key.paints !== undefined
+        ? !awake || onClue
+        : key.aims !== undefined && labels.enter !== 'Place',
+    [awake, labels.enter, onClue],
+  )
 
   const sendKey = useCallback(
     (key: string, where = 0, mod?: { shift?: true; ctrl?: true }) => {
@@ -693,7 +720,6 @@ export default function PuzzleHost({
     rolling,
     primed,
     brush,
-    typed,
     words: { ...t.play, keys: t.keys },
     send: sendKey,
     save: () => apiRef.current?.saveGame(),
@@ -703,7 +729,6 @@ export default function PuzzleHost({
     toggleMaybe: () => setMaybe((was) => !was),
     toggleSweep: () => setSweeping((was) => !was),
     setBrush,
-    setTyped,
     labelsNow: () => ({ ...labelsRef.current, opened: opened ?? undefined, walked, stand }),
   }
   const arrowPad = padKeys(name, id, prefs, pad)
@@ -729,16 +754,7 @@ export default function PuzzleHost({
         canvasRef.current?.focus()
       }}
     >
-      {key.peg ? (
-        <KeyPeg
-          fill={swatches.get(key.peg.fill)}
-          ink={key.peg.ink === undefined ? undefined : swatches.get(key.peg.ink)}
-          label={key.peg.label}
-          dotted={key.peg.dotted}
-        />
-      ) : (
-        key.icon && <Icon name={key.icon} />
-      )}
+      {key.icon && <Icon name={key.icon} />}
     </button>
   )
 
@@ -864,7 +880,6 @@ export default function PuzzleHost({
           onPointerDownCapture={() => {
             acted()
             setAwake(false)
-            setTyped(0)
           }}
           className="host-board"
           tabIndex={0}
@@ -893,7 +908,13 @@ export default function PuzzleHost({
         )}
       </div>
 
-      <PuzzleKeypad keys={keys} left={left} onPress={pressKey} />
+      <PuzzleKeypad
+        keys={keys}
+        left={left}
+        swatches={swatches}
+        dead={deadKey}
+        onPress={pressKey}
+      />
 
       <nav className="play-actions">
         {arrows && arrowPad.keys.length > 0 ? (
@@ -912,15 +933,6 @@ export default function PuzzleHost({
                 方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
             {fixedKeys}
             <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
-              {arrowPad.wide > 0 && (
-                <div
-                  className="pad-top"
-                  data-tight={arrowPad.tight ? '' : undefined}
-                  style={{ '--top': arrowPad.wide } as React.CSSProperties}
-                >
-                  {arrowPad.top.map((key) => padKey(key, { gridColumn: key.col }))}
-                </div>
-              )}
               {arrowPad.keys.map((key) =>
                 padKey(key, { gridRow: key.row, gridColumn: `c${key.col}` }),
               )}

@@ -1,14 +1,18 @@
 // 区域 A 那排键(棋盘正下方)。重新实现上游 request_keys() 的结果(emcc.c 不调用
 // 它),按 game id 里的参数推;认不出的 id 一律不显示键盘,而不是显示错的。逐游戏的
-// 判据和踩过的坑在 docs/keys.md,改这里要同步改它。方向键那一块在 pad.ts。
+// 判据和踩过的坑在 docs/keys.md,改这里要同步改它。方向键那一块在 pad.ts——
+// 只有 Map 和 Guess 的颜色键例外,它们属于方向键那一类('aim')却住在这儿,
+// 因为方向键块封死在 3×3、装不下十种颜色。
 // 这份推导和上游的真答案对不对得上,由 scripts/check-keys.mjs 去问引擎
 // (midend_request_keys 已经导出);改 RULES、升级 vendor 之后跑它。
+import { COLOURS } from './map'
 import type { DialogControl, KeyLabel } from './types'
 
 const MAX_SYMBOLS = 36
 
-// 单行键盘里非符号键的最大个数,数出来的不是猜的:往任何 RULES 行加非符号键都要
-// 同步加大它——keysFor 的长度守卫超限就整排不显示,只在最宽的合法棋盘上可见。
+// 最宽的那排上非符号键的个数(unequal:36 个符号 + 这些)。它只用来给 keysFor 的
+// 长度守卫定上界——守卫是拿来挡认错的 id 的,所以只要不小于任何一排的真实长度即可。
+// 加键之前先跟这个上界比一比:超了整排不显示,而且只在最宽的合法棋盘上才看得见。
 const MAX_EXTRAS = 6
 
 // 字符与数值是两回事:unequal 超过 9 阶从 '0' 起标以保持一字宽,此时 '0' 键的
@@ -63,6 +67,20 @@ export function preference(
 
 const MONSTERS = ['Pictures', 'Letters']
 
+// 引擎调色板里这几号是我们按名字认下来的:map 的四个区域色从 2 号起,guess 的
+// 钉子色从 6 号起、边框借 1 号。升级 vendor 后要重新核对。
+const COL_MAP = 2
+const COL_FRAME = 1
+const COL_1 = 6
+
+const LABELLED = 'Label colours with numbers'
+
+function flag(prefs: readonly DialogControl[], label: string): boolean {
+  for (const control of prefs)
+    if (control.kind === 'boolean' && control.label === label) return control.value
+  return false
+}
+
 const UNDEAD = [
   { letter: 'G', icon: 'ghost' },
   { letter: 'V', icon: 'vampire' },
@@ -115,9 +133,47 @@ const RULES: Record<
       BLANK,
     ]
   },
-  // guess 的颜色钉、保留、退格、确定全在方向键那块(pad.ts),这里只剩提示;
-  // map 一个键都不剩,整排不画。
-  guess: () => [HINT],
+  // guess 的一排颜色钉。一次按键展开成上游的一串:先把调色板光标顶到这个颜色
+  // (取近的那一头顶,顶满一趟保证到头),再按 Enter 落子——就是上游「上下选色 +
+  // 确认」那条路,我们只是把它缩成一个键。落完光标不动,和上游一致;数字键那条
+  // 路(落子并自动前进)我们不用。
+  guess(p, prefs) {
+    const m = p.match(/^c(\d+)p(\d+)g\d+/)
+    if (!m) return null
+    const n = +m[1]
+    if (n < 2 || n > 10 || +m[2] < 1) return null
+    const labelled = flag(prefs, LABELLED)
+    return [
+      ...Array.from({ length: n }, (_, i): KeyLabel => {
+        const fromTop = i <= (n - 1) / 2
+        return {
+          kind: 'aim',
+          button: 0,
+          slot: COL_1 + i,
+          ink: COL_FRAME,
+          value: i + 1,
+          ...(labelled ? { label: String((i + 1) % 10) } : {}),
+          aims: {
+            home: fromTop ? 'ArrowUp' : 'ArrowDown',
+            step: fromTop ? 'ArrowDown' : 'ArrowUp',
+            span: n,
+            at: fromTop ? i : n - 1 - i,
+          },
+        }
+      }),
+      HINT,
+    ]
+  },
+
+  // map 的四个区域色。上游没有任何键能说出一个颜色,所以这四个不发按键,走存档门。
+  map: () =>
+    Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
+      kind: 'aim',
+      button: 0,
+      slot: COL_MAP + i,
+      value: i + 1,
+      paints: { colour: i },
+    })),
 
   galaxies: () => [HINT],
   net: () => [JUMBLE],
@@ -140,11 +196,17 @@ const RULES: Record<
 // 动过之后回来重读一遍。
 export const READS_PREFS = new Set(['undead', 'guess', 'palisade'])
 
-export const heads = (name: string) => name === 'guess'
-
 export const HOLD_BUTTON: Record<string, number> = {
   net: 1,
 }
+
+// 开着「可能」时 map 那排改画点状铅笔色,按下去也落铅笔——一处改两件事。
+export const asMaybes = (keys: KeyLabel[]): KeyLabel[] =>
+  keys.map((k) =>
+    k.paints && k.paints.colour >= 0
+      ? { ...k, dotted: true, paints: { ...k.paints, pencil: true } }
+      : k,
+  )
 
 export function keysFor(
   name: string,

@@ -69,9 +69,10 @@ export type KeyAction = 'possible' | 'single' | 'blank'
 // 区域 A 的键属于哪一类。判据是 docs/keys.md 那条,不是「常不常用」:
 //   need 没有它这一局玩不完(擦不掉写错的数就填不完)
 //   aid  它做的事都能一步一步用别的方式做到(提示、铺标记、高亮)
-// 方向键方案的那一类(三类)一个都不在这里,全在 pad.ts。样式只看它,所以是
-// 必填——漏标一个 tsc 就会说话。
-export type KeyKind = 'need' | 'aid'
+//   aim  方向键方案的一部分,跟 puzzles.arrows 一起来去;画成圆的,和上面两类
+//        分得开。只有 Map 的色板和 Guess 的颜色钉,别的三类键都在 pad.ts 里
+// 样式和「关方向键时藏谁」都只看它,所以是必填——漏标一个 tsc 就会说话。
+export type KeyKind = 'need' | 'aid' | 'aim'
 
 export interface KeyLabel {
   kind: KeyKind
@@ -80,6 +81,14 @@ export interface KeyLabel {
   label?: string
   value?: number
   icon?: KeyIcon
+  // 颜色钉:引擎调色板的下标,不是 CSS 颜色——颜色要等 renderer 翻完主题才有。
+  slot?: number
+  ink?: number
+  dotted?: boolean
+  // map:这个键往光标那个区域涂什么。走存档门,不发按键。
+  paints?: { colour: number; pencil?: boolean }
+  // guess:先把调色板光标顶到这个颜色,再按 Enter——上游「上下选色 + 确认」那一串。
+  aims?: { home: string; step: string; span: number; at: number }
   whose?: 'upstream' | 'ours'
 }
 
