@@ -6,7 +6,6 @@ import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
 import { setAid, useAid } from './useAid'
 import { setArrows, useArrows } from './useArrows'
-import { setLefty, useLefty } from './useLefty'
 import { useScrollLock } from './useScrollLock'
 
 const ARMED_MS = 3000
@@ -22,7 +21,6 @@ export default function LauncherSettings({
   const [lang] = useLang()
   const arrows = useArrows()
   const aid = useAid()
-  const lefty = useLefty()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -64,31 +62,6 @@ export default function LauncherSettings({
           onChange={(e) => setArrows(e.target.checked)}
         />
       </label>
-
-      {/* 方向键关着时这一行整行置灰:那时候「放哪一侧」无从谈起。 */}
-      <div className="setting" data-off={arrows ? undefined : ''}>
-        <span className="setting-text" id="side-label">
-          {t.settings.side}
-          <em>{t.settings.sideHint}</em>
-        </span>
-        <div className="segmented" role="radiogroup" aria-labelledby="side-label">
-          {[
-            { on: true, label: t.settings.sideLeft },
-            { on: false, label: t.settings.sideRight },
-          ].map((option) => (
-            <label key={option.label} data-selected={lefty === option.on}>
-              <input
-                type="radio"
-                name="side"
-                checked={lefty === option.on}
-                disabled={!arrows}
-                onChange={() => setLefty(option.on)}
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
-      </div>
 
       <label className="setting">
         <span className="setting-text">

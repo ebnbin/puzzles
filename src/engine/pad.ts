@@ -3,10 +3,11 @@
 //      7  8  9 10 11 12 13     顶行 3–7 格,右对齐,多出来的往左长
 //               4  5  6        中行 3 格
 //               1  2  3        底行 3 格
-// 整条键盘是一个 4 列的网格:前三列是方向键的核心,第四列整块塞那四个固定键。
-// 顶行不吃这些列,自己一条左对齐的横排,所以往右长的时候长到的是固定键的上方。
+// 整条键盘是一个 4 列的网格:后三列是方向键的核心,第一列整块塞那四个固定键。
+// 顶行不吃这些列,自己一张定宽格子的小网格,右对齐、往左长到固定键的上方;三行
+// 的格子一样是死的,没人注册的格子是个洞,不是缩一格。
 // 满 7 格时那一行的键窄一道缝、缝减半,省出来的正好够第七个键,整块宽度不变
-// (算式和它的前提写在 index.css 的 --keys-w 上)。
+// (算式和它的前提写在 index.css 的 --keys-w 上),代价是这一档和下面两行对不齐。
 // 每个游戏把自己的键钉死在格子号上,没人注册的行整行不画,块就矮一截。注册项是
 // 数据加方法:face() 回答「这一刻长什么样」(null = 这一刻不摆),press() 收 ctx
 // 自己动手;亮、按不动、描边、退场这些状态位对每个键一视同仁,用不用由 face()
@@ -82,8 +83,8 @@ type Pad = Partial<Record<Slot, PadEntry | PadEntry[]>>
 
 export type PadButton = PadFace & {
   slot: Slot
-  // CSS 的行列号,从上往下、从左往右数——已经把格子号翻过来了。顶行的键不吃列,
-  // col 是 0。
+  // CSS 的行列号,从上往下、从左往右数——已经把格子号翻过来了。顶行的键不吃
+  // 那张大网格的列,col 是它在自己那张小网格里的第几列(1..7)。
   row: number
   col: number
   gone: boolean
@@ -742,9 +743,13 @@ const SUBMIT: PadEntry = {
   },
 }
 
-// guess:n 种颜色顺着占 1..n 号格,锁定/删除/确定紧跟其后。这三个必须同行相邻,
-// 而底行中行是死的三格宽,所以剩不下三格就整体让到上一行;顶行宽度随内容长,
-// 于是这三个键永远落在最右边那三列上,横向位置一局不动。
+// 只为占住一格:注册了就算进行宽,face 回 null 就不画。用在 guess 顶行数字块的
+// 尾巴上——顶行的格子和下面两行一样是死的,少一个键是个洞,不是缩一格。
+const VOID: PadEntry = { face: () => null, press: () => {} }
+
+// guess:颜色按 1-2-3 / 4-5-6 / 7-8-9 铺满核心那三列,竖着对齐;第 10 颗没地方了,
+// 溢出到 9 右边那格。锁定/删除/确定这三个必须同行相邻,占顶行最左的三格(只有两行
+// 时顶行就是中行)。10 色那一档顶行满七格、走压缩宽,和下面两行对不上——只有这一档。
 const guessPad = (id: string, prefs: readonly DialogControl[]): Pad => {
   const m = id.split(':')[0].match(/^c(\d+)p(\d+)g\d+/)
   if (!m) return {}
@@ -753,8 +758,11 @@ const guessPad = (id: string, prefs: readonly DialogControl[]): Pad => {
   if (n < 2 || n > 10 || pegs < 1) return {}
   const labelled = flag(prefs, LABELLED)
   const pad: Pad = {}
-  for (let i = 0; i < n; i++) pad[(i + 1) as Slot] = colour(i, n, pegs, labelled)
-  const first = n <= 6 ? 3 * Math.ceil(n / 3) + 1 : n + 1
+  for (let i = 0; i < n; i++)
+    pad[(i < 6 ? i + 1 : i + 4) as Slot] = colour(i, n, pegs, labelled)
+  // 顶行有数字时,那个数字块钉死三格宽(10、11、12),没排到的格子占着不画。
+  if (n >= 7) for (let slot = n + 4; slot <= 12; slot++) pad[slot as Slot] = VOID
+  const first = n <= 3 ? 4 : 7
   pad[first as Slot] = HOLD
   pad[(first + 1) as Slot] = ERASE
   pad[(first + 2) as Slot] = SUBMIT
@@ -1263,15 +1271,16 @@ export function padKeys(
   id: string,
   prefs: readonly DialogControl[],
   ctx: PadContext,
-): { rows: number; keys: PadButton[]; top: PadButton[]; tight: boolean } {
+): { rows: number; keys: PadButton[]; top: PadButton[]; wide: number; tight: boolean } {
   const table = tableOf(name, id, prefs)
   const slots = slotsOf(table)
-  if (slots.length === 0) return { rows: 0, keys: [], top: [], tight: false }
+  if (slots.length === 0) return { rows: 0, keys: [], top: [], wide: 0, tight: false }
 
   // 行数和顶行宽度都按「注册了什么」算,不按「这一刻摆着什么」:键来来去去时
   // 块不该跟着蹦。
   const rows = Math.max(...slots.map(rowOf))
-  const wide = Math.max(3, ...slots.filter((slot) => slot >= 7).map((slot) => slot - 6))
+  const ups = slots.filter((slot) => slot >= 7)
+  const wide = ups.length === 0 ? 0 : Math.max(3, ...ups.map((slot) => slot - 6))
 
   const brushes = slots.filter((slot) => tenants(table, slot).some((one) => one.brush))
   const brushAt =
@@ -1298,12 +1307,12 @@ export function padKeys(
         ...face,
         slot,
         row: rows + 1 - rowOf(slot),
-        col: slot >= 7 ? 0 : colOf(slot),
+        col: slot >= 7 ? slot - 6 : colOf(slot),
         gone: !one.moves && ctx.primed !== null && ctx.primed !== slot,
         press: () => one.press(mine),
       })
       break
     }
   }
-  return { rows, keys, top, tight: wide === 7 }
+  return { rows, keys, top, wide, tight: wide === 7 }
 }

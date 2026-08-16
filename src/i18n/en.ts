@@ -33,10 +33,6 @@ export const en = {
     arrowsHint: 'Play with buttons instead of tapping the board',
     aid: 'Helper keys',
     aidHint: 'Hints and shortcuts, in some puzzles',
-    side: 'Arrow key side',
-    sideHint: 'Which side the arrows take',
-    sideLeft: 'Left',
-    sideRight: 'Right',
   },
 
   play: {
