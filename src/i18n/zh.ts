@@ -188,7 +188,6 @@ export const zh: Strings = {
     peg: (n: number) => `颜色 ${n}`,
     fillRegion: (n: number) => `把这个区域填成颜色 ${n}`,
     maybeRegion: (n: number) => `标记这个区域可能是颜色 ${n}`,
-    clearRegion: '清空这个区域',
   },
 
   menu: {

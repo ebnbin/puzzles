@@ -832,25 +832,15 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* 四类按钮各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
-     区域 A(.keypad)  二类实心键面 · 四类空心只留边框 · 三类圆角,和下面的方向键认亲
-     区域 B(.play-actions)  一类空心 · 三类实心,连伴生键一起坐在一块底板上
-   四类之中没有一个是无边框的:边框是「这是个可按的东西」的唯一线索,
-   底色在 --bg 上只差几个百分点,单靠它读不出来。 */
+/* 按钮各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
+     区域 A(.keypad)  二类实心键面 · 四类空心只留边框
+     区域 B(.play-actions)  一类空心 · 三类圆键,坐在一块底板上
+   这里没有一个是无边框的:边框是「这是个可按的东西」的唯一线索,底色在 --bg 上
+   只差几个百分点,单靠它读不出来。 */
 
-/* 二类回到重构之前:无边框的实心浅灰。三类填 --surface-3——填充要对「页面底」
-   有对比才读得出,填白色(#ffffff 对 --bg #fafaf9 只差 2%)等于没填;方向键
-   在底板上是例外,那里对比由底板给,键面反而要浅。 */
+/* 二类回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='need'] {
   border: 0;
-}
-
-.keypad button[data-kind='aim'] {
-  background: var(--surface-3);
-}
-
-.play-arrows button {
-  background: var(--surface-3);
 }
 
 .keypad button[data-kind='aid'] {
@@ -869,12 +859,11 @@ p.notice-intro button:active {
   background: var(--surface-2);
 }
 
-.keypad button[data-kind='aim'],
 .play-arrows button {
   border-radius: var(--r-full);
 }
 
-.keypad button:disabled .key-peg {
+.play-arrows button:disabled .key-peg {
   opacity: 0.35;
 }
 
@@ -968,17 +957,50 @@ p.notice-intro button:active {
   background: var(--accent-soft-hover);
 }
 
-/* 方向键连着它的伴生键一起坐在一块底板上:整簇读作一个部件,和左边那四个
-   扁平的固定键分得开。十字的空格露出底板,正是 d-pad 该有的样子。
-   摆哪一格由 pad.ts 的格子号算出来、逐个键写在 style 上:行列不在这里写死,
-   这里只管有几列和每格多大。 */
-.play-arrows {
+/* 整条键盘是一张 7 列的网格:1–3 列那四个固定键,第 4 列恒定空着当分隔,5–7 列
+   方向键的核心。列宽这样凑不是巧合——2 个固定键加一道缝(2×--act-w + gap)正好
+   等于 3 个方向键格(3×--tap-w + 2×gap),所以顶行长过三格时能一路铺过去还对齐。
+   --act-w 的定义就是为这条等式来的,动它要连着 --tap-w 一起算。
+   摆哪一格由 pad.ts 的格子号算好、逐个写在 style 上,这里只管有几列、每格多大。 */
+.play-keys {
   display: grid;
-  grid-template-columns: repeat(3, var(--tap-w));
+  grid-template-columns: repeat(7, var(--tap-w));
   gap: var(--key-gap);
   padding: var(--key-gap);
+}
+
+.play[data-arrows='true'] .play-keys .play-acts {
+  grid-row: span 2 / -1;
+  grid-column: 1 / 4;
+  padding: 0;
+}
+
+/* display:contents:让这些按钮直接落进上面那张网格,又留住这一层的 role 和名字。 */
+.play-keys .play-arrows {
+  display: contents;
+}
+
+/* 底板。核心那块永远有;顶行长过三格时再加一块「翅膀」补上凸出去的部分,两块
+   靠 4px 负边距重叠、同色,拼成一个 Γ。相接的那两个角必须收成直角,否则接缝处
+   会咬出一个缺口。 */
+.pad-floor {
+  z-index: 0;
+  margin: calc(-1 * var(--key-gap));
   border-radius: var(--r);
   background: var(--surface-2);
+}
+
+.pad-floor[data-notch] {
+  border-top-left-radius: 0;
+}
+
+.pad-floor[data-wing] {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.play-keys button {
+  z-index: 1;
 }
 
 .play-arrows button {

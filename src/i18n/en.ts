@@ -183,7 +183,6 @@ export const en = {
     peg: (n: number) => `Colour ${n}`,
     fillRegion: (n: number) => `Fill this region with colour ${n}`,
     maybeRegion: (n: number) => `Mark this region as possibly colour ${n}`,
-    clearRegion: 'Empty this region',
   },
 
   menu: {
