@@ -846,32 +846,29 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* 按钮各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
-     区域 A(.keypad)  二类实心键面 · 四类空心只留边框
-     区域 B(.play-actions)  一类空心 · 三类坐在一块底板上
-   这里没有一个是无边框的:边框是「这是个可按的东西」的唯一线索,底色在 --bg 上
-   只差几个百分点,单靠它读不出来。区域 A 的键是 --r-sm 的圆角矩形,方向键是胶囊
-   (见 --r-full 那条);底板圆角跟着键走,规则写在 --pad-r 上。 */
+/* 四类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
+     一类 实心无边框(Menu 另填 accent-soft)
+     二类 实心无边框
+     四类 同样实心,多一圈边框、字色淡一档
+     三类 实心带边框,整簇坐在一块底板上
+   区域 A 的键是 --r-sm 的圆角矩形,方向键是胶囊(见 --r-full 那条);底板圆角
+   跟着键走,规则写在 --pad-r 上。 */
 
 /* 二类回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='need'] {
   border: 0;
 }
 
+/* 四类底色和二类一样走通则,只差一圈边框和淡一档的字色:填白等于没填(--surface
+   在 --bg 上只差 2%),空着又比二类轻太多,边框才是这两类之间读得出的那条线。 */
 .keypad button[data-kind='aid'] {
-  background: none;
   color: var(--text-2);
 }
 
 @media (hover: hover) {
-  .keypad button[data-kind='aid']:hover:not(:disabled) {
-    background: var(--surface-2);
+  .keypad button[data-kind='aid']:hover {
     color: var(--text);
   }
-}
-
-.keypad button[data-kind='aid']:active {
-  background: var(--surface-2);
 }
 
 .play-arrows button:disabled .key-peg {
