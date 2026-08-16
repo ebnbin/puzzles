@@ -36,6 +36,8 @@ export const zh: Strings = {
     eraseConfirm: '确认清除',
     arrows: '方向键',
     arrowsHint: '用按键操作，不必直接点棋盘',
+    aid: '辅助键',
+    aidHint: '提示和快捷操作，仅部分谜题提供',
   },
 
   play: {

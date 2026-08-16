@@ -31,6 +31,8 @@ export const en = {
     eraseConfirm: 'Erase',
     arrows: 'Arrow keys',
     arrowsHint: 'Play with buttons instead of tapping the board',
+    aid: 'Helper keys',
+    aidHint: 'Hints and shortcuts, in some puzzles',
   },
 
   play: {
