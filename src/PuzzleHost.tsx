@@ -20,7 +20,7 @@ import {
   padPalette,
   wakesCursor,
 } from './engine/pad'
-import type { KeyLabels, PadContext, Slot } from './engine/pad'
+import type { KeyLabels, PadButton, PadContext, Slot } from './engine/pad'
 import { rolls } from './engine/cube'
 import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
 import { clueAt, mapSize, paintRegion, readClues, stepCursor } from './engine/map'
@@ -703,6 +703,40 @@ export default function PuzzleHost({
   }
   const arrowPad = padKeys(name, id, prefs, pad)
 
+  const padKey = (key: PadButton) => (
+    <button
+      key={key.slot}
+      type="button"
+      data-slot={key.slot}
+      data-on={key.on || undefined}
+      data-off={key.gone || undefined}
+      data-brush={key.ring ? 'true' : undefined}
+      style={key.col ? { gridRow: key.row, gridColumn: key.col } : undefined}
+      disabled={key.dead}
+      aria-pressed={key.pressed}
+      aria-label={key.says}
+      {...(key.tip ? holdToAsk(key.tip) : {})}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => {
+        if (key.tip && wasHeld()) return
+        acted()
+        key.press()
+        canvasRef.current?.focus()
+      }}
+    >
+      {key.peg ? (
+        <KeyPeg
+          fill={swatches.get(key.peg.fill)}
+          ink={key.peg.ink === undefined ? undefined : swatches.get(key.peg.ink)}
+          label={key.peg.label}
+          dotted={key.peg.dotted}
+        />
+      ) : (
+        key.icon && <Icon name={key.icon} />
+      )}
+    </button>
+  )
+
   const fixedKeys = (
           <div className="play-acts">
             <button
@@ -858,57 +892,22 @@ export default function PuzzleHost({
             className="play-keys"
             style={{ gridTemplateRows: `repeat(${arrowPad.rows}, var(--tap-w))` }}
           >
-            {arrowPad.floors.map((floor) => (
-              <div
-                key={floor.wing ? 'wing' : 'core'}
-                className="pad-floor"
-                data-wing={floor.wing ? '' : undefined}
-                data-notch={!floor.wing && arrowPad.floors.length > 1 ? '' : undefined}
-                aria-hidden="true"
-                style={{
-                  gridRow: `${floor.row} / span ${floor.rows}`,
-                  gridColumn: `${floor.col} / span ${floor.cols}`,
-                }}
-              />
-            ))}
+            <div
+              className="pad-floor"
+              aria-hidden="true"
+              style={{ gridRow: `1 / span ${arrowPad.rows}` }}
+            />
             {fixedKeys}
-            {/* display:contents,让这些键直接落进上面那张 7 列的网格,同时留住
-                这一层的 role 和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号
-                算好。方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
+            {/* display:contents,让这些键直接落进上面那张网格,同时留住这一层的
+                role 和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。
+                方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
             <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
-              {arrowPad.keys.map((key) => (
-                <button
-                  key={key.slot}
-                  type="button"
-                  data-slot={key.slot}
-                  data-on={key.on || undefined}
-                  data-off={key.gone || undefined}
-                  data-brush={key.ring ? 'true' : undefined}
-                  style={{ gridRow: key.row, gridColumn: key.col }}
-                  disabled={key.dead}
-                  aria-pressed={key.pressed}
-                  aria-label={key.says}
-                  {...(key.tip ? holdToAsk(key.tip) : {})}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    if (key.tip && wasHeld()) return
-                    acted()
-                    key.press()
-                    canvasRef.current?.focus()
-                  }}
-                >
-                  {key.peg ? (
-                    <KeyPeg
-                      fill={swatches.get(key.peg.fill)}
-                      ink={key.peg.ink === undefined ? undefined : swatches.get(key.peg.ink)}
-                      label={key.peg.label}
-                      dotted={key.peg.dotted}
-                    />
-                  ) : (
-                    key.icon && <Icon name={key.icon} />
-                  )}
-                </button>
-              ))}
+              {arrowPad.top.length > 0 && (
+                <div className="pad-top" data-tight={arrowPad.tight ? '' : undefined}>
+                  {arrowPad.top.map(padKey)}
+                </div>
+              )}
+              {arrowPad.keys.map(padKey)}
             </div>
           </div>
         ) : (

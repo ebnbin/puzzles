@@ -3,9 +3,10 @@
 //      7  8  9 10 11 12 13     顶行 3–7 格,右对齐,多出来的往左长
 //               4  5  6        中行 3 格
 //               1  2  3        底行 3 格
-// 整条键盘是一个 7 列的网格:1–3 列是那四个固定键,4 列空着当分隔(顶行长到 4 格
-// 以上时它就被占用),5–7 列是方向键的核心三列。所以顶行往左凸的时候,凸的是
-// 固定键的上方。
+// 整条键盘是一个 6 列的网格:1–3 列是那四个固定键,4–6 列是方向键的核心三列。
+// 所以顶行往左凸的时候,凸的是固定键的上方。
+// 顶行是自己一条右对齐的横排,不吃网格的列:满 7 格时把键距压到 0,7×40 正好
+// 等于 6×40+5×8,整块宽度不变——这是 --key-gap-x 只能是 tap-w/5 的原因。
 // 每个游戏把自己的键钉死在格子号上,没人注册的行整行不画,块就矮一截。注册项是
 // 数据加方法:face() 回答「这一刻长什么样」(null = 这一刻不摆),press() 收 ctx
 // 自己动手;亮、按不动、描边、退场这些状态位对每个键一视同仁,用不用由 face()
@@ -19,16 +20,12 @@ import type { DialogControl } from './types'
 
 export type Slot = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13
 
-// 网格一共 7 列;核心三列从第 5 列起,第 4 列是那道恒定的分隔。这三个数一起决定
-// 「顶行最多 7 格」,改一个另两个要跟着算。
-const BAR_COLS = 7
-const CORE_COL = 5
+// 网格一共 6 列,核心三列从第 4 列起。顶行不吃列,自己排。
+const CORE_COL = 4
 
 const rowOf = (slot: Slot) => (slot <= 3 ? 1 : slot <= 6 ? 2 : 3)
 
-// 顶行右对齐:它有几格,最左那格就从哪一列起。
-const colOf = (slot: Slot, wide: number) =>
-  slot <= 6 ? CORE_COL + ((slot - 1) % 3) : slot + 1 - wide
+const colOf = (slot: Slot) => CORE_COL + ((slot - 1) % 3)
 
 type Mod = { shift?: true; ctrl?: true }
 
@@ -83,13 +80,10 @@ type PadEntry = {
 
 type Pad = Partial<Record<Slot, PadEntry | PadEntry[]>>
 
-// 底板:核心那块永远有,顶行长过三格时再加一块「翅膀」补上凸出去的部分,两块
-// 重叠 4px、同色,接缝看不出来。
-export type PadFloor = { row: number; rows: number; col: number; cols: number; wing: boolean }
-
 export type PadButton = PadFace & {
   slot: Slot
-  // CSS 的行列号,从上往下、从左往右数——已经把格子号翻过来了。
+  // CSS 的行列号,从上往下、从左往右数——已经把格子号翻过来了。顶行的键不吃列,
+  // col 是 0。
   row: number
   col: number
   gone: boolean
@@ -1269,21 +1263,15 @@ export function padKeys(
   id: string,
   prefs: readonly DialogControl[],
   ctx: PadContext,
-): { rows: number; keys: PadButton[]; floors: PadFloor[] } {
+): { rows: number; keys: PadButton[]; top: PadButton[]; tight: boolean } {
   const table = tableOf(name, id, prefs)
   const slots = slotsOf(table)
-  if (slots.length === 0) return { rows: 0, keys: [], floors: [] }
+  if (slots.length === 0) return { rows: 0, keys: [], top: [], tight: false }
 
   // 行数和顶行宽度都按「注册了什么」算,不按「这一刻摆着什么」:键来来去去时
   // 块不该跟着蹦。
   const rows = Math.max(...slots.map(rowOf))
   const wide = Math.max(3, ...slots.filter((slot) => slot >= 7).map((slot) => slot - 6))
-  const floors: PadFloor[] = [
-    { row: 1, rows, col: CORE_COL, cols: 3, wing: false },
-    ...(wide > 3
-      ? [{ row: 1, rows: 1, col: BAR_COLS + 1 - wide, cols: wide - 3, wing: true }]
-      : []),
-  ]
 
   const brushes = slots.filter((slot) => tenants(table, slot).some((one) => one.brush))
   const brushAt =
@@ -1300,21 +1288,22 @@ export function padKeys(
   }
 
   const keys: PadButton[] = []
+  const top: PadButton[] = []
   for (const slot of slots) {
     const mine: PadHere = { ...here, slot }
     for (const one of tenants(table, slot)) {
       const face = one.face(mine)
       if (!face) continue
-      keys.push({
+      ;(slot >= 7 ? top : keys).push({
         ...face,
         slot,
         row: rows + 1 - rowOf(slot),
-        col: colOf(slot, wide),
+        col: slot >= 7 ? 0 : colOf(slot),
         gone: !one.moves && ctx.primed !== null && ctx.primed !== slot,
         press: () => one.press(mine),
       })
       break
     }
   }
-  return { rows, keys, floors }
+  return { rows, keys, top, tight: wide === 7 }
 }
