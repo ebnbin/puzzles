@@ -55,6 +55,7 @@ import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useAid } from './useAid'
 import { useArrows } from './useArrows'
+import { useLefty } from './useLefty'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -121,6 +122,7 @@ export default function PuzzleHost({
   const wanted = useArrows()
   const arrows = wanted && offersArrows(name)
   const helping = useAid()
+  const lefty = useLefty()
   const spot = useRef<Spot>({ x: 0, y: 0 })
   const [typed, setTyped] = useState(0)
   const [maybe, setMaybe] = useState(false)
@@ -716,7 +718,7 @@ export default function PuzzleHost({
       data-on={key.on || undefined}
       data-off={key.gone || undefined}
       data-brush={key.ring ? 'true' : undefined}
-      style={key.col ? { gridRow: key.row, gridColumn: key.col } : undefined}
+      style={key.col ? { gridRow: key.row, gridColumn: `c${key.col}` } : undefined}
       disabled={key.dead}
       aria-pressed={key.pressed}
       aria-label={key.says}
@@ -805,7 +807,12 @@ export default function PuzzleHost({
 
 
   return (
-    <div className="play" data-ready={ready} data-arrows={arrows ? 'true' : undefined}>
+    <div
+      className="play"
+      data-ready={ready}
+      data-arrows={arrows ? 'true' : undefined}
+      data-side={lefty ? 'left' : 'right'}
+    >
       <header className="play-bar">
         <h1>
           <button

@@ -192,6 +192,11 @@ a {
   font-weight: 400;
 }
 
+/* 灰掉整行(标题、说明、控件一起):方向键关着的时候「放哪一侧」无从谈起。 */
+.setting[data-off] {
+  opacity: 0.45;
+}
+
 .setting input[type='checkbox'] {
   flex: none;
   width: 1.15rem;
@@ -976,23 +981,39 @@ p.notice-intro button:active {
   background: var(--accent-soft-hover);
 }
 
-/* 整条键盘是一张 4 列的网格:前三列方向键的核心,第四列整块塞那四个固定键。
+/* 整条键盘是一张 4 列的网格:方向键的核心三列 + 整块塞那四个固定键的一列。
+   两块谁左谁右由 data-side 决定,靠的是重排 grid-template-columns——列线都起了名
+   (c1/c2/c3/core-end/acts),所以 pad.ts 只管报 1、2、3,不知道自己在哪一侧。
    顶行不吃这些列,自己排(见 .pad-top)。 */
 .play-keys {
   display: grid;
-  grid-template-columns: repeat(3, var(--tap-w)) calc(2 * var(--act-w) + 2 * var(--key-gap));
+  grid-template-columns:
+    [c1] var(--tap-w) [c2] var(--tap-w) [c3] var(--tap-w) [core-end acts]
+    calc(2 * var(--act-w) + 2 * var(--key-gap));
   gap: var(--key-gap);
   padding: var(--key-rim);
   width: var(--keys-w);
 }
 
+.play[data-side='right'] .play-keys {
+  grid-template-columns:
+    [acts] calc(2 * var(--act-w) + 2 * var(--key-gap))
+    [c1] var(--tap-w) [c2] var(--tap-w) [c3] var(--tap-w) [core-end];
+}
+
 .play[data-arrows='true'] .play-keys .play-acts {
   grid-row: span 2 / -1;
-  grid-column: 4;
+  grid-column: acts;
   gap: var(--key-gap);
-  /* 第四列比这一块宽一道缝,靠这条把它推到右边:两块之间因此是两道缝。 */
+  /* 固定键那一列比这一块宽一道缝,靠这条把它顶到远离方向键的那头:两块之间
+     因此是两道缝。 */
   margin-left: var(--key-gap);
   padding: 0;
+}
+
+.play[data-side='right'] .play-keys .play-acts {
+  margin-right: var(--key-gap);
+  margin-left: 0;
 }
 
 /* display:contents:让这些按钮直接落进上面那张网格,又留住这一层的 role 和名字。 */
@@ -1000,9 +1021,10 @@ p.notice-intro button:active {
   display: contents;
 }
 
-/* 顶行不吃网格的列:它是一条左对齐、宽度随内容的横排,自己带底板,所以它长几格
-   就多宽。常规档沿用下面那 44 的节距,第四格起就压到固定键的上方。左下角收直角,
-   让它和下面那块底板连成一个 Γ;右下角圆的那个是长出去那截的下沿。 */
+/* 顶行不吃网格的列:它是一条宽度随内容的横排,自己带底板,所以它长几格就多宽。
+   常规档沿用下面那 44 的节距,第四格起就压到固定键的上方。它靠核心那一侧对齐、
+   往另一侧长,所以贴着核心的那个下角要收成直角,底板才连成一个 Γ;另一个下角是
+   长出去那截的下沿,圆的。**键的顺序两侧都是从左到右**,变的只是拐角朝哪边。 */
 .pad-top {
   z-index: 1;
   grid-row: 1;
@@ -1017,11 +1039,20 @@ p.notice-intro button:active {
   background: var(--pad-bg);
 }
 
+.play[data-side='right'] .pad-top {
+  justify-self: end;
+  border-radius: var(--pad-r) var(--pad-r) 0 var(--pad-r);
+}
+
 /* 满七格的那一档:键窄一道缝、缝减半,省出来的正好够第七个键,总宽和别的档一样。
    代价是这一行不再和下面对齐(只有第一个对得上),而且节距掉到 38。 */
 .pad-top[data-tight] {
   gap: var(--key-rim);
   border-radius: var(--pad-r-tight) var(--pad-r-tight) var(--pad-r-tight) 0;
+}
+
+.play[data-side='right'] .pad-top[data-tight] {
+  border-radius: var(--pad-r-tight) var(--pad-r-tight) 0 var(--pad-r-tight);
 }
 
 .pad-top[data-tight] button {
@@ -1030,7 +1061,7 @@ p.notice-intro button:active {
 
 .pad-floor {
   z-index: 0;
-  grid-column: 1 / 4;
+  grid-column: c1 / core-end;
   margin: calc(-1 * var(--key-rim));
   border-radius: var(--pad-r);
   background: var(--pad-bg);
