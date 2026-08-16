@@ -879,12 +879,11 @@ p.notice-intro button:active {
   }
 }
 
-/* 按不动的键往底板里沉一档:填 --surface-2——键面和底板之间正好那一级,边框收掉。
-   两个主题都成立,因为 surface → surface-2 → surface-3 在明暗两套里都是单调的。
-   这条要排在 [data-on] 前面:亮着但暂时按不动的键该继续亮着。 */
+/* 按不动的键填底板色,边框照旧:键面和底板齐平、轮廓还在——读作「这儿有个键,
+   现在按不动」,而不是「这儿没有键」。底色必须和底板同值,所以两处都走 --pad-bg。
+   这条要排在 [data-on] 前面:亮着但暂时按不动的键继续亮着。 */
 .play-arrows button:disabled {
-  border-color: transparent;
-  background: var(--surface-2);
+  background: var(--pad-bg);
 }
 
 .play-arrows button:disabled .key-peg {
