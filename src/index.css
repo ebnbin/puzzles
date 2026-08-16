@@ -837,9 +837,10 @@ p.notice-intro button:active {
 
 /* 按钮各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
      区域 A(.keypad)  二类实心键面 · 四类空心只留边框
-     区域 B(.play-actions)  一类空心 · 三类圆键,坐在一块底板上
+     区域 B(.play-actions)  一类空心 · 三类坐在一块底板上
    这里没有一个是无边框的:边框是「这是个可按的东西」的唯一线索,底色在 --bg 上
-   只差几个百分点,单靠它读不出来。 */
+   只差几个百分点,单靠它读不出来。圆角一律 --r-sm,底板那圈 --r 正好是它加一圈
+   内边距(8+4=12),嵌套的两层圆角才同心。 */
 
 /* 二类回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='need'] {
@@ -860,10 +861,6 @@ p.notice-intro button:active {
 
 .keypad button[data-kind='aid']:active {
   background: var(--surface-2);
-}
-
-.play-arrows button {
-  border-radius: var(--r-full);
 }
 
 .play-arrows button:disabled .key-peg {
