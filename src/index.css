@@ -448,6 +448,10 @@ footer p {
   --key-gap: 0.25rem;
   /* 底板往键外撑半道缝:撑满一道两块就贴上了,这 2px 是方向键和功能键之间的净空。 */
   --key-rim: calc(var(--key-gap) / 2);
+  /* 底板圆角 = 键的圆角 + rim,两层才同心。方向键是胶囊,圆角取短边的一半:常规档
+     40/2 + 2 = 22;压缩档那行键窄成 36,跟着变 36/2 + 2 = 20。 */
+  --pad-r: calc(var(--tap-w) / 2 + var(--key-rim));
+  --pad-r-tight: calc((var(--tap-w) - var(--key-gap)) / 2 + var(--key-rim));
   --act-w: calc(1.5 * var(--tap-w) + var(--key-gap));
   /* 键盘总宽,两种排法必须算出同一个数:
        下两行  3×tap-w + 2×act-w + 4×gap + 2×rim = 6×tap-w + 7×gap
@@ -844,8 +848,8 @@ p.notice-intro button:active {
      区域 A(.keypad)  二类实心键面 · 四类空心只留边框
      区域 B(.play-actions)  一类空心 · 三类坐在一块底板上
    这里没有一个是无边框的:边框是「这是个可按的东西」的唯一线索,底色在 --bg 上
-   只差几个百分点,单靠它读不出来。圆角一律 --r-sm,底板那圈 --r 正好是它加一圈
-   内边距(8+4=12),嵌套的两层圆角才同心。 */
+   只差几个百分点,单靠它读不出来。区域 A 的键是 --r-sm 的圆角矩形,方向键是胶囊
+   (见 --r-full 那条);底板圆角跟着键走,规则写在 --pad-r 上。 */
 
 /* 二类回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='need'] {
@@ -997,7 +1001,7 @@ p.notice-intro button:active {
   width: max-content;
   margin: calc(-1 * var(--key-rim));
   padding: var(--key-rim);
-  border-radius: var(--r) var(--r) var(--r) 0;
+  border-radius: var(--pad-r) var(--pad-r) var(--pad-r) 0;
   background: var(--surface-2);
 }
 
@@ -1005,6 +1009,7 @@ p.notice-intro button:active {
    代价是这一行不再和下面对齐(只有第一个对得上),而且节距掉到 38。 */
 .pad-top[data-tight] {
   gap: var(--key-rim);
+  border-radius: var(--pad-r-tight) var(--pad-r-tight) var(--pad-r-tight) 0;
 }
 
 .pad-top[data-tight] button {
@@ -1015,7 +1020,7 @@ p.notice-intro button:active {
   z-index: 0;
   grid-column: 1 / 4;
   margin: calc(-1 * var(--key-rim));
-  border-radius: var(--r);
+  border-radius: var(--pad-r);
   background: var(--surface-2);
 }
 
@@ -1023,9 +1028,12 @@ p.notice-intro button:active {
   z-index: 1;
 }
 
+/* 胶囊:--r-full 会被 CSS 按短边等比收到「短边的一半」,所以 40×40 是正圆,
+   压缩档的 36×40 是短边全圆、长边留 4px 直线。不写死数值,键一改形状自己跟上。 */
 .play-arrows button {
   width: var(--tap-w);
   height: var(--tap-w);
+  border-radius: var(--r-full);
   background: var(--surface);
 }
 
