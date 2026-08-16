@@ -871,6 +871,14 @@ p.notice-intro button:active {
   }
 }
 
+/* 按不动的键往底板里沉一档:填 --surface-2——键面和底板之间正好那一级,边框收掉。
+   两个主题都成立,因为 surface → surface-2 → surface-3 在明暗两套里都是单调的。
+   这条要排在 [data-on] 前面:亮着但暂时按不动的键该继续亮着。 */
+.play-arrows button:disabled {
+  border-color: transparent;
+  background: var(--surface-2);
+}
+
 .play-arrows button:disabled .key-peg {
   opacity: 0.35;
 }
@@ -1003,7 +1011,7 @@ p.notice-intro button:active {
   margin: calc(-1 * var(--key-rim));
   padding: var(--key-rim);
   border-radius: var(--pad-r) var(--pad-r) var(--pad-r) 0;
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 /* 满七格的那一档:键窄一道缝、缝减半,省出来的正好够第七个键,总宽和别的档一样。
@@ -1022,7 +1030,7 @@ p.notice-intro button:active {
   grid-column: 1 / 4;
   margin: calc(-1 * var(--key-rim));
   border-radius: var(--pad-r);
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 .play-keys button {
