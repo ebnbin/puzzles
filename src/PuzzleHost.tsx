@@ -55,7 +55,6 @@ import { docHref, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useAid } from './useAid'
 import { useArrows } from './useArrows'
-import { useLefty } from './useLefty'
 import { useHelp } from './useHelp'
 import { HoldTip, useHoldTip } from './useHoldTip'
 import { useResolvedTheme } from './useTheme'
@@ -122,7 +121,6 @@ export default function PuzzleHost({
   const wanted = useArrows()
   const arrows = wanted && offersArrows(name)
   const helping = useAid()
-  const lefty = useLefty()
   const spot = useRef<Spot>({ x: 0, y: 0 })
   const [typed, setTyped] = useState(0)
   const [maybe, setMaybe] = useState(false)
@@ -710,7 +708,7 @@ export default function PuzzleHost({
   }
   const arrowPad = padKeys(name, id, prefs, pad)
 
-  const padKey = (key: PadButton) => (
+  const padKey = (key: PadButton, at: React.CSSProperties) => (
     <button
       key={key.slot}
       type="button"
@@ -718,7 +716,7 @@ export default function PuzzleHost({
       data-on={key.on || undefined}
       data-off={key.gone || undefined}
       data-brush={key.ring ? 'true' : undefined}
-      style={key.col ? { gridRow: key.row, gridColumn: `c${key.col}` } : undefined}
+      style={at}
       disabled={key.dead}
       aria-pressed={key.pressed}
       aria-label={key.says}
@@ -811,7 +809,6 @@ export default function PuzzleHost({
       className="play"
       data-ready={ready}
       data-arrows={arrows ? 'true' : undefined}
-      data-side={lefty ? 'left' : 'right'}
     >
       <header className="play-bar">
         <h1>
@@ -909,19 +906,25 @@ export default function PuzzleHost({
               aria-hidden="true"
               style={{ gridRow: `1 / span ${arrowPad.rows}` }}
             />
-            {/* display:contents,让这些键直接落进上面那张网格,同时留住这一层的
-                role 和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。
-                方向键不给 tip:它要连着点,长按问一句会把连点打断。
-                这一块排在固定键前面,是为了让 tab 顺序跟着屏幕从左到右走。 */}
+            {/* 固定键在左、方向键在右,所以 DOM 也这个顺序:tab 跟着屏幕从左到右走。
+                display:contents 让方向键直接落进上面那张网格,同时留住那一层的 role
+                和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。
+                方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
+            {fixedKeys}
             <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
-              {arrowPad.top.length > 0 && (
-                <div className="pad-top" data-tight={arrowPad.tight ? '' : undefined}>
-                  {arrowPad.top.map(padKey)}
+              {arrowPad.wide > 0 && (
+                <div
+                  className="pad-top"
+                  data-tight={arrowPad.tight ? '' : undefined}
+                  style={{ '--top': arrowPad.wide } as React.CSSProperties}
+                >
+                  {arrowPad.top.map((key) => padKey(key, { gridColumn: key.col }))}
                 </div>
               )}
-              {arrowPad.keys.map(padKey)}
+              {arrowPad.keys.map((key) =>
+                padKey(key, { gridRow: key.row, gridColumn: `c${key.col}` }),
+              )}
             </div>
-            {fixedKeys}
           </div>
         ) : (
           fixedKeys
