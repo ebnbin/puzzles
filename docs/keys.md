@@ -50,11 +50,10 @@
 就是整块 `.play-arrows` 不画,区域 A 一个字节都不用过滤。Map 因此没有区域 A(它的键
 全是三类),Guess 只剩一个提示键。`KeyKind` 也因此只剩 `need` / `aid` 两个值。
 
-四类另有一个开关(`puzzles.aid`,见 `useAid.ts`),关掉就整批不画。**默认开,而且
-只认字面的 `'false'`**:垃圾值和读不出来都算开——宁可多给几个键,也不要因为一次读
-失败把提示键弄没了(方向键那个默认相反,只认 `'true'`)。整排都是四类的游戏
-(net、guess、dominosa、galaxies、fifteen、bridges、range、pearl)关掉之后区域 A
-整排不画,棋盘因此多一行。
+四类另有一个开关(`puzzles.aid`,见 `useAid.ts`),**默认关**,和方向键一样是选进来的:
+提示、铺标记这些一局不用照样玩得完(就是二类/四类那条判据),所以默认的键盘只留必要键。
+整排都是四类的八个游戏(net、guess、dominosa、galaxies、fifteen、bridges、range、
+pearl)因此默认没有区域 A,棋盘多一行。
 
 ## 现在的形状
 
