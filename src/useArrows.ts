@@ -1,37 +1,4 @@
-import { useSyncExternalStore } from 'react'
+// 方向键那一整块的总开关。默认关。
+import { makeFlag } from './flag'
 
-const KEY = 'puzzles.arrows'
-
-function read(): boolean {
-  try {
-    return window.localStorage.getItem(KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-let current = read()
-
-const listeners = new Set<() => void>()
-
-export function setArrows(on: boolean) {
-  current = on
-  try {
-    window.localStorage.setItem(KEY, String(on))
-  } catch {
-  }
-  for (const listener of listeners) listener()
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-const snapshot = () => current
-
-export function useArrows(): boolean {
-  return useSyncExternalStore(subscribe, snapshot, snapshot)
-}
+export const [useArrows, setArrows] = makeFlag('puzzles.arrows')
