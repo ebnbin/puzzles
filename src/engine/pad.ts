@@ -708,8 +708,15 @@ const colour = (i: number, n: number, pegs: number, labelled: boolean): PadEntry
   }
 }
 
+// 上游只在光标不在「看结果」位上时才收这个键,别处按下去是条哑弹——它报不报
+// "Hold" 就是那一位的传感器。
 const HOLD: PadEntry = {
-  face: (ctx) => ({ icon: 'lock', says: ctx.words.keys.lock, tip: ctx.words.keys.lock }),
+  face: (ctx) => ({
+    icon: 'lock',
+    says: ctx.words.keys.lock,
+    tip: ctx.words.keys.lock,
+    dead: ctx.labels.space !== 'Hold',
+  }),
   press: (ctx) => ctx.send(' '),
 }
 
@@ -730,7 +737,11 @@ const ERASE: PadEntry = {
   },
 }
 
-const SUBMIT: PadEntry = {
+// 提交完要自己把光标从「看结果」位拉回头一颗钉。上游只在提交不了的时候才归位
+// (guess.c 的 game_changed_state),而锁定带过来的钉子本身就够提交时它不归位,
+// 光标赖在那儿——数字键那一支带着 peg_cur < npegs 的守卫,整排颜色键就变成哑弹。
+// 允许留空时锁一颗就中,不许留空时锁满一行也中。
+const submit = (pegs: number): PadEntry => ({
   face: (ctx) => ({
     icon: 'done',
     says: ctx.words.keys.done,
@@ -739,9 +750,10 @@ const SUBMIT: PadEntry = {
   }),
   press: (ctx) => {
     ctx.send('\r')
+    for (let k = 0; k < pegs; k++) ctx.send('ArrowLeft')
     ctx.setTyped(() => 0)
   },
-}
+})
 
 // 只为占住一格:注册了就算进行宽,face 回 null 就不画。用在 guess 顶行数字块的
 // 尾巴上——顶行的格子和下面两行一样是死的,少一个键是个洞,不是缩一格。
@@ -765,7 +777,7 @@ const guessPad = (id: string, prefs: readonly DialogControl[]): Pad => {
   const first = n <= 3 ? 4 : 7
   pad[first as Slot] = HOLD
   pad[(first + 1) as Slot] = ERASE
-  pad[(first + 2) as Slot] = SUBMIT
+  pad[(first + 2) as Slot] = submit(pegs)
   return pad
 }
 
