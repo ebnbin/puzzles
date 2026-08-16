@@ -1,15 +1,14 @@
-// 四类(辅助)键的总开关。和 useArrows 唯一的区别是默认相反:这些键一直都在,
-// 所以只有明确存了 'false' 才算关——垃圾值和读不出来都按「开」算,宁可多给几个键,
-// 也不要因为一次读失败把玩家的提示键弄没。
+// 四类(辅助)键的总开关。默认关,和方向键那个一样是选进来的:提示、铺标记这些
+// 一局不用照样玩得完(判据见 docs/keys.md),默认的键盘只留必要键。
 import { useSyncExternalStore } from 'react'
 
 const KEY = 'puzzles.aid'
 
 function read(): boolean {
   try {
-    return window.localStorage.getItem(KEY) !== 'false'
+    return window.localStorage.getItem(KEY) === 'true'
   } catch {
-    return true
+    return false
   }
 }
 
