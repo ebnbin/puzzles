@@ -38,6 +38,10 @@ export const zh: Strings = {
     arrowsHint: '用按键操作，不必直接点棋盘',
     aid: '辅助键',
     aidHint: '提示和快捷操作，仅部分谜题提供',
+    side: '方向键位置',
+    sideHint: '方向键排在哪一侧',
+    sideLeft: '左',
+    sideRight: '右',
   },
 
   play: {
