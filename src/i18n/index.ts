@@ -78,6 +78,6 @@ export function useStrings(): Strings {
 
 // 默认页显式 index.html,不要改成目录式 URL:halibut 在全部章节页头把 Contents
 // 链接写成 index.html,SW 按整条 URL 缓存,目录式会给同一页铸出第二个缓存条目。
-export function docHref(lang: Lang, page = 'index.html'): string {
+export function manualHref(lang: Lang, page = 'index.html'): string {
   return `/doc/${lang}/${page}`
 }

@@ -39,7 +39,7 @@ export function start(name: string | null) {
   window.history.replaceState(null, '', '/')
 }
 
-export const openGame = (name: string) => show(name)
+export const openPuzzle = (name: string) => show(name)
 
 export const showGallery = () => show(null)
 

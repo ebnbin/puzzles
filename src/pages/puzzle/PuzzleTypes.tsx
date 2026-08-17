@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
-import type { DialogSpec, Preset } from '../engine/types'
-import { useStrings } from '../i18n'
-import Notice from '../ui/Notice'
-import Sheet from '../ui/Sheet'
+import type { DialogSpec, Preset } from '../../engine/types'
+import { useStrings } from '../../i18n'
+import Notice from '../../ui/Notice'
+import Sheet from '../../ui/Sheet'
 
 const CUSTOM = -1
 

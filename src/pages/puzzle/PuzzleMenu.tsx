@@ -1,11 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import ConfigFields from './ConfigFields'
-import type { DialogSpec } from '../engine/types'
-import { useStrings } from '../i18n'
-import Icon from '../ui/Icon'
-import type { IconName } from '../ui/Icon'
-import Notice from '../ui/Notice'
-import Sheet from '../ui/Sheet'
+import type { DialogSpec } from '../../engine/types'
+import { useStrings } from '../../i18n'
+import Icon from '../../ui/Icon'
+import type { IconName } from '../../ui/Icon'
+import Notice from '../../ui/Notice'
+import Sheet from '../../ui/Sheet'
 
 type Action = 'newGame' | 'restart' | 'solve'
 

@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import Icon from '../ui/Icon'
-import ThemeToggle from '../ui/ThemeToggle'
-import { docHref, useLang, useStrings } from '../i18n'
-import type { Lang } from '../i18n'
-import '../doc.css'
+import Icon from '../../ui/Icon'
+import ThemeToggle from '../../ui/ThemeToggle'
+import { manualHref, useLang, useStrings } from '../../i18n'
+import type { Lang } from '../../i18n'
+import '../../doc.css'
 
 let page: string | null = null
 let fragment: string | null = null
@@ -75,7 +75,7 @@ const body = (html: string): string => {
   return html.slice(open, close + '</main>'.length)
 }
 
-export default function DocViewer() {
+export default function Manual() {
   const open = useSyncExternalStore(subscribe, () => page)
   const depth = useSyncExternalStore(subscribe, () => trail.length)
   return open ? <Viewer file={open} depth={depth} /> : null
@@ -115,7 +115,7 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
     const hit = cache.get(key)
     ;(hit !== undefined
       ? Promise.resolve(hit)
-      : fetch(docHref(lang, file)).then((response) => {
+      : fetch(manualHref(lang, file)).then((response) => {
           if (!response.ok) throw new Error(`${response.status}`)
           return response.text().then(body)
         })

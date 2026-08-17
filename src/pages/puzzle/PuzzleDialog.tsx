@@ -1,7 +1,7 @@
 import ConfigFields from './ConfigFields'
-import Dialog from '../ui/Dialog'
-import type { DialogSpec } from '../engine/types'
-import { useStrings } from '../i18n'
+import Dialog from '../../ui/Dialog'
+import type { DialogSpec } from '../../engine/types'
+import { useStrings } from '../../i18n'
 
 export default function PuzzleDialog({
   spec,

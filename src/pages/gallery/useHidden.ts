@@ -1,5 +1,5 @@
 // 隐藏的谜题名单:JSON 数组存名字,垃圾行一律丢。
-import { makeStore } from '../store'
+import { makeStore } from '../../store'
 
 const KEY = 'puzzles.hidden'
 

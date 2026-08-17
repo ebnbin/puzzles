@@ -3,8 +3,8 @@
 // dealt/frame 进来——门内的载入/按键是探测和改写的机械动作,不是棋局事件,
 // 一律不喂观察器;门关上之后如果真载入过存档,补一个 {moved}。
 import { useCallback, useMemo, useRef, useState } from 'react'
-import type { CanvasRenderer, Drawn } from '../engine/renderer'
-import type { DialogControl, PuzzleApi } from '../engine/types'
+import type { CanvasRenderer, Drawn } from '../../engine/renderer'
+import type { DialogControl, PuzzleApi } from '../../engine/types'
 import type {
   Armed,
   Board,
@@ -15,9 +15,9 @@ import type {
   Stroke,
   View,
   Words,
-} from '../games/game'
-import { keyOf } from '../games/game'
-import { useStrings } from '../i18n'
+} from '../../games/game'
+import { keyOf } from '../../games/game'
+import { useStrings } from '../../i18n'
 
 const NO_LIT: ReadonlySet<string> = new Set()
 

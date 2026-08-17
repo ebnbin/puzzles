@@ -3,7 +3,7 @@
 // borrowed(借用不显示,答案在路过时被截下)、inline(嵌在 Types/Menu 里的
 // 自定义参数和偏好)、dialog(真正的模态,兜底)。
 import { useCallback, useRef, useState } from 'react'
-import type { DialogControl, DialogSpec, PuzzleApi } from '../engine/types'
+import type { DialogControl, DialogSpec, PuzzleApi } from '../../engine/types'
 
 const CUSTOM_PRESET = -1
 

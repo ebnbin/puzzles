@@ -1,14 +1,14 @@
-import DocViewer from './doc/DocViewer'
-import GamePage from './play/GamePage'
-import Launcher from './launcher/Launcher'
+import Manual from './pages/manual/Manual'
+import Puzzle from './pages/puzzle/Puzzle'
+import Gallery from './pages/gallery/Gallery'
 import { useView } from './view'
 
 export default function App() {
   const game = useView()
   return (
     <>
-      {game ? <GamePage name={game} /> : <Launcher />}
-      <DocViewer />
+      {game ? <Puzzle name={game} /> : <Gallery />}
+      <Manual />
     </>
   )
 }
