@@ -2,7 +2,7 @@
 // 底部拉起的 sheet 不是 dialog,不进这里;sheet 叠层时 Escape 关哪层由 PuzzleHost 排。
 import { useEffect } from 'react'
 import Icon from './Icon'
-import { useStrings } from './i18n'
+import { useStrings } from '../i18n'
 
 export default function Dialog({
   label,

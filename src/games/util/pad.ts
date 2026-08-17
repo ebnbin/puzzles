@@ -3,7 +3,7 @@
 // 「同词抹空」已经废除,这里的每个判断都以两词俱在为前提。
 // 逐游戏的奇异机制(rect 的拖拽记账、palisade 的画面读死活、guess 的三键……)
 // 不在这里:那些是游戏代码,住在各游戏文件里,用这里导出的原语拼。
-import type { IconName } from '../../Icon'
+import type { IconName } from '../../ui/Icon'
 import type {
   Armed,
   ArrowKey,

@@ -1,6 +1,6 @@
 import Icon from './Icon'
-import { useStrings } from './i18n'
-import { useTheme } from './useTheme'
+import { useStrings } from '../i18n'
+import { useTheme } from '../useTheme'
 
 export default function ThemeToggle({ className }: { className: string }) {
   const t = useStrings()

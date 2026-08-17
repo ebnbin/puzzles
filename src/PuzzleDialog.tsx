@@ -1,5 +1,5 @@
 import ConfigFields from './ConfigFields'
-import Dialog from './Dialog'
+import Dialog from './ui/Dialog'
 import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
 

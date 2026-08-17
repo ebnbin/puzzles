@@ -4,7 +4,7 @@
 //   2. 一个游戏 = 一个文件。util 的判据是「看不见游戏」——参数与实现里没有游戏名,
 //      也没有任何一个游戏的参数/存档/走子语法。
 //   3. 逐游戏事实(光标、标签、键)以 vendor/ 的 C 源码为准,docs/inputs.md 是索引。
-import type { IconName, KeyArt } from '../Icon'
+import type { IconName, ImageName } from '../ui/Icon'
 import type { Strings } from '../i18n'
 import type { Drawn } from '../engine/renderer'
 import type { DialogControl, Preset } from '../engine/types'
@@ -78,7 +78,7 @@ export type Prefs = {
 export type Art =
   | { text: string }
   | { glyph: IconName }
-  | { image: KeyArt } // /art/<image>-<theme>.png
+  | { image: ImageName } // /art/<image>-<theme>.png
   // 引擎调色板色钉;fill/edge 是槽号,经主题翻译后取色。
   | { swatch: { fill: number; edge?: number; dotted?: boolean; label?: string } }
 

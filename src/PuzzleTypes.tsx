@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
-import ErrorNote from './ErrorNote'
 import type { DialogSpec, Preset } from './engine/types'
 import { useStrings } from './i18n'
-import { useSheetDrag } from './useSheetDrag'
+import Notice from './ui/Notice'
+import Sheet from './ui/Sheet'
 
 const CUSTOM = -1
 
@@ -30,7 +30,6 @@ export default function PuzzleTypes({
   onCommitCustom: () => void
   onClose: () => void
 }) {
-  const { ref, handlers } = useSheetDrag(onClose)
   const t = useStrings()
 
   const choosePreset = (value: number) => {
@@ -52,20 +51,7 @@ export default function PuzzleTypes({
   }, [shown])
 
   return (
-    <div className="sheet-dimmer" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t.types.title}
-        ref={ref}
-        onClick={(e) => e.stopPropagation()}
-        {...handlers}
-      >
-        <div className="sheet-handle" aria-hidden="true">
-          <div className="sheet-grip" />
-        </div>
-
+    <Sheet label={t.types.title} onClose={onClose}>
         <section>
           <h2>{t.types.title}</h2>
           <PresetList
@@ -80,11 +66,10 @@ export default function PuzzleTypes({
         {custom && (
           <div className="sheet-custom" ref={paramsRef}>
             <ConfigFields controls={custom.controls} onCommit={onCommitCustom} />
-            {customError && <ErrorNote text={customError} />}
+            {customError && <Notice text={customError} />}
           </div>
         )}
-      </div>
-    </div>
+    </Sheet>
   )
 }
 

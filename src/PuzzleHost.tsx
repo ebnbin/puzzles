@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Dialog from './Dialog'
-import ErrorNote from './ErrorNote'
-import Icon from './Icon'
-import Introduction from './Introduction'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
-import ThemeToggle from './ThemeToggle'
+import Dialog from './ui/Dialog'
+import Icon from './ui/Icon'
+import Notice from './ui/Notice'
+import ThemeToggle from './ui/ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
 // 写全 index:裸的 ./games 会被解析成 games.json。
 import { gameOf } from './games/index'
@@ -51,7 +50,7 @@ import { showGallery } from './view'
 import { useAid } from './useAid'
 import { useArrows } from './useArrows'
 import { useHelp } from './useHelp'
-import { HoldTip, useHoldTip } from './useHoldTip'
+import HoldTip, { useHoldTip } from './ui/HoldTip'
 import { useResolvedTheme } from './useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
@@ -910,13 +909,15 @@ export default function PuzzleHost({
 
       <div className="play-board" ref={areaRef}>
         {error && (
-          <ErrorNote
+          <Notice
             floating
             text={error === START_FAILED ? t.play.error : error}
           />
         )}
         {intro && !error && (
-          <Introduction
+          <Notice
+            kind="info"
+            floating
             text={objective}
             onClose={() => {
               markIntroduced(name)

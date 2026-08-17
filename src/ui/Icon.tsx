@@ -1,4 +1,7 @@
-export type KeyGlyph =
+// 位图素材的名字(/art/<name>-<theme>.png);矢量字形一律走 IconName。
+export type ImageName = 'ghost' | 'vampire' | 'zombie'
+
+export type IconName =
   | 'clear'
   | 'marks'
   | 'hint'
@@ -8,12 +11,6 @@ export type KeyGlyph =
   | 'jumble'
   | 'done'
   | 'lock'
-
-export type KeyArt = 'ghost' | 'vampire' | 'zombie'
-
-export type KeyIcon = KeyGlyph | KeyArt
-
-export type IconName =
   | 'back'
   | 'undo'
   | 'redo'
@@ -23,7 +20,6 @@ export type IconName =
   | 'solve'
   | 'type'
   | 'prefs'
-  | KeyGlyph
   | 'external'
   | 'eye'
   | 'eyeOff'

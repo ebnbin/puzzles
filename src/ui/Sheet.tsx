@@ -1,3 +1,5 @@
+// 底部拉起的 sheet 壳:scrim、把手、往下甩关闭。真 dialog(居中卡片)是
+// Dialog,不进这里;sheet 叠层时 Escape 关哪层由调用方排。
 import { useCallback, useRef } from 'react'
 
 const SLOP = 6
@@ -18,7 +20,7 @@ type Drag = {
   live: boolean
 }
 
-export function useSheetDrag(onClose: () => void) {
+function useSheetDrag(onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null)
   const drag = useRef<Drag | null>(null)
 
@@ -95,4 +97,34 @@ export function useSheetDrag(onClose: () => void) {
       onPointerCancel: onPointerUp,
     },
   }
+}
+
+export default function Sheet({
+  label,
+  onClose,
+  children,
+}: {
+  label: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  const { ref, handlers } = useSheetDrag(onClose)
+  return (
+    <div className="sheet-dimmer" onClick={onClose}>
+      <div
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        ref={ref}
+        onClick={(e) => e.stopPropagation()}
+        {...handlers}
+      >
+        <div className="sheet-handle" aria-hidden="true">
+          <div className="sheet-grip" />
+        </div>
+        {children}
+      </div>
+    </div>
+  )
 }
