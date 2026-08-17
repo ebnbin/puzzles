@@ -1,4 +1,4 @@
-// 改这里、或改 PuzzleHost 里的 noteSolved,要跑 scripts/check-solved.mjs
+// 改这里、或改 pages/puzzle/useOutcome.ts 的完成判定,要跑 scripts/check-solved.mjs
 // (要 vite preview + playwright,build 里没有)。
 import { done, fields } from '../games/util/save'
 
