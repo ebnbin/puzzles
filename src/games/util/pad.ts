@@ -183,26 +183,36 @@ const clears = <F>(spec: ActSpec<F>, labels: Labels): string | null => {
   return spec.key === 'Enter' ? ' ' : 'Enter'
 }
 
-// 此刻按下去会发什么;null = 按不动。四个 null 各有各的意思,脸由 faceFor 说。
-const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): string | null => {
-  if (gatedAsleep(spec, view)) return null
-  if (spec.mute) return spec.key
+// 判决:能按就给要发的键,按不动给原因——「按不动」有四个不同的来源,一个
+// null 盖不住它们(pattern 的 lit 曾因此出过「没光标也全亮」的 bug):
+//   asleep   镜像光标睡着
+//   already  按结果命名的键要不到词 = 这一格已经是它(幂等)
+//   blank    当前词不在脸谱里
+//   idle     第二层的待命脸(画出来、按不动)
+//   silent   两词俱空,上游此刻不认确认键
+type Verdict =
+  | { send: string }
+  | { mute: 'asleep' | 'already' | 'blank' | 'idle' | 'silent' }
+
+const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): Verdict => {
+  if (gatedAsleep(spec, view)) return { mute: 'asleep' }
+  if (spec.mute) return { send: spec.key }
   const { labels } = view
   if (!spec.words || understood(spec.words, labels)) {
     if (spec.does) {
-      if (overwrites(spec, labels)) return spec.key
+      if (overwrites(spec, labels)) return { send: spec.key }
       const asks = holding(spec, labels) ? spec.instead : spec.does
-      if (labels.enter === asks) return 'Enter'
-      if (labels.space === asks) return ' '
-      return null
+      if (labels.enter === asks) return { send: 'Enter' }
+      if (labels.space === asks) return { send: ' ' }
+      return { mute: 'already' }
     }
     if (spec.faces) {
       const face = spec.faces[mine(spec, view)]
-      if (face) return face.idle ? null : spec.key
-      return clears(spec, labels) ? spec.key : null
+      if (face) return face.idle ? { mute: 'idle' } : { send: spec.key }
+      return clears(spec, labels) ? { send: spec.key } : { mute: 'blank' }
     }
   }
-  return doesNothing(spec.key, view.labels) ? null : spec.key
+  return doesNothing(spec.key, view.labels) ? { mute: 'silent' } : { send: spec.key }
 }
 
 const faceFor = <F>(spec: ActSpec<F>, view: View<F>): FaceSpec => {
@@ -218,7 +228,7 @@ const reads = <F>(spec: ActSpec<F>, view: View<F>) => {
     !!face.on ||
     holding(spec, view.labels) ||
     (!!spec.switches && !!spec.on?.(view))
-  return { face, set, key: wouldSend(spec, view) }
+  return { face, set, verdict: wouldSend(spec, view) }
 }
 
 // 常规功能键:脸、能不能按、按下去发什么,全从上游那两句提示推。
@@ -227,7 +237,7 @@ export const act = <F>(spec: ActSpec<F>): ArrowKey<F> => ({
   slot: spec.slot,
   layer: spec.layer,
   face: (view) => {
-    const { face, set, key } = reads(spec, view)
+    const { face, set, verdict } = reads(spec, view)
     const said = view.words.cursor[face.word]
     return {
       art: { glyph: face.glyph },
@@ -235,7 +245,10 @@ export const act = <F>(spec: ActSpec<F>): ArrowKey<F> => ({
       tip: true,
       on: set,
       ring: spec.ring?.(view),
-      dead: key === null && (!spec.lit || labelsSilent(view.labels)),
+      // lit 只豁免幂等(already):刷到一半按钮不许在拇指底下熄灭;
+      // 别的原因(两词俱空、光标睡着)照灭。
+      dead:
+        !('send' in verdict) && !(spec.lit && verdict.mute === 'already'),
       held: spec.held
         ? spec.held(view)
         : spec.instead
@@ -249,13 +262,14 @@ export const act = <F>(spec: ActSpec<F>): ArrowKey<F> => ({
     spec.aside?.(board)
     board.arm(null)
     const view = board.view()
-    const { set, key } = reads(spec, view)
-    if (key === null) return
+    const { set, verdict } = reads(spec, view)
+    if (!('send' in verdict)) return
+    const key = verdict.send
     // 先清掉对家再补自己这一下;清完发现自己反而没得发,就把清的那步撤回去。
     const first = clears(spec, view.labels)
     if (first) {
       board.send(first)
-      if (wouldSend(spec, board.view()) === null) board.undo()
+      if (!('send' in wouldSend(spec, board.view()))) board.undo()
       else board.send(key)
       return
     }
