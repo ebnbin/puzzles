@@ -21,6 +21,10 @@ export const counting = (read: BoardReader): Observe<Counted> => ({
   next: (facts, saw) => ('moved' in saw ? { left: remaining(saw.moved, read) } : facts),
 })
 
+// 0-9 之后接 a-z:上游数字键的字符约定(solo 的 16 阶用 a-f)。
+export const charButton = (shown: number) =>
+  shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
+
 // 字符与数值是两回事:unequal 超过 9 阶从 '0' 起标以保持一字宽,此时 '0' 键的
 // value 是 1——键面显示前者、角标按后者计数。
 export function digitKeys<F>(
@@ -33,8 +37,7 @@ export function digitKeys<F>(
   const first = options.startAtZero ? 0 : 1
   return Array.from({ length: count }, (_, i) => {
     const shown = first + i
-    const button =
-      shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
+    const button = charButton(shown)
     const label = String.fromCharCode(button)
     const value = i + 1
     const key: Key<F> = {

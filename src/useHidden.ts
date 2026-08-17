@@ -1,40 +1,32 @@
-import { useSyncExternalStore } from 'react'
+// 隐藏的谜题名单:JSON 数组存名字,垃圾行一律丢。
+import { makeStore } from './store'
 
 const KEY = 'puzzles.hidden'
 
-function read(): Set<string> {
-  try {
-    const stored = JSON.parse(window.localStorage.getItem(KEY) ?? '[]')
-    return new Set(Array.isArray(stored) ? stored.filter((n) => typeof n === 'string') : [])
-  } catch {
-    return new Set()
-  }
-}
+const [useHidden, setHidden] = makeStore<Set<string>>(
+  () => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(KEY) ?? '[]')
+      return new Set(
+        Array.isArray(stored) ? stored.filter((n) => typeof n === 'string') : [],
+      )
+    } catch {
+      return new Set()
+    }
+  },
+  (next) => {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify([...next]))
+    } catch {
+    }
+  },
+)
 
-let current = read()
+export { useHidden }
 
-const listeners = new Set<() => void>()
-
-export function toggleHidden(name: string) {
-  const next = new Set(current)
-  if (!next.delete(name)) next.add(name)
-  current = next
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify([...next]))
-  } catch {
-  }
-  for (const listener of listeners) listener()
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-const snapshot = () => current
-
-export function useHidden(): Set<string> {
-  return useSyncExternalStore(subscribe, snapshot, snapshot)
-}
+export const toggleHidden = (name: string) =>
+  setHidden((was) => {
+    const next = new Set(was)
+    if (!next.delete(name)) next.add(name)
+    return next
+  })

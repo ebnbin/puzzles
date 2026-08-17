@@ -1,7 +1,15 @@
 // 深色主题 = 把后端报上来的颜色表整表翻译一遍,wasm 全程不知情。逐游戏的槽位
-// 语义(keep/relief/frame/strokes/paper)由各游戏文件的 dark 申报,这里只有
-// 游戏无关的翻译机器;申报的不变量由 games/util/verify.ts 在构建期强制。
-import type { Dark } from '../games/game'
+// 语义(keep/relief/frame/strokes/paper)由各游戏文件的 dark 申报,这里是
+// 游戏无关的翻译机器和申报的类型;申报的不变量由 games/util/verify.ts 在构建期强制。
+
+// 深色 = 浅色表的逐槽翻译;字段全缺省 = 纯翻转。
+export type Dark = {
+  keep?: readonly number[] // 语义色:压进暗域但保住色相
+  relief?: readonly (readonly [number, number])[] // 亮/影槽对,暗色下保持凸起方向
+  frame?: Readonly<Record<number, number>> // 同色描边的替换槽
+  strokes?: readonly number[] // 细笔画:按浅色墨压缩,不翻转
+  paper?: true // 棋盘抬成纸面(语义色需要暗于底时)
+}
 
 const ACHROMATIC = 0.15
 

@@ -3,7 +3,7 @@ export interface Size {
   h: number
 }
 
-import type { Dark } from '../games/game'
+import type { Dark } from './palette'
 import { BACKGROUND, figureInk, forDarkBoard } from './palette'
 
 export type Drawn =
