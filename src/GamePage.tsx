@@ -1,5 +1,5 @@
 import PuzzleHost from './PuzzleHost'
-import { useStrings } from './i18n'
+import { fill, useStrings } from './i18n'
 import { useGame } from './i18n/games'
 import { showGallery } from './view'
 
@@ -12,7 +12,7 @@ export default function GamePage({ name }: { name: string }) {
       <main className="game">
         <h1>{t.notFound.title}</h1>
         <p>
-          {t.notFound.body(name)}{' '}
+          {fill(t.notFound.body, { name })}{' '}
           <button type="button" className="textlink" onClick={showGallery}>
             {t.notFound.back}
           </button>

@@ -9,6 +9,7 @@
 // 线索表从「发牌那一刻的录像」读出(readTape):光标站上线索时颜色键置灰。
 import type { Board, Game, Gate, Key, View } from './game'
 import { keyOf, plain } from './game'
+import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Spot } from './util/mirror'
@@ -243,7 +244,7 @@ const swatchKey = (i: number): Key<Facts> => ({
     const maybe = view.lit.has('maybe')
     return {
       art: { swatch: { fill: COL_MAP + i, dotted: maybe || undefined } },
-      says: maybe ? view.words.keys.maybeRegion(i + 1) : view.words.keys.fillRegion(i + 1),
+      says: fill(maybe ? view.words.keys.maybeRegion : view.words.keys.fillRegion, { n: i + 1 }),
       dead: !view.cursor || view.facts.onClue,
     }
   },

@@ -3,7 +3,7 @@ import Icon from './ui/Icon'
 import LauncherSettings from './LauncherSettings'
 import ThemeToggle from './ui/ThemeToggle'
 import { readRecent, setPlaying } from './engine/saves'
-import { useLang, useStrings } from './i18n'
+import { fill, useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import { useGames } from './i18n/games'
 import type { GameText } from './i18n/games'
@@ -78,8 +78,8 @@ export default function Launcher() {
       toggleHidden(game.name)
       setToast({
         text: wasHidden
-          ? t.launcher.nowShown(game.displayName)
-          : t.launcher.nowHidden(game.displayName),
+          ? fill(t.launcher.nowShown, { game: game.displayName })
+          : fill(t.launcher.nowHidden, { game: game.displayName }),
         hidden: !wasHidden,
         key: ++toastKey.current,
       })
@@ -204,7 +204,7 @@ export default function Launcher() {
             onClick={() => setHiddenOpen((open) => !open)}
           >
             <Icon name="eyeOff" size={16} />
-            {t.launcher.hidden(away.length)}
+            {fill(t.launcher.hidden, { count: away.length })}
             <Icon name="caret" size={16} className={hiddenOpen ? 'is-up' : undefined} />
           </button>
           {hiddenOpen && (
@@ -259,7 +259,7 @@ function Tile({
 }) {
   const t = useStrings()
   const theme = useResolvedTheme()
-  const label = hidden ? t.launcher.show(game.displayName) : t.launcher.hide(game.displayName)
+  const label = fill(hidden ? t.launcher.show : t.launcher.hide, { game: game.displayName })
 
   const timer = useRef(0)
   useEffect(() => () => window.clearTimeout(timer.current), [])

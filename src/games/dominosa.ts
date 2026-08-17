@@ -4,6 +4,7 @@
 // 说法,是 assist。
 import type { Game, Key } from './game'
 import { still } from './game'
+import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { leadingNumber } from './util/latin'
 import { tap } from './util/keys'
@@ -37,7 +38,7 @@ const dominosa: Game = {
         group: 'assist',
         face: (view) => ({
           art: { text: label },
-          says: view.words.keys.highlight(label),
+          says: fill(view.words.keys.highlight, { digit: label }),
         }),
         button,
         press: tap(label),
