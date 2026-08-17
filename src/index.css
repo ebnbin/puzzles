@@ -886,8 +886,12 @@ p.notice-intro button:active {
 
 /* 按不动的键填底板色,边框照旧:键面和底板齐平、轮廓还在——读作「这儿有个键,
    现在按不动」,而不是「这儿没有键」。底色必须和底板同值,所以两处都走 --pad-bg。
+   opacity 是把上面 .play-actions button:disabled 那条挡回去:方向键有底板可沉,
+   禁用已经说清楚了,再叠一层半透明只会把这里唯一的轮廓也淡掉。两条选择器同权,
+   靠的是这条排在后面。
    这条要排在 [data-on] 前面:亮着但暂时按不动的键继续亮着。 */
 .play-arrows button:disabled {
+  opacity: 1;
   background: var(--pad-bg);
 }
 
