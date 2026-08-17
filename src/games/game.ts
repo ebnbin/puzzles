@@ -140,9 +140,12 @@ export type Armed = { id: string; mods: Mods }
 export type View<F> = {
   labels: Labels
   facts: F
-  cursor: boolean // mirrored 用镜像位;reported 恒 true;none 恒 false
+  // mirrored 用镜像位;其余恒 true——'none' 的游戏没有键读它,'reported' 的
+  // 可见性已在标签里,读这一位的只有镜像光标的键。
+  cursor: boolean
   lit: ReadonlySet<string> // 亮着的粘滞键
   armed: Armed | null
+  prefs: readonly DialogControl[] // 当前偏好(键盘形状要看偏好的游戏读这份)
   words: Words
 }
 
@@ -167,6 +170,8 @@ export type Gate = {
   load(text: string): void
   send(s: Stroke): void
   redo(): void
+  // 载入一份存档并录下这一载的整卷画面(线索探测用);调用方负责随后 load 回原盘。
+  replay(text: string): readonly Drawn[]
 }
 
 // ---------------------------------------------------------------- 观察

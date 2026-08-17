@@ -143,6 +143,9 @@ export type ActSpec<F> = {
   mute?: true
   // 不看光标干活(flood 的 Advance):镜像光标睡着也不灭。
   offCursor?: true
+  // 词的覆盖:标签之外还要看事实才知道此刻是哪张脸的游戏(rect 的拖拽记账、
+  // pearl 的走没走过格)从这里注入哨兵词,哨兵脸写进 faces。
+  word?: (view: View<F>) => string
   // 按下先做的私事(pattern 选笔刷)。
   aside?: (board: Board<F>) => void
   // 选中环(pattern 多笔刷)。
@@ -152,6 +155,9 @@ export type ActSpec<F> = {
 
 const gatedAsleep = <F>(spec: { offCursor?: true }, view: View<F>) =>
   !view.cursor && !spec.offCursor
+
+const mine = <F>(spec: ActSpec<F>, view: View<F>) =>
+  spec.word?.(view) ?? wordOf(spec.key, view.labels)
 
 const holding = <F>(spec: ActSpec<F>, labels: Labels) =>
   !!spec.instead &&
@@ -191,7 +197,7 @@ const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): string | null => {
       return null
     }
     if (spec.faces) {
-      const face = spec.faces[wordOf(spec.key, labels)]
+      const face = spec.faces[mine(spec, view)]
       if (face) return face.idle ? null : spec.key
       return clears(spec, labels) ? spec.key : null
     }
@@ -202,7 +208,7 @@ const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): string | null => {
 const faceFor = <F>(spec: ActSpec<F>, view: View<F>): FaceSpec => {
   const known =
     (!spec.words || understood(spec.words, view.labels)) && !gatedAsleep(spec, view)
-  const face = known ? spec.faces?.[wordOf(spec.key, view.labels)] : undefined
+  const face = known ? spec.faces?.[mine(spec, view)] : undefined
   return face ?? spec.idle
 }
 
