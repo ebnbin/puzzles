@@ -1,6 +1,6 @@
 // 改这里、或改 PuzzleHost 里的 noteSolved,要跑 scripts/check-solved.mjs
 // (要 vite preview + playwright,build 里没有)。
-import { done, fields } from './marks/save'
+import { done, fields } from '../games/util/save'
 
 // 「玩家自己解出」的判据抄上游 flash 那一套(midend_finish_move 加各游戏的
 // flash_length):解出且没求解过。midend_status() 只答前半句——它读的是当前状态,

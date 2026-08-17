@@ -1,3 +1,4 @@
+import type { Dark } from '../games/game'
 import { CanvasRenderer } from './renderer'
 import type { Preset, PuzzleApi, PuzzleCallbacks } from './types'
 
@@ -6,10 +7,11 @@ export async function createPuzzle(options: {
   canvas: HTMLCanvasElement
   gameId?: string
   dark?: boolean
+  spec?: Dark
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
-  const { name, canvas, gameId = '', dark = false, callbacks } = options
-  const renderer = new CanvasRenderer(canvas, name)
+  const { name, canvas, gameId = '', dark = false, spec, callbacks } = options
+  const renderer = new CanvasRenderer(canvas, spec)
   renderer.setDark(dark)
 
   let api: PuzzleApi | null = null

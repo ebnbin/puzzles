@@ -39,6 +39,10 @@ export type Game<F = null> = {
 export type Upstream = {
   // 上游是否实现 current_key_label;注册 NULL 的游戏标签恒为空串。
   labels: 'live' | 'none'
+  // 两个确认键可能同时报出的词。midend 本给两词,但已发布的 wasm 胶水
+  // (public/engine/**,生成物)在两词相同时把 lsk 抹成空串;宿主在边界按这份
+  // 申报复原,接口内部只见双词。下次重生成引擎改为原样双传后,这个字段删除。
+  echoes?: readonly string[]
   cursor:
     | { kind: 'none' } // 无键盘光标,方向键即走子
     | { kind: 'reported' } // 标签自含光标可见性

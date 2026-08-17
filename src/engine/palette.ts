@@ -1,6 +1,8 @@
-// 深色主题 = 把后端报上来的颜色表整表翻译一遍,wasm 全程不知情。SEMANTIC/BEVEL/
-// FIGURE/RIM 这些表的不变量由 scripts/verify-palette.mjs 用代码强制,改表就跑它;
-// 表要保持顶格 const 声明——那个脚本靠改写行首加 export 才 import 得到它们。
+// 深色主题 = 把后端报上来的颜色表整表翻译一遍,wasm 全程不知情。逐游戏的槽位
+// 语义(keep/relief/frame/strokes/paper)由各游戏文件的 dark 申报,这里只有
+// 游戏无关的翻译机器;申报的不变量由 games/util/verify.ts 在构建期强制。
+import type { Dark } from '../games/game'
+
 const ACHROMATIC = 0.15
 
 const FLOOR = 0.05
@@ -8,59 +10,11 @@ const CEILING = 0.8
 
 const LIFT_CEILING = 0.64
 
-const SEMANTIC: Record<string, readonly number[]> = {
-  pattern: [1, 2, 4, 5],
-  flip: [1, 2, 3, 4],
-  pearl: [3, 4],
-  unruly: [1, 2, 3, 4, 5, 6, 7, 8],
-  mosaic: [3, 4, 5],
-  singles: [3, 4, 5, 6],
-  range: [1],
-  lightup: [2, 3],
-  guess: [16, 17],
-}
-
-export const RIM: Record<string, Readonly<Record<number, number>>> = {
-  pearl: { 3: 4 },
-}
-
-export const FIGURE: Record<string, readonly number[]> = {
-  undead: [0, 2],
-}
-
-
 const PAPER_BOARD = 0.5
-
-const BOARD_IS_PAPER: ReadonlySet<string> = new Set(['lightup', 'singles', 'range'])
-
-
-const BEVEL: Record<string, readonly (readonly [number, number])[]> = {
-  fifteen: [[2, 3]],
-  sixteen: [[2, 3]],
-  twiddle: [
-    [2, 4],
-    [3, 5],
-    [6, 7],
-  ],
-  mines: [[16, 17]],
-  samegame: [[12, 13]],
-  pegs: [[1, 2]],
-  blackbox: [[5, 6]],
-  inertia: [[2, 3]],
-  flood: [[12, 13]],
-  // unruly 这两对目前是空跑(SEMANTIC 的 compress 已保持方向,交换不触发),
-  // 留着是护栏:哪天 unruly 离开 SEMANTIC,靠它们接住;verify-palette 不查这件事。
-  unruly: [
-    [4, 5],
-    [7, 8],
-  ],
-}
 
 export const BACKGROUND = 0
 
-
 const VEIL = 0.4
-
 
 type Colour = { h: number; s: number; l: number; r: number; g: number; b: number }
 
@@ -135,14 +89,13 @@ export const figureInk = (css: string): string => {
   return colour ? format({ ...colour, l: compress(colour.l) }) : css
 }
 
-
-export function forDarkBoard(light: readonly string[], game = ''): string[] {
-  const semantic = SEMANTIC[game]
+export function forDarkBoard(light: readonly string[], dark: Dark = {}): string[] {
+  const semantic = dark.keep
 
   const board = parse(light[BACKGROUND])
-  const rimmed = RIM[game] ?? {}
+  const rimmed = dark.frame ?? {}
   const needsRoom =
-    BOARD_IS_PAPER.has(game) &&
+    !!dark.paper &&
     !!semantic &&
     !!board &&
     semantic.some((i) => {
@@ -193,18 +146,18 @@ export function forDarkBoard(light: readonly string[], game = ''): string[] {
     flipped[index] = standOff(now, ground, want, now.l, LIFT_CEILING)
   }
 
-  for (const [lit, shade] of BEVEL[game] ?? []) {
+  for (const [lit, shade] of dark.relief ?? []) {
     const a = parse(flipped[lit])
     const b = parse(flipped[shade])
     if (!a || !b || a.l >= b.l) continue
     ;[flipped[lit], flipped[shade]] = [flipped[shade], flipped[lit]]
   }
 
-  // 这个 pass 不冗余:所有规则同色入同色出,唯一能打破的是 BEVEL 交换(值在槽位
-  // 间搬家),所以用交换过的对播种、同浅色槽跟走;SEMANTIC 槽故意豁免(Pattern
+  // 这个 pass 不冗余:所有规则同色入同色出,唯一能打破的是 relief 交换(值在槽位
+  // 间搬家),所以用交换过的对播种、同浅色槽跟走;keep 槽故意豁免(Pattern
   // 的两个黑本该分开)。
   const settled = new Map<string, string>()
-  for (const index of BEVEL[game]?.flat() ?? [])
+  for (const index of dark.relief?.flat() ?? [])
     if (!semantic?.includes(index)) settled.set(light[index], flipped[index])
 
   return flipped.map((css, index) => {

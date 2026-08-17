@@ -3,7 +3,8 @@ export interface Size {
   h: number
 }
 
-import { BACKGROUND, FIGURE, figureInk, forDarkBoard, RIM } from './palette'
+import type { Dark } from '../games/game'
+import { BACKGROUND, figureInk, forDarkBoard } from './palette'
 
 export type Drawn =
   | { kind: 'rect'; x: number; y: number; w: number; h: number; colour: number }
@@ -29,10 +30,11 @@ export class CanvasRenderer {
 
   private readonly midpoints = new Map<string, number>()
 
-  private readonly game: string
+  // 深色翻译的逐槽申报,来自游戏文件的 dark 组。
+  private readonly spec: Dark
 
-  constructor(canvas: HTMLCanvasElement, game = '') {
-    this.game = game
+  constructor(canvas: HTMLCanvasElement, spec: Dark = {}) {
+    this.spec = spec
     this.onscreen = canvas
     this.offscreen = document.createElement('canvas')
     const ctx = this.offscreen.getContext('2d', { alpha: false })
@@ -65,7 +67,7 @@ export class CanvasRenderer {
   private palette(): string[] {
     if (this.repalette) {
       this.colours = this.dark
-        ? forDarkBoard(this.named, this.game)
+        ? forDarkBoard(this.named, this.spec)
         : this.named.slice()
       this.repalette = false
     }
@@ -184,13 +186,13 @@ export class CanvasRenderer {
   }
 
   private ink(slot: number): string {
-    if (this.dark && FIGURE[this.game]?.includes(slot)) return figureInk(this.named[slot])
+    if (this.dark && this.spec.strokes?.includes(slot)) return figureInk(this.named[slot])
     return this.colours[slot]
   }
 
   private rim(fill: number, outline: number): string {
     if (this.dark && fill === outline) {
-      const swap = RIM[this.game]?.[outline]
+      const swap = this.spec.frame?.[outline]
       if (swap !== undefined) return this.colours[swap]
     }
     return this.ink(outline)
