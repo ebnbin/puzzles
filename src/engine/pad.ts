@@ -33,7 +33,7 @@ type Way = 'up' | 'down' | 'left' | 'right'
 type Diag = 'upLeft' | 'upRight' | 'downLeft' | 'downRight'
 type Dir = Way | Diag
 
-export type PadWords = {
+type PadWords = {
   arrows: Record<Dir, string> & {
     shove: Record<Way, string>
     paint: Record<Way, string>
@@ -46,7 +46,7 @@ export type PadWords = {
   }
 }
 
-export type PadFace = {
+type PadFace = {
   icon?: IconName
   says: string
   // 长按才问的那句;不给就是长按无话可说(方向键要连按,不能被提示打断)。

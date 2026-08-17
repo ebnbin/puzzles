@@ -456,7 +456,8 @@ footer p {
   /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽。这条等式就是
      --act-w 这个定义的全部用处。 */
   --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
-  /* 键盘总宽 = 3×tap-w + 2×act-w + 4×gap + 2×rim = 6×tap-w + 7×gap。 */
+  /* 键盘总宽 = 3×tap-w + 2×act-w + 5×gap + 2×rim = 6×tap-w + 7×gap = 268。
+     五道缝:两块之间两道(acts 内部一道 + 那条 margin),四列网格之间三道。 */
   --keys-w: calc(6 * var(--tap-w) + 7 * var(--key-gap));
   position: fixed;
   inset: 0;

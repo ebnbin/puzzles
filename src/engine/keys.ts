@@ -28,13 +28,13 @@ function digits(count: number, startAtZero = false): KeyLabel[] {
 
 const CLEAR: KeyLabel = { kind: 'need', button: 8, icon: 'clear' }
 
-const MARKS: KeyLabel = { kind: 'aid', button: 'M'.charCodeAt(0), icon: 'marks', whose: 'upstream' }
-const HINT: KeyLabel = { kind: 'aid', button: 'H'.charCodeAt(0), icon: 'hint', whose: 'upstream' }
-const JUMBLE: KeyLabel = { kind: 'aid', button: 'J'.charCodeAt(0), icon: 'jumble', whose: 'upstream' }
+const MARKS: KeyLabel = { kind: 'aid', button: 'M'.charCodeAt(0), icon: 'marks' }
+const HINT: KeyLabel = { kind: 'aid', button: 'H'.charCodeAt(0), icon: 'hint' }
+const JUMBLE: KeyLabel = { kind: 'aid', button: 'J'.charCodeAt(0), icon: 'jumble' }
 
-const POSSIBLE: KeyLabel = { kind: 'aid', button: 0, action: 'possible', icon: 'possible', whose: 'ours' }
-const SINGLE: KeyLabel = { kind: 'aid', button: 0, action: 'single', icon: 'single', whose: 'ours' }
-const BLANK: KeyLabel = { kind: 'aid', button: 0, action: 'blank', icon: 'blank', whose: 'ours' }
+const POSSIBLE: KeyLabel = { kind: 'aid', button: 0, action: 'possible', icon: 'possible' }
+const SINGLE: KeyLabel = { kind: 'aid', button: 0, action: 'single', icon: 'single' }
+const BLANK: KeyLabel = { kind: 'aid', button: 0, action: 'blank', icon: 'blank' }
 
 function params(gameId: string): string {
   return gameId.split(':')[0]
@@ -186,7 +186,7 @@ const RULES: Record<
     return digits(n + 1, true).map(({ value: _, ...key }): KeyLabel => ({
       ...key,
       kind: 'aid',
-      whose: 'upstream',
+      highlights: true,
     }))
   },
 }
