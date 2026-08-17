@@ -784,12 +784,17 @@ export default function PuzzleHost({
             >
               <Icon name="redo" />
             </button>
-            {presets && (
+            {/* 上游要等 wasm 起来才报得出预设,所以这个键先摆上、灰着,ready 之后才活:
+                否则这一块会从三个键跳成四个,菜单键还跟着换一格。真的没有类型可选的
+                游戏(npresets ≤ 1 且不能自定义,emcc.c 那时会撤掉整个下拉)才不画——
+                那种游戏今天一个都没有,但 presets 的类型允许,不能当它不存在。 */}
+            {(!ready || presets) && (
               <button
                 type="button"
                 aria-label={t.types.title}
                 aria-haspopup="dialog"
                 aria-expanded={typesOpen}
+                disabled={!presets}
                 {...holdToAsk(t.types.title)}
                 onClick={() => {
                   if (wasHeld()) return
