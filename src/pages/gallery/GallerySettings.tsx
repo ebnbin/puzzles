@@ -20,7 +20,7 @@ export default function GallerySettings({
   const t = useStrings()
   const [lang] = useLang()
   const arrows = useArrows()
-  const aid = useAssist()
+  const assist = useAssist()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -70,7 +70,7 @@ export default function GallerySettings({
         </span>
         <input
           type="checkbox"
-          checked={aid}
+          checked={assist}
           onChange={(e) => setAssist(e.target.checked)}
         />
       </label>
