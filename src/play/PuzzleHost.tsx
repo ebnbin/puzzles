@@ -3,13 +3,13 @@ import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
-import Dialog from './ui/Dialog'
-import Icon from './ui/Icon'
-import Notice from './ui/Notice'
-import ThemeToggle from './ui/ThemeToggle'
-import { createPuzzle } from './engine/createPuzzle'
+import Dialog from '../ui/Dialog'
+import Icon from '../ui/Icon'
+import Notice from '../ui/Notice'
+import ThemeToggle from '../ui/ThemeToggle'
+import { createPuzzle } from '../engine/createPuzzle'
 // 写全 index:裸的 ./games 会被解析成 games.json。
-import { gameOf } from './games/index'
+import { gameOf } from '../games/index'
 import type {
   Armed,
   Board,
@@ -20,10 +20,10 @@ import type {
   Stroke,
   View,
   Words,
-} from './games/game'
-import { keyOf } from './games/game'
-import type { PadButton } from './games/util/pad'
-import { padButtons } from './games/util/pad'
+} from '../games/game'
+import { keyOf } from '../games/game'
+import type { PadButton } from '../games/util/pad'
+import { padButtons } from '../games/util/pad'
 import {
   alreadySolved,
   clearSave,
@@ -35,23 +35,23 @@ import {
   setPlaying,
   writeRecent,
   writeSave,
-} from './engine/saves'
-import { usedSolver } from './engine/solved'
-import type { CanvasRenderer, Drawn } from './engine/renderer'
+} from '../engine/saves'
+import { usedSolver } from '../engine/solved'
+import type { CanvasRenderer, Drawn } from '../engine/renderer'
 import type {
   DialogControl,
   DialogSpec,
   Preset,
   PuzzleApi,
-} from './engine/types'
-import { openManual } from './DocViewer'
-import { docHref, fill, useLang, useStrings } from './i18n'
-import { showGallery } from './view'
+} from '../engine/types'
+import { openManual } from '../doc/DocViewer'
+import { docHref, fill, useLang, useStrings } from '../i18n'
+import { showGallery } from '../view'
 import { useAid } from './useAid'
 import { useArrows } from './useArrows'
 import { useHelp } from './useHelp'
-import HoldTip, { useHoldTip } from './ui/HoldTip'
-import { useResolvedTheme } from './useTheme'
+import HoldTip, { useHoldTip } from '../ui/HoldTip'
+import { useResolvedTheme } from '../useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 

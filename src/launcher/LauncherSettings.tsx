@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { forgetEverything } from './engine/saves'
-import { openManual } from './DocViewer'
-import { docHref, useLang, useStrings } from './i18n'
-import Dialog from './ui/Dialog'
-import Icon from './ui/Icon'
-import { useScrollLock } from './ui/useScrollLock'
-import { setAid, useAid } from './useAid'
-import { setArrows, useArrows } from './useArrows'
+import { forgetEverything } from '../engine/saves'
+import { openManual } from '../doc/DocViewer'
+import { docHref, useLang, useStrings } from '../i18n'
+import Dialog from '../ui/Dialog'
+import Icon from '../ui/Icon'
+import { useScrollLock } from '../ui/useScrollLock'
+import { setAid, useAid } from '../play/useAid'
+import { setArrows, useArrows } from '../play/useArrows'
 
 const ARMED_MS = 3000
 

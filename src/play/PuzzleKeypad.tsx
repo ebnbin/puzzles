@@ -1,11 +1,11 @@
-import type { Face, Key, View } from './games/game'
-import { fill, useStrings } from './i18n'
-import HoldTip, { useHoldTip } from './ui/HoldTip'
-import Icon from './ui/Icon'
-import type { IconName } from './ui/Icon'
-import Swatch from './ui/Swatch'
-import { useResolvedTheme } from './useTheme'
-import type { Resolved } from './useTheme'
+import type { Face, Key, View } from '../games/game'
+import { fill, useStrings } from '../i18n'
+import HoldTip, { useHoldTip } from '../ui/HoldTip'
+import Icon from '../ui/Icon'
+import type { IconName } from '../ui/Icon'
+import Swatch from '../ui/Swatch'
+import { useResolvedTheme } from '../useTheme'
+import type { Resolved } from '../useTheme'
 
 // group → data-kind 的旧词:CSS 和 check-keys.mjs 按 need/pick/aid 认,
 // 这三个词已随样式表发布,别跟着接口改名。

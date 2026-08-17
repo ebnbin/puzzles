@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useLang } from './i18n'
-import type { Lang } from './i18n'
+import { useLang } from '../i18n'
+import type { Lang } from '../i18n'
 
 const FILE: Record<Lang, string> = {
   en: '/help/en.json',

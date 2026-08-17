@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import Icon from './ui/Icon'
-import ThemeToggle from './ui/ThemeToggle'
-import { docHref, useLang, useStrings } from './i18n'
-import type { Lang } from './i18n'
-import './doc.css'
+import Icon from '../ui/Icon'
+import ThemeToggle from '../ui/ThemeToggle'
+import { docHref, useLang, useStrings } from '../i18n'
+import type { Lang } from '../i18n'
+import '../doc.css'
 
 let page: string | null = null
 let fragment: string | null = null
