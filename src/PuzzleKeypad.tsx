@@ -54,7 +54,7 @@ export default function PuzzleKeypad({
         ? t.keys[key.icon]
         : key.slot !== undefined
           ? t.keys.peg(key.value ?? 0)
-          : key.whose
+          : key.highlights
             ? t.keys.highlight(key.label ?? '')
             : undefined
 

@@ -56,7 +56,8 @@ export interface PuzzleApi {
   // 丢弃 puzzle 前必须调用:wasm 没有 teardown,计时中的 rAF 链会抓着死实例永远跑。
   stopTimer(): void
 
-  // 以下五个是后开的洞(见 scripts/build-games.sh 的 EXPORTS)。全部可选,因为
+  // 以下三个是后开的洞(build-games.sh 的 EXPORTS 为此多导出四个 C 符号:
+  // midend_status / midend_request_keys / free_keys / midend_freeze_timer)。全部可选,因为
   // sw.js 对 /engine/** 是 stale-while-revalidate:老用户第一次访问跑的是上一版
   // 引擎,那时它们不存在。每个调用点都要能降级,不能假设有。
   status?(): number
@@ -92,7 +93,8 @@ export interface KeyLabel {
   paints?: { colour: number; pencil?: boolean }
   // guess:先把调色板光标顶到这个颜色,再按 Enter——上游「上下选色 + 确认」那一串。
   reach?: { home: string; step: string; span: number; at: number }
-  whose?: 'upstream' | 'ours'
+  // 这个键只高亮、不往格子里落东西(只有 Dominosa 的数字)。文案因此换一套说法。
+  highlights?: true
 }
 
 export interface PuzzleCallbacks {
