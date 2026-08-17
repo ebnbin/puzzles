@@ -1,5 +1,3 @@
-import type { KeyIcon } from '../Icon'
-
 export interface Preset {
   name: string
   value: number | null
@@ -63,38 +61,6 @@ export interface PuzzleApi {
   status?(): number
   requestKeys?(): { button: number; label: string | null }[]
   freezeTimer?(proportion: number): void
-}
-
-export type KeyAction = 'possible' | 'single' | 'blank'
-
-// 按钮一共五类,判据和逐游戏的归属在 docs/keys.md。**不要用编号称呼它们**,用名字:
-//   act    undo / redo / type / menu。作用于这一局,不作用于棋盘;下方区域,总在
-//   need   写进格子的符号(数字、⌫、怪物)。没有它这一局玩不完
-//   arrow  方向键本体和它的伴生键。存在的理由是有个光标;下方区域,跟 puzzles.arrows
-//   pick   往光标那儿放什么(Map 的区域色、Guess 的颜色钉)。同样跟 puzzles.arrows
-//   aid    提示、铺标记、重排、高亮。它做的事都能一步一步用别的方式做到
-// act 和 arrow 各自独占一个容器(.play-acts / .play-arrows),类别由结构决定,不存;
-// 剩下三类挤在同一个 .keypad 里,所以只有它们要写在 KeyLabel.kind 上。
-// **这个联合的顺序就是上方区域的排列顺序**,keysFor 按它稳定排序。
-export type KeyKind = 'need' | 'pick' | 'aid'
-
-export interface KeyLabel {
-  kind: KeyKind
-  button: number
-  action?: KeyAction
-  label?: string
-  value?: number
-  icon?: KeyIcon
-  // 颜色钉:引擎调色板的下标,不是 CSS 颜色——颜色要等 renderer 翻完主题才有。
-  slot?: number
-  ink?: number
-  dotted?: boolean
-  // map:这个键往光标那个区域涂什么。走存档门,不发按键。
-  paints?: { colour: number; pencil?: boolean }
-  // guess:先把调色板光标顶到这个颜色,再按 Enter——上游「上下选色 + 确认」那一串。
-  reach?: { home: string; step: string; span: number; at: number }
-  // 这个键只高亮、不往格子里落东西(只有 Dominosa 的数字)。文案因此换一套说法。
-  highlights?: true
 }
 
 export interface PuzzleCallbacks {

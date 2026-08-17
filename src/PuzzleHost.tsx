@@ -9,22 +9,22 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
-import { asMaybes, HOLD_BUTTON, keysFor, READS_PREFS } from './engine/keys'
-import {
-  dragWalked,
-  offersArrows,
-  opener,
-  opens,
-  padKeys,
-  wakesCursor,
-} from './engine/pad'
-import type { KeyLabels, PadButton, PadContext, Slot } from './engine/pad'
-import { rolls } from './engine/cube'
-import { clearMarks, fillMarks, pending, placeSingles, remaining } from './engine/marks'
-import { clueAt, mapSize, paintRegion, readClues, stepCursor } from './engine/map'
-import { squareAt, tentsGrid } from './engine/tents'
-import type { Square } from './engine/tents'
-import type { Clues, Paint, Spot } from './engine/map'
+// 写全 index:裸的 ./games 会被解析成 games.json。
+import { gameOf } from './games/index'
+import type {
+  Armed,
+  Board,
+  Gate,
+  Key,
+  Labels,
+  Saw,
+  Stroke,
+  View,
+  Words,
+} from './games/game'
+import { keyOf } from './games/game'
+import type { PadButton } from './games/util/pad'
+import { padButtons } from './games/util/pad'
 import {
   alreadySolved,
   clearSave,
@@ -38,13 +38,10 @@ import {
   writeSave,
 } from './engine/saves'
 import { usedSolver } from './engine/solved'
-import type { CanvasRenderer } from './engine/renderer'
-import { readStand, type Stand } from './engine/palisade'
+import type { CanvasRenderer, Drawn } from './engine/renderer'
 import type {
   DialogControl,
   DialogSpec,
-  KeyAction,
-  KeyLabel,
   Preset,
   PuzzleApi,
 } from './engine/types'
@@ -65,16 +62,12 @@ const CUSTOM_PRESET = -1
 
 const SHORTCUT_KEYS = /^[urn]$/i
 
-const ACTIONS: Record<KeyAction, (save: string) => string | null> = {
-  possible: fillMarks,
-  single: placeSingles,
-  blank: clearMarks,
-}
-
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
+
+const NO_LIT: ReadonlySet<string> = new Set()
 
 type InlineKind = 'custom' | 'prefs'
 type Inline = { kind: InlineKind; spec: DialogSpec }
@@ -83,6 +76,11 @@ const ask = (api: PuzzleApi, kind: InlineKind) =>
   kind === 'custom' ? api.selectPreset(CUSTOM_PRESET) : api.preferences()
 
 type TextKind = 'desc' | 'seed'
+
+const strokeArgs = (s: Stroke): [number, string, string, number, number, number] =>
+  typeof s === 'string'
+    ? [0, s, '', 0, 0, 0]
+    : [0, s.key, '', s.pad ? 3 : 0, s.shift ? 1 : 0, s.ctrl ? 1 : 0]
 
 export default function PuzzleHost({
   name,
@@ -93,6 +91,11 @@ export default function PuzzleHost({
   title: string
   objective: string
 }) {
+  // GamePage 已按 games.json 把过关,注册表和 games.json 的一致由构建期检查
+  // 把守,这里不可能拿不到。
+  const game = gameOf(name)
+  if (!game) throw new Error(`no game registered as ${name}`)
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const areaRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<PuzzleApi | null>(null)
@@ -107,62 +110,32 @@ export default function PuzzleHost({
   const [standard, setStandard] = useState<number | null>(null)
   const [canSolve, setCanSolve] = useState(true)
   const [undoRedo, setUndoRedo] = useState({ undo: false, redo: false })
-  const [labels, setLabels] = useState<KeyLabels>({ enter: '', space: '' })
-  const [awake, setAwake] = useState(false)
-  const [opened, setOpened] = useState<string | null>(null)
-  const [walked, setWalked] = useState(false)
-  const [stand, setStand] = useState<Stand | undefined>(undefined)
-  const labelsRef = useRef<KeyLabels>({ enter: '', space: '' })
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [permalink, setPermalink] = useState<{ desc: string; seed: string | null }>()
   const [prefs, setPrefs] = useState<readonly DialogControl[]>([])
-  const wanted = useArrows()
-  const arrows = wanted && offersArrows(name)
-  const helping = useAid()
-  const spot = useRef<Spot>({ x: 0, y: 0 })
-  const [maybe, setMaybe] = useState(false)
-  const [sweeping, setSweeping] = useState(false)
-  const [brush, setBrush] = useState<Slot | null>(null)
-  const desc = permalink?.desc
-  const grid = useMemo(
-    () =>
-      !desc
-        ? null
-        : name === 'map'
-          ? mapSize(desc.split(':')[0])
-          :
-            name === 'tents'
-            ? tentsGrid(desc.split(':')[0])
-            : null,
-    [name, desc],
-  )
-  const clues = useRef<Clues | null>(null)
-  const [onClue, setOnClue] = useState(false)
-  const [held, setHeld] = useState<Square | null>(null)
-  const [primed, setPrimed] = useState<Slot | null>(null)
-  const [left, setLeft] = useState<Map<number, number> | null>(null)
-  const [rolling, setRolls] = useState<Set<string> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
 
-  // 读棋盘要 load 存档,而 midend_deserialise 又让 onPermalinks 发新对象(desc 不变):
-  // 这条链只能以 desc 字符串为依赖,reading 挡的就是这个环。「补全」成对象依赖或
-  // 删掉守卫,每次按键都会清空 clues、重置光标。
-  const reading = useRef(false)
-  useEffect(() => {
-    const api = apiRef.current
-    const renderer = rendererRef.current
-    if (reading.current) return
-    clues.current = null
-    setOnClue(false)
-    if (!ready || !api || !renderer || !grid || !desc) return
-    reading.current = true
-    try {
-      clues.current = readClues(api, renderer, grid)
-    } finally {
-      reading.current = false
-    }
-  }, [desc, grid, ready])
+  // 每游戏状态只有这五项,全部由接口的通道喂:标签、事实、光标镜像、粘滞键、上膛。
+  const [labels, setLabels] = useState<Labels>({ enter: '', space: '' })
+  const labelsRef = useRef<Labels>({ enter: '', space: '' })
+  const [facts, setFacts] = useState<unknown>(game.observe.init)
+  const factsRef = useRef<unknown>(game.observe.init)
+  const [awake, setAwake] = useState(false)
+  const awakeRef = useRef(false)
+  const [lit, setLit] = useState<ReadonlySet<string>>(NO_LIT)
+  const litRef = useRef<ReadonlySet<string>>(NO_LIT)
+  const [armed, setArmed] = useState<Armed | null>(null)
+  const armedRef = useRef<Armed | null>(null)
+
+  const mirrored = game.upstream.cursor.kind === 'mirrored'
+  const wakeKeys = mirrored
+    ? (game.upstream.cursor as { wakes: readonly string[] }).wakes
+    : null
+
+  const wanted = useArrows()
+  const arrows = wanted && game.arrows !== null
+  const helping = useAid()
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
@@ -178,18 +151,24 @@ export default function PuzzleHost({
   const borrowed = useRef<{ spec: DialogSpec | null; error: string | null } | null>(null)
   const [textError, setTextError] = useState<{ kind: TextKind; message: string } | null>(null)
 
-  const help = useHelp(name)
+  const help = useHelp(game.pages.help)
   const theme = useResolvedTheme()
   const t = useStrings()
   const [lang] = useLang()
   const themeRef = useRef(theme)
   themeRef.current = theme
 
-  const armed = useRef(false)
+  const words: Words = useMemo(() => ({ ...t.play, keys: t.keys }), [t])
+  const wordsRef = useRef(words)
+  wordsRef.current = words
+  const prefsRef = useRef(prefs)
+  prefsRef.current = prefs
+
+  const armedSave = useRef(false)
   const restoring = useRef(false)
   const savePending = useRef(false)
   const acted = useCallback(() => {
-    armed.current = true
+    armedSave.current = true
     setError(null)
   }, [])
 
@@ -242,28 +221,13 @@ export default function PuzzleHost({
   }, [error])
 
   const queueSave = useCallback(() => {
-    if (!armed.current || savePending.current) return
+    if (!armedSave.current || savePending.current) return
     savePending.current = true
     queueMicrotask(() => {
       savePending.current = false
       const api = apiRef.current
       if (api) writeSave(name, api.saveGame())
     })
-  }, [name])
-
-  const countLeft = useCallback(() => {
-    const api = apiRef.current
-    setLeft(api ? remaining(api.saveGame()) : null)
-  }, [])
-
-  const readRolls = useCallback(() => {
-    const api = apiRef.current
-    setRolls(name === 'cube' && api ? rolls(api.saveGame()) : null)
-  }, [name])
-
-  const readHeld = useCallback(() => {
-    const api = apiRef.current
-    setHeld(name === 'tents' && api ? squareAt(api.saveGame(), spot.current) : null)
   }, [name])
 
   useEffect(() => {
@@ -274,6 +238,111 @@ export default function PuzzleHost({
   useEffect(() => {
     if (ready && owesIntroduction(name)) setIntro(true)
   }, [ready, name])
+
+  // ------------------------------------------------------------ 观察与棋盘
+
+  // 存档门里发生的一切不喂观察器:门内的载入/按键是探测和改写的机械动作,
+  // 不是棋局事件;门关上之后如果真载入过存档,补一个 {moved}。
+  const inGate = useRef(0)
+  const gateLoaded = useRef(false)
+
+  const see = useCallback(
+    (saw: Saw) => {
+      factsRef.current = game.observe.next(factsRef.current, saw)
+      setFacts(factsRef.current)
+    },
+    [game],
+  )
+
+  const wake = useCallback(
+    (key: string) => {
+      if (!wakeKeys?.includes(key)) return
+      awakeRef.current = true
+      setAwake(true)
+    },
+    [wakeKeys],
+  )
+
+  const viewNow = useCallback(
+    (): View<unknown> => ({
+      labels: labelsRef.current,
+      facts: factsRef.current,
+      cursor: mirrored ? awakeRef.current : true,
+      lit: litRef.current,
+      armed: armedRef.current,
+      prefs: prefsRef.current,
+      words: wordsRef.current,
+    }),
+    [mirrored],
+  )
+
+  const gateOf = useCallback((api: PuzzleApi): Gate => {
+    return {
+      read: () => api.saveGame(),
+      load: (text) => {
+        gateLoaded.current = true
+        api.loadGame(text)
+      },
+      send: (s) => {
+        api.key(...strokeArgs(s))
+      },
+      redo: () => api.redo(),
+      replay: (text) => {
+        const renderer = rendererRef.current
+        if (!renderer) return []
+        renderer.record()
+        let tape: Drawn[] = []
+        try {
+          api.loadGame(text)
+        } finally {
+          tape = renderer.stop()
+        }
+        return tape
+      },
+    }
+  }, [])
+
+  const board = useMemo(
+    (): Board<unknown> => ({
+      view: viewNow,
+      send: (s) => {
+        const api = apiRef.current
+        if (!api) return
+        acted()
+        wake(keyOf(s))
+        see({ sent: s, before: labelsRef.current })
+        api.key(...strokeArgs(s))
+      },
+      gate: (run) => {
+        const api = apiRef.current
+        if (!api) throw new Error('gate before ready')
+        if (inGate.current === 0) gateLoaded.current = false
+        inGate.current += 1
+        try {
+          return run(gateOf(api))
+        } finally {
+          inGate.current -= 1
+          if (inGate.current === 0 && gateLoaded.current) {
+            acted()
+            if (game.observe.saves) see({ moved: api.saveGame() })
+          }
+        }
+      },
+      undo: () => apiRef.current?.undo(),
+      arm: (a) => {
+        armedRef.current = a
+        setArmed(a)
+      },
+      latch: (id, on) => {
+        const next = new Set(litRef.current)
+        if (on) next.add(id)
+        else next.delete(id)
+        litRef.current = next
+        setLit(next)
+      },
+    }),
+    [acted, game, gateOf, see, viewNow, wake],
+  )
 
   // StrictMode 在开发下同步跑 effect→cleanup→effect,而 wasm 没有 teardown:
   // startedRef 挡住第二次启动;cleanup 用 microtask 缓期执行——真卸载没有下一次
@@ -295,6 +364,7 @@ export default function PuzzleHost({
       name,
       canvas,
       dark: themeRef.current === 'dark',
+      spec: game.dark,
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
@@ -311,11 +381,9 @@ export default function PuzzleHost({
             // 存档里还有玩家选的参数(尺寸、难度),参数要活下来,棋盘不留。
             if (restored && !isPlayed(saved)) api.newGame()
           }
-          setPresets(list)
+          setPresets(list && [...game.types.menu(list)])
           setReady(true)
-          countLeft()
-          readRolls()
-          readHeld()
+          if (game.observe.saves) see({ moved: api.saveGame() })
           // 补一次基线:main() 里的 post_move() 早于 js_post_init(),那一次
           // onUndoRedo 到达时 apiRef 还是空的,checkStatus 什么都没记下。不补的话
           // 「这一局的第一次观察」会落在玩家的第一个动作上,那个动作要是直接把
@@ -337,24 +405,32 @@ export default function PuzzleHost({
         onUndoRedo: (undo, redo) => {
           setUndoRedo({ undo, redo })
           queueSave()
-          countLeft()
-          readRolls()
-          readHeld()
+          if (!inGate.current && game.observe.saves && apiRef.current)
+            see({ moved: apiRef.current.saveGame() })
           checkStatus()
         },
         // emcc.c 先报 CURSOR_SELECT2 再报 CURSOR_SELECT,这里的形参序(space, enter)
-        // 是故意的;types.ts 里叫 (lsk, csk) 是同一对的另一套名字,不是谁写反了。
-        onKeyLabels: (space, enter) => {
+        // 是故意的。已发布的胶水在两词相同时把 space 抹成空串,按 upstream.echoes
+        // 在这里复原:接口内部只见双词。
+        onKeyLabels: (blanked, enter) => {
+          const space =
+            blanked !== ''
+              ? blanked
+              : enter && game.upstream.echoes?.includes(enter)
+                ? enter
+                : ''
           labelsRef.current = { enter, space }
-          setOpened((was) => opener(name, { enter, space }, was))
-          setLabels({ enter, space })
+          if (!inGate.current) see({ spoke: labelsRef.current })
+          setLabels(labelsRef.current)
         },
         onPermalinks: (desc, seed) => {
           here.current = desc
           setPermalink({ desc, seed })
           queueSave()
-          setAwake(false)
-          spot.current = { x: 0, y: 0 }
+          if (!inGate.current) {
+            awakeRef.current = false
+            setAwake(false)
+          }
         },
         // 第一次报的一定是默认预设:emcc.c 建菜单时先调 select_appropriate_preset(),
         // 读存档和玩家选择都在其后,所以「第一个赢」拿到的就是 default_params()。
@@ -412,20 +488,62 @@ export default function PuzzleHost({
         delete window.__puzzle
       })
     }
+    // game 由 name 唯一决定,GamePage 用 key 保证换游戏必然重挂载。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name])
+
+  // 发牌事件:desc 换了才算新一局(restart 不换 desc、也不该重置观察)。放在
+  // effect 里而不是 onPermalinks 回调里,是因为观察器可能借 gate 探测(map 的
+  // 线索表要重放发牌),那是对引擎的重入,不能发生在引擎回调栈上。
+  const dealtRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!ready || !permalink) return
+    const id = decodeURIComponent(permalink.desc)
+    if (dealtRef.current === id) return
+    dealtRef.current = id
+    const api = apiRef.current
+    if (!api) return
+    inGate.current += 1
+    try {
+      see({ deal: id, gate: gateOf(api) })
+    } finally {
+      inGate.current -= 1
+    }
+  }, [ready, permalink, see, gateOf])
+
+  // 要录像帧的观察器(从画面读死活),接上 renderer 的旁路。
+  useEffect(() => {
+    const renderer = rendererRef.current
+    if (!ready || !renderer || !game.observe.frames) return
+    renderer.watch((tape) => {
+      if (!inGate.current) see({ frame: tape })
+    })
+    return () => renderer.watch(null)
+  }, [ready, game, see])
+
+  // ------------------------------------------------------------ 键盘
 
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
   const keys = useMemo(() => {
-    const all = keysFor(name, id, prefs)
-    const mine = maybe ? asMaybes(all) : all
-    return mine.filter((k) => (k.kind === 'aid' ? helping : k.kind !== 'pick' || arrows))
-  }, [arrows, helping, id, maybe, name, prefs])
+    const dealt = game.keypad({ params: id.split(':')[0], prefs })
+    if (!dealt) return []
+    return dealt.filter((k) =>
+      k.group === 'assist' ? helping : k.group !== 'pick' || arrows,
+    )
+  }, [arrows, helping, id, game, prefs])
 
   // 圆键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有的。
-  const padInk = useMemo(
-    () => [...new Set(keys.flatMap((k) => [k.slot, k.ink]))].filter((n) => n !== undefined),
-    [keys],
-  )
+  const padInk = useMemo(() => {
+    const slots = new Set<number>()
+    for (const key of keys) {
+      const face = typeof key.face === 'function' ? key.face(viewNow()) : key.face
+      if ('swatch' in face.art) {
+        slots.add(face.art.swatch.fill)
+        if (face.art.swatch.edge !== undefined) slots.add(face.art.swatch.edge)
+      }
+    }
+    return [...slots]
+  }, [keys, viewNow])
 
   usePuzzleFit(
     areaRef,
@@ -434,7 +552,11 @@ export default function PuzzleHost({
     ready,
     permalink?.desc.split(':')[0] ?? '',
   )
-  const pointer = usePuzzlePointer(apiRef, rendererRef, HOLD_BUTTON[name])
+  const pointer = usePuzzlePointer(
+    apiRef,
+    rendererRef,
+    game.touch.hold === 'middle' ? 1 : 2,
+  )
 
   useEffect(() => {
     const renderer = rendererRef.current
@@ -501,33 +623,36 @@ export default function PuzzleHost({
       inlinePending.current = open.kind
       ask(api, open.kind)
     }
-  }, [])
+  }, [acted])
 
-  const submitText = useCallback((kind: TextKind, text: string) => {
-    const api = apiRef.current
-    if (!api) return
-    acted()
-    const resume = inlineRef.current?.kind ?? null
-    if (resume) api.dialogCancel()
+  const submitText = useCallback(
+    (kind: TextKind, text: string) => {
+      const api = apiRef.current
+      if (!api) return
+      acted()
+      const resume = inlineRef.current?.kind ?? null
+      if (resume) api.dialogCancel()
 
-    borrowed.current = { spec: null, error: null }
-    if (kind === 'desc') api.enterGameId()
-    else api.enterSeed()
-    const { spec } = borrowed.current
-    if (spec) {
-      spec.controls[0].value = text
-      api.dialogOk()
-      if (borrowed.current.error) api.dialogCancel()
-    }
-    const message = borrowed.current.error
-    borrowed.current = null
-    setTextError(message ? { kind, message } : null)
+      borrowed.current = { spec: null, error: null }
+      if (kind === 'desc') api.enterGameId()
+      else api.enterSeed()
+      const { spec } = borrowed.current
+      if (spec) {
+        spec.controls[0].value = text
+        api.dialogOk()
+        if (borrowed.current.error) api.dialogCancel()
+      }
+      const message = borrowed.current.error
+      borrowed.current = null
+      setTextError(message ? { kind, message } : null)
 
-    if (resume) {
-      inlinePending.current = resume
-      ask(api, resume)
-    }
-  }, [])
+      if (resume) {
+        inlinePending.current = resume
+        ask(api, resume)
+      }
+    },
+    [acted],
+  )
 
   const readPrefs = useCallback(() => {
     const api = apiRef.current
@@ -542,8 +667,8 @@ export default function PuzzleHost({
   }, [dialog])
 
   useEffect(() => {
-    if (ready && READS_PREFS.has(name)) readPrefs()
-  }, [ready, name, readPrefs])
+    if (ready && game.prefs.volatile) readPrefs()
+  }, [ready, game, readPrefs])
 
   const closeTypes = useCallback(() => {
     if (inlineRef.current) apiRef.current?.dialogCancel()
@@ -559,22 +684,27 @@ export default function PuzzleHost({
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
-  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
-    const api = apiRef.current
-    if (!api) return
-    acted()
-    const plain = !e.shiftKey && !e.ctrlKey
-    if (plain && wakesCursor(name, e.key)) setAwake(true)
-    if (plain && opens(name, e.key, labelsRef.current)) setOpened(e.key)
-    if (plain) {
-      const walk = dragWalked(name, e.key)
-      if (walk !== null) setWalked(walk)
-    }
-    if (grid && plain) spot.current = stepCursor(spot.current, e.key, grid)
-    if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
-      e.preventDefault()
-    if (READS_PREFS.has(name)) readPrefs()
-  }, [acted, grid, name, readPrefs])
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLCanvasElement>) => {
+      const api = apiRef.current
+      if (!api) return
+      acted()
+      if (!e.shiftKey && !e.ctrlKey) wake(e.key)
+      see({
+        sent: {
+          key: e.key,
+          ...(e.location === 3 ? { pad: true as const } : {}),
+          ...(e.shiftKey ? { shift: true as const } : {}),
+          ...(e.ctrlKey ? { ctrl: true as const } : {}),
+        },
+        before: labelsRef.current,
+      })
+      if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
+        e.preventDefault()
+      if (game.prefs.volatile) readPrefs()
+    },
+    [acted, game, readPrefs, see, wake],
+  )
 
   useEffect(() => {
     if (!ready) return
@@ -613,217 +743,128 @@ export default function PuzzleHost({
     acted,
   ])
 
-  const markAction = useCallback(
-    (action: KeyAction) => {
-      const api = apiRef.current
-      if (!api) return
-      const next = ACTIONS[action](api.saveGame())
-      if (!next) return
+  const pressKey = useCallback(
+    (key: Key<unknown>) => {
       acted()
-      const held = pending(next)
-      api.loadGame(held ?? next)
-      if (held) api.redo()
-    },
-    [acted],
-  )
-
-  const paint = useCallback((p: Paint) => {
-    const api = apiRef.current
-    if (!api || !awake) return
-    const at = spot.current
-    paintRegion(api, at, p)
-    spot.current = at
-    setAwake(true)
-  }, [awake])
-
-  const pressKey = useCallback((key: KeyLabel) => {
-    const api = apiRef.current
-    if (!api) return
-    if (key.action) {
-      markAction(key.action)
-      canvasRef.current?.focus()
-      return
-    }
-    acted()
-    if (key.paints) {
-      paint(key.paints)
-      canvasRef.current?.focus()
-      return
-    }
-    const send = (sent: string) => {
-      if (wakesCursor(name, sent)) setAwake(true)
-      api.key(0, sent, '', 0, 0, 0)
-    }
-    if (key.reach) {
-      for (let i = 0; i < key.reach.span; i++) send(key.reach.home)
-      for (let i = 0; i < key.reach.at; i++) send(key.reach.step)
-      // 顶完再问一次标签:上下只动调色板光标,钉子光标没动,所以这时的答案照样准。
-      // 光标要是停在「看结果」位,这一下 Enter 就是交卷了——那时候什么都不发。
-      if (labelsRef.current.enter === 'Place') send('\r')
-      canvasRef.current?.focus()
-      return
-    }
-    send(String.fromCharCode(key.button))
-    canvasRef.current?.focus()
-  }, [acted, markAction, name, paint])
-
-  // 上方区域谁按不动。pick 那两个游戏各有各的判据:map 看光标醒没醒、在不在线索上,
-  // guess 看上游收不收 Enter——两者都不是我们自己定的规矩。
-  const deadKey = useCallback(
-    (key: KeyLabel) =>
-      key.paints !== undefined
-        ? !awake || onClue
-        : key.reach !== undefined && labels.enter !== 'Place',
-    [awake, labels.enter, onClue],
-  )
-
-  const sendKey = useCallback(
-    (key: string, where = 0, mod?: { shift?: true; ctrl?: true }) => {
-      const api = apiRef.current
-      if (!api) return
-      acted()
-      if (wakesCursor(name, key)) setAwake(true)
-      if (!mod && opens(name, key, labelsRef.current)) setOpened(key)
-      if (!mod) {
-        const walk = dragWalked(name, key)
-        if (walk !== null) setWalked(walk)
-      }
-      if (grid) {
-        spot.current = stepCursor(spot.current, key, grid)
-        setOnClue(clues.current ? clueAt(clues.current, spot.current, key) : false)
-      }
-      api.key(0, key, '', where, mod?.shift ? 1 : 0, mod?.ctrl ? 1 : 0)
+      key.press(board)
       canvasRef.current?.focus()
     },
-    [acted, grid, name],
+    [acted, board],
   )
 
-
-  useEffect(() => {
-    const renderer = rendererRef.current
-    if (!ready || !renderer || name !== 'palisade') return
-    renderer.watch((tape) => {
-      const seen = readStand(tape)
-      if (seen) setStand(seen)
-    })
-    return () => renderer.watch(null)
-  }, [name, ready])
-
-  const pad: PadContext = {
-    name,
-    labels: { ...labels, opened: opened ?? undefined, walked, stand },
-    awake,
-    sweeping,
-    onClue,
-    maybe,
-    held,
-    rolling,
-    primed,
-    brush,
-    words: { ...t.play, keys: t.keys },
-    send: sendKey,
-    save: () => apiRef.current?.saveGame(),
-    undo: () => apiRef.current?.undo(),
-    prime: setPrimed,
-    paint,
-    toggleMaybe: () => setMaybe((was) => !was),
-    toggleSweep: () => setSweeping((was) => !was),
-    setBrush,
-    labelsNow: () => ({ ...labelsRef.current, opened: opened ?? undefined, walked, stand }),
+  // 渲染用的一份视野:state 驱动,和 viewNow() 的 ref 版内容一致。
+  const view: View<unknown> = {
+    labels,
+    facts,
+    cursor: mirrored ? awake : true,
+    lit,
+    armed,
+    prefs,
+    words,
   }
-  const arrowPad = padKeys(name, id, prefs, pad)
+
+  const arrowPad = game.arrows ? padButtons(game.arrows, view, board) : null
 
   const padKey = (key: PadButton, at: React.CSSProperties) => (
     <button
       key={key.slot}
       type="button"
       data-slot={key.slot}
-      data-on={key.on || undefined}
+      data-on={key.face.on || undefined}
       data-off={key.gone || undefined}
-      data-brush={key.ring ? 'true' : undefined}
+      data-brush={key.face.ring ? 'true' : undefined}
       style={at}
-      disabled={key.dead}
-      aria-pressed={key.pressed}
-      aria-label={key.says}
-      {...(key.tip ? holdToAsk(key.tip) : {})}
+      disabled={key.face.dead}
+      aria-pressed={key.face.held}
+      aria-label={key.face.says}
+      {...(key.face.tip && key.face.says ? holdToAsk(key.face.says) : {})}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => {
-        if (key.tip && wasHeld()) return
+        if (key.face.tip && wasHeld()) return
         acted()
         key.press()
         canvasRef.current?.focus()
       }}
     >
-      {key.icon && <Icon name={key.icon} />}
+      {'glyph' in key.face.art && <Icon name={key.face.art.glyph} />}
     </button>
   )
 
   const fixedKeys = (
-          <div className="play-acts">
-            <button
-              type="button"
-              aria-label={t.play.undo}
-              disabled={!undoRedo.undo}
-              {...holdToAsk(t.play.undo)}
-              onClick={() => {
-                if (wasHeld()) return
-                act((a) => a.undo())
-              }}
-            >
-              <Icon name="undo" />
-            </button>
-            <button
-              type="button"
-              aria-label={t.play.redo}
-              disabled={!undoRedo.redo}
-              {...holdToAsk(t.play.redo)}
-              onClick={() => {
-                if (wasHeld()) return
-                act((a) => a.redo())
-              }}
-            >
-              <Icon name="redo" />
-            </button>
-            {/* 上游要等 wasm 起来才报得出预设,所以这个键先摆上、灰着,ready 之后才活:
-                否则这一块会从三个键跳成四个,菜单键还跟着换一格。真的没有类型可选的
-                游戏(npresets ≤ 1 且不能自定义,emcc.c 那时会撤掉整个下拉)才不画——
-                那种游戏今天一个都没有,但 presets 的类型允许,不能当它不存在。 */}
-            {(!ready || presets) && (
-              <button
-                type="button"
-                aria-label={t.types.title}
-                aria-haspopup="dialog"
-                aria-expanded={typesOpen}
-                disabled={!presets}
-                {...holdToAsk(t.types.title)}
-                onClick={() => {
-                  if (wasHeld()) return
-                  closeMenu()
-                  setTypesOpen(true)
-                }}
-              >
-                <Icon name="type" />
-              </button>
-            )}
-            <button
-              type="button"
-              className="is-menu"
-              aria-label={t.play.menu}
-              aria-haspopup="dialog"
-              aria-expanded={menuOpen}
-              {...holdToAsk(t.play.menu)}
-              onClick={() => {
-                if (wasHeld()) return
-                closeTypes()
-                setTextError(null)
-                setMenuOpen(true)
-              }}
-            >
-              <Icon name="menu" />
-            </button>
-          </div>
+    <div className="play-acts">
+      <button
+        type="button"
+        aria-label={t.play.undo}
+        disabled={!undoRedo.undo}
+        {...holdToAsk(t.play.undo)}
+        onClick={() => {
+          if (wasHeld()) return
+          act((a) => a.undo())
+        }}
+      >
+        <Icon name="undo" />
+      </button>
+      <button
+        type="button"
+        aria-label={t.play.redo}
+        disabled={!undoRedo.redo}
+        {...holdToAsk(t.play.redo)}
+        onClick={() => {
+          if (wasHeld()) return
+          act((a) => a.redo())
+        }}
+      >
+        <Icon name="redo" />
+      </button>
+      {/* 上游要等 wasm 起来才报得出预设,所以这个键先摆上、灰着,ready 之后才活:
+          否则这一块会从三个键跳成四个,菜单键还跟着换一格。真的没有类型可选的
+          游戏(npresets ≤ 1 且不能自定义,emcc.c 那时会撤掉整个下拉)才不画——
+          那种游戏今天一个都没有,但 presets 的类型允许,不能当它不存在。 */}
+      {(!ready || presets) && (
+        <button
+          type="button"
+          aria-label={t.types.title}
+          aria-haspopup="dialog"
+          aria-expanded={typesOpen}
+          disabled={!presets}
+          {...holdToAsk(t.types.title)}
+          onClick={() => {
+            if (wasHeld()) return
+            closeMenu()
+            setTypesOpen(true)
+          }}
+        >
+          <Icon name="type" />
+        </button>
+      )}
+      <button
+        type="button"
+        className="is-menu"
+        aria-label={t.play.menu}
+        aria-haspopup="dialog"
+        aria-expanded={menuOpen}
+        {...holdToAsk(t.play.menu)}
+        onClick={() => {
+          if (wasHeld()) return
+          closeTypes()
+          setTextError(null)
+          setMenuOpen(true)
+        }}
+      >
+        <Icon name="menu" />
+      </button>
+    </div>
   )
 
+  const panelled =
+    inline?.kind === 'prefs'
+      ? (() => {
+          const controls = game.prefs.panel(inline.spec.controls)
+          return controls === inline.spec.controls
+            ? inline.spec
+            : { ...inline.spec, controls: [...controls] }
+        })()
+      : null
 
   return (
     <div
@@ -884,6 +925,7 @@ export default function PuzzleHost({
           ref={canvasRef}
           onPointerDownCapture={() => {
             acted()
+            awakeRef.current = false
             setAwake(false)
           }}
           className="host-board"
@@ -913,16 +955,10 @@ export default function PuzzleHost({
         )}
       </div>
 
-      <PuzzleKeypad
-        keys={keys}
-        left={left}
-        swatches={swatches}
-        dead={deadKey}
-        onPress={pressKey}
-      />
+      <PuzzleKeypad keys={keys} view={view} swatches={swatches} onPress={pressKey} />
 
       <nav className="play-actions">
-        {arrows && arrowPad.keys.length > 0 ? (
+        {arrows && arrowPad && arrowPad.buttons.length > 0 ? (
           <div
             className="play-keys"
             style={{ gridTemplateRows: `repeat(${arrowPad.rows}, var(--tap-w))` }}
@@ -934,11 +970,11 @@ export default function PuzzleHost({
             />
             {/* 固定键在左、方向键在右,所以 DOM 也这个顺序:tab 跟着屏幕从左到右走。
                 display:contents 让方向键直接落进上面那张网格,同时留住那一层的 role
-                和名字。一条渲染路径管所有键,摆哪儿由 pad.ts 的格子号算好。
+                和名字。一条渲染路径管所有键,摆哪儿由 util/pad 的格子号算好。
                 方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
             {fixedKeys}
             <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
-              {arrowPad.keys.map((key) =>
+              {arrowPad.buttons.map((key) =>
                 padKey(key, { gridRow: key.row, gridColumn: `c${key.col}` }),
               )}
             </div>
@@ -959,7 +995,7 @@ export default function PuzzleHost({
         >
           <img
             className="help-art"
-            src={`/howto/${name}-${theme}.png`}
+            src={`/howto/${game.pages.howto}-${theme}.png`}
             alt={t.play.picture(title)}
             draggable={false}
           />
@@ -971,11 +1007,11 @@ export default function PuzzleHost({
             )}
             <p className="prose-more">
               <a
-                href={docHref(lang, `${name}.html`)}
+                href={docHref(lang, `${game.pages.manual}.html`)}
                 onClick={(e) => {
                   e.preventDefault()
                   closeHelp()
-                  openManual(`${name}.html`)
+                  openManual(`${game.pages.manual}.html`)
                 }}
               >
                 {t.play.fullInstructions}
@@ -1007,7 +1043,7 @@ export default function PuzzleHost({
         <PuzzleMenu
           canSolve={canSolve}
           permalink={permalink}
-          prefs={inline?.kind === 'prefs' ? inline.spec : null}
+          prefs={panelled}
           prefsError={inlineError}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
