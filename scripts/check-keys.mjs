@@ -3,34 +3,15 @@
 //
 // 六个游戏由上游实现 request_keys();其余游戏的键全是我们自己加的,上游答空数组,
 // 这里只断言「空」,不断言键面。
-import { chromium } from 'playwright'
-
-const URL_BASE = process.env.PREVIEW ?? 'http://localhost:4173'
+import { boot, open } from './lib/boot.mjs'
 
 const UPSTREAM = ['Solo', 'Keen', 'Towers', 'Unequal', 'Filling', 'Undead']
 const OURS = ['Net', 'Guess', 'Map', 'Galaxies', 'Fifteen']
 
-const browser = await chromium.launch(
-  process.env.CHROME ? { executablePath: process.env.CHROME } : {},
-)
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
-page.on('pageerror', (e) => console.log('  [pageerror]', e.message))
+const { browser, page } = await boot()
 
 let bad = 0
 const fail = (...m) => { bad++; console.log('  FAIL', ...m) }
-
-// 走首页点进去,不直接访问 /<game>:那条路由是客户端的,vite preview 会 404。
-async function open(game, shown) {
-  await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
-  await page.evaluate(() => {
-    localStorage.setItem('puzzles.arrows', 'true')
-    localStorage.removeItem('puzzles.playing')
-  })
-  await page.goto(URL_BASE, { waitUntil: 'networkidle' })
-  await page.getByRole('button', { name: new RegExp(`^${shown}`) }).first().click()
-  await page.waitForFunction(() => !!window.__puzzle, null, { timeout: 20000 })
-  await page.waitForTimeout(400)
-}
 
 // 引擎侧的答案:{button, label}[]。旧引擎没有这个洞,整份跳过而不是当成空。
 const ask = () =>
@@ -48,7 +29,7 @@ const shownAs = (button) =>
   button === 8 ? 'Backspace' : JSON.stringify(String.fromCharCode(button))
 
 for (const game of UPSTREAM) {
-  await open(game, game)
+  await open(page, game)
   const keys = await ask()
   if (keys === null) {
     console.log('  skip ', game, '(引擎里没有 requestKeys,是旧产物)')
@@ -65,7 +46,7 @@ for (const game of UPSTREAM) {
 }
 
 for (const game of OURS) {
-  await open(game, game)
+  await open(page, game)
   const keys = await ask()
   if (keys === null) continue
   if (keys.length) fail(game, `上游不该报键,却报了 ${keys.length} 个`)

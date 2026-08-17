@@ -1,21 +1,9 @@
-import { chromium } from 'playwright'
+import { boot, open } from './lib/boot.mjs'
 
-const URL_BASE = process.env.PREVIEW ?? 'http://localhost:4173'
 const STEPS = Number(process.env.STEPS ?? 40)
 
-const browser = await chromium.launch(
-  process.env.CHROME ? { executablePath: process.env.CHROME } : {},
-)
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true })
-await page.goto(URL_BASE)
-await page.evaluate(() => {
-  localStorage.setItem('puzzles.arrows', 'true')
-  localStorage.removeItem('puzzles.playing')
-})
-await page.goto(URL_BASE, { waitUntil: 'networkidle' })
-await page.getByRole('button', { name: /^Palisade/ }).first().click()
-await page.waitForFunction(() => !!window.__puzzle)
-await page.waitForTimeout(900)
+const { browser, page } = await boot({ touch: true })
+await open(page, 'Palisade', { settle: 900 })
 
 const at = () =>
   page.evaluate(() => {

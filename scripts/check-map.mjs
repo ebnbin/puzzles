@@ -1,21 +1,9 @@
-import { chromium } from 'playwright'
+import { boot, open } from './lib/boot.mjs'
 
-const URL_BASE = process.env.PREVIEW ?? 'http://localhost:4173'
 const ROUNDS = Number(process.env.ROUNDS ?? 12)
 
-const browser = await chromium.launch(
-  process.env.CHROME ? { executablePath: process.env.CHROME } : {},
-)
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true })
-await page.goto(URL_BASE)
-await page.evaluate(() => {
-  localStorage.setItem('puzzles.arrows', 'true')
-  localStorage.removeItem('puzzles.playing')
-})
-await page.goto(URL_BASE, { waitUntil: 'networkidle' })
-await page.getByRole('button', { name: /^Map/ }).first().click()
-await page.waitForFunction(() => !!window.__puzzle)
-await page.waitForTimeout(900)
+const { browser, page } = await boot({ touch: true })
+await open(page, 'Map', { settle: 900 })
 
 const moves = () => page.evaluate(() =>
   window.__puzzle.saveGame().split('\n').filter((l) => l.startsWith('MOVE')))
