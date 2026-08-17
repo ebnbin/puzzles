@@ -418,7 +418,7 @@ export default function PuzzleHost({
   const keys = useMemo(() => {
     const all = keysFor(name, id, prefs)
     const mine = maybe ? asMaybes(all) : all
-    return mine.filter((k) => (k.kind === 'aid' ? helping : k.kind !== 'aim' || arrows))
+    return mine.filter((k) => (k.kind === 'aid' ? helping : k.kind !== 'pick' || arrows))
   }, [arrows, helping, id, maybe, name, prefs])
 
   // 圆键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有的。
@@ -654,9 +654,9 @@ export default function PuzzleHost({
       if (wakesCursor(name, sent)) setAwake(true)
       api.key(0, sent, '', 0, 0, 0)
     }
-    if (key.aims) {
-      for (let i = 0; i < key.aims.span; i++) send(key.aims.home)
-      for (let i = 0; i < key.aims.at; i++) send(key.aims.step)
+    if (key.reach) {
+      for (let i = 0; i < key.reach.span; i++) send(key.reach.home)
+      for (let i = 0; i < key.reach.at; i++) send(key.reach.step)
       // 顶完再问一次标签:上下只动调色板光标,钉子光标没动,所以这时的答案照样准。
       // 光标要是停在「看结果」位,这一下 Enter 就是交卷了——那时候什么都不发。
       if (labelsRef.current.enter === 'Place') send('\r')
@@ -667,13 +667,13 @@ export default function PuzzleHost({
     canvasRef.current?.focus()
   }, [acted, markAction, name, paint])
 
-  // 区域 A 谁按不动。三类(圆键)各有各的判据:map 的看光标醒没醒、在不在线索上,
-  // guess 的看上游收不收 Enter——两者都不是我们自己定的规矩。
+  // 上方区域谁按不动。pick 那两个游戏各有各的判据:map 看光标醒没醒、在不在线索上,
+  // guess 看上游收不收 Enter——两者都不是我们自己定的规矩。
   const deadKey = useCallback(
     (key: KeyLabel) =>
       key.paints !== undefined
         ? !awake || onClue
-        : key.aims !== undefined && labels.enter !== 'Place',
+        : key.reach !== undefined && labels.enter !== 'Place',
     [awake, labels.enter, onClue],
   )
 

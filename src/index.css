@@ -843,22 +843,23 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* 四类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
-     一类 实心无边框(Menu 另填 accent-soft)
-     二类 实心无边框
-     四类 实心带边框、字色淡一档
-     三类 和四类同一套键面,但是**圆的**——它有两个住处(方向键那块底板上,
-          以及区域 A 里 Map/Guess 的色板),圆是把后者和上面两类分开的唯一记号
-   区域 A 的一类二类四类是 --r-sm 的圆角矩形;三类不论在哪都是正圆。底板圆角跟着
-   键走,规则写在 --pad-r 上。 */
+/* 五类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
+     act   实心无边框(Menu 另填 accent-soft)
+     need  实心无边框
+     aid   实心带边框、字色淡一档
+     arrow 键面同 aid,形状是正圆
+     pick  和 arrow 同一套:同样的键面、同样的正圆。它跟 arrow 是一伙的却挤在
+           上方区域里,圆就是把它和邻座的 need/aid 分开的唯一记号
+   上方区域的 need 和 aid 是 --r-sm 的圆角矩形;arrow 和 pick 不论在哪都是正圆。
+   底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 engine/types.ts。 */
 
-/* 二类回到重构之前:无边框的实心浅灰。 */
+/* need 回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='need'] {
   border: 0;
 }
 
-/* 四类和方向键同一套:白键面 + 一圈边框,字色淡一档。于是整个底部只有两种键面
-   ——有边框的填 --surface(四类、方向键),没边框的填 --surface-2(一类、二类)。
+/* aid 和 arrow 同一套:白键面 + 一圈边框,字色淡一档。于是整块键盘只有两种键面
+   ——有边框的填 --surface(aid、arrow、pick),没边框的填 --surface-2(act、need)。
    白在 --bg 上只差 2%,读出「这是个键」靠的是边框,不是那层填充。 */
 .keypad button[data-kind='aid'] {
   background: var(--surface);
@@ -871,14 +872,14 @@ p.notice-intro button:active {
   }
 }
 
-/* 三类落在区域 A 时:键面同方向键,形状改成正圆——旁边的一类二类四类都是圆角
-   矩形,圆是「这是方向键的伴生键」唯一的记号。 */
-.keypad button[data-kind='aim'] {
+/* pick 挤在上方区域里,键面同 arrow,形状是正圆——邻座的 need 和 aid 都是圆角
+   矩形,圆是「这个键跟方向键是一伙的」唯一的记号。 */
+.keypad button[data-kind='pick'] {
   border-radius: var(--r-full);
   background: var(--surface);
 }
 
-.keypad button[data-kind='aim']:disabled .key-peg {
+.keypad button[data-kind='pick']:disabled .key-peg {
   opacity: 0.35;
 }
 
@@ -889,7 +890,7 @@ p.notice-intro button:active {
   background: var(--pad-bg);
 }
 
-/* 上膛、刷、涂色这些「模式亮着」的状态,只出现在区域 B 的伴生键上。 */
+/* 上膛、刷、涂色这些「模式亮着」的状态,只出现在下方区域的伴生键上。 */
 .play-actions button[data-on] {
   border-color: var(--accent);
   background: var(--accent);
