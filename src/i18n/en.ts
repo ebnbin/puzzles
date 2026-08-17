@@ -149,7 +149,6 @@ export const en = {
       undomino: 'Take this domino off',
       line: 'Draw a line: no domino crosses here',
       unline: 'Take this line off',
-      place: 'Place a peg of the chosen colour',
       submit: 'Submit this guess',
       hold: 'Hold this peg for the next guess',
       flip: 'Flip this square and the ones tied to it',
