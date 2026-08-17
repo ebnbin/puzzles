@@ -9,6 +9,8 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import ThemeToggle from './ThemeToggle'
 import { createPuzzle } from './engine/createPuzzle'
+import { CUSTOM_PRESET, Generator } from './engine/generate'
+import type { GenOp } from './engine/generate'
 import { asMaybes, HOLD_BUTTON, keysFor, READS_PREFS } from './engine/keys'
 import {
   dragWalked,
@@ -60,8 +62,6 @@ import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 const START_FAILED = '\0start'
-
-const CUSTOM_PRESET = -1
 
 const SHORTCUT_KEYS = /^[urn]$/i
 
@@ -145,6 +145,16 @@ export default function PuzzleHost({
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
 
+  // 出题在 worker 里跑,这期间主线程那份 midend 还端着上一局:盘面留着,输入闸掉。
+  // ref 和 state 一对:守卫跑在事件回调里,读 state 会读到上一轮的值。
+  const genRef = useRef<Generator | null>(null)
+  const busy = useRef(false)
+  const [dealing, setDealing] = useState(false)
+  const setBusy = useCallback((on: boolean) => {
+    busy.current = on
+    setDealing(on)
+  }, [])
+
   // 读棋盘要 load 存档,而 midend_deserialise 又让 onPermalinks 发新对象(desc 不变):
   // 这条链只能以 desc 字符串为依赖,reading 挡的就是这个环。「补全」成对象依赖或
   // 删掉守卫,每次按键都会清空 clues、重置光标。
@@ -192,6 +202,95 @@ export default function PuzzleHost({
     armed.current = true
     setError(null)
   }, [])
+
+  // worker 起不来时的退路(旧浏览器、CSP 挡 worker):回到同步出题。会卡,但能玩。
+  // 这就是异步化之前的原路,原样搬过来。
+  const runSync = useCallback((op: GenOp) => {
+    const api = apiRef.current
+    if (!api) return
+    if (op.kind === 'new') return api.newGame()
+    if (op.kind === 'preset') return api.selectPreset(op.index)
+    if (op.kind === 'custom') {
+      // 同 landGame:框可能已经被关掉了,那时后端没有待答的 config box。
+      if (!inlineRef.current) return
+      api.dialogOk()
+      if (!inlineRef.current) {
+        inlinePending.current = 'custom'
+        ask(api, 'custom')
+      }
+      return
+    }
+    borrowed.current = { spec: null, error: null }
+    if (op.kind === 'desc') api.enterGameId()
+    else api.enterSeed()
+    const { spec } = borrowed.current
+    if (spec) {
+      spec.controls[0].value = op.text
+      api.dialogOk()
+      if (borrowed.current.error) api.dialogCancel()
+    }
+    const message = borrowed.current.error
+    borrowed.current = null
+    setTextError(message ? { kind: op.kind, message } : null)
+  }, [])
+
+  // 出题成功:主线程只做 loadGame。它自带 select_appropriate_preset + resize +
+  // redraw + update_permalinks(见 emcc.c 的 load_game),所以下拉框、棋盘、永久链接
+  // 都会自己跟上,这里不用手动补。
+  const landGame = useCallback((op: GenOp, save: string) => {
+    const api = apiRef.current
+    if (!api) return
+    if (op.kind === 'custom') {
+      // 自定义面板改一个字段就出一局,盘子换了框还得开着(异步化之前也是这个行为)。
+      // 先关掉 C 侧那个 config box,load 完再开一个新的——控件值要跟着新参数走。
+      //
+      // 必须问过 inlineRef:出题这段时间玩家可能已经把面板关了,那时 cfg 早被
+      // free_cfg 回收,再 dialogCancel 一次是二次释放,整个 wasm 当场 abort。
+      // 玩家关掉了就别再开回来,那是他的意思。
+      const open = inlineRef.current !== null
+      if (open) api.dialogCancel()
+      api.loadGame(save)
+      if (open) {
+        inlinePending.current = 'custom'
+        ask(api, 'custom')
+      }
+      return
+    }
+    if (op.kind === 'desc' || op.kind === 'seed') setTextError(null)
+    api.loadGame(save)
+  }, [])
+
+  const regenerate = useCallback(
+    async (op: GenOp) => {
+      const api = apiRef.current
+      const gen = genRef.current
+      if (!api || !gen) return
+      setBusy(true)
+      // base 带着当前参数(尺寸、难度、自定义项)过去,worker 那份 midend 靠它对齐起点。
+      const reply = await gen.run(api.saveGame(), op)
+      // null = 被后来的请求取代,收尾归接班的那次,这里连 busy 都不能关。
+      if (reply === null) return
+      if (!liveRef.current) return
+      setBusy(false)
+      if (reply.ok) return landGame(op, reply.save)
+      if (reply.unavailable) return runSync(op)
+      if (op.kind === 'custom') return setInlineError(reply.message)
+      if (op.kind === 'desc' || op.kind === 'seed')
+        return setTextError({ kind: op.kind, message: reply.message })
+      setError(reply.message)
+    },
+    [landGame, runSync, setBusy],
+  )
+
+  // 用户主动要一局新的:出题前先把焦点还给棋盘,免得 loading 期间焦点吊在按钮上。
+  const deal = useCallback(
+    (op: GenOp) => {
+      acted()
+      void regenerate(op)
+      canvasRef.current?.focus()
+    },
+    [acted, regenerate],
+  )
 
   // 当前这一局的 desc,给完成判定当身份用。要 ref 不要 state:判定跑在
   // onUndoRedo 里,那时 setPermalink 排的这一轮渲染还没落地。
@@ -290,6 +389,7 @@ export default function PuzzleHost({
 
     const saved = readSave(name)
     let restored = true
+    genRef.current = new Generator(name)
 
     createPuzzle({
       name,
@@ -307,9 +407,10 @@ export default function PuzzleHost({
             } finally {
               restoring.current = false
             }
-            // 没走过子的存档也要先 load 再用 newGame 盖掉,不能跳过 load:
+            // 没走过子的存档也要先 load 再重新出一局盖掉,不能跳过 load:
             // 存档里还有玩家选的参数(尺寸、难度),参数要活下来,棋盘不留。
-            if (restored && !isPlayed(saved)) api.newGame()
+            // 不走 deal():这一局不是玩家要的,armed 不能立,否则白盖一次存档。
+            if (restored && !isPlayed(saved)) void regenerate({ kind: 'new' })
           }
           setPresets(list)
           setReady(true)
@@ -409,10 +510,12 @@ export default function PuzzleHost({
         if (effectAlive.current) return
         liveRef.current = false
         apiRef.current?.stopTimer()
+        genRef.current?.dispose()
+        genRef.current = null
         delete window.__puzzle
       })
     }
-  }, [name])
+  }, [name, regenerate])
 
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
   const keys = useMemo(() => {
@@ -465,7 +568,7 @@ export default function PuzzleHost({
 
   const act = useCallback(
     (fn: (api: PuzzleApi) => void) => {
-      if (!apiRef.current || dialog) return
+      if (!apiRef.current || dialog || busy.current) return
       acted()
       fn(apiRef.current)
       canvasRef.current?.focus()
@@ -473,61 +576,71 @@ export default function PuzzleHost({
     [dialog, acted],
   )
 
+  // 取消在飞的出题。cancel() 让那次 run 解析成 null,而 null 分支是不碰 busy 的
+  // (那条路留给「被接班」),所以这里必须自己把闸抬起来。
+  const stopDealing = useCallback(() => {
+    genRef.current?.cancel()
+    setBusy(false)
+  }, [setBusy])
+
   const openInline = useCallback(
     (kind: InlineKind) => {
       const api = apiRef.current
       if (!api || dialog || inlineRef.current) return
+      // 参数框的控件是照当前参数摆的,让在飞的那局落地会把参数从底下换掉,框里的值
+      // 当场作废——所以开参数框即取消。偏好框不吃这一套:偏好不进存档,落地的
+      // loadGame 碰不到它。而且菜单一打开就自动开偏好框,在这儿取消等于「点开菜单
+      // 看一眼」就把玩家要的新局悄悄弄丢了。
+      if (kind === 'custom') stopDealing()
       // 后端只有一个 config box(game ID、参数、偏好共用),打开了就必须有人回答;
       // pending 标签先立好,说明这次要的是哪一个。
       inlinePending.current = kind
       ask(api, kind)
     },
-    [dialog],
+    [dialog, stopDealing],
   )
 
   const closeInline = useCallback(() => {
     apiRef.current?.dialogCancel()
   }, [])
 
-  const commitInline = useCallback(() => {
-    const api = apiRef.current
-    const open = inlineRef.current
-    if (!api || !open) return
-    if (values(open.spec.controls) === inlineBaseline.current) return
-    acted()
-    setInlineError(null)
-    api.dialogOk()
-    if (!inlineRef.current) {
-      inlinePending.current = open.kind
-      ask(api, open.kind)
-    }
-  }, [])
+  const commitInline = useCallback(
+    () => {
+      const api = apiRef.current
+      const open = inlineRef.current
+      if (!api || !open) return
+      if (values(open.spec.controls) === inlineBaseline.current) return
+      acted()
+      setInlineError(null)
+      // 偏好不出题:emcc.c 的 cfg_end 对 CFG_PREFS 走的是「不动棋盘」那一支,
+      // 所以它留在主线程,连 loading 都不该闪。参数就得去 worker 出一局。
+      if (open.kind === 'prefs') {
+        api.dialogOk()
+        if (!inlineRef.current) {
+          inlinePending.current = open.kind
+          ask(api, open.kind)
+        }
+        return
+      }
+      void regenerate({
+        kind: 'custom',
+        values: open.spec.controls.map((c) => c.value),
+      })
+    },
+    [acted, regenerate],
+  )
 
-  const submitText = useCallback((kind: TextKind, text: string) => {
-    const api = apiRef.current
-    if (!api) return
-    acted()
-    const resume = inlineRef.current?.kind ?? null
-    if (resume) api.dialogCancel()
-
-    borrowed.current = { spec: null, error: null }
-    if (kind === 'desc') api.enterGameId()
-    else api.enterSeed()
-    const { spec } = borrowed.current
-    if (spec) {
-      spec.controls[0].value = text
-      api.dialogOk()
-      if (borrowed.current.error) api.dialogCancel()
-    }
-    const message = borrowed.current.error
-    borrowed.current = null
-    setTextError(message ? { kind, message } : null)
-
-    if (resume) {
-      inlinePending.current = resume
-      ask(api, resume)
-    }
-  }, [])
+  // 主线程不再借那个 config box:值直接交给 worker 去填、去出题,这边只等存档。
+  // 也因此不用像以前那样把开着的偏好框收起来再开回去。
+  const submitText = useCallback(
+    (kind: TextKind, text: string) => {
+      if (!apiRef.current) return
+      acted()
+      setTextError(null)
+      void regenerate({ kind, text })
+    },
+    [acted, regenerate],
+  )
 
   const readPrefs = useCallback(() => {
     const api = apiRef.current
@@ -561,7 +674,7 @@ export default function PuzzleHost({
 
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLCanvasElement>) => {
     const api = apiRef.current
-    if (!api) return
+    if (!api || busy.current) return
     acted()
     const plain = !e.shiftKey && !e.ctrlKey
     if (plain && wakesCursor(name, e.key)) setAwake(true)
@@ -587,7 +700,7 @@ export default function PuzzleHost({
         e.preventDefault()
         return
       }
-      if (dialog || helpOpen || typesOpen || menuOpen) return
+      if (dialog || helpOpen || typesOpen || menuOpen || busy.current) return
       // 棋盘聚焦时后端已经吃过这一按,defaultPrevented 挡二次处理(否则一按两撤);
       // 走 api.key 而不是直接 undo():快捷键可能被玩家关掉,有的游戏把这些字母当走子。
       if (e.defaultPrevented) return
@@ -638,7 +751,7 @@ export default function PuzzleHost({
 
   const pressKey = useCallback((key: KeyLabel) => {
     const api = apiRef.current
-    if (!api) return
+    if (!api || busy.current) return
     if (key.action) {
       markAction(key.action)
       canvasRef.current?.focus()
@@ -892,14 +1005,25 @@ export default function PuzzleHost({
           onKeyDown={onKeyDown}
           {...pointer}
         />
-        {over && (
+        {dealing && (
+          <div
+            className="play-wait"
+            role="status"
+            aria-live="polite"
+            aria-label={t.play.dealing}
+            // 闸门:铺满棋盘区,指针事件到不了 canvas。键盘那几路各自守 busy。
+            onPointerDown={(e) => e.preventDefault()}
+            onContextMenu={(e) => e.preventDefault()}
+          />
+        )}
+        {over && !dealing && (
           <div className="play-over" role="group" aria-label={t.play.over}>
             <button
               type="button"
               className="is-primary"
               onClick={() => {
                 setOver(false)
-                act((a) => a.newGame())
+                deal({ kind: 'new' })
               }}
             >
               <Icon name="add" />
@@ -993,8 +1117,10 @@ export default function PuzzleHost({
           custom={inline?.kind === 'custom' ? inline.spec : null}
           customError={inlineError}
           onSelectPreset={(value) => {
+            // 先乐观地点亮:出题要等,下拉框不该跟着等。落地时 loadGame 会用
+            // select_appropriate_preset 报回真值,和这里不一致的话以它为准。
             setSelected(value)
-            act((a) => a.selectPreset(value))
+            deal({ kind: 'preset', index: value })
           }}
           onOpenCustom={() => openInline('custom')}
           onCloseCustom={closeInline}
@@ -1015,7 +1141,9 @@ export default function PuzzleHost({
           onSubmitText={submitText}
           onAction={(action) => {
             if (inlineRef.current) apiRef.current?.dialogCancel()
-            act((a) => a[action]())
+            // restart / solve 不出题(重开用的是同一份 desc),留在主线程。
+            if (action === 'newGame') deal({ kind: 'new' })
+            else act((a) => a[action]())
             setMenuOpen(false)
           }}
           onClose={closeMenu}

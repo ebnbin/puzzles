@@ -47,6 +47,7 @@ export const en = {
     keypad: 'Puzzle keys',
     over: 'This game is over',
     error: 'Something went wrong starting this puzzle.',
+    dealing: 'Dealing a new board…',
     arrows: {
       group: 'Arrow keys',
       up: 'Up',

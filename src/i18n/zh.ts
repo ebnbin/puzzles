@@ -52,6 +52,7 @@ export const zh: Strings = {
     keypad: '谜题按键',
     over: '这一局结束了',
     error: '启动这个谜题时出错。',
+    dealing: '正在出题…',
     arrows: {
       group: '方向键',
       up: '上',

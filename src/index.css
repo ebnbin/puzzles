@@ -684,6 +684,54 @@ p.notice-error.is-floating {
   }
 }
 
+/* 出题期间盖住棋盘。它同时是输入闸门:铺满整个棋盘区,指针事件到不了 canvas。
+   旧盘面故意留着透出来——比空白像「还活着」。 */
+.play-wait {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  cursor: progress;
+  inset: 0;
+  animation: wait-in 400ms var(--ease);
+}
+
+.play-wait::after {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--edge-strong);
+  border-top-color: transparent;
+  border-radius: var(--r-full);
+  content: '';
+  animation: wait-spin 720ms linear infinite;
+}
+
+@keyframes wait-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* 迟到 240ms 才现身:小盘面出题只要几十毫秒,闪一下比不闪更吵。 */
+@keyframes wait-in {
+  0%,
+  60% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-wait {
+    animation: none;
+  }
+
+  .play-wait::after {
+    border-top-color: var(--edge);
+    animation: none;
+  }
+}
+
 p.notice-intro {
   background: var(--raised);
   color: var(--text);
