@@ -74,9 +74,17 @@ export const jumbleKey = <F>(): Key<F> => ({
   press: tap('J'),
 })
 
-// M 铺一套完整候选(上游自己的键),加三个走存档门的标记键:留下仍可能的、
-// 摆上唯一解、清空全部。算法在 util/latin.ts,读盘器由游戏文件交进来。
-export function markKeys<F>(read: BoardReader): Key<F>[] {
+// M 铺一套完整候选,是上游自己的键。
+export const marksKey = <F>(): Key<F> => ({
+  group: 'assist',
+  face: { art: { glyph: 'marks' } },
+  button: 'M'.charCodeAt(0),
+  press: tap('M'),
+})
+
+// 三个走存档门的标记键:留下仍可能的、摆上唯一解、清空全部。
+// 算法在 util/latin.ts,读盘器由游戏文件交进来。
+export function markActions<F>(read: BoardReader): Key<F>[] {
   const action =
     (fn: (save: string, read: BoardReader) => string | null) => (board: Board<F>) =>
       board.gate((g) => {
@@ -84,12 +92,6 @@ export function markKeys<F>(read: BoardReader): Key<F>[] {
         if (next) loadExtended(g, next)
       })
   return [
-    {
-      group: 'assist',
-      face: { art: { glyph: 'marks' } },
-      button: 'M'.charCodeAt(0),
-      press: tap('M'),
-    },
     { group: 'assist', face: { art: { glyph: 'possible' } }, button: 0, press: action(fillMarks) },
     { group: 'assist', face: { art: { glyph: 'single' } }, button: 0, press: action(placeSingles) },
     { group: 'assist', face: { art: { glyph: 'blank' } }, button: 0, press: action(clearMarks) },
