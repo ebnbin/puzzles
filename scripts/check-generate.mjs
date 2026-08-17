@@ -26,13 +26,17 @@ const ok = (...m) => console.log('  ok  ', ...m)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-async function open(page, name) {
-  await page.addInitScript((game) => {
-    localStorage.setItem('puzzles.playing', '1')
-    localStorage.setItem('puzzles.recent', game)
-    localStorage.setItem('puzzles.introduced', JSON.stringify([game]))
-    localStorage.removeItem(`puzzles.save.${game}`)
-  }, name)
+async function open(page, name, { introduced = true } = {}) {
+  await page.addInitScript(
+    ({ game, seen }) => {
+      localStorage.setItem('puzzles.playing', '1')
+      localStorage.setItem('puzzles.recent', game)
+      if (seen) localStorage.setItem('puzzles.introduced', JSON.stringify([game]))
+      else localStorage.removeItem('puzzles.introduced')
+      localStorage.removeItem(`puzzles.save.${game}`)
+    },
+    { game: name, seen: introduced },
+  )
   await page.goto(URL_BASE)
   await page.waitForSelector('.play[data-ready="true"]', { timeout: 30000 })
   await page.waitForFunction(() => !!window.__puzzle, null, { timeout: 30000 })
@@ -108,6 +112,64 @@ console.log('非法参数')
     else ok('参数不合法:面板留着报错,局面没动')
   } catch (error) {
     fail('非法参数', String(error).split('\n')[0])
+  } finally {
+    await page.close()
+  }
+}
+
+// 出题期间的按键状态。选 Solo:它既有数字键,5x6 又慢得够看清中间态。
+console.log('出题期间谁该按不动')
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  page.on('pageerror', (e) => fail('按键状态页面抛错:', e.message))
+  try {
+    // 不标 introduced,让开场介绍条露出来
+    await open(page, 'solo', { introduced: false })
+    await page.waitForSelector('p.notice-intro', { timeout: 20000 })
+
+    await page.click('.play-acts button[aria-haspopup="dialog"]:not(.is-menu)')
+    await page.click('.sheet-preset-custom input')
+    const fields = page.locator('.sheet-custom .dialog-string input')
+    await fields.nth(0).fill('5')
+    await fields.nth(0).press('Enter')
+    await fields.nth(1).fill('6')
+    await fields.nth(1).press('Enter')
+    await page.keyboard.press('Escape')
+
+    await page.waitForSelector('.play-wait', { timeout: 20000 })
+    const state = await page.evaluate(() => {
+      const off = (sel) =>
+        [...document.querySelectorAll(sel)].every((b) => b.disabled)
+      const on = (sel) =>
+        [...document.querySelectorAll(sel)].every((b) => !b.disabled)
+      const acts = '.play-acts button'
+      // 介绍条不该被浮层盖住:量它正中间那一点,顶上的必须还是它自己。
+      const intro = document.querySelector('p.notice-intro')
+      const box = intro?.getBoundingClientRect()
+      const top = box
+        ? document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+        : null
+      return {
+        keypad: off('.keypad button'),
+        arrows: off('.play-arrows button'),
+        undoRedo: off(`${acts}:not([aria-haspopup]):not(.is-menu)`),
+        types: on(`${acts}[aria-haspopup="dialog"]:not(.is-menu)`),
+        menu: on(`${acts}.is-menu`),
+        introOnTop: !!intro && !!top && intro.contains(top),
+        hadKeypad: document.querySelectorAll('.keypad button').length > 0,
+      }
+    })
+
+    if (!state.hadKeypad) fail('Solo 居然没有数字键,这条断言白写了')
+    else if (!state.keypad) fail('出题期间数字键还能按')
+    else if (!state.arrows) fail('出题期间方向键还能按')
+    else if (!state.undoRedo) fail('出题期间撤销/重做还能按')
+    else if (!state.types) fail('出题期间「类型」被按死了,玩家改不了主意')
+    else if (!state.menu) fail('出题期间「菜单」被按死了,玩家改不了主意')
+    else if (!state.introOnTop) fail('loading 浮层盖住了开场介绍条')
+    else ok('数字键/方向键/撤销重做按不动,类型和菜单照常,介绍条没被盖住')
+  } catch (error) {
+    fail('按键状态', String(error).split('\n')[0])
   } finally {
     await page.close()
   }

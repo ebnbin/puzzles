@@ -782,12 +782,14 @@ export default function PuzzleHost({
 
   // 上方区域谁按不动。pick 那两个游戏各有各的判据:map 看光标醒没醒、在不在线索上,
   // guess 看上游收不收 Enter——两者都不是我们自己定的规矩。
+  // 出题期间一律按不动:那一刻走上一局的子没意义,走新一局的子还没有盘。
   const deadKey = useCallback(
     (key: KeyLabel) =>
-      key.paints !== undefined
+      dealing ||
+      (key.paints !== undefined
         ? !awake || onClue
-        : key.reach !== undefined && labels.enter !== 'Place',
-    [awake, labels.enter, onClue],
+        : key.reach !== undefined && labels.enter !== 'Place'),
+    [dealing, awake, labels.enter, onClue],
   )
 
   const sendKey = useCallback(
@@ -855,7 +857,7 @@ export default function PuzzleHost({
       data-off={key.gone || undefined}
       data-brush={key.ring ? 'true' : undefined}
       style={at}
-      disabled={key.dead}
+      disabled={dealing || key.dead}
       aria-pressed={key.pressed}
       aria-label={key.says}
       {...(key.tip ? holdToAsk(key.tip) : {})}
@@ -871,12 +873,14 @@ export default function PuzzleHost({
     </button>
   )
 
+  // 出题期间撤销/重做要按不动:撤的是上一局,而上一局马上就要被换掉。
+  // 类型和菜单反过来必须留着能点——玩家得能在等的时候改主意、换一局别的。
   const fixedKeys = (
           <div className="play-acts">
             <button
               type="button"
               aria-label={t.play.undo}
-              disabled={!undoRedo.undo}
+              disabled={!undoRedo.undo || dealing}
               {...holdToAsk(t.play.undo)}
               onClick={() => {
                 if (wasHeld()) return
@@ -888,7 +892,7 @@ export default function PuzzleHost({
             <button
               type="button"
               aria-label={t.play.redo}
-              disabled={!undoRedo.redo}
+              disabled={!undoRedo.redo || dealing}
               {...holdToAsk(t.play.redo)}
               onClick={() => {
                 if (wasHeld()) return

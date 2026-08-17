@@ -685,10 +685,14 @@ p.notice-error.is-floating {
 }
 
 /* 出题期间盖住棋盘。它同时是输入闸门:铺满整个棋盘区,指针事件到不了 canvas。
-   旧盘面故意留着透出来——比空白像「还活着」。 */
+   旧盘面故意留着透出来——比空白像「还活着」。
+
+   z-index 必须低于 .notice.is-floating(2):开场介绍和错误提示浮在棋盘上,它们
+   跟这一局出没出完没关系,盖住就点不掉了。也不要给 .play-board 设 z-index——
+   它一旦成了层叠上下文,hold-tip(15) 就压不住介绍条,那是修过的老 bug。 */
 .play-wait {
   position: absolute;
-  z-index: 3;
+  z-index: 1;
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--bg) 62%, transparent);
@@ -930,6 +934,14 @@ p.notice-intro button:active {
 
 .keypad button[data-kind='pick']:disabled .key-peg {
   opacity: 0.35;
+}
+
+/* 上方区域的其余键按不动时怎么画。以前用不上:deadKey 只对 map/guess 的 pick 键
+   点头,而那一类自己有上面那条。出题期间整排键一起熄,才第一次需要它。
+   避开 pick:它的记号是把圆点调淡,再叠一层半透明会淡到看不见。 */
+.keypad button:disabled:not([data-kind='pick']) {
+  color: var(--text-3);
+  opacity: 0.4;
 }
 
 /* 按不动的键填底板色,边框照旧:键面和底板齐平、轮廓还在——读作「这儿有个键,
