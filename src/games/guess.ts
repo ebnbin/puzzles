@@ -15,6 +15,7 @@
 // 'l' 键能切换「数字标签」偏好,所以偏好 volatile。
 import type { ArrowKey, Game, Key, Slot } from './game'
 import { still } from './game'
+import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { flag, hintKey } from './util/keys'
 import { step } from './util/pad'
@@ -75,7 +76,7 @@ const guess: Game = {
                 ...(labelled ? { label: String((i + 1) % 10) } : {}),
               },
             },
-            says: view.words.keys.peg(i + 1),
+            says: fill(view.words.keys.peg, { n: i + 1 }),
             dead: view.labels.enter !== 'Place',
           }),
           button: 0,

@@ -16,8 +16,8 @@
 
 ## 生成物不手改
 
-`.gitattributes` 里标 `linguist-generated` 的路径全是生成物;手写的只有翻译:
-`src/games.zh.json`、`public/help/zh.json`、`doc-zh/`。
+`.gitattributes` 里标 `linguist-generated` 的路径全是生成物;手写的只有文案与翻译:
+`src/i18n/*.json`、`src/games.zh.json`、`public/help/zh.json`、`doc-zh/`。
 
 - 生成物已全部提交,平时不重新生成。`scripts/build-games.sh` 只在升级 `vendor/` 或改
   构建参数时跑(要 emsdk/cmake/ninja/halibut/playwright)。

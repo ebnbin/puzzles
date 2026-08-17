@@ -1,5 +1,5 @@
 import type { Face, Key, View } from './games/game'
-import { useStrings } from './i18n'
+import { fill, useStrings } from './i18n'
 import HoldTip, { useHoldTip } from './ui/HoldTip'
 import Icon from './ui/Icon'
 import type { IconName } from './ui/Icon'
@@ -94,7 +94,7 @@ export default function PuzzleKeypad({
               data-button={key.button ?? 0}
               disabled={face.dead}
               aria-label={
-                said ?? (count !== null ? t.keys.left(label ?? '', count) : undefined)
+                said ?? (count !== null ? fill(t.keys.left, { digit: label ?? '', count }) : undefined)
               }
               title={said}
               // 让焦点留在棋盘上:谜题从棋盘读键盘,按钮拿到焦点会吞方向键。

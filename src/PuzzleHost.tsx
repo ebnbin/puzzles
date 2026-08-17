@@ -45,7 +45,7 @@ import type {
   PuzzleApi,
 } from './engine/types'
 import { openManual } from './DocViewer'
-import { docHref, useLang, useStrings } from './i18n'
+import { docHref, fill, useLang, useStrings } from './i18n'
 import { showGallery } from './view'
 import { useAid } from './useAid'
 import { useArrows } from './useArrows'
@@ -1000,7 +1000,7 @@ export default function PuzzleHost({
           <img
             className="help-art"
             src={`/howto/${game.pages.howto}-${theme}.png`}
-            alt={t.play.picture(title)}
+            alt={fill(t.play.picture, { name: title })}
             draggable={false}
           />
           <div className="dialog-prose">
