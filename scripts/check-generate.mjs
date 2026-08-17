@@ -117,6 +117,94 @@ console.log('非法参数')
   }
 }
 
+// 跨局撤销。上游把上一局存进 midend 的 newgame_undo,但那只有 midend_new_game 会写,
+// 而我们的新局是 loadGame 落地的——所以这份后悔药是 JS 侧自己存的,得测。
+// 上游的规矩是「只有同参数的新游戏可以撤回」(newgame_undo_deserialise_check),
+// 换预设改了参数,它一律拒绝,这里也必须没有后悔药。
+console.log('新游戏之后还能不能撤回上一局')
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  page.on('pageerror', (e) => fail('跨局撤销页面抛错:', e.message))
+  const undo = page.locator('.play-acts button').nth(0)
+  const redo = page.locator('.play-acts button').nth(1)
+  const read = (field) =>
+    page.evaluate(
+      (f) => new RegExp(`^${f} *:\\d+:(.*)$`, 'm').exec(window.__puzzle.saveGame())?.[1] ?? null,
+      field,
+    )
+  try {
+    await open(page, 'net')
+    // 走一步,让上一局有个可辨认的进度
+    const box = await page.locator('canvas.host-board').boundingBox()
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    await sleep(250)
+    const wasDesc = await read('DESC')
+    const wasPos = await read('STATEPOS')
+
+    await page.click('button.is-menu')
+    await page.waitForSelector('.sheet-actions')
+    await sleep(350)
+    await page.click('.sheet-actions button.is-primary')
+    await page.waitForSelector('.sheet-dimmer', { state: 'detached' })
+    await page.waitForSelector('.play-wait', { state: 'detached' })
+    await sleep(400)
+    const newDesc = await read('DESC')
+
+    const canUndo = !(await undo.isDisabled())
+    if (canUndo) {
+      await undo.click()
+      await sleep(500)
+    }
+    const backDesc = await read('DESC')
+    const backPos = await read('STATEPOS')
+    const canRedo = !(await redo.isDisabled())
+    if (canRedo) {
+      await redo.click()
+      await sleep(500)
+    }
+    const fwdDesc = await read('DESC')
+
+    if (wasDesc === newDesc) fail('新游戏没换局,这条白测')
+    else if (!canUndo) fail('新游戏之后撤销键是灰的')
+    else if (backDesc !== wasDesc) fail('撤销没回到上一局')
+    else if (backPos !== wasPos) fail('撤销回去了但步数没跟着回来')
+    else if (!canRedo) fail('撤销之后重做键是灰的')
+    else if (fwdDesc !== newDesc) fail('重做没回到新那局')
+    else ok('撤销退回上一局(含步数),重做再回到新那局')
+  } catch (error) {
+    fail('跨局撤销', String(error).split('\n')[0])
+  } finally {
+    await page.close()
+  }
+}
+
+console.log('换预设之后不该有跨局后悔药')
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  page.on('pageerror', (e) => fail('换预设页面抛错:', e.message))
+  try {
+    await open(page, 'net')
+    const box = await page.locator('canvas.host-board').boundingBox()
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    await sleep(250)
+    await page.click('.play-acts button[aria-haspopup="dialog"]:not(.is-menu)')
+    await page.waitForSelector('.sheet')
+    await sleep(400)
+    await page.locator('.sheet-presets input[type=radio]').nth(2).click()
+    await page.waitForSelector('.play-wait', { state: 'detached' })
+    await page.keyboard.press('Escape')
+    await page.waitForSelector('.sheet-dimmer', { state: 'detached' })
+    await sleep(400)
+    const can = !(await page.locator('.play-acts button').nth(0).isDisabled())
+    if (can) fail('换预设之后还留着跨局后悔药,上游是拒绝这一种的')
+    else ok('换预设之后没有跨局后悔药')
+  } catch (error) {
+    fail('换预设', String(error).split('\n')[0])
+  } finally {
+    await page.close()
+  }
+}
+
 // 出题期间的按键状态。选 Solo:它既有数字键,5x6 又慢得够看清中间态。
 console.log('出题期间谁该按不动')
 {

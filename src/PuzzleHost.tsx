@@ -150,6 +150,16 @@ export default function PuzzleHost({
   const genRef = useRef<Generator | null>(null)
   const busy = useRef(false)
   const [dealing, setDealing] = useState(false)
+
+  // 跨局的后悔药。上游把上一局整个序列化进 midend 的 newgame_undo,但那是
+  // midend_new_game 唯一的写入点,而我们的新局是 loadGame 落地的,碰不到它
+  // (存档格式里也没有这一段,worker 传不过来)。所以在这儿自己存一份。
+  // 只存「同参数的新游戏」这一路:上游的 newgame_undo_deserialise_check 也只放行
+  // 这一种,换预设、改参数、输 ID 它一律拒绝。
+  const [cross, setCross] = useState<{ back: string | null; forward: string | null }>({
+    back: null,
+    forward: null,
+  })
   const setBusy = useCallback((on: boolean) => {
     busy.current = on
     setDealing(on)
@@ -237,9 +247,10 @@ export default function PuzzleHost({
   // 出题成功:主线程只做 loadGame。它自带 select_appropriate_preset + resize +
   // redraw + update_permalinks(见 emcc.c 的 load_game),所以下拉框、棋盘、永久链接
   // 都会自己跟上,这里不用手动补。
-  const landGame = useCallback((op: GenOp, save: string) => {
+  const landGame = useCallback((op: GenOp, save: string, base: string) => {
     const api = apiRef.current
     if (!api) return
+    setCross(op.kind === 'new' ? { back: base, forward: null } : { back: null, forward: null })
     if (op.kind === 'custom') {
       // 自定义面板改一个字段就出一局,盘子换了框还得开着(异步化之前也是这个行为)。
       // 先关掉 C 侧那个 config box,load 完再开一个新的——控件值要跟着新参数走。
@@ -266,13 +277,15 @@ export default function PuzzleHost({
       const gen = genRef.current
       if (!api || !gen) return
       setBusy(true)
-      // base 带着当前参数(尺寸、难度、自定义项)过去,worker 那份 midend 靠它对齐起点。
-      const reply = await gen.run(api.saveGame(), op)
+      // base 带着当前参数(尺寸、难度、自定义项)过去,worker 那份 midend 靠它对齐起点;
+      // 落地时它又是「上一局」本身,拿去当跨局撤销的后悔药。
+      const base = api.saveGame()
+      const reply = await gen.run(base, op)
       // null = 被后来的请求取代,收尾归接班的那次,这里连 busy 都不能关。
       if (reply === null) return
       if (!liveRef.current) return
       setBusy(false)
-      if (reply.ok) return landGame(op, reply.save)
+      if (reply.ok) return landGame(op, reply.save, base)
       if (reply.unavailable) return runSync(op)
       if (op.kind === 'custom') return setInlineError(reply.message)
       if (op.kind === 'desc' || op.kind === 'seed')
@@ -575,6 +588,32 @@ export default function PuzzleHost({
     },
     [dialog, acted],
   )
+
+  // 撤销/重做:先让 C 在本局里走,本局走到头了才动跨局的那份。顺序不能反——
+  // 反了就会从局中直接跳回上一局,把玩家这局的进度吃掉。
+  const stepBack = useCallback(() => {
+    const api = apiRef.current
+    if (!api || dialog || busy.current) return
+    acted()
+    if (undoRedo.undo) api.undo()
+    else if (cross.back) {
+      setCross({ back: null, forward: api.saveGame() })
+      api.loadGame(cross.back)
+    }
+    canvasRef.current?.focus()
+  }, [dialog, acted, undoRedo.undo, cross.back])
+
+  const stepForward = useCallback(() => {
+    const api = apiRef.current
+    if (!api || dialog || busy.current) return
+    acted()
+    if (undoRedo.redo) api.redo()
+    else if (cross.forward) {
+      setCross({ back: api.saveGame(), forward: null })
+      api.loadGame(cross.forward)
+    }
+    canvasRef.current?.focus()
+  }, [dialog, acted, undoRedo.redo, cross.forward])
 
   // 取消在飞的出题。cancel() 让那次 run 解析成 null,而 null 分支是不碰 busy 的
   // (那条路留给「被接班」),所以这里必须自己把闸抬起来。
@@ -880,11 +919,11 @@ export default function PuzzleHost({
             <button
               type="button"
               aria-label={t.play.undo}
-              disabled={!undoRedo.undo || dealing}
+              disabled={(!undoRedo.undo && !cross.back) || dealing}
               {...holdToAsk(t.play.undo)}
               onClick={() => {
                 if (wasHeld()) return
-                act((a) => a.undo())
+                stepBack()
               }}
             >
               <Icon name="undo" />
@@ -892,11 +931,11 @@ export default function PuzzleHost({
             <button
               type="button"
               aria-label={t.play.redo}
-              disabled={!undoRedo.redo || dealing}
+              disabled={(!undoRedo.redo && !cross.forward) || dealing}
               {...holdToAsk(t.play.redo)}
               onClick={() => {
                 if (wasHeld()) return
-                act((a) => a.redo())
+                stepForward()
               }}
             >
               <Icon name="redo" />
