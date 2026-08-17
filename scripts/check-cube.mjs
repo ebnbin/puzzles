@@ -1,7 +1,5 @@
-import { chromium } from 'playwright'
+import { boot, open } from './lib/boot.mjs'
 
-const URL = process.env.PREVIEW_URL ?? 'http://localhost:4173/'
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
 const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
 const LABELS = ['Left', 'Right', 'Up', 'Down']
 const OPPOSITE = [1, 0, 3, 2]
@@ -50,14 +48,8 @@ function neighbour(sqs, from, dir) {
   return -1
 }
 
-const browser = await chromium.launch({ executablePath: CHROME })
-const page = await browser.newPage({ viewport: { width: 420, height: 900 } })
-await page.goto(URL)
-await page.evaluate(() => localStorage.setItem('puzzles.arrows', 'true'))
-await page.goto(URL, { waitUntil: 'networkidle' })
-await page.getByRole('button', { name: /^Cube/ }).first().click()
-await page.waitForFunction(() => !!window.__puzzle)
-await page.waitForTimeout(700)
+const { browser, page } = await boot({ viewport: { width: 420, height: 900 } })
+await open(page, 'Cube', { settle: 700 })
 
 const save = () => page.evaluate(() => window.__puzzle.saveGame())
 const load = (s) => page.evaluate((v) => window.__puzzle.loadGame(v), s)

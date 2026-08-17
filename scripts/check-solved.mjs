@@ -3,16 +3,11 @@
 //
 // 被测选 Fifteen 是有讲究的:它的 'h' 是提示键,每按一次替玩家走一步合法的子,
 // 存档里记成 MOVE——所以能在不碰求解器的前提下把一局真解出来。
-import { chromium } from 'playwright'
+import { boot, open } from './lib/boot.mjs'
 
-const URL_BASE = process.env.PREVIEW ?? 'http://localhost:4173'
 const SOLVED = 'puzzles.solved'
 
-const browser = await chromium.launch(
-  process.env.CHROME ? { executablePath: process.env.CHROME } : {},
-)
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
-page.on('pageerror', (e) => console.log('  [pageerror]', e.message))
+const { browser, page } = await boot()
 
 let bad = 0
 const fail = (...m) => { bad++; console.log('  FAIL', ...m) }
@@ -20,18 +15,9 @@ const ok = (...m) => console.log('  ok  ', ...m)
 
 const stored = () => page.evaluate((k) => localStorage.getItem(k), SOLVED)
 
-async function open() {
-  await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
-  await page.evaluate((k) => {
-    localStorage.removeItem(k)
-    localStorage.removeItem('puzzles.playing')
-    localStorage.removeItem('puzzles.save.fifteen')
-  }, SOLVED)
-  await page.goto(URL_BASE, { waitUntil: 'networkidle' })
-  await page.getByRole('button', { name: /^Fifteen/ }).first().click()
-  await page.waitForFunction(() => !!window.__puzzle, null, { timeout: 20000 })
-  await page.waitForTimeout(400)
-}
+// arrows 关着进门:下面按文档序数 role=group 里的按钮,方向键块会多出一个 group。
+const reopen = () =>
+  open(page, 'Fifteen', { arrows: false, clear: [SOLVED, 'puzzles.save.fifteen'] })
 
 const status = () => page.evaluate(() => window.__puzzle.status?.() ?? null)
 
@@ -48,7 +34,7 @@ async function hintUntilSolved(limit = 400) {
   return null
 }
 
-await open()
+await reopen()
 if ((await status()) === null) {
   console.log('  引擎里没有 status(),是旧产物,跳过整份检查')
   await browser.close()
@@ -68,7 +54,7 @@ if (!(await page.locator('.play-over').isVisible()))
 else ok('求解器结束的一局也抬浮层')
 
 // 二、玩家自己解出的算
-await open()
+await reopen()
 const steps = await hintUntilSolved()
 if (steps === null) fail('提示键没能把这一局走到解出')
 else {
