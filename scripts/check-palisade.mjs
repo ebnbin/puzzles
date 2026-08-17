@@ -25,7 +25,7 @@ const at = () =>
     return m ? Number(m[1]) : NaN
   })
 
-// palisade 的「画边」「画叉」钉在 4、6 号格(编号见 src/engine/pad.ts),文档序即
+// palisade 的「画边」「画叉」钉在 4、6 号格(编号见 src/games/palisade.ts),文档序即
 // 格子序,所以 nth(0)/nth(1) 就是这两个。
 const ACTS = ".play-arrows [data-slot='4'], .play-arrows [data-slot='6']"
 const WAY = { left: 1, down: 2, right: 3, up: 5 }

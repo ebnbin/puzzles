@@ -21,8 +21,9 @@
 
 - 生成物已全部提交,平时不重新生成。`scripts/build-games.sh` 只在升级 `vendor/` 或改
   构建参数时跑(要 emsdk/cmake/ninja/halibut/playwright)。
-- 三套图(`tiles`/`howto`/`art`)是引擎和 `palette.ts` 的照片:改了任一来源,三套必须
-  一起重画,只跑一套会互相漂开。
+- 三套图(`tiles`/`howto`/`art`)是引擎和深色翻译(`palette.ts` 的机器 + 各
+  `src/games/*.ts` 的 `dark` 申报)的照片:改了任一来源,三套必须一起重画,只跑一套会
+  互相漂开。
 - playwright 故意不进 `package.json`,要用临时装。
 - 改图标要同步 `index.html`、`manifest.webmanifest`、`sw.js` 的预缓存名单;加生成物要
   同步 `.gitattributes`。

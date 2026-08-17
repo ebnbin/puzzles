@@ -524,12 +524,15 @@ export default function PuzzleHost({
   // ------------------------------------------------------------ 键盘
 
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
+  // 上方区域的顺序是结构,不是各游戏手写出来的约定:entry 在前、pick 居中、
+  // assist 在后;sort 稳定,组内保留声明序。
   const keys = useMemo(() => {
     const dealt = game.keypad({ params: id.split(':')[0], prefs })
     if (!dealt) return []
-    return dealt.filter((k) =>
-      k.group === 'assist' ? helping : k.group !== 'pick' || arrows,
-    )
+    const order = ['entry', 'pick', 'assist']
+    return dealt
+      .filter((k) => (k.group === 'assist' ? helping : k.group !== 'pick' || arrows))
+      .sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group))
   }, [arrows, helping, id, game, prefs])
 
   // 圆键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有的。
