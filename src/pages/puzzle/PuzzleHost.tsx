@@ -1,34 +1,34 @@
 // 对局屏幕的装配处:四个域各管各的(useEngine 起引擎、useBoard 通棋盘、
 // useConfigBox 管对话框协议、useOutcome 判完成),这里把它们接起来再画出来。
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import PlayActions from './PlayActions'
+import PuzzleActions from './PuzzleActions'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
-import Dialog from '../ui/Dialog'
-import Icon from '../ui/Icon'
-import Notice from '../ui/Notice'
-import ThemeToggle from '../ui/ThemeToggle'
+import Dialog from '../../ui/Dialog'
+import Icon from '../../ui/Icon'
+import Notice from '../../ui/Notice'
+import ThemeToggle from '../../ui/ThemeToggle'
 // 写全 index:裸的 ../games 会被解析成 games.json。
-import { gameOf } from '../games/index'
-import type { Key } from '../games/game'
-import { padButtons } from '../games/util/pad'
-import { markIntroduced, owesIntroduction } from '../engine/saves'
-import type { CanvasRenderer } from '../engine/renderer'
-import type { PuzzleApi } from '../engine/types'
-import { openManual } from '../doc/DocViewer'
-import { docHref, fill, useLang, useStrings } from '../i18n'
-import { showGallery } from '../view'
-import { useAid } from './useAid'
+import { gameOf } from '../../games/index'
+import type { Key } from '../../games/game'
+import { padButtons } from '../../games/util/pad'
+import { markIntroduced, owesIntroduction } from '../../engine/saves'
+import type { CanvasRenderer } from '../../engine/renderer'
+import type { PuzzleApi } from '../../engine/types'
+import { openManual } from '../manual/Manual'
+import { manualHref, fill, useLang, useStrings } from '../../i18n'
+import { showGallery } from '../../view'
+import { useAssist } from './useAssist'
 import { useArrows } from './useArrows'
 import { useBoard } from './useBoard'
 import { useConfigBox } from './useConfigBox'
 import { START_FAILED, useEngine } from './useEngine'
 import { useHelp } from './useHelp'
 import { useOutcome } from './useOutcome'
-import HoldTip, { useHoldTip } from '../ui/HoldTip'
-import { useResolvedTheme } from '../useTheme'
+import HoldTip, { useHoldTip } from '../../ui/HoldTip'
+import { useResolvedTheme } from '../../useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
@@ -45,7 +45,7 @@ export default function PuzzleHost({
   title: string
   objective: string
 }) {
-  // GamePage 已按 games.json 把过关,注册表和 games.json 的一致由构建期检查
+  // Puzzle 页已按 games.json 把过关,注册表和 games.json 的一致由构建期检查
   // 把守,这里不可能拿不到。
   const game = gameOf(name)
   if (!game) throw new Error(`no game registered as ${name}`)
@@ -108,7 +108,7 @@ export default function PuzzleHost({
 
   const wanted = useArrows()
   const arrows = wanted && game.arrows !== null
-  const helping = useAid()
+  const helping = useAssist()
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
@@ -378,7 +378,7 @@ export default function PuzzleHost({
 
       <PuzzleKeypad keys={keys} view={board.view} swatches={swatches} onPress={pressKey} />
 
-      <PlayActions
+      <PuzzleActions
         pad={arrows ? arrowPad : null}
         undo={engine.undoRedo.undo}
         redo={engine.undoRedo.redo}
@@ -429,7 +429,7 @@ export default function PuzzleHost({
             )}
             <p className="prose-more">
               <a
-                href={docHref(lang, `${game.pages.manual}.html`)}
+                href={manualHref(lang, `${game.pages.manual}.html`)}
                 onClick={(e) => {
                   e.preventDefault()
                   closeHelp()

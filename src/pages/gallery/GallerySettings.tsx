@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { forgetEverything } from '../engine/saves'
-import { openManual } from '../doc/DocViewer'
-import { docHref, useLang, useStrings } from '../i18n'
-import Dialog from '../ui/Dialog'
-import Icon from '../ui/Icon'
-import { useScrollLock } from '../ui/useScrollLock'
-import { setAid, useAid } from '../play/useAid'
-import { setArrows, useArrows } from '../play/useArrows'
+import { forgetEverything } from '../../engine/saves'
+import { openManual } from '../manual/Manual'
+import { manualHref, useLang, useStrings } from '../../i18n'
+import Dialog from '../../ui/Dialog'
+import Icon from '../../ui/Icon'
+import { useScrollLock } from '../../ui/useScrollLock'
+import { setAssist, useAssist } from '../puzzle/useAssist'
+import { setArrows, useArrows } from '../puzzle/useArrows'
 
 const ARMED_MS = 3000
 
-export default function LauncherSettings({
+export default function GallerySettings({
   lockAt,
   onClose,
 }: {
@@ -20,7 +20,7 @@ export default function LauncherSettings({
   const t = useStrings()
   const [lang] = useLang()
   const arrows = useArrows()
-  const aid = useAid()
+  const aid = useAssist()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -71,13 +71,13 @@ export default function LauncherSettings({
         <input
           type="checkbox"
           checked={aid}
-          onChange={(e) => setAid(e.target.checked)}
+          onChange={(e) => setAssist(e.target.checked)}
         />
       </label>
 
       <a
         className="setting setting-link"
-        href={docHref(lang)}
+        href={manualHref(lang)}
         onClick={(e) => {
           e.preventDefault()
           onClose()

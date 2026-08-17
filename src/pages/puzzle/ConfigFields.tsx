@@ -1,5 +1,5 @@
 import { useReducer } from 'react'
-import type { DialogControl } from '../engine/types'
+import type { DialogControl } from '../../engine/types'
 
 export default function ConfigFields({
   controls,

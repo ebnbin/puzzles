@@ -10,9 +10,9 @@
 // (undo 回去)就重新武装,浮层也跟着收起来——关掉之后不再自己冒出来,靠的就是
 // 「已经过了那道沿」。
 import { useCallback, useRef, useState } from 'react'
-import { alreadySolved, markSolved } from '../engine/saves'
-import { usedSolver } from '../engine/solved'
-import type { PuzzleApi } from '../engine/types'
+import { alreadySolved, markSolved } from '../../engine/saves'
+import { usedSolver } from '../../engine/solved'
+import type { PuzzleApi } from '../../engine/types'
 
 export function useOutcome(name: string, apiRef: React.RefObject<PuzzleApi | null>) {
   // 当前这一局的 desc,给完成判定当身份用。要 ref 不要 state:判定跑在

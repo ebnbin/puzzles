@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import Icon from '../ui/Icon'
-import LauncherSettings from './LauncherSettings'
-import ThemeToggle from '../ui/ThemeToggle'
-import { readRecent, setPlaying } from '../engine/saves'
-import { fill, useLang, useStrings } from '../i18n'
-import type { Lang } from '../i18n'
-import { useGames } from '../i18n/games'
-import type { GameText } from '../i18n/games'
-import { canTransition, withViewTransition } from '../transition'
-import { openGame, rememberGalleryScroll, takeGalleryScroll } from '../view'
+import Icon from '../../ui/Icon'
+import GallerySettings from './GallerySettings'
+import ThemeToggle from '../../ui/ThemeToggle'
+import { readRecent, setPlaying } from '../../engine/saves'
+import { fill, useLang, useStrings } from '../../i18n'
+import type { Lang } from '../../i18n'
+import { useGames } from '../../i18n/games'
+import type { GameText } from '../../i18n/games'
+import { canTransition, withViewTransition } from '../../transition'
+import { openPuzzle, rememberGalleryScroll, takeGalleryScroll } from '../../view'
 import { toggleHidden, useHidden } from './useHidden'
-import { useResolvedTheme } from '../useTheme'
+import { useResolvedTheme } from '../../useTheme'
 
 const HOLD_MS = 450
 
@@ -35,7 +35,7 @@ function swallowTapAfterHold() {
   window.addEventListener('pointercancel', sweep, { capture: true, once: true })
 }
 
-export default function Launcher() {
+export default function Gallery() {
   // 存的是打开设置那一刻的滚动位置,不是布尔:scroll lock 把文档钉在顶上,
   // 期间 window.scrollY 恒为 0,切后台/关页时记录要用 settingsAt ?? scrollY。
   const [settingsAt, setSettingsAt] = useState<number | null>(null)
@@ -229,7 +229,7 @@ export default function Launcher() {
       </footer>
 
       {settingsAt !== null && (
-        <LauncherSettings lockAt={settingsAt} onClose={closeSettings} />
+        <GallerySettings lockAt={settingsAt} onClose={closeSettings} />
       )}
 
       {toast && (
@@ -287,7 +287,7 @@ function Tile({
         onPointerCancel={up}
         onPointerLeave={up}
         onContextMenu={(e) => e.preventDefault()}
-        onClick={() => openGame(game.name)}
+        onClick={() => openPuzzle(game.name)}
       >
         <span className="games-art">
           {/* 故意不加 loading="lazy":服务器对 /tiles 回 no-cache,lazy 图在滚入

@@ -1,13 +1,13 @@
 // 下方区域:固定键在左、方向键块在右,位置写死,一辈子长一个样。键的内容和
 // 格子号由 util/pad 拼装好交进来,这里只画。
-import Icon from '../ui/Icon'
-import { useHoldTip } from '../ui/HoldTip'
-import { useStrings } from '../i18n'
-import type { PadButton } from '../games/util/pad'
+import Icon from '../../ui/Icon'
+import { useHoldTip } from '../../ui/HoldTip'
+import { useStrings } from '../../i18n'
+import type { PadButton } from '../../games/util/pad'
 
 type Hold = ReturnType<typeof useHoldTip>
 
-export default function PlayActions({
+export default function PuzzleActions({
   pad,
   undo,
   redo,

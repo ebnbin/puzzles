@@ -1,8 +1,8 @@
 // 引擎生命周期:起 wasm、绑回调、存档持久化,并把引擎事件泵进旁边的三个域
 // (棋盘通道、config box、完成判定)。回调栈上不做重入的事,见 dealt 的 effect。
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createPuzzle } from '../engine/createPuzzle'
-import type { CanvasRenderer, Drawn } from '../engine/renderer'
+import { createPuzzle } from '../../engine/createPuzzle'
+import type { CanvasRenderer, Drawn } from '../../engine/renderer'
 import {
   clearSave,
   isPlayed,
@@ -10,10 +10,10 @@ import {
   setPlaying,
   writeRecent,
   writeSave,
-} from '../engine/saves'
-import type { DialogSpec, Preset, PuzzleApi } from '../engine/types'
-import type { Game } from '../games/game'
-import type { Resolved } from '../useTheme'
+} from '../../engine/saves'
+import type { DialogSpec, Preset, PuzzleApi } from '../../engine/types'
+import type { Game } from '../../games/game'
+import type { Resolved } from '../../useTheme'
 
 export const START_FAILED = '\0start'
 
@@ -198,7 +198,7 @@ export function useEngine({
         delete window.__puzzle
       })
     }
-    // game 由 name 唯一决定,GamePage 用 key 保证换游戏必然重挂载;接缝上的
+    // game 由 name 唯一决定,Puzzle 页用 key 保证换游戏必然重挂载;接缝上的
     // 函数(heard/moved/…)都是每次挂载不变的 useCallback,启动时抓一份就够。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name])
