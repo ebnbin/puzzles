@@ -219,7 +219,6 @@ type CursorWord =
   | 'clearEdge'
   | 'maybeMode'
   | 'clearRegion'
-  | 'place'
   | 'submit'
   | 'hold'
   | 'flip'
@@ -635,18 +634,20 @@ const PENCIL: CursorKey = { key: 'Enter', icon: 'pencil', says: 'pencil' }
 
 const CURSOR_MODE = ['Half-grid', 'Full-grid']
 
-// guess 的三个功能键全是上游自己的键,脸和死活一律读 current_key_label——
-// 它报什么,我们照抄什么。三处置灰对应上游那三个 if,不是我们定的判据。
-const PLACE: PadEntry = {
-  face: (ctx) => {
-    const at = ctx.labels.enter === 'Submit'
-    return {
-      icon: at ? 'done' : 'primary',
-      says: at ? ctx.words.keys.done : ctx.words.cursor.place,
-      tip: at ? ctx.words.keys.done : ctx.words.cursor.place,
-      dead: !ctx.labels.enter,
-    }
-  },
+// guess 的三个功能键全是上游自己的键,脸和死活一律读 current_key_label——它报
+// 什么我们照抄什么,三处置灰一一对应上游那三个 if,不是我们定的判据:
+//   光标在钉子上   Place / Hold  → 保留、删除亮,看结果灰
+//   光标在看结果位 Submit / ""   → 只有看结果亮
+//   解出来了       "" / ""       → 三个全灰
+// Enter 落在钉子上时上游是「放下调色板光标那个颜色」,那件事区域 A 每个圆键都做,
+// 所以这个键只留提交那半边——判据一,够得着的不给键。
+const SUBMIT: PadEntry = {
+  face: (ctx) => ({
+    icon: 'done',
+    says: ctx.words.keys.done,
+    tip: ctx.words.keys.done,
+    dead: ctx.labels.enter !== 'Submit',
+  }),
   press: (ctx) => ctx.send('\r'),
 }
 
@@ -919,10 +920,10 @@ const PAD: Record<string, Table> = {
     6: region({ key: '', icon: 'clear', says: 'clearRegion', paints: { colour: -1 } }),
   },
 
-  // 只有左右:上下在上游是选颜色的,那件事被区域 A 那排圆键顶替了。2、5 因此空着。
+  // 只有左右:上下在上游是选颜色的,那件事被区域 A 那排圆键顶替了。2 号格因此空着。
   guess: {
     1: step('left'), 3: step('right'),
-    4: PLACE, 5: ERASE, 6: HOLD,
+    4: HOLD, 5: ERASE, 6: SUBMIT,
   },
 
   // 唯一走八方的:斜向占满四角,中间那格留给「一直滑到底」。

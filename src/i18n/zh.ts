@@ -154,7 +154,6 @@ export const zh: Strings = {
       undomino: '拿掉这张骨牌',
       line: '画一条线：这两格不属于同一张骨牌',
       unline: '擦掉这条线',
-      place: '放置所选颜色的棋子',
       submit: '提交这次猜测',
       hold: '保留这枚棋子到下一次猜测',
       flip: '翻转这一格及其关联的方格',
