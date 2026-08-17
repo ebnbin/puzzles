@@ -7,10 +7,6 @@ import Swatch from '../../ui/Swatch'
 import { useResolvedTheme } from '../../useTheme'
 import type { Resolved } from '../../useTheme'
 
-// group → data-kind 的旧词:CSS 和 check-keys.mjs 按 need/pick/aid 认,
-// 这三个词已随样式表发布,别跟着接口改名。
-const KIND = { entry: 'need', pick: 'pick', assist: 'aid' } as const
-
 const art = (name: string, theme: Resolved) =>
   name === 'ghost' || name === 'vampire' || name === 'zombie' ? (
     <img
@@ -88,7 +84,7 @@ export default function PuzzleKeypad({
             <button
               key={i}
               type="button"
-              data-kind={KIND[key.group]}
+              data-kind={key.group}
               // 给 scripts/check-keys.mjs 用:键面上的 button 码要和上游
               // midend_request_keys() 报的那组对得上。app 内没有读者。
               data-button={key.button ?? 0}

@@ -288,15 +288,15 @@ export default function PuzzleHost({
 
   return (
     <div
-      className="play"
+      className="puzzle"
       data-ready={ready}
       data-arrows={arrows ? 'true' : undefined}
     >
-      <header className="play-bar">
+      <header className="puzzle-bar">
         <h1>
           <button
             type="button"
-            className="play-title"
+            className="puzzle-title"
             onClick={showGallery}
             aria-label={`${title} — ${t.play.switcher}`}
           >
@@ -305,17 +305,17 @@ export default function PuzzleHost({
           </button>
         </h1>
         <span
-          className="play-status"
+          className="puzzle-status"
           data-filled={!!engine.status}
           aria-live="polite"
           {...(engine.status ? holdToAsk(engine.status) : {})}
         >
           {engine.status}
         </span>
-        <ThemeToggle className="play-icon" />
+        <ThemeToggle className="puzzle-icon" />
         <button
           type="button"
-          className="play-icon"
+          className="puzzle-icon"
           aria-label={t.play.help}
           aria-haspopup="dialog"
           aria-expanded={helpOpen}
@@ -325,7 +325,7 @@ export default function PuzzleHost({
         </button>
       </header>
 
-      <div className="play-board" ref={areaRef}>
+      <div className="puzzle-board" ref={areaRef}>
         {error && (
           <Notice
             floating
@@ -349,14 +349,14 @@ export default function PuzzleHost({
             acted()
             board.sleep()
           }}
-          className="host-board"
+          className="puzzle-canvas"
           tabIndex={0}
           onContextMenu={(e) => e.preventDefault()}
           onKeyDown={onKeyDown}
           {...pointer}
         />
         {outcome.over && (
-          <div className="play-over" role="group" aria-label={t.play.over}>
+          <div className="puzzle-over" role="group" aria-label={t.play.over}>
             <button
               type="button"
               className="is-primary"

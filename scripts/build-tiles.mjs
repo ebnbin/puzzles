@@ -55,7 +55,7 @@ for (const game of list) {
         }
         const sx = board.w / crop.ref.w
         const sy = board.h / crop.ref.h
-        const box = await page.locator('.host-board').boundingBox()
+        const box = await page.locator('.puzzle-canvas').boundingBox()
         const css = board.w / box.width
         clip = {
           x: box.x + (crop.rect.x * sx) / css,
@@ -66,7 +66,7 @@ for (const game of list) {
       }
 
       const shot = await page.screenshot({
-        clip: clip ?? (await page.locator('.host-board').boundingBox()),
+        clip: clip ?? (await page.locator('.puzzle-canvas').boundingBox()),
       })
       const pad = await cornerColour(page)
       fs.writeFileSync(outFile(outDir, game.name, theme), await square(page, shot, { size: SIZE, pad }))

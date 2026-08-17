@@ -25,7 +25,7 @@ const SIZE = 324
 const SOLVE_ONLY_SHOWS = new Set(['flood', 'inertia', 'flip'])
 
 const board = (page) =>
-  page.evaluate(() => document.querySelector('.host-board').toDataURL())
+  page.evaluate(() => document.querySelector('.puzzle-canvas').toDataURL())
 
 const only = process.argv.slice(2)
 const list = games().filter((g) => !only.length || only.includes(g.name))
@@ -77,7 +77,7 @@ for (const game of list) {
         }
       }
 
-      const shot = await page.locator('.host-board').screenshot()
+      const shot = await page.locator('.puzzle-canvas').screenshot()
       const pad = await cornerColour(page)
       fs.writeFileSync(
         outFile(outDir, game.name, theme),
@@ -88,7 +88,7 @@ for (const game of list) {
       if (theme === 'light') {
         how[game.name] = note
         const size = await page.evaluate(() => {
-          const c = document.querySelector('.host-board')
+          const c = document.querySelector('.puzzle-canvas')
           return `${c.width}x${c.height}`
         })
         console.log(`  ${game.name.padEnd(10)} ${size.padEnd(9)} ${note}`)

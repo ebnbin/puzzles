@@ -49,7 +49,7 @@ await page.waitForTimeout(300)
 if ((await status()) !== 1) fail('solve() 之后 status 应当是 +1')
 else if (await stored()) fail('求解器解出的被记成了完成:', await stored())
 else ok('求解器解出的不记')
-if (!(await page.locator('.play-over').isVisible()))
+if (!(await page.locator('.puzzle-over').isVisible()))
   fail('开局直接求解,浮层没抬起来')
 else ok('求解器结束的一局也抬浮层')
 
@@ -64,7 +64,7 @@ else {
 }
 
 // 三、收尾浮层:结束时抬起来,关掉之后不再自己冒出来,回到进行中再重新武装
-const over = page.locator('.play-over')
+const over = page.locator('.puzzle-over')
 if (!(await over.isVisible())) fail('解出之后没有抬出收尾浮层')
 else ok('结束时抬出收尾浮层')
 

@@ -444,7 +444,7 @@ footer p {
   margin: 0;
 }
 
-.play {
+.puzzle {
   --key-gap: 0.25rem;
   /* 底板往键外撑半道缝:撑满一道两块就贴上了,这 2px 是方向键和功能键之间的净空。 */
   --key-rim: calc(var(--key-gap) / 2);
@@ -473,25 +473,25 @@ footer p {
   background-position: var(--grid-position);
 }
 
-.play[data-ready='false'] .host-board {
+.puzzle[data-ready='false'] .puzzle-canvas {
   visibility: hidden;
 }
 
-.play-bar,
-.play-board,
-.play-actions,
+.puzzle-bar,
+.puzzle-board,
+.puzzle-actions,
 .keypad {
   touch-action: none;
 }
 
-.play-bar,
+.puzzle-bar,
 .keypad,
-.play-actions {
+.puzzle-actions {
   position: relative;
   z-index: 1;
 }
 
-.play-bar {
+.puzzle-bar {
   display: flex;
   flex: none;
   align-items: center;
@@ -502,7 +502,7 @@ footer p {
   border-bottom: 1px solid var(--edge);
 }
 
-.play-bar .play-icon {
+.puzzle-bar .puzzle-icon {
   display: grid;
   flex: none;
   place-items: center;
@@ -518,22 +518,22 @@ footer p {
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
-.play-bar .play-icon {
+.puzzle-bar .puzzle-icon {
   color: var(--text-2);
 }
 
 @media (hover: hover) {
-  .play-bar .play-icon:hover {
+  .puzzle-bar .puzzle-icon:hover {
     background: var(--surface-2);
   }
 }
 
-.play-bar .play-icon:active {
+.puzzle-bar .puzzle-icon:active {
   background: var(--surface-3);
   transform: scale(0.92);
 }
 
-.play-bar h1 {
+.puzzle-bar h1 {
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -545,7 +545,7 @@ footer p {
   text-overflow: ellipsis;
 }
 
-.play-title {
+.puzzle-title {
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
@@ -563,32 +563,32 @@ footer p {
   transition: background var(--dur) var(--ease);
 }
 
-.play-title > span {
+.puzzle-title > span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.play-title svg {
+.puzzle-title svg {
   flex: none;
   color: var(--text-3);
   transition: transform var(--dur) var(--ease);
 }
 
 @media (hover: hover) {
-  .play-title:hover {
+  .puzzle-title:hover {
     background: var(--surface-2);
   }
 }
 
-.play-title:active {
+.puzzle-title:active {
   background: var(--surface-3);
 }
 
-.play-title[aria-expanded='true'] svg {
+.puzzle-title[aria-expanded='true'] svg {
   transform: rotate(180deg);
 }
 
-.play-status {
+.puzzle-status {
   flex: none;
   max-width: 55%;
   overflow: hidden;
@@ -601,7 +601,7 @@ footer p {
   -webkit-user-select: none;
 }
 
-.play-status[data-filled='true'] {
+.puzzle-status[data-filled='true'] {
   padding: 0.2rem 0.65rem;
   border-radius: var(--r-full);
   background: var(--surface-2);
@@ -631,7 +631,7 @@ p.notice-error {
   scroll-margin: 0.75rem;
 }
 
-.play-board {
+.puzzle-board {
   position: relative;
 }
 
@@ -652,7 +652,7 @@ p.notice-error.is-floating {
 
 /* 一局走到头之后贴着棋盘底边浮出来,正好落在按键区上方。绝对定位不是装饰:进文档流
    会把棋盘挤小,areaRef 上的 ResizeObserver 会跟着重排一次,棋盘在收尾时抖一下。 */
-.play-over {
+.puzzle-over {
   position: absolute;
   right: 0.6rem;
   bottom: 0.6rem;
@@ -664,7 +664,7 @@ p.notice-error.is-floating {
   animation: over-in var(--dur) var(--ease);
 }
 
-.play-over button {
+.puzzle-over button {
   flex: 0 1 10rem;
   min-height: var(--tap-h);
   padding: 0 0.9rem;
@@ -679,7 +679,7 @@ p.notice-error.is-floating {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .play-over {
+  .puzzle-over {
     animation: none;
   }
 }
@@ -715,7 +715,7 @@ p.notice-intro button:active {
   }
 }
 
-.play-board {
+.puzzle-board {
   display: grid;
   flex: 1 1 0;
   place-items: center;
@@ -725,7 +725,7 @@ p.notice-intro button:active {
 /* 永不设 background:引擎读 canvas 的计算背景色播种整套调色板(defaultColour
    透明→null→上游自己的 0.9 灰),连显式写「同样的」#e6e6e6 都不行(230/255≠0.9,
    会挪一批游戏的衍生色)。font-family 同理,引擎拿它当谜题画字的字体。 */
-.host-board {
+.puzzle-canvas {
   display: block;
   font-family: sans-serif;
   box-shadow: var(--shadow-board);
@@ -735,16 +735,16 @@ p.notice-intro button:active {
   user-select: none;
 }
 
-.host-board:focus,
-.host-board:focus-visible {
+.puzzle-canvas:focus,
+.puzzle-canvas:focus-visible {
   outline: none;
 }
 
-.play-actions button,
+.puzzle-actions button,
 .keypad button,
 .sheet-actions button,
 .dialog-buttons button,
-.play-over button {
+.puzzle-over button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -762,25 +762,25 @@ p.notice-intro button:active {
 }
 
 @media (hover: hover) {
-  .play-actions button:hover:not(:disabled),
+  .puzzle-actions button:hover:not(:disabled),
   .keypad button:hover,
   .sheet-actions button:hover,
   .dialog-buttons button:hover,
-  .play-over button:hover {
+  .puzzle-over button:hover {
     background: var(--surface-3);
   }
 }
 
-.play-actions button:active:not(:disabled),
+.puzzle-actions button:active:not(:disabled),
 .keypad button:active,
 .sheet-actions button:active,
 .dialog-buttons button:active,
-.play-over button:active {
+.puzzle-over button:active {
   background: var(--surface-3);
   transform: scale(0.96);
 }
 
-.play-actions button:disabled {
+.puzzle-actions button:disabled {
   color: var(--text-3);
   opacity: 0.4;
   cursor: default;
@@ -855,20 +855,20 @@ p.notice-intro button:active {
    底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 engine/types.ts。 */
 
 /* need 回到重构之前:无边框的实心浅灰。 */
-.keypad button[data-kind='need'] {
+.keypad button[data-kind='entry'] {
   border: 0;
 }
 
 /* aid 和 arrow 同一套:白键面 + 一圈边框,字色淡一档。于是整块键盘只有两种键面
    ——有边框的填 --surface(aid、arrow、pick),没边框的填 --surface-2(act、need)。
    白在 --bg 上只差 2%,读出「这是个键」靠的是边框,不是那层填充。 */
-.keypad button[data-kind='aid'] {
+.keypad button[data-kind='assist'] {
   background: var(--surface);
   color: var(--text-2);
 }
 
 @media (hover: hover) {
-  .keypad button[data-kind='aid']:hover {
+  .keypad button[data-kind='assist']:hover {
     color: var(--text);
   }
 }
@@ -886,33 +886,33 @@ p.notice-intro button:active {
 
 /* 按不动的键填底板色,边框照旧:键面和底板齐平、轮廓还在——读作「这儿有个键,
    现在按不动」,而不是「这儿没有键」。底色必须和底板同值,所以两处都走 --pad-bg。
-   opacity 是把上面 .play-actions button:disabled 那条挡回去:方向键有底板可沉,
+   opacity 是把上面 .puzzle-actions button:disabled 那条挡回去:方向键有底板可沉,
    禁用已经说清楚了,再叠一层半透明只会把这里唯一的轮廓也淡掉。两条选择器同权,
    靠的是这条排在后面。
    这条要排在 [data-on] 前面:亮着但暂时按不动的键继续亮着。 */
-.play-arrows button:disabled {
+.puzzle-arrows button:disabled {
   opacity: 1;
   background: var(--pad-bg);
 }
 
 /* 上膛、刷、涂色这些「模式亮着」的状态,只出现在下方区域的伴生键上。 */
-.play-actions button[data-on] {
+.puzzle-actions button[data-on] {
   border-color: var(--accent);
   background: var(--accent);
   color: var(--accent-on);
 }
 
 @media (hover: hover) {
-  .play-actions button[data-on]:hover:not(:disabled) {
+  .puzzle-actions button[data-on]:hover:not(:disabled) {
     background: var(--accent-hover);
   }
 }
 
-.play-actions button[data-on]:active {
+.puzzle-actions button[data-on]:active {
   background: var(--accent-hover);
 }
 
-.play-actions button[data-brush] {
+.puzzle-actions button[data-brush] {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
@@ -943,7 +943,7 @@ p.notice-intro button:active {
   transform: translate(-50%, 0) translateY(0.35rem);
 }
 
-.play-actions {
+.puzzle-actions {
   display: flex;
   flex: none;
   justify-content: center;
@@ -955,39 +955,39 @@ p.notice-intro button:active {
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
-/* padding 和 .play-arrows 的一样,只是这一块不画底板:两块内边距对称,里面的键
+/* padding 和 .puzzle-arrows 的一样,只是这一块不画底板:两块内边距对称,里面的键
    才会按构造对齐。底板那块少了这一圈,方向键会整体高出 4px。 */
-.play-acts {
+.puzzle-acts {
   display: flex;
   gap: var(--key-gap);
   padding: var(--key-gap);
 }
 
-.play-acts button {
+.puzzle-acts button {
   flex: none;
   width: var(--act-w);
   height: var(--tap-w);
   border: 0;
 }
 
-.play-acts button.is-menu {
+.puzzle-acts button.is-menu {
   background: var(--accent-soft);
   color: var(--accent-soft-text);
 }
 
 @media (hover: hover) {
-  .play-acts button.is-menu:hover:not(:disabled) {
+  .puzzle-acts button.is-menu:hover:not(:disabled) {
     background: var(--accent-soft-hover);
   }
 }
 
-.play-acts button.is-menu:active {
+.puzzle-acts button.is-menu:active {
   background: var(--accent-soft-hover);
 }
 
 /* 整条键盘是一张 4 列的网格:整块塞那四个固定键的一列 + 方向键的核心三列。
    列线起了名(acts/c1/c2/c3/core-end),pad.ts 只管报 1、2、3。 */
-.play-keys {
+.puzzle-keys {
   display: grid;
   grid-template-columns:
     [acts] calc(2 * var(--act-w) + 2 * var(--key-gap))
@@ -997,7 +997,7 @@ p.notice-intro button:active {
   width: var(--keys-w);
 }
 
-.play[data-arrows='true'] .play-keys .play-acts {
+.puzzle[data-arrows='true'] .puzzle-keys .puzzle-acts {
   grid-row: span 2 / -1;
   grid-column: acts;
   gap: var(--key-gap);
@@ -1008,7 +1008,7 @@ p.notice-intro button:active {
 }
 
 /* display:contents:让这些按钮直接落进上面那张网格,又留住这一层的 role 和名字。 */
-.play-keys .play-arrows {
+.puzzle-keys .puzzle-arrows {
   display: contents;
 }
 
@@ -1020,11 +1020,11 @@ p.notice-intro button:active {
   background: var(--pad-bg);
 }
 
-.play-keys button {
+.puzzle-keys button {
   z-index: 1;
 }
 
-.play-arrows button {
+.puzzle-arrows button {
   width: var(--tap-w);
   height: var(--tap-w);
   border-radius: var(--r-full);
@@ -1034,11 +1034,11 @@ p.notice-intro button:active {
 /* 暂时退场的键用 visibility,不能改条件渲染或 display:none:iOS 真机上按钮卸载
    再插回会画成残片(字形被裁、无背景);visibility 保住盒子,回来只是重画,
    且照样退出命中与无障碍树。 */
-.play-arrows button[data-off] {
+.puzzle-arrows button[data-off] {
   visibility: hidden;
 }
 
-.play[data-arrows='true'] .play-acts {
+.puzzle[data-arrows='true'] .puzzle-acts {
   display: grid;
   grid-template-columns: repeat(2, var(--act-w));
 }
@@ -1133,7 +1133,7 @@ p.notice-intro button:active {
 }
 
 .sheet-actions button.is-primary,
-.play-over button.is-primary {
+.puzzle-over button.is-primary {
   border-color: var(--accent);
   background: var(--accent);
   color: var(--accent-on);
@@ -1141,7 +1141,7 @@ p.notice-intro button:active {
 }
 
 .sheet-actions button.is-primary svg,
-.play-over button.is-primary svg {
+.puzzle-over button.is-primary svg {
   color: inherit;
 }
 
@@ -1604,12 +1604,12 @@ p.notice-intro button:active {
     gap: 0.75rem;
   }
 
-  .play-bar {
+  .puzzle-bar {
     gap: 0.4rem;
     padding: 0 0.5rem;
   }
 
-  .play-actions {
+  .puzzle-actions {
     padding: 0.5rem;
   }
 
@@ -1641,18 +1641,18 @@ p.notice-intro button:active {
 }
 
 @media (orientation: landscape) and (max-height: 30em) {
-  .play {
+  .puzzle {
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: auto 1fr auto;
   }
 
-  .play-bar {
+  .puzzle-bar {
     grid-area: 1 / 1 / 2 / 3;
     min-height: 2.75rem;
   }
 
-  .play-board {
+  .puzzle-board {
     grid-area: 2 / 1 / 4 / 2;
   }
 
@@ -1667,11 +1667,11 @@ p.notice-intro button:active {
     padding: 0.3rem 0;
   }
 
-  .play[data-arrows='true'] .keypad {
+  .puzzle[data-arrows='true'] .keypad {
     max-width: calc(6 * var(--tap-w) + 5 * var(--key-gap));
   }
 
-  .play-actions {
+  .puzzle-actions {
     grid-area: 3 / 2 / 4 / 3;
     justify-self: center;
     width: max-content;
@@ -1681,7 +1681,7 @@ p.notice-intro button:active {
     padding: 0.3rem 0;
   }
 
-  .play-acts {
+  .puzzle-acts {
     display: grid;
     grid-template-columns: repeat(2, var(--act-w));
   }
@@ -1734,11 +1734,11 @@ p.notice-intro button:active {
   animation: vt-in 260ms var(--ease) both;
 }
 
-.game {
+.puzzle-missing {
   padding: 2rem 0;
 }
 
-.game h1 {
+.puzzle-missing h1 {
   margin: 0 0 0.5rem;
   font-size: var(--t-xl);
 }
@@ -1760,7 +1760,7 @@ p.notice-intro button:active {
 }
 
 /* 手册阅读层:盖在一切之上;正文样式来自 doc.css,和独立手册页同一份源 */
-.doc-viewer {
+.manual {
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -1774,14 +1774,14 @@ p.notice-intro button:active {
   animation: sheet-in var(--dur-slow) var(--ease) backwards;
 }
 
-.doc-viewer-top {
+.manual-top {
   flex: none;
   background-color: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--edge);
 }
 
-.doc-viewer-bar {
+.manual-bar {
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -1791,7 +1791,7 @@ p.notice-intro button:active {
   padding: 0 max(0.375rem, env(safe-area-inset-right)) 0 max(0.375rem, env(safe-area-inset-left));
 }
 
-.doc-viewer-btn {
+.manual-btn {
   display: grid;
   flex: none;
   place-items: center;
@@ -1807,24 +1807,24 @@ p.notice-intro button:active {
 }
 
 @media (hover: hover) {
-  .doc-viewer-btn:hover:not(:disabled) {
+  .manual-btn:hover:not(:disabled) {
     background: var(--surface-2);
     color: var(--text);
   }
 }
 
-.doc-viewer-btn:active:not(:disabled) {
+.manual-btn:active:not(:disabled) {
   background: var(--surface-3);
   transform: scale(0.92);
 }
 
-.doc-viewer-btn:disabled {
+.manual-btn:disabled {
   color: var(--text-3);
   opacity: 0.4;
   cursor: default;
 }
 
-.doc-viewer-title {
+.manual-title {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -1835,7 +1835,7 @@ p.notice-intro button:active {
   text-overflow: ellipsis;
 }
 
-.doc-viewer-scroll {
+.manual-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -1845,7 +1845,7 @@ p.notice-intro button:active {
   text-wrap: pretty;
 }
 
-.doc-viewer-note {
+.manual-note {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -1855,7 +1855,7 @@ p.notice-intro button:active {
   color: var(--text-2);
 }
 
-.doc-viewer-note button {
+.manual-note button {
   padding: 0.35rem 0.8rem;
   border: 1px solid var(--edge-strong);
   border-radius: var(--r-sm);

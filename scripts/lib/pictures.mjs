@@ -57,7 +57,7 @@ export async function openBoard(browser, { game, theme, viewport = { width: 900,
   // 不会重新加载,种下的状态到不了 app。
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
-  await page.waitForFunction(() => document.querySelector('.host-board')?.width > 0, null, {
+  await page.waitForFunction(() => document.querySelector('.puzzle-canvas')?.width > 0, null, {
     timeout: 30000,
   })
   await page.waitForTimeout(500)
@@ -86,7 +86,7 @@ export async function dealIconPosition(page, { game, redos }) {
 
 export const boardSize = (page) =>
   page.evaluate(() => {
-    const c = document.querySelector('.host-board')
+    const c = document.querySelector('.puzzle-canvas')
     return { w: c.width, h: c.height }
   })
 
@@ -94,7 +94,7 @@ export const boardSize = (page) =>
 // 而非它的 COL_BACKGROUND #bbbbbb,查表会在缩略图两侧露缝。
 export const cornerColour = (page) =>
   page.evaluate(() => {
-    const d = document.querySelector('.host-board').getContext('2d').getImageData(0, 0, 1, 1).data
+    const d = document.querySelector('.puzzle-canvas').getContext('2d').getImageData(0, 0, 1, 1).data
     return `#${[d[0], d[1], d[2]].map((v) => v.toString(16).padStart(2, '0')).join('')}`
   })
 
