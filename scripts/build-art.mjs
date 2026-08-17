@@ -21,7 +21,7 @@ const VIEWPORT = { width: 1100, height: 1400 }
 
 const grab = (page) =>
   page.evaluate(() => {
-    const c = document.querySelector('canvas.host-board')
+    const c = document.querySelector('canvas.puzzle-canvas')
     const d = c.getContext('2d').getImageData(0, 0, c.width, c.height)
     return { w: c.width, h: c.height, data: [...d.data] }
   })
@@ -43,9 +43,9 @@ async function renderOn(browser, ground) {
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
   await page.waitForSelector('.games .games-tile')
-  await page.addStyleTag({ content: `.host-board { background-color: ${ground} !important }` })
+  await page.addStyleTag({ content: `.puzzle-canvas { background-color: ${ground} !important }` })
   await page.click('.games [data-game="undead"]')
-  await page.waitForFunction(() => document.querySelector('.play')?.dataset.ready === 'true', null, {
+  await page.waitForFunction(() => document.querySelector('.puzzle')?.dataset.ready === 'true', null, {
     timeout: 30000,
   })
   await page.waitForTimeout(400)

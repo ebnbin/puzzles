@@ -8,7 +8,7 @@ await open(page, 'Map', { settle: 900 })
 const moves = () => page.evaluate(() =>
   window.__puzzle.saveGame().split('\n').filter((l) => l.startsWith('MOVE')))
 const arrow = async (d) => {
-  await page.locator(`.play-arrows button[aria-label="${d}"]`).click()
+  await page.locator(`.puzzle-arrows button[aria-label="${d}"]`).click()
   await page.waitForTimeout(60)
 }
 

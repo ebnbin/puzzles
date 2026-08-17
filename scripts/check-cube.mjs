@@ -60,7 +60,7 @@ const claimed = async () => {
   await page.waitForTimeout(60)
   const out = []
   for (const label of LABELS)
-    out.push(!(await page.locator(`.play-arrows button[aria-label="${label}"]`).isDisabled()))
+    out.push(!(await page.locator(`.puzzle-arrows button[aria-label="${label}"]`).isDisabled()))
   return out
 }
 

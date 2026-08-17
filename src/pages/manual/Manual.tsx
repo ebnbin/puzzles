@@ -173,12 +173,12 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
   }
 
   return (
-    <div className="doc-viewer" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
-      <header className="doc-viewer-top">
-        <div className="doc-viewer-bar">
+    <div className="manual" role="dialog" aria-modal="true" aria-label={t.settings.manual}>
+      <header className="manual-top">
+        <div className="manual-bar">
           <button
             type="button"
-            className="doc-viewer-btn"
+            className="manual-btn"
             aria-label={t.play.close}
             onClick={closeManual}
           >
@@ -186,14 +186,14 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
           </button>
           <button
             type="button"
-            className="doc-viewer-btn"
+            className="manual-btn"
             aria-label={t.settings.manualBack}
             disabled={depth === 0}
             onClick={back}
           >
             <Icon name="back" size={20} />
           </button>
-          <span className="doc-viewer-title">{t.settings.manual}</span>
+          <span className="manual-title">{t.settings.manual}</span>
           <div className="segmented" role="radiogroup" aria-label={t.settings.language}>
             {LANGS.map((option) => (
               <label key={option.value} data-selected={lang === option.value}>
@@ -208,12 +208,12 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
               </label>
             ))}
           </div>
-          <ThemeToggle className="doc-viewer-btn" />
+          <ThemeToggle className="manual-btn" />
         </div>
       </header>
-      <div className="doc-viewer-scroll" ref={scroller}>
+      <div className="manual-scroll" ref={scroller}>
         {failed ? (
-          <p className="doc-viewer-note">
+          <p className="manual-note">
             {t.settings.manualFailed}
             <button type="button" onClick={() => setTries((n) => n + 1)}>
               {t.settings.manualRetry}

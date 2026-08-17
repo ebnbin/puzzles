@@ -64,7 +64,7 @@ export default function PuzzleActions({
   )
 
   const fixedKeys = (
-    <div className="play-acts">
+    <div className="puzzle-acts">
       <button
         type="button"
         aria-label={t.play.undo}
@@ -127,10 +127,10 @@ export default function PuzzleActions({
   )
 
   return (
-    <nav className="play-actions">
+    <nav className="puzzle-actions">
       {pad && pad.buttons.length > 0 ? (
         <div
-          className="play-keys"
+          className="puzzle-keys"
           style={{ gridTemplateRows: `repeat(${pad.rows}, var(--tap-w))` }}
         >
           <div
@@ -143,7 +143,7 @@ export default function PuzzleActions({
               和名字。一条渲染路径管所有键,摆哪儿由 util/pad 的格子号算好。
               方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
           {fixedKeys}
-          <div className="play-arrows" role="group" aria-label={t.play.arrows.group}>
+          <div className="puzzle-arrows" role="group" aria-label={t.play.arrows.group}>
             {pad.buttons.map((key) =>
               padKey(key, { gridRow: key.row, gridColumn: `c${key.col}` }),
             )}

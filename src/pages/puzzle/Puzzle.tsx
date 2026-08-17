@@ -9,7 +9,7 @@ export default function Puzzle({ name }: { name: string }) {
 
   if (!game) {
     return (
-      <main className="game">
+      <main className="puzzle-missing">
         <h1>{t.notFound.title}</h1>
         <p>
           {fill(t.notFound.body, { name })}{' '}

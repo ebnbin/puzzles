@@ -32,7 +32,7 @@ const size = await page.evaluate(() => {
 })
 
 const arrow = async (d) => {
-  await page.locator(`.play-arrows button[aria-label="${d}"]`).click()
+  await page.locator(`.puzzle-arrows button[aria-label="${d}"]`).click()
   await page.waitForTimeout(40)
 }
 // map 的颜色键是上方区域里那排圆的(pick 类,见 src/games/map.ts):第一个灰着
