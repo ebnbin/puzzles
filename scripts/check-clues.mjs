@@ -49,7 +49,7 @@ const arrow = async (d) => {
   await page.locator(`.play-arrows button[aria-label="${d}"]`).click()
   await page.waitForTimeout(40)
 }
-// map 的颜色键是上方区域里那排圆的(pick 类,见 src/engine/keys.ts):第一个灰着
+// map 的颜色键是上方区域里那排圆的(pick 类,见 src/games/map.ts):第一个灰着
 // 就是我们认为光标站在线索上。按类别找、不按名字,名字会跟着「可能」模式换。
 const ours = () =>
   page.evaluate(() => document.querySelector(".keypad [data-kind='pick']").disabled)

@@ -45,6 +45,7 @@ npm run preview    # 预览 dist/
 | 路径 | 是什么 |
 | --- | --- |
 | `src/` | 界面 |
+| `src/games/` | 统一游戏接口:一个游戏一个文件,外加看不见游戏的共享机器 |
 | `src/engine/` | C 与界面之间的那层契约 |
 | `vendor/sgtpuzzles/` | 上游源码，未经修改 |
 | `public/` | 编译好的 wasm、手册、图片 |
