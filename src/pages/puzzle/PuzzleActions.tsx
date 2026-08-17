@@ -67,9 +67,9 @@ export default function PuzzleActions({
     <div className="puzzle-acts">
       <button
         type="button"
-        aria-label={t.play.undo}
+        aria-label={t.puzzle.undo}
         disabled={!undo}
-        {...holdToAsk(t.play.undo)}
+        {...holdToAsk(t.puzzle.undo)}
         onClick={() => {
           if (wasHeld()) return
           onUndo()
@@ -79,9 +79,9 @@ export default function PuzzleActions({
       </button>
       <button
         type="button"
-        aria-label={t.play.redo}
+        aria-label={t.puzzle.redo}
         disabled={!redo}
-        {...holdToAsk(t.play.redo)}
+        {...holdToAsk(t.puzzle.redo)}
         onClick={() => {
           if (wasHeld()) return
           onRedo()
@@ -112,10 +112,10 @@ export default function PuzzleActions({
       <button
         type="button"
         className="is-menu"
-        aria-label={t.play.menu}
+        aria-label={t.puzzle.menu}
         aria-haspopup="dialog"
         aria-expanded={menuOpen}
-        {...holdToAsk(t.play.menu)}
+        {...holdToAsk(t.puzzle.menu)}
         onClick={() => {
           if (wasHeld()) return
           onMenu()
@@ -143,7 +143,7 @@ export default function PuzzleActions({
               和名字。一条渲染路径管所有键,摆哪儿由 util/pad 的格子号算好。
               方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
           {fixedKeys}
-          <div className="puzzle-arrows" role="group" aria-label={t.play.arrows.group}>
+          <div className="puzzle-arrows" role="group" aria-label={t.puzzle.arrows.group}>
             {pad.buttons.map((key) =>
               padKey(key, { gridRow: key.row, gridColumn: `c${key.col}` }),
             )}

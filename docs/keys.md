@@ -12,7 +12,7 @@
 
 三条,先后关系不能颠倒。
 
-**一、`need` 键:一个键值得做成按钮,当且仅当它做的那件事没有任何手势能做到。**
+**一、`entry` 键:一个键值得做成按钮,当且仅当它做的那件事没有任何手势能做到。**
 不是「有用」,不是「常用」,是「够不着」。
 
 - 「够不着」有两个来源:上游没有那条路,和**我们没把那条路转发出去**(`usePuzzlePointer`)。
@@ -37,45 +37,45 @@
 
 **用名字称呼,不要用编号。** 编号在这份文档里出现过三套互相冲突的版本,加一类就得
 把后面全部往后挪一位——名字不会。接口的定义在 `src/games/game.ts`,那是 SSOT:上方三类
-在接口里叫 `entry` / `pick` / `assist`(即本文的 need / pick / aid),`act` 和 `arrow`
-由结构决定、不入类型。DOM 的 `data-kind` 沿用 need / pick / aid——那三个词已经写进
-样式表和 check-keys,别跟着接口改。
+叫 `entry` / `pick` / `assist`,`act` 和 `arrow` 由结构决定、不入类型。DOM 的
+`data-kind` 写的就是接口词,全项目一套词汇;localStorage 的 `puzzles.aid` 是唯一的
+旧词残留——键名已发布,改名等于清掉用户的设置。
 
 底部分两个区域:**上方区域**是 `.keypad`(棋盘正下方,按游戏发牌),**下方区域**是
-`.play-actions`(位置固定,一辈子长一个样)。
+`.puzzle-actions`(位置固定,一辈子长一个样)。
 
 | 名字 | 谁 | 在哪 | 什么时候在 | 长什么样 |
 | --- | --- | --- | --- | --- |
-| `act` | Undo / Redo / Type / Menu | 下方 `.play-acts` | 总在 | 扁平,只剩图标 |
-| `need` | 数字、`⌫`、Undead 的三个怪物 | 上方 `.keypad` | 总在 | 实心键面,无边框 |
-| `arrow` | 方向键本体、`Enter`/`Space` 伴生键、slant 那种绝对键 | 下方 `.play-arrows` | `puzzles.arrows` | 白键面 + 边框,正圆,整簇坐在底板上 |
+| `act` | Undo / Redo / Type / Menu | 下方 `.puzzle-acts` | 总在 | 扁平,只剩图标 |
+| `entry` | 数字、`⌫`、Undead 的三个怪物 | 上方 `.keypad` | 总在 | 实心键面,无边框 |
+| `arrow` | 方向键本体、`Enter`/`Space` 伴生键、slant 那种绝对键 | 下方 `.puzzle-arrows` | `puzzles.arrows` | 白键面 + 边框,正圆,整簇坐在底板上 |
 | `pick` | Map 的四个区域色、Guess 的颜色钉 | 上方 `.keypad` | `puzzles.arrows` | 同 `arrow`:一样的键面、一样的正圆 |
-| `aid` | 提示、`M` 铺标记、三个标记键、`J` 重排、Dominosa 的高亮数字 | 上方 `.keypad` | `puzzles.aid` | 键面同 `arrow`,形状是圆角矩形,字色淡一档 |
+| `assist` | 提示、`M` 铺标记、三个标记键、`J` 重排、Dominosa 的高亮数字 | 上方 `.keypad` | `puzzles.aid` | 键面同 `arrow`,形状是圆角矩形,字色淡一档 |
 
-**布局。** 下方两块位置写死(`act` 在左、`arrow` 在右),上方按 **`need` → `pick` →
-`aid`** 排。这个顺序是结构不是约定:宿主在出口按组稳定排序,每个游戏 `keypad()` 返回值
+**布局。** 下方两块位置写死(`act` 在左、`arrow` 在右),上方按 **`entry` → `pick` →
+`assist`** 排。这个顺序是结构不是约定:宿主在出口按组稳定排序,每个游戏 `keypad()` 返回值
 内部的次序原样保留,所以游戏文件里写乱了也排得对。
 
 **`pick` 为什么不跟 `arrow` 住一起。** 它和 `arrow` 是一伙的——同一个开关、同一套键面、
 同样的正圆——但方向键块封死在 3×3,Guess 最多十种颜色装不下(见「现在的形状」)。所以
-它挤在上方区域里,和邻座的 `need`、`aid` 靠**圆**分开:那两类都是圆角矩形。
+它挤在上方区域里,和邻座的 `entry`、`assist` 靠**圆**分开:那两类都是圆角矩形。
 
-**只有两种键面**:有边框的填 `--surface`(`arrow` / `pick` / `aid`),没边框的填
-`--surface-2`(`act` / `need`)。白在 `--bg` 上只差 2%,所以 `aid` 读出「这是个键」
-靠的是那圈边框,不是填充;真正分开 `need` 和 `aid` 的也是边框。
+**只有两种键面**:有边框的填 `--surface`(`arrow` / `pick` / `assist`),没边框的填
+`--surface-2`(`act` / `entry`)。白在 `--bg` 上只差 2%,所以 `assist` 读出「这是个键」
+靠的是那圈边框,不是填充;真正分开 `entry` 和 `assist` 的也是边框。
 
-**`need` 和 `aid` 的分界是「没有它这一局玩不完」**,不是「常不常用」:Dominosa 的数字只
-高亮不落子,`M` 铺的是铅笔标记,一局不写标记照样能填完——都是 `aid`。这条判据在
-`2802d6c` 收紧过一次(Pattern 的灰键从 `need` 改判成方向键方案的一部分,理由是解完的
+**`entry` 和 `assist` 的分界是「没有它这一局玩不完」**,不是「常不常用」:Dominosa 的数字只
+高亮不落子,`M` 铺的是铅笔标记,一局不写标记照样能填完——都是 `assist`。这条判据在
+`2802d6c` 收紧过一次(Pattern 的灰键从 `entry` 改判成方向键方案的一部分,理由是解完的
 棋盘上没有灰)。
 
 **两个开关。** `puzzles.arrows`(见 `useArrows.ts`)关掉时 `arrow` 和 `pick` 一起不画:
-整块 `.play-arrows` 不渲染,上方区域把 `pick` 组滤掉。Map 因此关了方向键就
+整块 `.puzzle-arrows` 不渲染,上方区域把 `pick` 组滤掉。Map 因此关了方向键就
 没有上方区域(它的键全是 `pick`),Guess 只剩一个提示键。
 
-`puzzles.aid`(见 `useAid.ts`)管 `aid`,**默认关**,和方向键一样是选进来的:提示、铺标记
-这些一局不用照样玩得完(就是 `need`/`aid` 那条判据),所以默认的键盘只留必要键。整排都是
-`aid` 的八个游戏(net、guess、dominosa、galaxies、fifteen、bridges、range、pearl)因此
+`puzzles.aid`(见 `useAssist.ts`)管 `assist`,**默认关**,和方向键一样是选进来的:提示、铺标记
+这些一局不用照样玩得完(就是 `entry`/`assist` 那条判据),所以默认的键盘只留必要键。整排都是
+`assist` 的八个游戏(net、guess、dominosa、galaxies、fifteen、bridges、range、pearl)因此
 默认没有上方区域,棋盘多一行。
 
 ## 现在的形状
@@ -142,7 +142,7 @@ Map 和 Guess 的方向键块里剩下什么:
 fifteen、loopy 三个本来就不读这两个键,**untangle 和 palisade 读但不报**——词是我们自己起的,
 见「机制」的 mute。
 
-| 游戏 | 状态 | `arrow` / `pick`:光标那一套 | `need` / `aid`:独立键 |
+| 游戏 | 状态 | `arrow` / `pick`:光标那一套 | `entry` / `assist`:独立键 |
 | --- | --- | --- | --- |
 | net | ✅ | `Enter` 左转 ✅ · `Space` 锁定/解锁 ✅(没光标时两个都置灰,靠一份副本)· **手指上**长按=锁定,右转用三次左转;**鼠标照上游原样** | `J` 重排 ✅ |
 | cube | ✅ | —— 无光标,方向键即走子;**滚不过去的那个方向会置灰**(全集唯一一处,见「坑」) | —— 不读 `Enter`/`Space` |

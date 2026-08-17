@@ -52,7 +52,7 @@ export function useBoard(
     : null
 
   const t = useStrings()
-  const words: Words = useMemo(() => ({ ...t.play, keys: t.keys }), [t])
+  const words: Words = useMemo(() => ({ ...t.puzzle, keys: t.keys }), [t])
   const wordsRef = useRef(words)
   wordsRef.current = words
 

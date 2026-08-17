@@ -33,7 +33,7 @@ export default function Notice({
       {kind === 'error' && <Icon name="alert" size={16} />}
       <span>{text}</span>
       {onClose && (
-        <button type="button" aria-label={t.play.close} onClick={onClose}>
+        <button type="button" aria-label={t.close} onClick={onClose}>
           <Icon name="close" size={16} />
         </button>
       )}

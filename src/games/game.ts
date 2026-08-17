@@ -133,7 +133,7 @@ export type Mods = { shift?: true; ctrl?: true }
 // midend 每步对两个确认键各报一词,原样双传、不抹空(呈现层自己比较两词)。
 export type Labels = { enter: string; space: string }
 
-export type Words = Strings['play'] & { keys: Strings['keys'] }
+export type Words = Strings['puzzle'] & { keys: Strings['keys'] }
 
 export type Armed = { id: string; mods: Mods }
 
