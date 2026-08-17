@@ -1,7 +1,7 @@
 import PuzzleHost from './PuzzleHost'
-import { fill, useStrings } from './i18n'
-import { useGame } from './i18n/games'
-import { showGallery } from './view'
+import { fill, useStrings } from '../i18n'
+import { useGame } from '../i18n/games'
+import { showGallery } from '../view'
 
 export default function GamePage({ name }: { name: string }) {
   const t = useStrings()

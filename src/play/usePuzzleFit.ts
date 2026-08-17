@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import type { CanvasRenderer } from './engine/renderer'
-import type { PuzzleApi } from './engine/types'
+import type { CanvasRenderer } from '../engine/renderer'
+import type { PuzzleApi } from '../engine/types'
 
 const MAX_ZOOM = 2
 
