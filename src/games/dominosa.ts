@@ -7,7 +7,7 @@ import { still } from './game'
 import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { leadingNumber } from './util/latin'
-import { tap } from './util/keys'
+import { charButton, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Place', 'Remove', 'Line']
@@ -30,9 +30,7 @@ const dominosa: Game = {
     const n = leadingNumber(params)
     if (n === null) return null
     return Array.from({ length: n + 1 }, (_, i): Key<null> => {
-      const shown = i
-      const button =
-        shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
+      const button = charButton(i)
       const label = String.fromCharCode(button)
       return {
         group: 'assist',

@@ -6,6 +6,7 @@
 //   3. 逐游戏事实(光标、标签、键)以 vendor/ 的 C 源码为准,docs/inputs.md 是索引。
 import type { IconName, ImageName } from '../ui/Icon'
 import type { Strings } from '../i18n'
+import type { Dark } from '../engine/palette'
 import type { Drawn } from '../engine/renderer'
 import type { DialogControl, Preset } from '../engine/types'
 
@@ -54,14 +55,9 @@ export type Upstream = {
 // 前端到不了,改借等价的中键。
 export type Touch = { hold: 'right' | 'middle' }
 
-// 深色 = 浅色表的逐槽翻译;字段全缺省 = 纯翻转。翻译引擎在 engine/palette.ts。
-export type Dark = {
-  keep?: readonly number[] // 语义色:压进暗域但保住色相
-  relief?: readonly (readonly [number, number])[] // 亮/影槽对,暗色下保持凸起方向
-  frame?: Readonly<Record<number, number>> // 同色描边的替换槽
-  strokes?: readonly number[] // 细笔画:按浅色墨压缩,不翻转
-  paper?: true // 棋盘抬成纸面(语义色需要暗于底时)
-}
+// 深色申报的类型与翻译引擎同住 engine/palette.ts,这里转口:申报是引擎的
+// 参数语言,类型跟着机器走,依赖只许从 games 指向 engine。
+export type { Dark }
 
 export type Pages = { manual: string; help: string; howto: string }
 

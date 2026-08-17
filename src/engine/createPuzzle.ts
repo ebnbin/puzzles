@@ -1,4 +1,4 @@
-import type { Dark } from '../games/game'
+import type { Dark } from './palette'
 import { CanvasRenderer } from './renderer'
 import type { Preset, PuzzleApi, PuzzleCallbacks } from './types'
 
