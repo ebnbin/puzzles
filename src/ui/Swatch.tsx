@@ -1,7 +1,7 @@
-// 颜色钉:pick 那一类键的画法(Map 的区域色、Guess 的颜色钉)。颜色是引擎调色板
-// 给的 CSS 串,谁调用谁负责查表——这里只管画。fill 没查到就返回 null,让调用方
-// 回落到文字。
-export default function KeyPeg({
+// 色块钉:一个圆形颜色样本,可带描边、标签,或改画点状(铅笔态)。颜色是调用方
+// 查好表的 CSS 串——这里只管画。fill 没查到就返回 null,让调用方回落到文字。
+// class 名沿用已发布样式表的 .key-peg,不随组件改名。
+export default function Swatch({
   fill,
   ink,
   label,

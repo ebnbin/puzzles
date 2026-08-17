@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import Dialog from './Dialog'
-import Icon from './Icon'
 import { forgetEverything } from './engine/saves'
 import { openManual } from './DocViewer'
 import { docHref, useLang, useStrings } from './i18n'
+import Dialog from './ui/Dialog'
+import Icon from './ui/Icon'
+import { useScrollLock } from './ui/useScrollLock'
 import { setAid, useAid } from './useAid'
 import { setArrows, useArrows } from './useArrows'
-import { useScrollLock } from './useScrollLock'
 
 const ARMED_MS = 3000
 

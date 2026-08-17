@@ -1,9 +1,9 @@
-import Icon from './Icon'
-import KeyPeg from './KeyPeg'
-import type { IconName } from './Icon'
 import type { Face, Key, View } from './games/game'
 import { useStrings } from './i18n'
-import { HoldTip, useHoldTip } from './useHoldTip'
+import HoldTip, { useHoldTip } from './ui/HoldTip'
+import Icon from './ui/Icon'
+import type { IconName } from './ui/Icon'
+import Swatch from './ui/Swatch'
 import { useResolvedTheme } from './useTheme'
 import type { Resolved } from './useTheme'
 
@@ -73,7 +73,7 @@ export default function PuzzleKeypad({
                 : null
           const swatch =
             'swatch' in face.art ? (
-              <KeyPeg
+              <Swatch
                 fill={swatches.get(face.art.swatch.fill)}
                 ink={
                   face.art.swatch.edge === undefined

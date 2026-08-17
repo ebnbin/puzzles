@@ -1,11 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import ConfigFields from './ConfigFields'
-import ErrorNote from './ErrorNote'
-import Icon from './Icon'
-import type { IconName } from './Icon'
 import type { DialogSpec } from './engine/types'
 import { useStrings } from './i18n'
-import { useSheetDrag } from './useSheetDrag'
+import Icon from './ui/Icon'
+import type { IconName } from './ui/Icon'
+import Notice from './ui/Notice'
+import Sheet from './ui/Sheet'
 
 type Action = 'newGame' | 'restart' | 'solve'
 
@@ -50,7 +50,6 @@ export default function PuzzleMenu({
   onAction: (action: Action) => void
   onClose: () => void
 }) {
-  const { ref, handlers } = useSheetDrag(onClose)
   const t = useStrings()
 
   const open = useRef(onOpenPrefs)
@@ -60,20 +59,7 @@ export default function PuzzleMenu({
   }, [])
 
   return (
-    <div className="sheet-dimmer" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t.menu.title}
-        ref={ref}
-        onClick={(e) => e.stopPropagation()}
-        {...handlers}
-      >
-        <div className="sheet-handle" aria-hidden="true">
-          <div className="sheet-grip" />
-        </div>
-
+    <Sheet label={t.menu.title} onClose={onClose}>
         <div className="sheet-actions">
           {ACTIONS.filter((a) => a.action !== 'solve' || canSolve).map((a) => (
             <button
@@ -114,12 +100,11 @@ export default function PuzzleMenu({
             <h2>{t.menu.preferences}</h2>
             <div className="sheet-prefs">
               <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
-              {prefsError && <ErrorNote text={prefsError} />}
+              {prefsError && <Notice text={prefsError} />}
             </div>
           </section>
         )}
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
@@ -172,7 +157,7 @@ function TextRow({
           commit()
         }}
       />
-      {error && <ErrorNote text={error} />}
+      {error && <Notice text={error} />}
     </div>
   )
 }

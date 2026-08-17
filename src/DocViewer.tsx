@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import Icon from './Icon'
-import ThemeToggle from './ThemeToggle'
+import Icon from './ui/Icon'
+import ThemeToggle from './ui/ThemeToggle'
 import { docHref, useLang, useStrings } from './i18n'
 import type { Lang } from './i18n'
 import './doc.css'

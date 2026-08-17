@@ -1,3 +1,5 @@
+// 长按提示:按住一个控件问「这是什么」。useHoldTip 发 handlers 和 wasHeld
+// (长按松手的那次 click 要吞掉),HoldTip 负责画。
 import { useEffect, useRef, useState } from 'react'
 
 const HOLD_MS = 400
@@ -59,8 +61,8 @@ export function useHoldTip() {
 
 // 必须渲染为它那一排的兄弟节点,不能塞进 keypad 或按键行里:那两处各自设了
 // position+z-index(自成 stacking context,同在 1),塞进去的 tip 再大的 z-index
-// 都封在层 1,会垫到 z=2 的 Introduction 下面。它是 fixed、不占位,放哪都不花钱。
-export function HoldTip({ tip }: { tip: Tip | null }) {
+// 都封在层 1,会垫到 z=2 的介绍浮层下面。它是 fixed、不占位,放哪都不花钱。
+export default function HoldTip({ tip }: { tip: Tip | null }) {
   if (!tip) return null
   return (
     <div
