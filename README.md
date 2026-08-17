@@ -45,6 +45,7 @@ npm run preview    # 预览 dist/
 | 路径 | 是什么 |
 | --- | --- |
 | `src/` | 界面 |
+| `src/pages/` | 三个页面各一个包:画廊(gallery)、谜题(puzzle)、手册(manual) |
 | `src/games/` | 统一游戏接口:一个游戏一个文件,外加看不见游戏的共享机器 |
 | `src/ui/` | 语义通用的界面部件:对话框、sheet、通知、图标这些,不含谜题领域 |
 | `src/engine/` | C 与界面之间的那层契约 |

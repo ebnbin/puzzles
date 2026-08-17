@@ -55,7 +55,7 @@ export default function Dialog({
             <button
               type="button"
               className="dialog-close"
-              aria-label={t.play.close}
+              aria-label={t.close}
               onClick={onClose}
             >
               <Icon name="close" size={20} />

@@ -65,8 +65,8 @@ export default function GallerySettings({
 
       <label className="setting">
         <span className="setting-text">
-          {t.settings.aid}
-          <em>{t.settings.aidHint}</em>
+          {t.settings.assist}
+          <em>{t.settings.assistHint}</em>
         </span>
         <input
           type="checkbox"

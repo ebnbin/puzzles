@@ -1,8 +1,9 @@
 {
   "brand": "Puzzles",
   "tagline": "Think between vibes.",
+  "close": "关闭",
 
-  "launcher": {
+  "gallery": {
     "settings": "设置",
     "hide": "隐藏{game}",
     "show": "显示{game}",
@@ -29,15 +30,14 @@
     "eraseConfirm": "确认清除",
     "arrows": "方向键",
     "arrowsHint": "用按键操作，不必直接点棋盘",
-    "aid": "辅助键",
-    "aidHint": "提示和快捷操作，仅部分谜题提供"
+    "assist": "辅助键",
+    "assistHint": "提示和快捷操作，仅部分谜题提供"
   },
 
-  "play": {
+  "puzzle": {
     "help": "玩法",
     "picture": "{name} 的棋盘",
     "fullInstructions": "完整说明",
-    "close": "关闭",
     "undo": "撤销",
     "redo": "重做",
     "menu": "菜单",

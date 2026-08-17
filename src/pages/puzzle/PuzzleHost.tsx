@@ -298,7 +298,7 @@ export default function PuzzleHost({
             type="button"
             className="puzzle-title"
             onClick={showGallery}
-            aria-label={`${title} — ${t.play.switcher}`}
+            aria-label={`${title} — ${t.puzzle.switcher}`}
           >
             <span>{title}</span>
             <Icon name="caret" size={18} />
@@ -316,7 +316,7 @@ export default function PuzzleHost({
         <button
           type="button"
           className="puzzle-icon"
-          aria-label={t.play.help}
+          aria-label={t.puzzle.help}
           aria-haspopup="dialog"
           aria-expanded={helpOpen}
           onClick={() => setHelpOpen(true)}
@@ -329,7 +329,7 @@ export default function PuzzleHost({
         {error && (
           <Notice
             floating
-            text={error === START_FAILED ? t.play.error : error}
+            text={error === START_FAILED ? t.puzzle.error : error}
           />
         )}
         {intro && !error && (
@@ -356,7 +356,7 @@ export default function PuzzleHost({
           {...pointer}
         />
         {outcome.over && (
-          <div className="puzzle-over" role="group" aria-label={t.play.over}>
+          <div className="puzzle-over" role="group" aria-label={t.puzzle.over}>
             <button
               type="button"
               className="is-primary"
@@ -370,7 +370,7 @@ export default function PuzzleHost({
             </button>
             <button type="button" onClick={outcome.dismiss}>
               <Icon name="close" />
-              {t.play.close}
+              {t.close}
             </button>
           </div>
         )}
@@ -410,15 +410,15 @@ export default function PuzzleHost({
 
       {helpOpen && (
         <Dialog
-          label={`${t.play.help} — ${title}`}
-          title={t.play.help}
+          label={`${t.puzzle.help} — ${title}`}
+          title={t.puzzle.help}
           onClose={closeHelp}
           className="dialog-help"
         >
           <img
             className="help-art"
             src={`/howto/${game.pages.howto}-${theme}.png`}
-            alt={fill(t.play.picture, { name: title })}
+            alt={fill(t.puzzle.picture, { name: title })}
             draggable={false}
           />
           <div className="dialog-prose">
@@ -436,7 +436,7 @@ export default function PuzzleHost({
                   openManual(`${game.pages.manual}.html`)
                 }}
               >
-                {t.play.fullInstructions}
+                {t.puzzle.fullInstructions}
               </a>
             </p>
           </div>

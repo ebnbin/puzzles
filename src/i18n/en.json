@@ -1,8 +1,9 @@
 {
   "brand": "Puzzles",
   "tagline": "Think between vibes.",
+  "close": "Close",
 
-  "launcher": {
+  "gallery": {
     "settings": "Settings",
     "hide": "Hide {game}",
     "show": "Show {game}",
@@ -29,15 +30,14 @@
     "eraseConfirm": "Erase",
     "arrows": "Arrow keys",
     "arrowsHint": "Play with buttons instead of tapping the board",
-    "aid": "Helper keys",
-    "aidHint": "Hints and shortcuts, in some puzzles"
+    "assist": "Helper keys",
+    "assistHint": "Hints and shortcuts, in some puzzles"
   },
 
-  "play": {
+  "puzzle": {
     "help": "How to play",
     "picture": "A {name} board",
     "fullInstructions": "Full instructions",
-    "close": "Close",
     "undo": "Undo",
     "redo": "Redo",
     "menu": "Menu",

@@ -78,8 +78,8 @@ export default function Gallery() {
       toggleHidden(game.name)
       setToast({
         text: wasHidden
-          ? fill(t.launcher.nowShown, { game: game.displayName })
-          : fill(t.launcher.nowHidden, { game: game.displayName }),
+          ? fill(t.gallery.nowShown, { game: game.displayName })
+          : fill(t.gallery.nowHidden, { game: game.displayName }),
         hidden: !wasHidden,
         key: ++toastKey.current,
       })
@@ -153,7 +153,7 @@ export default function Gallery() {
   }
 
   return (
-    <div className="launcher">
+    <div className="gallery">
       <header className="masthead">
         <div className="masthead-name">
           <h1>{t.brand}</h1>
@@ -181,7 +181,7 @@ export default function Gallery() {
         <button
           type="button"
           className="masthead-icon"
-          aria-label={t.launcher.settings}
+          aria-label={t.gallery.settings}
           aria-haspopup="dialog"
           aria-expanded={settingsOpen}
           onClick={openSettings}
@@ -204,7 +204,7 @@ export default function Gallery() {
             onClick={() => setHiddenOpen((open) => !open)}
           >
             <Icon name="eyeOff" size={16} />
-            {fill(t.launcher.hidden, { count: away.length })}
+            {fill(t.gallery.hidden, { count: away.length })}
             <Icon name="caret" size={16} className={hiddenOpen ? 'is-up' : undefined} />
           </button>
           {hiddenOpen && (
@@ -217,7 +217,7 @@ export default function Gallery() {
 
       <footer>
         <p>
-          {t.launcher.credit} {t.launcher.source}{' '}
+          {t.gallery.credit} {t.gallery.source}{' '}
           <a
             className="textlink"
             href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/"
@@ -259,7 +259,7 @@ function Tile({
 }) {
   const t = useStrings()
   const theme = useResolvedTheme()
-  const label = fill(hidden ? t.launcher.show : t.launcher.hide, { game: game.displayName })
+  const label = fill(hidden ? t.gallery.show : t.gallery.hide, { game: game.displayName })
 
   const timer = useRef(0)
   useEffect(() => () => window.clearTimeout(timer.current), [])

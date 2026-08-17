@@ -179,7 +179,7 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
           <button
             type="button"
             className="manual-btn"
-            aria-label={t.play.close}
+            aria-label={t.close}
             onClick={closeManual}
           >
             <Icon name="close" size={20} />

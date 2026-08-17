@@ -48,7 +48,7 @@ export default function PuzzleKeypad({
 
   return (
     <>
-      <div className="keypad" role="group" aria-label={t.play.keypad}>
+      <div className="keypad" role="group" aria-label={t.puzzle.keypad}>
         {/* React key 用下标:列表每次发牌整体重建、局内从不重排。 */}
         {keys.map((key, i) => {
           const face: Face =
