@@ -66,13 +66,16 @@ export interface PuzzleApi {
 
 export type KeyAction = 'possible' | 'single' | 'blank'
 
-// 区域 A 的键属于哪一类。判据是 docs/keys.md 那条,不是「常不常用」:
-//   need 没有它这一局玩不完(擦不掉写错的数就填不完)
-//   aid  它做的事都能一步一步用别的方式做到(提示、铺标记、高亮)
-//   aim  方向键方案的一部分,跟 puzzles.arrows 一起来去;画成圆的,和上面两类
-//        分得开。只有 Map 的色板和 Guess 的颜色钉,别的三类键都在 pad.ts 里
-// 样式和「关方向键时藏谁」都只看它,所以是必填——漏标一个 tsc 就会说话。
-export type KeyKind = 'need' | 'aid' | 'aim'
+// 按钮一共五类,判据和逐游戏的归属在 docs/keys.md。**不要用编号称呼它们**,用名字:
+//   act    undo / redo / type / menu。作用于这一局,不作用于棋盘;下方区域,总在
+//   need   写进格子的符号(数字、⌫、怪物)。没有它这一局玩不完
+//   arrow  方向键本体和它的伴生键。存在的理由是有个光标;下方区域,跟 puzzles.arrows
+//   pick   往光标那儿放什么(Map 的区域色、Guess 的颜色钉)。同样跟 puzzles.arrows
+//   aid    提示、铺标记、重排、高亮。它做的事都能一步一步用别的方式做到
+// act 和 arrow 各自独占一个容器(.play-acts / .play-arrows),类别由结构决定,不存;
+// 剩下三类挤在同一个 .keypad 里,所以只有它们要写在 KeyLabel.kind 上。
+// **这个联合的顺序就是上方区域的排列顺序**,keysFor 按它稳定排序。
+export type KeyKind = 'need' | 'pick' | 'aid'
 
 export interface KeyLabel {
   kind: KeyKind
@@ -88,7 +91,7 @@ export interface KeyLabel {
   // map:这个键往光标那个区域涂什么。走存档门,不发按键。
   paints?: { colour: number; pencil?: boolean }
   // guess:先把调色板光标顶到这个颜色,再按 Enter——上游「上下选色 + 确认」那一串。
-  aims?: { home: string; step: string; span: number; at: number }
+  reach?: { home: string; step: string; span: number; at: number }
   whose?: 'upstream' | 'ours'
 }
 

@@ -1,12 +1,11 @@
-// 区域 A 那排键(棋盘正下方)。重新实现上游 request_keys() 的结果(emcc.c 不调用
+// 上方区域那排键(棋盘正下方)。重新实现上游 request_keys() 的结果(emcc.c 不调用
 // 它),按 game id 里的参数推;认不出的 id 一律不显示键盘,而不是显示错的。逐游戏的
-// 判据和踩过的坑在 docs/keys.md,改这里要同步改它。方向键那一块在 pad.ts——
-// 只有 Map 和 Guess 的颜色键例外,它们属于方向键那一类('aim')却住在这儿,
-// 因为方向键块封死在 3×3、装不下十种颜色。
+// 判据和踩过的坑在 docs/keys.md,改这里要同步改它。arrow 那一类在 pad.ts;pick
+// 也跟着方向键开关来去,却住在这儿,因为方向键块封死在 3×3、装不下十种颜色。
 // 这份推导和上游的真答案对不对得上,由 scripts/check-keys.mjs 去问引擎
 // (midend_request_keys 已经导出);改 RULES、升级 vendor 之后跑它。
 import { COLOURS } from './map'
-import type { DialogControl, KeyLabel } from './types'
+import type { DialogControl, KeyKind, KeyLabel } from './types'
 
 const MAX_SYMBOLS = 36
 
@@ -147,13 +146,13 @@ const RULES: Record<
       ...Array.from({ length: n }, (_, i): KeyLabel => {
         const fromTop = i <= (n - 1) / 2
         return {
-          kind: 'aim',
+          kind: 'pick',
           button: 0,
           slot: COL_1 + i,
           ink: COL_FRAME,
           value: i + 1,
           ...(labelled ? { label: String((i + 1) % 10) } : {}),
-          aims: {
+          reach: {
             home: fromTop ? 'ArrowUp' : 'ArrowDown',
             step: fromTop ? 'ArrowDown' : 'ArrowUp',
             span: n,
@@ -168,7 +167,7 @@ const RULES: Record<
   // map 的四个区域色。上游没有任何键能说出一个颜色,所以这四个不发按键,走存档门。
   map: () =>
     Array.from({ length: COLOURS }, (_, i): KeyLabel => ({
-      kind: 'aim',
+      kind: 'pick',
       button: 0,
       slot: COL_MAP + i,
       value: i + 1,
@@ -208,6 +207,10 @@ export const asMaybes = (keys: KeyLabel[]): KeyLabel[] =>
       : k,
   )
 
+// 上方区域的顺序是结构,不是各条规则手写出来的约定:need 在前、pick 居中、aid 在后。
+// sort 是稳定的,所以每条规则内部的顺序原样保留。
+const ORDER: KeyKind[] = ['need', 'pick', 'aid']
+
 export function keysFor(
   name: string,
   gameId: string,
@@ -217,5 +220,5 @@ export function keysFor(
   if (!rule) return []
   const keys = rule(params(gameId), prefs)
   if (!keys || keys.length < 1 || keys.length > MAX_SYMBOLS + MAX_EXTRAS) return []
-  return keys
+  return [...keys].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind))
 }

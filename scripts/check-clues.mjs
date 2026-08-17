@@ -49,10 +49,10 @@ const arrow = async (d) => {
   await page.locator(`.play-arrows button[aria-label="${d}"]`).click()
   await page.waitForTimeout(40)
 }
-// map 的颜色键是区域 A 里那排圆的(三类,见 src/engine/keys.ts):第一个灰着就是
-// 我们认为光标站在线索上。按类别找、不按名字,名字会跟着「可能」模式换。
+// map 的颜色键是上方区域里那排圆的(pick 类,见 src/engine/keys.ts):第一个灰着
+// 就是我们认为光标站在线索上。按类别找、不按名字,名字会跟着「可能」模式换。
 const ours = () =>
-  page.evaluate(() => document.querySelector(".keypad [data-kind='aim']").disabled)
+  page.evaluate(() => document.querySelector(".keypad [data-kind='pick']").disabled)
 const theirs = () => page.evaluate(() => {
   const api = window.__puzzle
   // 读 STATEPOS、不数 MOVE 行:序列化含被 undo 的走子,数行曾让这个检查认可过
