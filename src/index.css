@@ -456,8 +456,8 @@ footer p {
   /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽。这条等式就是
      --act-w 这个定义的全部用处。 */
   --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
-  /* 键盘总宽 = 2×rim + 128 + gap + 128 = 6×tap-w + 6×gap = 264。 */
-  --keys-w: calc(6 * var(--tap-w) + 6 * var(--key-gap));
+  /* 键盘总宽 = 3×tap-w + 2×act-w + 4×gap + 2×rim = 6×tap-w + 7×gap。 */
+  --keys-w: calc(6 * var(--tap-w) + 7 * var(--key-gap));
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -984,7 +984,7 @@ p.notice-intro button:active {
 .play-keys {
   display: grid;
   grid-template-columns:
-    [acts] calc(2 * var(--act-w) + var(--key-gap))
+    [acts] calc(2 * var(--act-w) + 2 * var(--key-gap))
     [c1] var(--tap-w) [c2] var(--tap-w) [c3] var(--tap-w) [core-end];
   gap: var(--key-gap);
   padding: var(--key-rim);
@@ -995,6 +995,9 @@ p.notice-intro button:active {
   grid-row: span 2 / -1;
   grid-column: acts;
   gap: var(--key-gap);
+  /* 固定键那一列比这一块宽一道缝,靠这条把它顶到远离方向键的那头:两块之间
+     因此是两道缝。 */
+  margin-right: var(--key-gap);
   padding: 0;
 }
 
