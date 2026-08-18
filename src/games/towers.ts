@@ -1,7 +1,7 @@
 // Towers:从塔的可见数推高度的拉丁方。上游 towers.c。
 import type { Game } from './game'
 import { still } from './game'
-import { samePages, verbatim } from './util/declare'
+import { keepPencil, samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import {
   PENCIL_HIGHLIGHT,
@@ -26,7 +26,7 @@ const towers: Game = {
   dark: {},
   pages: samePages('towers'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false },
+  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
   keypad: ({ params, prefs }) => {
     const size = leadingNumber(params)
     if (!size) return null

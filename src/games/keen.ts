@@ -1,7 +1,7 @@
 // Keen:算式笼子的拉丁方。上游 keen.c。
 import type { Game } from './game'
 import { still } from './game'
-import { samePages, verbatim } from './util/declare'
+import { keepPencil, samePages, verbatim } from './util/declare'
 import {
   PENCIL_HIGHLIGHT,
   clearKey,
@@ -19,7 +19,7 @@ const keen: Game = {
   dark: {},
   pages: samePages('keen'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false },
+  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
   keypad: ({ params, prefs }) => {
     const size = leadingNumber(params)
     if (!size) return null

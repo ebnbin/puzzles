@@ -3,7 +3,7 @@
 // 参数一律不显示键盘;对不对得上由 scripts/check-keys.mjs 去问引擎。
 import type { Game } from './game'
 import { still } from './game'
-import { samePages, verbatim } from './util/declare'
+import { keepPencil, samePages, verbatim } from './util/declare'
 import { PENCIL_HIGHLIGHT, clearKey, digitKeys, marksKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
@@ -56,7 +56,7 @@ const solo: Game = {
   dark: {},
   pages: samePages('solo'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false },
+  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
   keypad: ({ params: p, prefs }) => {
     const parsed = params(p)
     if (!parsed) return null

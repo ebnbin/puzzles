@@ -8,14 +8,18 @@ export async function createPuzzle(options: {
   gameId?: string
   dark?: boolean
   spec?: Dark
+  seed?: Readonly<Record<string, string>>
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
-  const { name, canvas, gameId = '', dark = false, spec, callbacks } = options
+  const { name, canvas, gameId = '', dark = false, spec, seed, callbacks } = options
   const renderer = new CanvasRenderer(canvas, spec)
   renderer.setDark(dark)
 
   let api: PuzzleApi | null = null
   const prefsKey = `puzzles.prefs.${name}`
+  const seeded = Object.entries(seed ?? {})
+    .map(([kw, value]) => `${kw}=${value}\n`)
+    .join('')
 
   const host = {
     gameId,
@@ -48,11 +52,14 @@ export async function createPuzzle(options: {
       canvas.focus()
     },
 
+    // 种子垫在存档下面:上游逐行赋值,后写的盖先写的,于是用户存过的那几条赢、
+    // 没存过的落到种子。整份只要有一行解析不了,上游就把它全丢掉(midend.c:3223),
+    // 所以行只许在这里拼。
     loadPrefs(): string | null {
       try {
-        return window.localStorage.getItem(prefsKey)
+        return (seeded + (window.localStorage.getItem(prefsKey) ?? '')) || null
       } catch {
-        return null
+        return seeded || null
       }
     },
 

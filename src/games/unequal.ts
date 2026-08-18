@@ -1,7 +1,7 @@
 // Unequal:带大小关系的拉丁方(含 Adjacent 变体)。上游 unequal.c。
 import type { Game } from './game'
 import { still } from './game'
-import { samePages, verbatim } from './util/declare'
+import { keepPencil, samePages, verbatim } from './util/declare'
 import {
   PENCIL_HIGHLIGHT,
   clearKey,
@@ -20,7 +20,7 @@ const unequal: Game = {
   dark: {},
   pages: samePages('unequal'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false },
+  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
   keypad: ({ params, prefs }) => {
     const order = leadingNumber(params)
     if (!order) return null
