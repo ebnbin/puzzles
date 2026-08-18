@@ -31,9 +31,7 @@
     "arrows": "方向键",
     "arrowsHint": "用按键操作，不必直接点棋盘",
     "assist": "辅助键",
-    "assistHint": "提示和快捷操作，仅部分谜题提供",
-    "deduce": "推理键",
-    "deduceHint": "替你填上规则已经定死的部分，仅部分谜题提供"
+    "assistHint": "提示和快捷操作，仅部分谜题提供"
   },
 
   "puzzle": {
@@ -168,9 +166,6 @@
 
   "keys": {
     "clear": "清除",
-    "possible": "只留下仍然可能的铅笔标记",
-    "single": "填入答案唯一的格子",
-    "blank": "清空所有铅笔标记",
     "marks": "填入一整套铅笔标记",
     "hint": "提示",
     "jumble": "重新打乱",

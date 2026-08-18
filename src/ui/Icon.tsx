@@ -5,9 +5,6 @@ export type IconName =
   | 'clear'
   | 'marks'
   | 'hint'
-  | 'possible'
-  | 'single'
-  | 'blank'
   | 'jumble'
   | 'done'
   | 'lock'
@@ -202,25 +199,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
 
-  possible: (
-    <>
-      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
-      <path d="m7.9 12.3 2.9 2.9 5.3-6.4" />
-    </>
-  ),
-  single: (
-    <>
-      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
-      <path d="M12 7.2v6.4" />
-      <path d="m9 10.8 3 3 3-3" />
-    </>
-  ),
-  blank: (
-    <>
-      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
-      <path d="M7.4 16.6 16.6 7.4" />
-    </>
-  ),
   jumble: (
     <>
       <path d="M3.4 7.4h3.8l9.6 9.2h3.8" />
