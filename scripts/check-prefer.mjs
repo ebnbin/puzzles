@@ -59,9 +59,9 @@ for (const game of ['Map', 'Guess']) {
 }
 
 console.log('\n下游换掉的默认值')
-// 五个数独族游戏的 pencil-keep-highlight(declare.ts 的 keepPencil)和 guess 的
-// show-labels(guess.ts 的 NUMBERED),上游默认都是 false,这边都翻成 true。
-for (const game of ['Solo', 'Unequal', 'Keen', 'Towers', 'Undead', 'Guess']) {
+// 五个数独族游戏的 pencil-keep-highlight(declare.ts 的 keepPencil)、guess 的
+// show-labels、bridges 的 show-hints,上游默认都是 false,这边都翻成 true。
+for (const game of ['Solo', 'Unequal', 'Keen', 'Towers', 'Undead', 'Guess', 'Bridges']) {
   await open(page, game, { clear: [`puzzles.prefs.${game.toLowerCase()}`] })
   if ((await keys.first().getAttribute('data-on')) === 'true') ok(`${game} 开局就是亮的`)
   else fail(`${game} 开局该亮不亮——申报的默认值没到位`)

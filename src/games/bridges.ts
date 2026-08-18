@@ -15,6 +15,11 @@ const HINTS: Prefer = {
   glyph: 'maybeBridge',
 }
 
+// 上游默认不画候选桥位(bridges.c:2145),这边翻过来:between_island 是纯几何——
+// 只问「这两个岛在同一行列上、中间没别的岛」,不看数字、不看已架的桥,画出来的就是
+// 这一局所有合法桥位。手指要在岛之间拖,先看得见能拖到哪。
+const SHOW_LANES = { 'show-hints': 'true' } as const
+
 const bridges: Game = {
   id: 'bridges',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
@@ -22,7 +27,7 @@ const bridges: Game = {
   dark: {},
   pages: samePages('bridges'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: true },
+  prefs: { panel: verbatim, volatile: true, defaults: SHOW_LANES },
   keypad: ({ prefs }) => [hintKey(), ...preferKeys(prefs, [HINTS])],
   arrows: {
     keys: [
