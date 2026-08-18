@@ -220,6 +220,7 @@ fifteen、loopy 三个本来就不读这两个键,**untangle 和 palisade 读但
 | blackbox 角上的「检查」 | 摆够球、走到角上、撤销一枚后,按钮亮着按下去无事(上游标签比行为宽一格:`current_key_label` 在角上无条件报 Check,干活的分支查 `CAN_REVEAL`) | 两条修法一条引入「读状态栏散文」的新依赖、一条是拉丁方读盘量级的自己数球;撞上的代价只是白按一下 |
 | netslide / sixteen 的边框 | 光标在边框上时四个方向键只有两个活,看起来像 bug | 上游键盘本来就这样;标签整圈报同一个词,分不出光标在哪条边,没有依据置灰 |
 | mines 的 `Enter` | 亮 ≠ 安全:旗插错了照样亮,按下去踩雷 | 风险是这步棋本身的,点数字承担的完全相同;但记住,一个亮着的按钮比一次点击更像背书 |
+| 上游的 `Shift+Ctrl+Z` 重做 | 到不了引擎:`usePuzzleKeys` 把 Ctrl + 单字符整类挡在外面 | 浏览器的快捷键全长在这一类上,上游又会认领 `Ctrl+R`(任何单字符都连 MOD_CTRL 交给 midend,emcc.c:402),放行等于吞掉刷新;重做另有 `r` 和撤销区的键,少的只是一个入口。Ctrl+方向不在此列,照旧放行 |
 
 ### 四、会安静地坏掉的
 
@@ -394,6 +395,11 @@ volatile。
 - **写用例的三条**:禁用的按钮仍戴默认脸,判死活问 `disabled` 不问文案;blackbox 按完「检查」
   光标自己跑回场地;pegs 点空孔不收光标(十字盘正中恰好是唯一的空孔)。
 - **金丝雀**:只剩 cube 和 fifteen 没有光标键,而且是因为它们没有光标——用例里反着断言这一条。
+- **物理键盘不认焦点**:通路是挂在 window 上的 `usePuzzleKeys`,判据是「这一刻谜题该不该吃
+  这一按」——覆盖层盖着就不吃,焦点坐在真控件上就只让出 Space / Enter。**别改回 canvas 的
+  `onKeyDown`**:焦点一旦承重,每加一个会抢焦点的部件就得记得把焦点还回来,漏了不报错、
+  build 照样绿,而症状是「玩着玩着键盘就没反应了」。屏幕上的键区和方向键块走的是
+  `board.send`,从头到尾不经过焦点,所以这条只坑用物理键盘的人——桌面上试,手机上试不出来。
 
-六个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade` /
-`check-keys` / `check-solved`)何时跑、守什么,见各脚本和被测文件的头部注释。
+七个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade` /
+`check-keys` / `check-solved` / `check-focus`)何时跑、守什么,见各脚本和被测文件的头部注释。
