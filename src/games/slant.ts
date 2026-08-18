@@ -4,7 +4,11 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
+import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+
+const FADE: Prefer = { kind: 'flag', label: 'Fade grounded components', glyph: 'fadeSlant' }
 
 const slant: Game = {
   id: 'slant',
@@ -14,7 +18,7 @@ const slant: Game = {
   pages: samePages('slant'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => [],
+  keypad: ({ prefs }) => preferKeys(prefs, [FADE]),
   arrows: {
     keys: [
       ...cross(),

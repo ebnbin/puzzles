@@ -120,6 +120,19 @@ export type IconName =
   | 'countTotal'
   | 'countLeft'
   | 'countBoth'
+  | 'loopWarn'
+  | 'snapGrid'
+  | 'crossedEdge'
+  | 'vertexNumber'
+  | 'fadeSlant'
+  | 'litBlob'
+  | 'stippleBig'
+  | 'followOff'
+  | 'followGrid'
+  | 'followSmart'
+  | 'masyuStyle'
+  | 'loopyStyle'
+  | 'clearRegion'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -392,6 +405,121 @@ const PATHS: Record<IconName, React.ReactNode> = {
       stroke="none"
       d="M6 3.4h12a2.6 2.6 0 0 1 2.6 2.6v12a2.6 2.6 0 0 1-2.6 2.6H6A2.6 2.6 0 0 1 3.4 18V6A2.6 2.6 0 0 1 6 3.4Z M13.3 8.2 13.3 16 11.6 16 11.6 10.2 10 10.9 10 9.3 11.7 8.2Z"
     />
+  ),
+  // 一圈接成环的管子:四个接头 + 闭合的环。net 里成环即是错。
+  loopWarn: (
+    <>
+      <rect x="6" y="6" width="12" height="12" rx="3" strokeWidth="2.4" />
+      <circle cx="6" cy="6" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="6" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="6" cy="18" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="18" r="2.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // 一张看不见的网格,点吸在交点上。
+  snapGrid: (
+    <>
+      <path d="M3.6 8.4h16.8" strokeDasharray="1.6 2" />
+      <path d="M3.6 15.6h16.8" strokeDasharray="1.6 2" />
+      <path d="M8.4 3.6v16.8" strokeDasharray="1.6 2" />
+      <path d="M15.6 3.6v16.8" strokeDasharray="1.6 2" />
+      <circle cx="15.6" cy="8.4" r="2.6" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // 两条边交叉,交点圈出来。
+  crossedEdge: (
+    <>
+      <path d="M4.6 4.6 19.4 19.4" />
+      <path d="M19.4 4.6 4.6 19.4" />
+      <circle cx="12" cy="12" r="3.4" />
+    </>
+  ),
+  // 和 vertex 同一副骨架,中心那颗点换成编号:untangle 那个键的两张脸。
+  vertexNumber: (
+    <>
+      <path d="M4 5.6 8.1 8.9" />
+      <path d="M20.4 8 16.5 9.9" />
+      <path d="M8.6 20.6 10.2 16.6" />
+      <path d="M13.3 8.2 13.3 16 11.6 16 11.6 10.2 10 10.9 10 9.3 11.7 8.2Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // 画淡的斜线;实线那条是 backslash。
+  fadeSlant: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="m7.4 7.4 9.2 9.2" strokeDasharray="1.6 2" />
+    </>
+  ),
+  // 被照亮的格子上仍旧画着「这里不是灯」的那颗点。
+  litBlob: (
+    <>
+      <rect x="6.4" y="6.4" width="11.2" height="11.2" rx="2" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+      <path d="m3.4 3.4 1.6 1.6" />
+      <path d="m19 3.4-1.6 1.6" />
+      <path d="m3.4 20.6 1.6-1.6" />
+      <path d="m20.6 20.6-1.6-1.6" />
+    </>
+  ),
+  // 大号候选点;小号那张复用 stipple。
+  stippleBig: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <circle cx="8.8" cy="8.8" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="15.2" cy="8.8" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="8.8" cy="15.2" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="15.2" cy="15.2" r="2.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // 一笔跟出去多远:只画自己那条 / 再跟一段 / 一路跟到底。loopy 那个键的三张脸。
+  followOff: (
+    <>
+      <path d="M4.4 17 9.4 8.6" />
+      <circle cx="4.4" cy="17" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="9.4" cy="8.6" r="1.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  followGrid: (
+    <>
+      <path d="M4.4 17 9.4 8.6 14.6 17" />
+      <circle cx="4.4" cy="17" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="9.4" cy="8.6" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="14.6" cy="17" r="1.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  followSmart: (
+    <>
+      <path d="M4.4 17 9.4 8.6 14.6 17 19.6 8.6" />
+      <circle cx="4.4" cy="17" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="9.4" cy="8.6" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="14.6" cy="17" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="19.6" cy="8.6" r="1.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // 珠子坐格心、线穿格心(传统)/ 网格挪半格,珠子落在交点上(loopy 画法)。
+  masyuStyle: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M3.6 12h5.2" />
+      <path d="M15.2 12h5.4" />
+      <circle cx="12" cy="12" r="3.2" />
+    </>
+  ),
+  loopyStyle: (
+    <>
+      <path d="M12 3.4v5.2" />
+      <path d="M12 15.4v5.2" />
+      <path d="M3.4 12h5.2" />
+      <path d="M15.4 12h5.2" />
+      <circle cx="12" cy="12" r="3.4" />
+    </>
+  ),
+  // 一块凑齐了的区域:边界坐实,里面收拾干净。
+  clearRegion: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" strokeWidth="2.4" />
+      <path d="m8 12.2 2.8 2.8 5.4-6" />
+    </>
   ),
   // 一条被划掉、但仍旧淡淡画着的格线。
   faintLine: (

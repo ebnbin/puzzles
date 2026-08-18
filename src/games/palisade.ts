@@ -9,7 +9,8 @@
 import type { ArrowKey, Game, Slot } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
-import { preference } from './util/keys'
+import type { Prefer } from './util/keys'
+import { preference, preferKeys } from './util/keys'
 import { cross } from './util/pad'
 
 const WALL = 2
@@ -100,6 +101,12 @@ const borderKey = (
   },
 })
 
+const TIDY: Prefer = {
+  kind: 'flag',
+  label: 'Automatically clear edges in completed regions',
+  glyph: 'clearRegion',
+}
+
 const palisade: Game<Facts> = {
   id: 'palisade',
   upstream: { labels: 'none', cursor: { kind: 'reported' } },
@@ -108,7 +115,7 @@ const palisade: Game<Facts> = {
   pages: samePages('palisade'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: true },
-  keypad: () => [],
+  keypad: ({ prefs }) => preferKeys<Facts>(prefs, [TIDY]),
   arrows: {
     keys: [
       ...cross<Facts>(),

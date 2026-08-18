@@ -6,8 +6,15 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { jumbleKey } from './util/keys'
+import type { Prefer } from './util/keys'
+import { jumbleKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+
+const LOOPS: Prefer = {
+  kind: 'flag',
+  label: 'Highlight loops involving unlocked squares',
+  glyph: 'loopWarn',
+}
 
 const net: Game = {
   id: 'net',
@@ -25,7 +32,7 @@ const net: Game = {
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
   // J 重排没有鼠标入口(net.c:2331),是这里唯一够不着的键。
-  keypad: () => [jumbleKey()],
+  keypad: ({ prefs }) => [jumbleKey(), ...preferKeys(prefs, [LOOPS])],
   arrows: {
     keys: [
       ...cross(),
