@@ -1,15 +1,10 @@
 // Solo:数独(含 Killer、Jigsaw、X 变体)。上游 solo.c。
 // 数字键盘按参数推(重新实现 request_keys 的结果,emcc.c 不调用它),认不出的
 // 参数一律不显示键盘;对不对得上由 scripts/check-keys.mjs 去问引擎。
-// 读盘器解析 Solo 的参数/描述/走子,喂给数字键的余量角标。
-import type { Field } from './util/save'
-import { find } from './util/save'
 import type { Game } from './game'
+import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import type { Board } from './util/latin'
-import { gridMoves, runLengthGrid } from './util/latin'
-import type { Counted } from './util/keys'
-import { clearKey, counting, digitKeys, marksKey } from './util/keys'
+import { clearKey, digitKeys, marksKey } from './util/keys'
 import { act, cross } from './util/pad'
 
 function params(text: string): { c: number; r: number } | null {
@@ -54,25 +49,7 @@ function params(text: string): { c: number; r: number } | null {
   return { c, r }
 }
 
-export function readSolo(lines: Field[]): Board | null {
-  const parsed = params(find(lines, 'CPARAMS') ?? find(lines, 'PARAMS') ?? '')
-  if (!parsed) return null
-  const size = parsed.c * parsed.r
-  const area = size * size
-
-  const described = runLengthGrid(find(lines, 'PRIVDESC') ?? find(lines, 'DESC') ?? '', area)
-  if (!described) return null
-
-  return {
-    squares: area,
-    values: Array.from({ length: size }, (_, i) => i + 1),
-    each: size,
-    clues: described.grid,
-    moves: gridMoves(size),
-  }
-}
-
-const solo: Game<Counted> = {
+const solo: Game = {
   id: 'solo',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
@@ -85,18 +62,18 @@ const solo: Game<Counted> = {
     if (!parsed) return null
     const cr = parsed.c * parsed.r
     return [
-      ...digitKeys<Counted>(cr, { left: (facts, value) => facts.left?.get(value) }),
+      ...digitKeys(cr),
       clearKey(),
       marksKey(),
     ]
   },
   arrows: {
     keys: [
-      ...cross<Counted>(),
+      ...cross(),
       act({ id: 'pencil', slot: 4, key: 'Enter', idle: { glyph: 'pencil', word: 'pencil' } }),
     ],
   },
-  observe: counting(readSolo),
+  observe: still,
 }
 
 export default solo

@@ -172,7 +172,6 @@
     "ghost": "Ghost",
     "vampire": "Vampire",
     "zombie": "Zombie",
-    "left": "{digit}, {count} left to place",
     "done": "Submit this guess",
     "lock": "Keep this peg for the next guess",
     "highlight": "Highlight dominoes with {digit}",

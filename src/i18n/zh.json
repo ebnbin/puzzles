@@ -172,7 +172,6 @@
     "ghost": "幽灵",
     "vampire": "吸血鬼",
     "zombie": "僵尸",
-    "left": "{digit}，还有 {count} 个没填",
     "done": "提交这次猜测",
     "lock": "把这一格保留到下次猜测",
     "highlight": "高亮含 {digit} 的骨牌",

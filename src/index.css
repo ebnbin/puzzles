@@ -832,18 +832,6 @@ p.notice-intro button:active {
   background: radial-gradient(currentColor 1.6px, transparent 1.7px) 0 0 / 5px 5px;
 }
 
-.key-left {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  color: var(--text-2);
-  font-size: var(--t-2xs);
-  font-weight: 500;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-
 /* 五类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
      act   实心无边框(Menu 另填 accent-soft)
      entry  实心无边框
