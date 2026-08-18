@@ -3,12 +3,13 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import {
+  PENCIL_HIGHLIGHT,
   clearKey,
   digitKeys,
   hintKey,
   leadingNumber,
   marksKey,
-  pencilKey,
+  preferKeys,
 } from './util/keys'
 import { act, cross } from './util/pad'
 
@@ -28,7 +29,7 @@ const unequal: Game = {
       clearKey(),
       marksKey(),
       hintKey(),
-      ...pencilKey(prefs),
+      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
     ]
   },
   arrows: {

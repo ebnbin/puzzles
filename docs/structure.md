@@ -86,7 +86,7 @@ ground truth。
 | 文件 | 作用 |
 | --- | --- |
 | `declare.ts` | `verbatim` / `samePages` 申报速记 |
-| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好开关键 |
+| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好开关键(`preferKeys` 按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
@@ -199,7 +199,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
-| `check-prefer.mjs` | prefer 键:上游那句英文 label 还认得出,按一下真写进偏好存档 |
+| `check-prefer.mjs` | prefer 键:九个游戏的英文 label 逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档 |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 

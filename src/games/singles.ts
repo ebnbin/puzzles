@@ -3,9 +3,16 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
+import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Black', 'Circle', 'Restore', 'Remove']
+
+const BLACK_NUMS: Prefer = {
+  label: 'Show numbers on black squares',
+  glyph: 'numberBlack',
+}
 
 const singles: Game = {
   id: 'singles',
@@ -15,7 +22,7 @@ const singles: Game = {
   pages: samePages('singles'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => [],
+  keypad: ({ prefs }) => preferKeys(prefs, [BLACK_NUMS]),
   arrows: {
     keys: [
       ...cross(),

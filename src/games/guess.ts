@@ -17,7 +17,7 @@ import type { ArrowKey, Game, Key, Slot } from './game'
 import { still } from './game'
 import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
-import { flag, hintKey } from './util/keys'
+import { flag, hintKey, preferKeys } from './util/keys'
 import { step } from './util/pad'
 
 // 引擎调色板里按名字认下来的槽号:钉子色从 6 号起、边框借 1 号。升级 vendor
@@ -90,6 +90,7 @@ const guess: Game = {
         }
       }),
       hintKey(),
+      ...preferKeys(prefs, [{ label: LABELLED, glyph: 'numberPeg' }]),
     ]
   },
   arrows: {

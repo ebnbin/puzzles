@@ -4,8 +4,12 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { hintKey } from './util/keys'
+import type { Prefer } from './util/keys'
+import { hintKey, preferKeys } from './util/keys'
 import { act, arm, cross } from './util/pad'
+
+// 'g'/'G' 当场翻这条偏好(bridges.c:2589),所以偏好是 volatile 的:按完键要重读。
+const HINTS: Prefer = { label: 'Show possible bridge locations', glyph: 'maybeBridge' }
 
 const bridges: Game = {
   id: 'bridges',
@@ -14,8 +18,8 @@ const bridges: Game = {
   dark: {},
   pages: samePages('bridges'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false },
-  keypad: () => [hintKey()],
+  prefs: { panel: verbatim, volatile: true },
+  keypad: ({ prefs }) => [hintKey(), ...preferKeys(prefs, [HINTS])],
   arrows: {
     keys: [
       ...cross(),
