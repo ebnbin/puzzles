@@ -4,6 +4,14 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
+import { preferKeys } from './util/keys'
+
+const FAINT: Prefer = {
+  kind: 'flag',
+  label: 'Draw excluded grid lines faintly',
+  glyph: 'faintLine',
+}
 
 const loopy: Game = {
   id: 'loopy',
@@ -13,7 +21,7 @@ const loopy: Game = {
   pages: samePages('loopy'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => [],
+  keypad: ({ prefs }) => preferKeys(prefs, [FAINT]),
   arrows: null,
   observe: still,
 }

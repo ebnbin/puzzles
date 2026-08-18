@@ -2,6 +2,7 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
 import {
   PENCIL_HIGHLIGHT,
   clearKey,
@@ -11,6 +12,12 @@ import {
   preferKeys,
 } from './util/keys'
 import { act, cross } from './util/pad'
+
+const LOOK: Prefer = {
+  kind: 'cycle',
+  answers: ['2D', '3D'],
+  glyphs: ['towersFlat', 'towersTall'],
+}
 
 const towers: Game = {
   id: 'towers',
@@ -27,7 +34,7 @@ const towers: Game = {
       ...digitKeys(size),
       clearKey(),
       marksKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
+      ...preferKeys(prefs, [PENCIL_HIGHLIGHT, LOOK]),
     ]
   },
   arrows: {

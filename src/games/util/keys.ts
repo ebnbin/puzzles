@@ -67,17 +67,33 @@ export const marksKey = <F>(): Key<F> => ({
   press: tap('M'),
 })
 
-// 上游 get_prefs 里的一条布尔偏好,和它在键面上的样子。
-export type Prefer = { label: string; glyph: IconName }
+// 上游 get_prefs 里的一条偏好,和它在键面上的样子。两种,认法不同:
+//   flag  布尔,按英文 label 认——emcc 只把 name 交给 JS,kw 到不了这一侧。
+//   cycle 多选一,按答案表逐项认(同下面的 preference:上游改名仍读对);一按走
+//         下一格、走到头绕回。每个答案一张脸,长度必须和答案表一样。
+export type Prefer =
+  | { kind: 'flag'; label: string; glyph: IconName }
+  | { kind: 'cycle'; answers: readonly string[]; glyphs: readonly IconName[] }
 
 // solo / keen / towers / unequal / undead 五家共用同一条,字面一模一样(各 .c 的
 // get_prefs);字面是唯一的钥匙,改这个串等于把五个游戏的键一起摘掉。
 export const PENCIL_HIGHLIGHT: Prefer = {
+  kind: 'flag',
   label: 'Keep mouse highlight after changing a pencil mark',
   glyph: 'pencilHold',
 }
 
-// 上游的布尔偏好摆成第六类的键:脸读当前值,按一下翻转、写回。
+const sameList = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((x, i) => x === b[i])
+
+const findAt = (prefs: readonly DialogControl[], want: Prefer) =>
+  prefs.findIndex((c) =>
+    want.kind === 'flag'
+      ? c.kind === 'boolean' && c.label === want.label
+      : c.kind === 'choices' && sameList(c.choices, want.answers),
+  )
+
+// 上游的偏好摆成第六类的键:脸读当前值,按一下翻转或走下一格,再写回。
 // 次序不听调用方的,按上游 get_prefs 报出来的先后排——键区上的顺序和偏好面板里
 // 的顺序永远一致(同宿主排六类:顺序是结构,不是各游戏手写的约定)。
 // 认不出的那条一个键都不发:上游改了名是「键消失」,不是「键失灵」。
@@ -86,26 +102,37 @@ export function preferKeys<F>(
   wanted: readonly Prefer[],
 ): Key<F>[] {
   return wanted
-    .map((want) => ({
-      want,
-      at: prefs.findIndex((c) => c.kind === 'boolean' && c.label === want.label),
-    }))
+    .map((want) => ({ want, at: findAt(prefs, want) }))
     .filter(({ at }) => at >= 0)
     .sort((a, b) => a.at - b.at)
-    .map(
-      ({ want }): Key<F> => ({
-        group: 'prefer',
-        face: (view) => ({ art: { glyph: want.glyph }, on: flag(view.prefs, want.label) }),
-        press: (board) =>
-          board.prefer((controls) => {
-            const found = controls.find(
-              (c) => c.kind === 'boolean' && c.label === want.label,
-            )
-            if (found?.kind !== 'boolean') return false
-            found.value = !found.value
-            return true
-          }),
-      }),
+    .map(({ want }): Key<F> =>
+      want.kind === 'flag'
+        ? {
+            group: 'prefer',
+            face: (view) => ({ art: { glyph: want.glyph }, on: flag(view.prefs, want.label) }),
+            press: (board) =>
+              board.prefer((controls) => {
+                const found = controls[findAt(controls, want)]
+                if (found?.kind !== 'boolean') return false
+                found.value = !found.value
+                return true
+              }),
+          }
+        : {
+            group: 'prefer',
+            // 多选一没有「开」这一说,每一格都同样正当:状态全由脸说,不点亮。
+            // 脸画的是「现在是哪一格」,不是「按下去会变成什么」(判据三)。
+            face: (view) => ({
+              art: { glyph: want.glyphs[preference(view.prefs, want.answers) ?? 0] },
+            }),
+            press: (board) =>
+              board.prefer((controls) => {
+                const found = controls[findAt(controls, want)]
+                if (found?.kind !== 'choices') return false
+                found.value = (found.value + 1) % want.answers.length
+                return true
+              }),
+          },
     )
 }
 

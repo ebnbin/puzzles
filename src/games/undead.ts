@@ -4,10 +4,23 @@
 import type { Game, Key } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
 import { PENCIL_HIGHLIGHT, clearKey, marksKey, preference, preferKeys, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
 const PICTURES = ['Pictures', 'Letters']
+
+const MONSTERS: Prefer = {
+  kind: 'cycle',
+  answers: PICTURES,
+  glyphs: ['asPicture', 'asLetter'],
+}
+
+const COUNTS: Prefer = {
+  kind: 'cycle',
+  answers: ['Total', 'Remaining', 'Placed/Total'],
+  glyphs: ['countTotal', 'countLeft', 'countBoth'],
+}
 
 const FACES = [
   { letter: 'G', image: 'ghost' },
@@ -36,7 +49,7 @@ const undead: Game = {
       ),
       clearKey(),
       marksKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
+      ...preferKeys(prefs, [PENCIL_HIGHLIGHT, MONSTERS, COUNTS]),
     ]
   },
   arrows: {
