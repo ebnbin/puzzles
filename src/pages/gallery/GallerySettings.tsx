@@ -7,6 +7,7 @@ import Icon from '../../ui/Icon'
 import { useScrollLock } from '../../ui/useScrollLock'
 import { setAssist, useAssist } from '../puzzle/useAssist'
 import { setArrows, useArrows } from '../puzzle/useArrows'
+import { setPrefer, usePrefer } from '../puzzle/usePrefer'
 
 const ARMED_MS = 3000
 
@@ -21,6 +22,7 @@ export default function GallerySettings({
   const [lang] = useLang()
   const arrows = useArrows()
   const assist = useAssist()
+  const prefer = usePrefer()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -72,6 +74,18 @@ export default function GallerySettings({
           type="checkbox"
           checked={assist}
           onChange={(e) => setAssist(e.target.checked)}
+        />
+      </label>
+
+      <label className="setting">
+        <span className="setting-text">
+          {t.settings.prefer}
+          <em>{t.settings.preferHint}</em>
+        </span>
+        <input
+          type="checkbox"
+          checked={prefer}
+          onChange={(e) => setPrefer(e.target.checked)}
         />
       </label>
 

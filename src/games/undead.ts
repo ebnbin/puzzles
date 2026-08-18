@@ -4,7 +4,7 @@
 import type { Game, Key } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { clearKey, marksKey, preference, tap } from './util/keys'
+import { clearKey, marksKey, pencilKey, preference, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
 const PICTURES = ['Pictures', 'Letters']
@@ -36,6 +36,7 @@ const undead: Game = {
       ),
       clearKey(),
       marksKey(),
+      ...pencilKey(prefs),
     ]
   },
   arrows: {

@@ -16,12 +16,13 @@ import type { Key } from '../../games/game'
 import { padButtons } from '../../games/util/pad'
 import { markIntroduced, owesIntroduction } from '../../engine/saves'
 import type { CanvasRenderer } from '../../engine/renderer'
-import type { PuzzleApi } from '../../engine/types'
+import type { DialogControl, PuzzleApi } from '../../engine/types'
 import { openManual } from '../manual/Manual'
 import { manualHref, fill, useLang, useStrings } from '../../i18n'
 import { showGallery } from '../../view'
 import { useAssist } from './useAssist'
 import { useArrows } from './useArrows'
+import { usePrefer } from './usePrefer'
 import { useBoard } from './useBoard'
 import { useConfigBox } from './useConfigBox'
 import { START_FAILED, useEngine } from './useEngine'
@@ -72,9 +73,15 @@ export default function PuzzleHost({
   const [lang] = useLang()
   const help = useHelp(game.pages.help)
 
-  const board = useBoard(game, apiRef, rendererRef, acted)
+  // config box 要等 board 造好,而 board 的 prefer 要 config box 才写得动:
+  // 一只 ref 把这个环打开,填在渲染里(和下面几处 xxxRef.current = 同一路数)。
+  const preferRef = useRef<((use: (prefs: DialogControl[]) => boolean) => boolean | void) | null>(
+    null,
+  )
+  const board = useBoard(game, apiRef, rendererRef, acted, preferRef)
   const outcome = useOutcome(name, apiRef)
   const config = useConfigBox(apiRef, acted, board.setPrefs)
+  preferRef.current = config.writePrefs
   const engine = useEngine({
     name,
     game,
@@ -108,6 +115,7 @@ export default function PuzzleHost({
   const wanted = useArrows()
   const arrows = wanted && game.arrows !== null
   const helping = useAssist()
+  const preferring = usePrefer()
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
@@ -123,15 +131,21 @@ export default function PuzzleHost({
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
   const prefs = board.view.prefs
   // 上方区域的顺序是结构,不是各游戏手写出来的约定:entry 在前、pick 居中、
-  // assist 在后;sort 稳定,组内保留声明序。
+  // assist 再后、prefer 收尾;sort 稳定,组内保留声明序。
   const keys = useMemo(() => {
     const dealt = game.keypad({ params: id.split(':')[0], prefs })
     if (!dealt) return []
-    const order = ['entry', 'pick', 'assist']
+    const shown: Record<Key<unknown>['group'], boolean> = {
+      entry: true,
+      pick: arrows,
+      assist: helping,
+      prefer: preferring,
+    }
+    const order = ['entry', 'pick', 'assist', 'prefer']
     return dealt
-      .filter((k) => (k.group === 'assist' ? helping : k.group !== 'pick' || arrows))
+      .filter((k) => shown[k.group])
       .sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group))
-  }, [arrows, helping, id, game, prefs])
+  }, [arrows, helping, preferring, id, game, prefs])
 
   // 圆键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有的。
   const { viewNow } = board
@@ -190,8 +204,10 @@ export default function PuzzleHost({
     [dialog, acted],
   )
 
+  // 开局读一次。键面形状看偏好的游戏都要这一份(prefer 的亮灭、guess 的色钉标号、
+  // palisade 的光标模式);volatile 只多管一件事——物理按键之后再重读一遍。
   useEffect(() => {
-    if (ready && game.prefs.volatile) readPrefs()
+    if (ready) readPrefs()
   }, [ready, game, readPrefs])
 
   const closeTypes = useCallback(() => {

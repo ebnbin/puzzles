@@ -86,7 +86,7 @@ ground truth。
 | 文件 | 作用 |
 | --- | --- |
 | `declare.ts` | `verbatim` / `samePages` 申报速记 |
-| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配 |
+| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好开关键 |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
@@ -110,9 +110,9 @@ ground truth。
 | `PuzzleHost.tsx` | 装配处:把四个域接起来再画出来 |
 | `useEngine.ts` | 引擎生命周期:起 wasm、绑回调、存档持久化、把引擎事件泵进旁边三个域 |
 | `useBoard.ts` | 棋盘通道:五项每游戏状态(标签/事实/光标镜像/粘滞键/上膛)与观察器;存档门重入计数私有在这里 |
-| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在 sheet 里)/ modal(兜底) |
+| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在 sheet 里)/ modal(兜底);偏好的读与写都从 borrowed 那条走 |
 | `useOutcome.ts` | 完成判定:status 只认沿、收尾浮层、记完成(求解器解出的不记) |
-| `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉 |
+| `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
 | `PuzzleTypes.tsx` | 类型 sheet:预设列表 + 自定义参数 |
@@ -124,6 +124,7 @@ ground truth。
 | `useHelp.ts` | 玩法速览文案装载(`public/help/`) |
 | `useArrows.ts` | 方向键总开关(`puzzles.arrows`) |
 | `useAssist.ts` | assist 键总开关(键名 `puzzles.aid` 已发布,只改了代码名) |
+| `usePrefer.ts` | prefer 键总开关(`puzzles.prefer`) |
 
 `pages/manual/`(手册):
 
@@ -198,6 +199,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
+| `check-prefer.mjs` | prefer 键:上游那句英文 label 还认得出,按一下真写进偏好存档 |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 
@@ -205,7 +207,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 
 | 路径 | 作用 |
 | --- | --- |
-| `docs/keys.md` | 按键适配:判据、五类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
+| `docs/keys.md` | 按键适配:判据、六类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
 | `docs/inputs.md` | 上游 40 游戏的全部输入参考,带源码行号,钉着上游 commit |
 | `docs/structure.md` | 本清单 |
 | `docs/gallery.png` | README 首图(`build-shot.mjs` 生成) |

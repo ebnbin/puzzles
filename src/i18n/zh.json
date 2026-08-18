@@ -31,7 +31,9 @@
     "arrows": "方向键",
     "arrowsHint": "用按键操作，不必直接点棋盘",
     "assist": "辅助键",
-    "assistHint": "提示和快捷操作，仅部分谜题提供"
+    "assistHint": "提示和快捷操作，仅部分谜题提供",
+    "prefer": "偏好键",
+    "preferHint": "把谜题自己的选项摆成按钮，仅部分谜题提供"
   },
 
   "puzzle": {
@@ -167,6 +169,7 @@
   "keys": {
     "clear": "清除",
     "marks": "填入一整套铅笔标记",
+    "pencilHold": "标记后停在这一格",
     "hint": "提示",
     "jumble": "重新打乱",
     "ghost": "幽灵",

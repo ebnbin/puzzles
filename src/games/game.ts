@@ -65,7 +65,8 @@ export type Types = { menu(presets: readonly Preset[]): readonly Preset[] }
 export type Prefs = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
   panel(controls: readonly DialogControl[]): readonly DialogControl[]
-  // 键盘也能改偏好的游戏,宿主在棋盘每次按键后重读一遍偏好。
+  // 物理按键也能改偏好的游戏(只有 undead 的 'a'),宿主在棋盘每次按键后重读一遍。
+  // 开局那一次读所有游戏都有,不看这一位:view.prefs 对谁都是真的。
   volatile: boolean
 }
 
@@ -95,7 +96,7 @@ export type Face = {
 export type Deal = { params: string; prefs: readonly DialogControl[] }
 
 export type Key<F> = {
-  group: 'entry' | 'pick' | 'assist'
+  group: 'entry' | 'pick' | 'assist' | 'prefer'
   face: Face | ((view: View<F>) => Face)
   // 契约测试用:这个键等价于上游 request_keys 的哪个按钮码(check-keys 对账)。
   button?: number
@@ -155,6 +156,9 @@ export type Board<F> = {
   view(): View<F> // send 之后同步刷新,连发中间的判断可靠
   send(s: Stroke): void
   gate<T>(run: (g: Gate) => T): T
+  // 借一次上游的偏好对话框:就地改活对象再提交,返回 false = 什么都没动、撤回。
+  // 控件只能按英文 label 认——emcc 只把 name 交给 JS,kw 到不了这一侧(emcc.c:628)。
+  prefer(use: (prefs: DialogControl[]) => boolean): void
   undo(): void
   arm(armed: Armed | null): void
   latch(id: string, on: boolean): void

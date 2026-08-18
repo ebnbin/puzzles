@@ -1,5 +1,6 @@
 // 上方键区的通用构造器。全部看不见游戏:数字有几个、从哪起标,都由游戏文件说了算。
 import type { DialogControl } from '../../engine/types'
+import type { IconName } from '../../ui/Icon'
 import type { Board, Key, Stroke } from '../game'
 
 export const tap =
@@ -65,6 +66,36 @@ export const marksKey = <F>(): Key<F> => ({
   button: 'M'.charCodeAt(0),
   press: tap('M'),
 })
+
+// 上游的一条布尔偏好摆成第六类的一个键:脸读当前值,按一下翻转、写回。
+// 认不出这条偏好就一个键都不发——上游改了名是「键消失」,不是「键失灵」。
+export function preferKey<F>(
+  prefs: readonly DialogControl[],
+  label: string,
+  glyph: IconName,
+): Key<F>[] {
+  if (!prefs.some((c) => c.kind === 'boolean' && c.label === label)) return []
+  return [
+    {
+      group: 'prefer',
+      face: (view) => ({ art: { glyph }, on: flag(view.prefs, label) }),
+      press: (board) =>
+        board.prefer((controls) => {
+          const found = controls.find((c) => c.kind === 'boolean' && c.label === label)
+          if (found?.kind !== 'boolean') return false
+          found.value = !found.value
+          return true
+        }),
+    },
+  ]
+}
+
+// solo / keen / towers / unequal / undead 五家共用同一条,字面一模一样(各 .c 的
+// get_prefs);字面是唯一的钥匙,改这个串等于把五个游戏的键一起摘掉。
+const PENCIL_HIGHLIGHT = 'Keep mouse highlight after changing a pencil mark'
+
+export const pencilKey = <F>(prefs: readonly DialogControl[]): Key<F>[] =>
+  preferKey(prefs, PENCIL_HIGHLIGHT, 'pencilHold')
 
 // 偏好控件的匹配。故意按 answers 列表逐项匹配、不按名字(keyword 过不了边界):
 // 上游改名仍读对;答案增删换序时宁可漏配(回落默认脸)也不把 value 对到换过序的

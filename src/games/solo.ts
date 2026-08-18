@@ -4,7 +4,7 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { clearKey, digitKeys, marksKey } from './util/keys'
+import { clearKey, digitKeys, marksKey, pencilKey } from './util/keys'
 import { act, cross } from './util/pad'
 
 function params(text: string): { c: number; r: number } | null {
@@ -57,7 +57,7 @@ const solo: Game = {
   pages: samePages('solo'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ params: p }) => {
+  keypad: ({ params: p, prefs }) => {
     const parsed = params(p)
     if (!parsed) return null
     const cr = parsed.c * parsed.r
@@ -65,6 +65,7 @@ const solo: Game = {
       ...digitKeys(cr),
       clearKey(),
       marksKey(),
+      ...pencilKey(prefs),
     ]
   },
   arrows: {
