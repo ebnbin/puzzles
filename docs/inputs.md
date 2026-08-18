@@ -725,6 +725,10 @@ Sixteen 的两个确认键在网格边缘叫 "Slide"/"Back"、在网格内部叫
 | `CURSOR_SELECT2` | 光标在提交格上 | 返回 NULL | guess.c:959 |
 | 中键 | — | 未使用,落到函数末尾的 `return` | guess.c:964 |
 
+**偏好** `show-labels`(guess.c:441):颜色钉上标不标数字,和 `L` 键同一个开关,但跨局
+保留。上游默认不标;**本前端把默认翻成标**(见 keys.md 的 `prefs.defaults`)——这是全集里
+唯一一个状态整个由颜色编码的游戏。
+
 **`L` 是全 collection 里唯一一个「解出之后仍然能用」的游戏内按键**——因为它只改显示,
 不改棋局(guess.c:825 排在 `solved` 检查之前)。
 
@@ -1092,6 +1096,11 @@ Inertia 有八个(inertia.c:1601 的 `PI/4` 分档)。
 | `H` `h` | — | **走一步求解器给的提示**(真的改棋盘) | bridges.c:2441 |
 | 中键 | — | 未使用 | bridges.c:2594 |
 
+**偏好** `show-hints`(bridges.c:2156):画不画出所有合法桥位,和 `G` 键同一个开关,但跨局
+保留。上游默认不画;**本前端把默认翻成画**(见 keys.md 的 `prefs.defaults`)。判定用的
+`between_island`(bridges.c:2783)是纯几何:只问「这两个岛在同一行列上、中间没别的岛」,
+不看线索数字也不看已架的桥。
+
 **「按数字跳到那个数的岛」是 Bridges 独有的导航方式**,而且平局时按 (y,x) 字典序取最小,
 注释说这是为了让玩家能学会这个规律来快速导航(bridges.c:2572)。
 
@@ -1270,7 +1279,7 @@ Towers 多了一样别人没有的:**棋盘四周的线索数字本身可以被�
 **「点掉外沿线索」是 Towers 和 Unequal 共有、别人没有的一类输入**——被划掉的线索只是
 视觉记号,不影响判定。Towers 用左键或 Shift/Ctrl+方向键,Unequal 用任意鼠标键点关系符号。
 
-**`request_keys`**(towers.c:910):`1`..`w`,外加 `\b`。**偏好** `pencil-keep-highlight`。
+**`request_keys`**(towers.c:910):`1`..`w`,外加 `\b`。**偏好** `pencil-keep-highlight`,同 Solo。
 
 ---
 
@@ -1460,6 +1469,10 @@ Towers 多了一样别人没有的:**棋盘四周的线索数字本身可以被�
 Map 的 `L` 是同一类「纯显示开关」。
 
 **注意 `CURSOR_SELECT2` 在这里是「清空」**(和 Solo 一样),不是切换铅笔档(那是 Unequal)。
+
+**偏好** 三条(undead.c:1697):`pencil-keep-highlight`,同 Solo;`monsters` 图片还是字母,
+和 `A` 键同一个开关;`count-style` 边上的计数怎么写(总数 / 还差几只 / 两个都写),
+和 `C` 键同一个开关。
 
 ---
 ### 36. Unruly — 每行每列黑白各半
