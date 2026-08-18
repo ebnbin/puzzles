@@ -35,7 +35,7 @@ const undead: Game = {
   dark: { strokes: [0, 2] },
   pages: samePages('undead'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: true, seed: keepPencil },
+  prefs: { panel: verbatim, volatile: true, defaults: keepPencil },
   keypad: ({ prefs }) => {
     const letters = preference(prefs, PICTURES) === PICTURES.indexOf('Letters')
     return [

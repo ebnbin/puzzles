@@ -26,7 +26,7 @@ const towers: Game = {
   dark: {},
   pages: samePages('towers'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
+  prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
   keypad: ({ params, prefs }) => {
     const size = leadingNumber(params)
     if (!size) return null

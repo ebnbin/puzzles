@@ -56,7 +56,7 @@ const solo: Game = {
   dark: {},
   pages: samePages('solo'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
+  prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
   keypad: ({ params: p, prefs }) => {
     const parsed = params(p)
     if (!parsed) return null

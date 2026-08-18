@@ -20,7 +20,7 @@ const unequal: Game = {
   dark: {},
   pages: samePages('unequal'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false, seed: keepPencil },
+  prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
   keypad: ({ params, prefs }) => {
     const order = leadingNumber(params)
     if (!order) return null
