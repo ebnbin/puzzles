@@ -200,6 +200,9 @@ const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): Verdict => {
   const { labels } = view
   if (!spec.words || understood(spec.words, labels)) {
     if (spec.does) {
+      // 两词俱空先于 does 的解析定性:它是 silent 不是 already,否则 lit 的
+      // 幂等豁免会把「没光标」也放行(pattern 没光标时三个色键全亮的旧 bug)。
+      if (labelsSilent(labels)) return { mute: 'silent' }
       if (overwrites(spec, labels)) return { send: spec.key }
       const asks = holding(spec, labels) ? spec.instead : spec.does
       if (labels.enter === asks) return { send: 'Enter' }
