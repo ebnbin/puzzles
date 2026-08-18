@@ -105,10 +105,11 @@ export function preferKeys<F>(
     .map((want) => ({ want, at: findAt(prefs, want) }))
     .filter(({ at }) => at >= 0)
     .sort((a, b) => a.at - b.at)
-    .map(({ want }): Key<F> =>
+    .map(({ want, at }): Key<F> =>
       want.kind === 'flag'
         ? {
             group: 'prefer',
+            fronts: at,
             face: (view) => ({ art: { glyph: want.glyph }, on: flag(view.prefs, want.label) }),
             press: (board) =>
               board.prefer((controls) => {
@@ -120,6 +121,7 @@ export function preferKeys<F>(
           }
         : {
             group: 'prefer',
+            fronts: at,
             // 多选一没有「开」这一说,每一格都同样正当:状态全由脸说,不点亮。
             // 脸画的是「现在是哪一格」,不是「按下去会变成什么」(判据三)。
             face: (view) => ({

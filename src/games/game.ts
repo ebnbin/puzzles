@@ -64,6 +64,7 @@ export type Pages = { manual: string; help: string; howto: string }
 export type Types = { menu(presets: readonly Preset[]): readonly Preset[] }
 export type Prefs = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
+  // 拿到的已经是宿主撤掉「键区已有按钮」那几条之后的剩余(见 Key.fronts)。
   panel(controls: readonly DialogControl[]): readonly DialogControl[]
   // 物理按键也能改偏好的游戏(只有 undead 的 'a'),宿主在棋盘每次按键后重读一遍。
   // 开局那一次读所有游戏都有,不看这一位:view.prefs 对谁都是真的。
@@ -103,6 +104,9 @@ export type Key<F> = {
   face: Face | ((view: View<F>) => Face)
   // 契约测试用:这个键等价于上游 request_keys 的哪个按钮码(check-keys 对账)。
   button?: number
+  // 这个键顶的是 view.prefs 里第几条。宿主据此把那一行从偏好面板里撤掉——同一个
+  // 开关不在两处各占一行。只有 preferKeys 填这一格。
+  fronts?: number
   press(board: Board<F>): void
 }
 
