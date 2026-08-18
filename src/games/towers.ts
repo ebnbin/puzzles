@@ -6,7 +6,8 @@ import { samePages, verbatim } from './util/declare'
 import type { Board } from './util/latin'
 import { gridMoves, latinGroups, leadingNumber, runLengthGrid } from './util/latin'
 import type { Counted } from './util/keys'
-import { clearKey, counting, digitKeys, markActions, marksKey } from './util/keys'
+import { clearKey, counting, digitKeys, marksKey } from './util/keys'
+import { latinDeduce } from './deduce/latin'
 import { act, cross } from './util/pad'
 
 function line(index: number, size: number): { start: number; step: number } {
@@ -88,7 +89,7 @@ const towers: Game<Counted> = {
       ...digitKeys<Counted>(size, { left: (facts, value) => facts.left?.get(value) }),
       clearKey(),
       marksKey(),
-      ...markActions(readTowers),
+      ...latinDeduce(readTowers),
     ]
   },
   arrows: {

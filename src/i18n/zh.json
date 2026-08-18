@@ -31,7 +31,9 @@
     "arrows": "方向键",
     "arrowsHint": "用按键操作，不必直接点棋盘",
     "assist": "辅助键",
-    "assistHint": "提示和快捷操作，仅部分谜题提供"
+    "assistHint": "提示和快捷操作，仅部分谜题提供",
+    "deduce": "推理键",
+    "deduceHint": "替你填上规则已经定死的部分，仅部分谜题提供"
   },
 
   "puzzle": {

@@ -3,8 +3,7 @@
 import type { DialogControl } from '../../engine/types'
 import type { Board, Key, Observe, Stroke } from '../game'
 import type { BoardReader } from './latin'
-import { clearMarks, fillMarks, placeSingles, remaining } from './latin'
-import { loadExtended } from './save'
+import { remaining } from './latin'
 
 export const tap =
   <F>(stroke: Stroke) =>
@@ -84,22 +83,6 @@ export const marksKey = <F>(): Key<F> => ({
   button: 'M'.charCodeAt(0),
   press: tap('M'),
 })
-
-// 三个走存档门的标记键:留下仍可能的、摆上唯一解、清空全部。
-// 算法在 util/latin.ts,读盘器由游戏文件交进来。
-export function markActions<F>(read: BoardReader): Key<F>[] {
-  const action =
-    (fn: (save: string, read: BoardReader) => string | null) => (board: Board<F>) =>
-      board.gate((g) => {
-        const next = fn(g.read(), read)
-        if (next) loadExtended(g, next)
-      })
-  return [
-    { group: 'assist', face: { art: { glyph: 'possible' } }, button: 0, press: action(fillMarks) },
-    { group: 'assist', face: { art: { glyph: 'single' } }, button: 0, press: action(placeSingles) },
-    { group: 'assist', face: { art: { glyph: 'blank' } }, button: 0, press: action(clearMarks) },
-  ]
-}
 
 // 偏好控件的匹配。故意按 answers 列表逐项匹配、不按名字(keyword 过不了边界):
 // 上游改名仍读对;答案增删换序时宁可漏配(回落默认脸)也不把 value 对到换过序的

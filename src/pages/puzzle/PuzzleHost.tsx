@@ -21,6 +21,7 @@ import { openManual } from '../manual/Manual'
 import { manualHref, fill, useLang, useStrings } from '../../i18n'
 import { showGallery } from '../../view'
 import { useAssist } from './useAssist'
+import { useDeduce } from './useDeduce'
 import { useArrows } from './useArrows'
 import { useBoard } from './useBoard'
 import { useConfigBox } from './useConfigBox'
@@ -34,6 +35,8 @@ import { usePuzzleKeys } from './usePuzzleKeys'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
+
+const KEYPAD_ORDER = ['entry', 'pick', 'assist', 'deduce']
 
 export default function PuzzleHost({
   name,
@@ -108,6 +111,7 @@ export default function PuzzleHost({
   const wanted = useArrows()
   const arrows = wanted && game.arrows !== null
   const helping = useAssist()
+  const deducing = useDeduce()
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [typesOpen, setTypesOpen] = useState(false)
@@ -123,15 +127,15 @@ export default function PuzzleHost({
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
   const prefs = board.view.prefs
   // 上方区域的顺序是结构,不是各游戏手写出来的约定:entry 在前、pick 居中、
-  // assist 在后;sort 稳定,组内保留声明序。
+  // assist 次之、deduce 收尾;sort 稳定,组内保留声明序。
   const keys = useMemo(() => {
     const dealt = game.keypad({ params: id.split(':')[0], prefs })
     if (!dealt) return []
-    const order = ['entry', 'pick', 'assist']
+    const shown = { entry: true, pick: arrows, assist: helping, deduce: deducing }
     return dealt
-      .filter((k) => (k.group === 'assist' ? helping : k.group !== 'pick' || arrows))
-      .sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group))
-  }, [arrows, helping, id, game, prefs])
+      .filter((k) => shown[k.group])
+      .sort((a, b) => KEYPAD_ORDER.indexOf(a.group) - KEYPAD_ORDER.indexOf(b.group))
+  }, [arrows, deducing, helping, id, game, prefs])
 
   // 圆键要引擎调色板里的哪几号。渲染之前就得知道:颜色是 renderer 翻完主题才有的。
   const { viewNow } = board

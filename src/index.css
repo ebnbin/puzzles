@@ -844,15 +844,16 @@ p.notice-intro button:active {
   pointer-events: none;
 }
 
-/* 五类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
+/* 六类各有其形,形不靠颜色区分(暗色主题和色觉差异都安全):
      act   实心无边框(Menu 另填 accent-soft)
      entry  实心无边框
      assist   实心带边框、字色淡一档
      arrow 键面同 assist,形状是正圆
      pick  和 arrow 同一套:同样的键面、同样的正圆。它跟 arrow 是一伙的却挤在
            上方区域里,圆就是把它和邻座的 entry/assist 分开的唯一记号
-   上方区域的 entry 和 assist 是 --r-sm 的圆角矩形;arrow 和 pick 不论在哪都是正圆。
-   底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 engine/types.ts。 */
+     deduce 形同 assist,只把字色换成 accent
+   上方区域的 entry / assist / deduce 是 --r-sm 的圆角矩形;arrow 和 pick 不论在哪
+   都是正圆。底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 games/game.ts。 */
 
 /* entry 回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='entry'] {
@@ -860,8 +861,8 @@ p.notice-intro button:active {
 }
 
 /* assist 和 arrow 同一套:白键面 + 一圈边框,字色淡一档。于是整块键盘只有两种键面
-   ——有边框的填 --surface(assist、arrow、pick),没边框的填 --surface-2(act、entry)。
-   白在 --bg 上只差 2%,读出「这是个键」靠的是边框,不是那层填充。 */
+   ——有边框的填 --surface(assist、deduce、arrow、pick),没边框的填 --surface-2
+   (act、entry)。白在 --bg 上只差 2%,读出「这是个键」靠的是边框,不是那层填充。 */
 .keypad button[data-kind='assist'] {
   background: var(--surface);
   color: var(--text-2);
@@ -870,6 +871,20 @@ p.notice-intro button:active {
 @media (hover: hover) {
   .keypad button[data-kind='assist']:hover {
     color: var(--text);
+  }
+}
+
+/* deduce 是唯一一类上游不提供的键(答案是我们自己推的,见 games/deduce/),那一档
+   accent 就是它和邻座 assist 唯一的分别。色觉差异下退化成「和 assist 一样」——
+   丢的只是「这是算出来的」这条提示,按钮做什么、能不能按都不靠颜色说。 */
+.keypad button[data-kind='deduce'] {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+@media (hover: hover) {
+  .keypad button[data-kind='deduce']:hover {
+    color: var(--accent-hover);
   }
 }
 

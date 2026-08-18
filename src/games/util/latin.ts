@@ -1,8 +1,8 @@
-// 抽象拉丁方盘面与推理:候选计算、铺候选、摆单值、清标记、余量统计。
-// 这里只吃抽象 Board——盘面怎么从某个游戏的存档里读出来,是那个游戏文件的事,
-// 以 read 参数的形式交进来。走存档门的约定(pending+redo 补闪)见 save.ts。
+// 抽象拉丁方盘面的读取:走子重放出值与铅笔标记、描述语法、余量统计。这里只吃
+// 抽象 Board——盘面怎么从某个游戏的存档里读出来,是那个游戏文件的事,以 read 参数的
+// 形式交进来。这一整份都照着上游写、有 C 源码可对;推理那一半在 deduce/latin.ts。
 import type { Field } from './save'
-import { done, extend, fields, find } from './save'
+import { done, fields, find } from './save'
 
 // 填值清不清该格候选,每个游戏答案不同(四个格子游戏的 R 顺手清,Undead 只有 E 清,
 // 而且屏幕上看不出来——放了怪物的格子不画标记),所以 set 自带 clears,各游戏各自声明。
@@ -31,10 +31,11 @@ export type Board = {
   values: number[]
   each?: number
   clues: number[]
-  // 每个组必须恰好 values.length 长(每个值在组内恰占一格)——placeSingles 的
-  // 隐式单候选靠这个前提。只「互不相同」但更短的集合(Killer 的 cage)不能进
-  // groups,只能进 narrow。
+  // 每个组必须恰好 values.length 长(每个值在组内恰占一格)——deduce 那边
+  // placeSingles 的隐式单候选靠这个前提。只「互不相同」但更短的集合(Killer 的
+  // cage)不能进 groups,只能进 narrow。
   groups: number[][]
+  // 候选收窄钩子,由 deduce/latin.ts 的 candidates 调用;游戏文件自己填。
   narrow?: (candidates: Set<number>[], values: number[]) => void
   moves: MoveLanguage
 }
@@ -102,20 +103,6 @@ export function replay(moves: Field[], board: Board, desc: string): Position | n
   return { values, marks }
 }
 
-function candidates(board: Board, values: number[]): Set<number>[] {
-  const sets = values.map((value) => (value ? new Set<number>() : new Set(board.values)))
-
-  for (const group of board.groups) {
-    const taken = new Set<number>()
-    for (const square of group) if (values[square]) taken.add(values[square])
-    for (const square of group)
-      if (!values[square]) for (const v of taken) sets[square].delete(v)
-  }
-
-  board.narrow?.(sets, values)
-  return sets
-}
-
 // 读不懂就整个拒绝:参数不认识、描述解析不了、走子没见过,一律 null,界面什么
 // 都不做。猜错比不做坏得多——会擦掉玩家写的候选,还会说某个数字不可能。
 export function readPosition(save: string, read: BoardReader) {
@@ -130,95 +117,6 @@ export function readPosition(save: string, read: BoardReader) {
   const position = replay(kept, board, desc)
   if (!position) return null
   return { lines, board, kept, position }
-}
-
-export function fillMarks(save: string, read: BoardReader): string | null {
-  const state = readPosition(save, read)
-  if (!state) return null
-  const { lines, board, kept, position } = state
-
-  const should = candidates(board, position.values)
-  // 判「棋盘是否一个候选都没有」要跳过已填格:Undead 的怪物格下压着看不见、
-  // 擦不掉的旧标记(G/V/Z 不清标记),它们不能参与这个裁决。
-  const bare = position.marks.every(
-    (set, square) => position.values[square] !== 0 || set.size === 0,
-  )
-
-  const wanted: string[] = []
-  for (let square = 0; square < board.squares; square++) {
-    if (position.values[square]) continue
-    const has = position.marks[square]
-    for (const value of board.values) {
-      const want = bare ? should[square].has(value) : has.has(value) && should[square].has(value)
-      if (want !== has.has(value)) wanted.push(board.moves.toggle(square, value))
-    }
-  }
-
-  return extend(lines, kept, wanted, board.moves.chain)
-}
-
-// 和 fillMarks 方向相反,这是设计:fillMarks 读值写候选、这里读候选写值,
-// 谁都喂不到自己,连按两次第二次一定什么都不做。绝不能在这里按规则重算候选——
-// 那会让它自己就能一直跑下去,正是要避免的循环;只读棋盘上写着的。
-export function placeSingles(save: string, read: BoardReader): string | null {
-  const state = readPosition(save, read)
-  if (!state) return null
-  const { lines, board, kept, position } = state
-
-  const values = [...position.values]
-  const marks = position.marks.map((set) => new Set(set))
-  const placed = new Map<number, number>()
-
-  const put = (square: number, value: number) => {
-    values[square] = value
-    marks[square].clear()
-    placed.set(square, value)
-  }
-
-  for (;;) {
-    let moved = false
-
-    for (let square = 0; square < board.squares; square++) {
-      if (values[square] || marks[square].size !== 1) continue
-      put(square, [...marks[square]][0])
-      moved = true
-    }
-
-    // 隐式单候选的前提缺一不可:组里有「空着但零候选」的格子就整组跳过
-    // (那种格子读起来像什么都不能填,会凭空造出唯一解);已填的值不再算候选;
-    // 外层循环跑到不动点才幂等。少任何一个都会写出能被规则证明是错的数字。
-    for (const group of board.groups) {
-      if (group.length !== board.values.length) continue
-      if (group.some((square) => !values[square] && marks[square].size === 0)) continue
-      const spent = new Set(group.map((square) => values[square]).filter(Boolean))
-      for (const value of board.values) {
-        if (spent.has(value)) continue
-        const homes = group.filter((square) => !values[square] && marks[square].has(value))
-        if (homes.length !== 1) continue
-        put(homes[0], value)
-        moved = true
-      }
-    }
-
-    if (!moved) break
-  }
-
-  const wanted = [...placed].map(([square, value]) => board.moves.set(square, value))
-  return extend(lines, kept, wanted, board.moves.chain)
-}
-
-export function clearMarks(save: string, read: BoardReader): string | null {
-  const state = readPosition(save, read)
-  if (!state) return null
-  const { lines, board, kept, position } = state
-
-  const wanted: string[] = []
-  for (let square = 0; square < board.squares; square++) {
-    if (position.values[square] || position.marks[square].size === 0) continue
-    wanted.push(board.moves.wipe(square))
-  }
-
-  return extend(lines, kept, wanted, board.moves.chain)
 }
 
 // 只数已填的值,铅笔标记不算——标记键全部建立在这个区分上。数到零和负数
@@ -363,105 +261,4 @@ export function leadingNumber(text: string | undefined): number | null {
   if (!found) return null
   const n = Number(found[1])
   return n >= 1 && n <= 36 ? n : null
-}
-
-// ---------------------------------------------------------------- cage 枚举
-
-const LIMIT = 200_000
-
-export type CageOp = 'a' | 'm' | 's' | 'd'
-
-// 返回 null 的意思是「这个 cage 放着别动」(枚举超限或无解都是),调用方
-// continue,不是整盘拒绝——无解只说明玩家棋盘已矛盾,清空该 cage 的候选同样
-// 是错的方向:标记多了只是不整洁,少了就是错。
-export function cageDigits(
-  cells: number[],
-  value: number,
-  op: CageOp,
-  size: number,
-  candidates: Set<number>[],
-  digits: number[],
-  // Killer 传 true(cage 内数字不得重复是上游明文规则,且 cage 不保证同行同列,
-  // 从 groups 推不出来);Keen 传 false(cage 内允许重复,只受拉丁方限制)。
-  // 两个布尔不能「统一」,统一哪边都会写错标记。
-  distinct: boolean,
-): Set<number>[] | null {
-  const count = cells.length
-  const options = cells.map((cell) =>
-    digits[cell] ? [digits[cell]] : [...candidates[cell]].sort((a, b) => a - b),
-  )
-  if (options.some((list) => list.length === 0)) return null
-
-  const seen = cells.map(() => new Set<number>())
-
-  if (op === 's' || op === 'd') {
-    if (count !== 2) return null
-    let any = false
-    for (const a of options[0]) {
-      for (const b of options[1]) {
-        if (clash(cells, size, distinct, 0, 1, a, b)) continue
-        const fits =
-          op === 's' ? Math.abs(a - b) === value : a === b * value || b === a * value
-        if (!fits) continue
-        seen[0].add(a)
-        seen[1].add(b)
-        any = true
-      }
-    }
-    return any ? seen : null
-  }
-
-  const chosen = new Array<number>(count)
-  let visited = 0
-  let stopped = false
-  let any = false
-
-  const walk = (at: number, acc: number) => {
-    if (stopped) return
-    if (++visited > LIMIT) {
-      stopped = true
-      return
-    }
-    if (at === count) {
-      if (acc !== value) return
-      for (let i = 0; i < count; i++) seen[i].add(chosen[i])
-      any = true
-      return
-    }
-    for (const n of options[at]) {
-      let bad = false
-      for (let j = 0; j < at && !bad; j++)
-        if (chosen[j] === n) bad = clash(cells, size, distinct, at, j, n, n)
-      if (bad) continue
-
-      const next = op === 'a' ? acc + n : acc * n
-      if (op === 'a') {
-        if (next + (count - at - 1) > value) break
-      } else if (value % next !== 0) {
-        continue
-      }
-      chosen[at] = n
-      walk(at + 1, next)
-      if (stopped) return
-    }
-  }
-  walk(0, op === 'a' ? 0 : 1)
-
-  return stopped || !any ? null : seen
-}
-
-function clash(
-  cells: number[],
-  size: number,
-  distinct: boolean,
-  i: number,
-  j: number,
-  a: number,
-  b: number,
-): boolean {
-  if (a !== b) return false
-  if (distinct) return true
-  const one = cells[i]
-  const two = cells[j]
-  return one % size === two % size || Math.floor(one / size) === Math.floor(two / size)
 }

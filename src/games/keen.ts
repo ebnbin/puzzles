@@ -3,17 +3,18 @@ import type { Field } from './util/save'
 import { find } from './util/save'
 import type { Game } from './game'
 import { samePages, verbatim } from './util/declare'
-import type { Board, CageOp } from './util/latin'
+import type { Board } from './util/latin'
 import {
   blockCells,
-  cageDigits,
   dividerBlocks,
   gridMoves,
   latinGroups,
   leadingNumber,
 } from './util/latin'
 import type { Counted } from './util/keys'
-import { clearKey, counting, digitKeys, markActions, marksKey } from './util/keys'
+import { clearKey, counting, digitKeys, marksKey } from './util/keys'
+import type { CageOp } from './deduce/latin'
+import { cageDigits, latinDeduce } from './deduce/latin'
 import { act, cross } from './util/pad'
 
 const OPS: Record<string, CageOp> = { a: 'a', m: 'm', s: 's', d: 'd' }
@@ -89,7 +90,7 @@ const keen: Game<Counted> = {
       ...digitKeys<Counted>(size, { left: (facts, value) => facts.left?.get(value) }),
       clearKey(),
       marksKey(),
-      ...markActions(readKeen),
+      ...latinDeduce(readKeen),
     ]
   },
   arrows: {
