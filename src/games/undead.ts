@@ -3,7 +3,7 @@
 // 而 'a' 键就能改这个偏好——所以偏好是 volatile 的,按键后要重读。
 import type { Game, Key } from './game'
 import { still } from './game'
-import { samePages, verbatim } from './util/declare'
+import { keepPencil, samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { PENCIL_HIGHLIGHT, clearKey, marksKey, preference, preferKeys, tap } from './util/keys'
 import { act, cross } from './util/pad'
@@ -35,7 +35,7 @@ const undead: Game = {
   dark: { strokes: [0, 2] },
   pages: samePages('undead'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: true },
+  prefs: { panel: verbatim, volatile: true, seed: keepPencil },
   keypad: ({ prefs }) => {
     const letters = preference(prefs, PICTURES) === PICTURES.indexOf('Letters')
     return [

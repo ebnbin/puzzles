@@ -66,7 +66,7 @@ ground truth。
 
 | 文件 | 作用 |
 | --- | --- |
-| `createPuzzle.ts` | 起一个游戏:装载 `/engine/<name>.js` 工厂、接回调、建渲染器、做深色翻译 |
+| `createPuzzle.ts` | 起一个游戏:装载 `/engine/<name>.js` 工厂、接回调、建渲染器、做深色翻译;偏好存档读写,并把 `prefs.seed` 垫在存档下面换掉上游默认值 |
 | `renderer.ts` | canvas 渲染器:上游画图原语 → 2D canvas;录像旁路(record / stop / watch)与调色板查询 |
 | `palette.ts` | 深色翻译引擎 + `Dark` 申报类型:按各游戏的 `dark` 申报把浅色表逐槽翻译 |
 | `saves.ts` | localStorage 全部读写:存档、最近、正在玩、隐藏、完成、滚动。键名已发布,只加不改 |
@@ -85,7 +85,7 @@ ground truth。
 
 | 文件 | 作用 |
 | --- | --- |
-| `declare.ts` | `verbatim` / `samePages` 申报速记 |
+| `declare.ts` | `verbatim` / `samePages` / `keepPencil` 申报速记 |
 | `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |

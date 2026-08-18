@@ -116,6 +116,7 @@ export function useEngine({
       canvas,
       dark: themeRef.current === 'dark',
       spec: game.dark,
+      seed: game.prefs.seed,
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
