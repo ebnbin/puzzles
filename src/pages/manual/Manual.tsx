@@ -95,8 +95,8 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
   const scroller = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // capture + stopPropagation:手册开着时按键不许漏给底下的谜题
-    // (PuzzleHost 的 u/r/n 快捷键挂在 window 上,漏一个 u 就是一次盲撤销)。
+    // capture + stopPropagation:手册开着时按键不许漏给底下的谜题。谜题的键盘
+    // 通路(usePuzzleKeys)挂在 window 冒泡阶段、不认焦点,这一句是它唯一的闸。
     const onKey = (event: KeyboardEvent) => {
       event.stopPropagation()
       if (event.key !== 'Escape') return

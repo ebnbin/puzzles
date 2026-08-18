@@ -120,6 +120,7 @@ ground truth。
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象,text 只在落定时提交) |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
+| `usePuzzleKeys.ts` | 物理键盘唯一通路:判据是「这一按该不该归谜题」,不认焦点 |
 | `usePuzzlePointer.ts` | 指针 → 上游鼠标语义(长按 = 右键或中键,由游戏申报) |
 | `useHelp.ts` | 玩法速览文案装载(`public/help/`) |
 | `useArrows.ts` | 方向键总开关(`puzzles.arrows`) |
@@ -197,6 +198,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-clues.mjs` | map 线索格判定与引擎逐格对账 |
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
+| `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 

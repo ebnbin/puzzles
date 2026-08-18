@@ -30,9 +30,8 @@ import { useOutcome } from './useOutcome'
 import HoldTip, { useHoldTip } from '../../ui/HoldTip'
 import { useResolvedTheme } from '../../useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
+import { usePuzzleKeys } from './usePuzzleKeys'
 import { usePuzzlePointer } from './usePuzzlePointer'
-
-const SHORTCUT_KEYS = /^[urn]$/i
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
 
@@ -209,61 +208,41 @@ export default function PuzzleHost({
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
-  const { typed } = board
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLCanvasElement>) => {
-      const api = apiRef.current
-      if (!api) return
-      acted()
-      typed({
-        key: e.key,
-        ...(e.location === 3 ? { pad: true as const } : {}),
-        ...(e.shiftKey ? { shift: true as const } : {}),
-        ...(e.ctrlKey ? { ctrl: true as const } : {}),
-      })
-      if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
-        e.preventDefault()
-      if (game.prefs.volatile) readPrefs()
-    },
-    [acted, game, readPrefs, typed],
-  )
+  // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。手册也是
+  // 覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必再报一位进来。
+  const covered = !!dialog || helpOpen || typesOpen || menuOpen
+  usePuzzleKeys({
+    ready,
+    blocked: covered,
+    apiRef,
+    acted,
+    typed: board.typed,
+    volatile: game.prefs.volatile,
+    readPrefs,
+  })
+
+  // 覆盖层全关上的那一刻把焦点还给棋盘。键盘不靠焦点活,但焦点留在触发键上会让
+  // Space 再开一次那扇门,而 Space 在多数谜题里是走子键。要 effect 不要逐个
+  // close 回调:两个 sheet 互相替换时不该收焦点,拖拽关闭和点 scrim 也得算上。
+  const wasCovered = useRef(false)
+  useEffect(() => {
+    if (wasCovered.current && !covered) canvasRef.current?.focus()
+    wasCovered.current = covered
+  }, [covered])
 
   useEffect(() => {
     if (!ready) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (e.key === 'Escape') {
-        if (typesOpen) closeTypes()
-        else if (menuOpen) closeMenu()
-        else return
-        e.preventDefault()
-        return
-      }
-      if (dialog || helpOpen || typesOpen || menuOpen) return
-      // 棋盘聚焦时后端已经吃过这一按,defaultPrevented 挡二次处理(否则一按两撤);
-      // 走 api.key 而不是直接 undo():快捷键可能被玩家关掉,有的游戏把这些字母当走子。
-      if (e.defaultPrevented) return
-      const target = e.target as HTMLElement | null
-      if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
-      const api = apiRef.current
-      if (!api) return
-      if (!SHORTCUT_KEYS.test(e.key)) return
-      acted()
-      if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
-        e.preventDefault()
+      if (e.key !== 'Escape') return
+      if (typesOpen) closeTypes()
+      else if (menuOpen) closeMenu()
+      else return
+      e.preventDefault()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [
-    ready,
-    dialog,
-    menuOpen,
-    typesOpen,
-    closeTypes,
-    closeMenu,
-    helpOpen,
-    acted,
-  ])
+  }, [ready, menuOpen, typesOpen, closeTypes, closeMenu])
 
   const pressKey = useCallback(
     (key: Key<unknown>) => {
@@ -352,7 +331,6 @@ export default function PuzzleHost({
           className="puzzle-canvas"
           tabIndex={0}
           onContextMenu={(e) => e.preventDefault()}
-          onKeyDown={onKeyDown}
           {...pointer}
         />
         {outcome.over && (
