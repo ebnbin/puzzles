@@ -6,7 +6,8 @@
 import type { Game, View } from './game'
 import { keyOf, plain } from './game'
 import { samePages, verbatim } from './util/declare'
-import { hintKey } from './util/keys'
+import type { Prefer } from './util/keys'
+import { hintKey, preferKeys } from './util/keys'
 import { act, arm, cross, layerByWords, wordOf } from './util/pad'
 
 type Facts = { walked: boolean }
@@ -14,6 +15,12 @@ type Facts = { walked: boolean }
 const WORDS = ['Start', 'Stop', 'Cancel']
 
 const UNTRODDEN = '\0untrodden'
+
+const LOOK: Prefer = {
+  kind: 'cycle',
+  answers: ['Traditional', 'Loopy-style'],
+  glyphs: ['masyuStyle', 'loopyStyle'],
+}
 
 const pearl: Game<Facts> = {
   id: 'pearl',
@@ -23,7 +30,7 @@ const pearl: Game<Facts> = {
   pages: samePages('pearl'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => [hintKey()],
+  keypad: ({ prefs }) => [hintKey(), ...preferKeys<Facts>(prefs, [LOOK])],
   arrows: {
     layer: layerByWords(WORDS, ['Stop']),
     keys: [

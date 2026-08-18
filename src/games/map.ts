@@ -257,6 +257,12 @@ const swatchKey = (i: number): Key<Facts> => ({
 // 三条偏好里只摆这一条:另外两条(通关闪法、候选点大小)是观感,不是解题信息。
 const NUMBERED: Prefer = { kind: 'flag', label: 'Number regions', glyph: 'numberRegion' }
 
+const STIPPLES: Prefer = {
+  kind: 'cycle',
+  answers: ['Small', 'Large'],
+  glyphs: ['stipple', 'stippleBig'],
+}
+
 const map: Game<Facts> = {
   id: 'map',
   upstream: {
@@ -273,7 +279,7 @@ const map: Game<Facts> = {
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => [
     ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),
-    ...preferKeys<Facts>(prefs, [NUMBERED]),
+    ...preferKeys<Facts>(prefs, [NUMBERED, STIPPLES]),
   ],
   arrows: {
     keys: [

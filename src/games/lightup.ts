@@ -4,9 +4,17 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
+import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Light', 'Mark', 'Clear']
+
+const LIT_BLOBS: Prefer = {
+  kind: 'flag',
+  label: 'Draw non-light marks even when lit',
+  glyph: 'litBlob',
+}
 
 const lightup: Game = {
   id: 'lightup',
@@ -16,7 +24,7 @@ const lightup: Game = {
   pages: samePages('lightup'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => [],
+  keypad: ({ prefs }) => preferKeys(prefs, [LIT_BLOBS]),
   arrows: {
     keys: [
       ...cross(),

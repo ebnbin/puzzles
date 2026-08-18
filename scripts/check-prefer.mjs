@@ -12,8 +12,10 @@ import { boot, open, URL_BASE } from './lib/boot.mjs'
 
 // 每个游戏该有几个 prefer 键。数目对不上就是某条 label 没认出来。
 const EXPECT = [
-  ['Solo', 1], ['Keen', 1], ['Towers', 2], ['Unequal', 1], ['Undead', 3],
-  ['Guess', 1], ['Map', 1], ['Bridges', 1], ['Singles', 1], ['Loopy', 1],
+  ['Net', 1], ['Solo', 1], ['Guess', 1], ['Untangle', 3], ['Slant', 1],
+  ['Light Up', 1], ['Map', 2], ['Loopy', 2], ['Bridges', 1], ['Unequal', 1],
+  ['Keen', 1], ['Towers', 2], ['Singles', 1], ['Pearl', 1], ['Undead', 3],
+  ['Palisade', 1],
 ]
 
 const PREFS = 'puzzles.prefs.solo'

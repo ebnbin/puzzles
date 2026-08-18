@@ -4,7 +4,23 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
+import type { Prefer } from './util/keys'
+import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+
+const SNAP: Prefer = { kind: 'flag', label: 'Snap points to a grid', glyph: 'snapGrid' }
+
+const CROSSED: Prefer = {
+  kind: 'flag',
+  label: 'Show edges that cross another edge',
+  glyph: 'crossedEdge',
+}
+
+const VERTICES: Prefer = {
+  kind: 'cycle',
+  answers: ['Circles', 'Numbers'],
+  glyphs: ['vertex', 'vertexNumber'],
+}
 
 const untangle: Game = {
   id: 'untangle',
@@ -14,7 +30,7 @@ const untangle: Game = {
   pages: samePages('untangle'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => [],
+  keypad: ({ prefs }) => preferKeys(prefs, [SNAP, CROSSED, VERTICES]),
   arrows: {
     keys: [
       ...cross(),

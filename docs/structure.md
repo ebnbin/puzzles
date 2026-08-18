@@ -199,7 +199,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
-| `check-prefer.mjs` | prefer 键:十个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
+| `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 

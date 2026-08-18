@@ -13,6 +13,12 @@ const FAINT: Prefer = {
   glyph: 'faintLine',
 }
 
+const FOLLOW: Prefer = {
+  kind: 'cycle',
+  answers: ['No', 'Based on grid only', 'Based on grid and game state'],
+  glyphs: ['followOff', 'followGrid', 'followSmart'],
+}
+
 const loopy: Game = {
   id: 'loopy',
   upstream: { labels: 'none', cursor: { kind: 'none' } },
@@ -21,7 +27,7 @@ const loopy: Game = {
   pages: samePages('loopy'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ prefs }) => preferKeys(prefs, [FAINT]),
+  keypad: ({ prefs }) => preferKeys(prefs, [FAINT, FOLLOW]),
   arrows: null,
   observe: still,
 }
