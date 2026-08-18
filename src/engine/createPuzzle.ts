@@ -8,18 +8,15 @@ export async function createPuzzle(options: {
   gameId?: string
   dark?: boolean
   spec?: Dark
-  seed?: Readonly<Record<string, string>>
+  defaults?: Readonly<Record<string, string>>
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
-  const { name, canvas, gameId = '', dark = false, spec, seed, callbacks } = options
+  const { name, canvas, gameId = '', dark = false, spec, defaults, callbacks } = options
   const renderer = new CanvasRenderer(canvas, spec)
   renderer.setDark(dark)
 
   let api: PuzzleApi | null = null
   const prefsKey = `puzzles.prefs.${name}`
-  const seeded = Object.entries(seed ?? {})
-    .map(([kw, value]) => `${kw}=${value}\n`)
-    .join('')
 
   const host = {
     gameId,
@@ -52,14 +49,17 @@ export async function createPuzzle(options: {
       canvas.focus()
     },
 
-    // 种子垫在存档下面:上游逐行赋值,后写的盖先写的,于是用户存过的那几条赢、
-    // 没存过的落到种子。整份只要有一行解析不了,上游就把它全丢掉(midend.c:3223),
-    // 所以行只许在这里拼。
+    // 申报的默认值垫在存档下面:上游逐行赋值,后写的盖先写的,于是用户存过的
+    // 那几条赢、没存过的落到申报。反过来拼就成了「强制值」,用户永远改不掉。
+    // 整份只要有一行解析不了,上游把它全丢掉(midend.c:3223),所以行只许在这里拼。
     loadPrefs(): string | null {
+      const under = Object.entries(defaults ?? {})
+        .map(([kw, value]) => `${kw}=${value}\n`)
+        .join('')
       try {
-        return (seeded + (window.localStorage.getItem(prefsKey) ?? '')) || null
+        return (under + (window.localStorage.getItem(prefsKey) ?? '')) || null
       } catch {
-        return seeded || null
+        return under || null
       }
     },
 

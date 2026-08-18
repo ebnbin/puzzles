@@ -68,9 +68,9 @@ export type Prefs = {
   // 物理按键也能改偏好的游戏(只有 undead 的 'a'),宿主在棋盘每次按键后重读一遍。
   // 开局那一次读所有游戏都有,不看这一位:view.prefs 对谁都是真的。
   volatile: boolean
-  // 改上游偏好的默认值:按 kw 申报,开局垫在存档下面(用户存过的那几条赢)。
-  // 只给 kw 和值,行由 createPuzzle 拼——种子解析出错会让整份偏好静默作废。
-  seed?: Readonly<Record<string, string>>
+  // 换掉上游偏好的默认值:按 kw 申报,开局垫在存档下面(用户存过的那几条赢)。
+  // 只给 kw 和值,行由 createPuzzle 拼——有一行解析不了会让整份偏好静默作废。
+  defaults?: Readonly<Record<string, string>>
 }
 
 // ---------------------------------------------------------------- 键面
