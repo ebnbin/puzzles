@@ -133,17 +133,42 @@ export function useConfigBox(
     [acted, apiRef],
   )
 
-  const readPrefs = useCallback(() => {
-    const api = apiRef.current
-    if (!api || dialog || inlineRef.current) return
-    borrowed.current = { spec: null, error: null }
-    api.preferences()
-    const { spec } = borrowed.current
-    if (spec) api.dialogCancel()
-    borrowed.current = null
-    if (spec)
-      setPrefs((was) => (values(was) === values(spec.controls) ? was : spec.controls))
-  }, [apiRef, dialog, setPrefs])
+  // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
+  // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
+  const borrowPrefs = useCallback(
+    (use: (controls: DialogControl[]) => boolean) => {
+      const api = apiRef.current
+      if (!api || dialog || inlineRef.current) return
+      borrowed.current = { spec: null, error: null }
+      api.preferences()
+      const { spec } = borrowed.current
+      if (spec) {
+        if (use(spec.controls)) {
+          api.dialogOk()
+          // 提交被引擎回绝时 box 还开着,补一刀关掉,不然整个 config box 卡死。
+          if (borrowed.current.error) api.dialogCancel()
+        } else {
+          api.dialogCancel()
+        }
+      }
+      borrowed.current = null
+      if (spec)
+        setPrefs((was) => (values(was) === values(spec.controls) ? was : spec.controls))
+    },
+    [apiRef, dialog, setPrefs],
+  )
+
+  const readPrefs = useCallback(() => borrowPrefs(() => false), [borrowPrefs])
+
+  const writePrefs = useCallback(
+    (use: (controls: DialogControl[]) => boolean) =>
+      borrowPrefs((controls) => {
+        if (!use(controls)) return false
+        acted()
+        return true
+      }),
+    [acted, borrowPrefs],
+  )
 
   // Types/Menu 收起时把挂着的 inline 一并退掉。
   const abandonInline = useCallback(() => {
@@ -164,6 +189,7 @@ export function useConfigBox(
     commitInline,
     submitText,
     readPrefs,
+    writePrefs,
     abandonInline,
     clearTextError,
   }

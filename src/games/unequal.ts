@@ -2,7 +2,14 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { clearKey, digitKeys, hintKey, leadingNumber, marksKey } from './util/keys'
+import {
+  clearKey,
+  digitKeys,
+  hintKey,
+  leadingNumber,
+  marksKey,
+  pencilKey,
+} from './util/keys'
 import { act, cross } from './util/pad'
 
 const unequal: Game = {
@@ -13,7 +20,7 @@ const unequal: Game = {
   pages: samePages('unequal'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ params }) => {
+  keypad: ({ params, prefs }) => {
     const order = leadingNumber(params)
     if (!order) return null
     return [
@@ -21,6 +28,7 @@ const unequal: Game = {
       clearKey(),
       marksKey(),
       hintKey(),
+      ...pencilKey(prefs),
     ]
   },
   arrows: {

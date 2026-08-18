@@ -31,6 +31,9 @@ export function useBoard(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   acted: () => void,
+  // 偏好写回住在 config box 那边(借用 box 的机械动作在那儿),而 config box 要等
+  // 这只手柄先造好——所以从宿主转一道 ref 进来,不是这里自己能拿到的东西。
+  preferRef: React.RefObject<((use: (prefs: DialogControl[]) => boolean) => void) | null>,
 ) {
   const [labels, setLabels] = useState<Labels>({ enter: '', space: '' })
   const labelsRef = useRef<Labels>({ enter: '', space: '' })
@@ -145,6 +148,7 @@ export function useBoard(
           }
         }
       },
+      prefer: (use) => preferRef.current?.(use),
       undo: () => apiRef.current?.undo(),
       arm: (a) => {
         armedRef.current = a
@@ -158,7 +162,7 @@ export function useBoard(
         setLit(next)
       },
     }),
-    [acted, apiRef, game, gateOf, see, viewNow, wake],
+    [acted, apiRef, game, gateOf, preferRef, see, viewNow, wake],
   )
 
   // ---------------------------------------------------- 引擎回调进来的几扇门

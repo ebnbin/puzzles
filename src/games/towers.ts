@@ -2,7 +2,7 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { clearKey, digitKeys, leadingNumber, marksKey } from './util/keys'
+import { clearKey, digitKeys, leadingNumber, marksKey, pencilKey } from './util/keys'
 import { act, cross } from './util/pad'
 
 const towers: Game = {
@@ -13,13 +13,14 @@ const towers: Game = {
   pages: samePages('towers'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ params }) => {
+  keypad: ({ params, prefs }) => {
     const size = leadingNumber(params)
     if (!size) return null
     return [
       ...digitKeys(size),
       clearKey(),
       marksKey(),
+      ...pencilKey(prefs),
     ]
   },
   arrows: {

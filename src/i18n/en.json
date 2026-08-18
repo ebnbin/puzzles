@@ -31,7 +31,9 @@
     "arrows": "Arrow keys",
     "arrowsHint": "Play with buttons instead of tapping the board",
     "assist": "Helper keys",
-    "assistHint": "Hints and shortcuts, in some puzzles"
+    "assistHint": "Hints and shortcuts, in some puzzles",
+    "prefer": "Option keys",
+    "preferHint": "The puzzle's own options as buttons, in some puzzles"
   },
 
   "puzzle": {
@@ -167,6 +169,7 @@
   "keys": {
     "clear": "Clear",
     "marks": "Fill in a full set of pencil marks",
+    "pencilHold": "Stay in the square after a pencil mark",
     "hint": "Hint",
     "jumble": "Shuffle",
     "ghost": "Ghost",

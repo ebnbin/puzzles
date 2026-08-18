@@ -832,37 +832,78 @@ p.notice-intro button:active {
   background: radial-gradient(currentColor 1.6px, transparent 1.7px) 0 0 / 5px 5px;
 }
 
-/* 五类各有其形,不靠颜色区分(暗色主题和色觉差异都安全):
-     act   实心无边框(Menu 另填 accent-soft)
-     entry  实心无边框
-     assist   实心带边框、字色淡一档
-     arrow 键面同 assist,形状是正圆
-     pick  和 arrow 同一套:同样的键面、同样的正圆。它跟 arrow 是一伙的却挤在
-           上方区域里,圆就是把它和邻座的 entry/assist 分开的唯一记号
-   上方区域的 entry 和 assist 是 --r-sm 的圆角矩形;arrow 和 pick 不论在哪都是正圆。
-   底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 games/game.ts。 */
+/* 六类,三种键面。形状分三档、填充分三档,两档合起来才认得出一类:
+     act    无边框 · --surface-2
+     entry  无边框 · --surface-2(靠区域和 act 分开:一个在下方,一个在上方)
+     assist 无边框 · --accent-soft,和 Menu 同一套——「这个键在帮忙,不是在落子」
+     prefer 有边框 · --surface,字色淡一档,--r-sm 圆角矩形
+     arrow  键面同 prefer,形状是正圆
+     pick   和 arrow 同一套:同样的键面、同样的正圆。它跟 arrow 是一伙的却挤在
+            上方区域里,圆就是把它和邻座的 entry/assist/prefer 分开的唯一记号
+   上方区域的 entry / assist / prefer 都是 --r-sm 的圆角矩形;arrow 和 pick 不论在
+   哪都是正圆。底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 games/game.ts。
+
+   entry 和 assist 只差填充色,不差形状——这是有意的一笔,不是漏掉的:下方区域的
+   act 和 Menu 早就是这个关系。蓝对灰在红绿色觉差异下保得住,是这套里唯一一处
+   把颜色当主要记号的地方。 */
 
 /* entry 回到重构之前:无边框的实心浅灰。 */
 .keypad button[data-kind='entry'] {
   border: 0;
 }
 
-/* assist 和 arrow 同一套:白键面 + 一圈边框,字色淡一档。于是整块键盘只有两种键面
-   ——有边框的填 --surface(assist、arrow、pick),没边框的填 --surface-2(act、entry)。
-   白在 --bg 上只差 2%,读出「这是个键」靠的是边框,不是那层填充。 */
+/* assist 走 Menu 那身皮,只是保持键区的 40×40 圆角正方形、不跟 Menu 一样是 1.5 倍宽。 */
 .keypad button[data-kind='assist'] {
+  border: 0;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+@media (hover: hover) {
+  .keypad button[data-kind='assist']:hover {
+    background: var(--accent-soft-hover);
+  }
+}
+
+.keypad button[data-kind='assist']:active {
+  background: var(--accent-soft-hover);
+}
+
+/* prefer 接手 assist 原来那身皮:白键面 + 一圈边框、字色淡一档。于是有边框的那一档
+   仍是 --surface(prefer、arrow、pick):白在 --bg 上只差 2%,读出「这是个键」靠的是
+   边框,不是那层填充。 */
+.keypad button[data-kind='prefer'] {
   background: var(--surface);
   color: var(--text-2);
 }
 
 @media (hover: hover) {
-  .keypad button[data-kind='assist']:hover {
+  .keypad button[data-kind='prefer']:hover {
     color: var(--text);
   }
 }
 
-/* pick 挤在上方区域里,键面同 arrow,形状是正圆——邻座的 entry 和 assist 都是圆角
-   矩形,圆是「这个键跟方向键是一伙的」唯一的记号。 */
+/* 亮态和下方区域的伴生键同一套(--accent 实底),两处读作同一句「这个开关开着」。
+   上方键区只有 prefer 报 face.on,别的类都不报。 */
+.keypad button[data-on] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+@media (hover: hover) {
+  .keypad button[data-on]:hover {
+    background: var(--accent-hover);
+    color: var(--accent-on);
+  }
+}
+
+.keypad button[data-on]:active {
+  background: var(--accent-hover);
+}
+
+/* pick 挤在上方区域里,键面同 arrow,形状是正圆——邻座的 entry / assist / prefer 都是
+   圆角矩形,圆是「这个键跟方向键是一伙的」唯一的记号。 */
 .keypad button[data-kind='pick'] {
   border-radius: var(--r-full);
   background: var(--surface);
