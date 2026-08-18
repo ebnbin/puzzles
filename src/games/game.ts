@@ -95,9 +95,7 @@ export type Face = {
 export type Deal = { params: string; prefs: readonly DialogControl[] }
 
 export type Key<F> = {
-  // deduce 是唯一一类上游不提供的键(推理由这一侧自己写,没有上游可对账),
-  // 规矩与机器在 games/deduce/;它和 assist 各有各的开关。
-  group: 'entry' | 'pick' | 'assist' | 'deduce'
+  group: 'entry' | 'pick' | 'assist'
   face: Face | ((view: View<F>) => Face)
   count?: (facts: F) => number | null // 角标:这个符号还差几个
   // 契约测试用:这个键等价于上游 request_keys 的哪个按钮码(check-keys 对账)。

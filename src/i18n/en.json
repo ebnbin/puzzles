@@ -31,9 +31,7 @@
     "arrows": "Arrow keys",
     "arrowsHint": "Play with buttons instead of tapping the board",
     "assist": "Helper keys",
-    "assistHint": "Hints and shortcuts, in some puzzles",
-    "deduce": "Deduction keys",
-    "deduceHint": "Fill in what the rules already settle, in some puzzles"
+    "assistHint": "Hints and shortcuts, in some puzzles"
   },
 
   "puzzle": {
@@ -168,9 +166,6 @@
 
   "keys": {
     "clear": "Clear",
-    "possible": "Leave only the pencil marks still possible",
-    "single": "Fill in the squares with only one answer",
-    "blank": "Clear all pencil marks",
     "marks": "Fill in a full set of pencil marks",
     "hint": "Hint",
     "jumble": "Shuffle",
