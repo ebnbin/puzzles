@@ -2,17 +2,18 @@
 //   npm i --no-save playwright && node scripts/check-prefer.mjs
 //
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、任何一个
-// 游戏文件里的 Prefer 常量,或者升级 vendor/ 之后跑。守三条:
+// 游戏文件里的 Prefer 常量,或者升级 vendor/ 之后跑。守四条:
 //   一、认控件只能按英文 label(emcc 只把 name 交给 JS,kw 到不了这一侧)。上游改了
 //       那句话,键会「消失」而不是「按下去没反应」——下面逐个游戏点名断言它还在。
 //   二、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
 //   三、多个键时按上游 get_prefs 的先后排,而不是游戏文件里的书写序。
+//   四、多选一的键一按走下一格、走到头绕回,且脸跟着换。
 import { boot, open, URL_BASE } from './lib/boot.mjs'
 
 // 每个游戏该有几个 prefer 键。数目对不上就是某条 label 没认出来。
 const EXPECT = [
-  ['Solo', 1], ['Keen', 1], ['Towers', 1], ['Unequal', 1], ['Undead', 1],
-  ['Guess', 1], ['Map', 1], ['Bridges', 1], ['Singles', 1],
+  ['Solo', 1], ['Keen', 1], ['Towers', 2], ['Unequal', 1], ['Undead', 3],
+  ['Guess', 1], ['Map', 1], ['Bridges', 1], ['Singles', 1], ['Loopy', 1],
 ]
 
 const PREFS = 'puzzles.prefs.solo'
@@ -88,6 +89,35 @@ const row = await page.evaluate(() =>
 )
 if (row?.[1] === true) ok('偏好面板里同一条也是勾上的')
 else fail('偏好面板和键区对不上:', JSON.stringify(row))
+
+console.log('\n多选一:一按走下一格,走到头绕回')
+await open(page, 'Undead', { clear: ['puzzles.prefs.undead', 'puzzles.save.undead'] })
+// 上游序:pencil-keep-highlight、monsters、count-style,所以第三个是三态那个。
+const cycle = keys.nth(2)
+const undeadSaved = () => page.evaluate(() => localStorage.getItem('puzzles.prefs.undead'))
+const styleNow = async () => /count-style=(\S+)/.exec((await undeadSaved()) ?? '')?.[1] ?? '(未写)'
+const glyphNow = () => cycle.evaluate((b) => b.querySelector('svg')?.innerHTML.slice(0, 40) ?? '')
+
+const seen = []
+const faces = [await glyphNow()]
+for (let i = 0; i < 3; i++) {
+  await cycle.click()
+  await page.waitForTimeout(200)
+  seen.push(await styleNow())
+  faces.push(await glyphNow())
+}
+if (seen.join(' → ') === 'remaining → placed-total → total')
+  ok('count-style 走了一圈:total →', seen.join(' → '))
+else fail('count-style 循环不对:', seen.join(' → '))
+
+if (new Set(faces.slice(0, 3)).size === 3 && faces[3] === faces[0])
+  ok('三张脸各不相同,绕回来又是第一张')
+else fail('脸没跟着换:', faces.map((f) => f.length).join('/'))
+
+// 多选一没有「开」这一说:三格都不该点亮。
+const litAny = await cycle.getAttribute('data-on')
+if (litAny === null) ok('多选一的键不点亮(状态全由脸说)')
+else fail('多选一的键被点亮了:data-on=' + litAny)
 
 await browser.close()
 console.log(bad ? `\n${bad} failed` : '\nall good')

@@ -112,6 +112,14 @@ export type IconName =
   | 'numberRegion'
   | 'numberBlack'
   | 'maybeBridge'
+  | 'faintLine'
+  | 'towersFlat'
+  | 'towersTall'
+  | 'asPicture'
+  | 'asLetter'
+  | 'countTotal'
+  | 'countLeft'
+  | 'countBoth'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -384,6 +392,53 @@ const PATHS: Record<IconName, React.ReactNode> = {
       stroke="none"
       d="M6 3.4h12a2.6 2.6 0 0 1 2.6 2.6v12a2.6 2.6 0 0 1-2.6 2.6H6A2.6 2.6 0 0 1 3.4 18V6A2.6 2.6 0 0 1 6 3.4Z M13.3 8.2 13.3 16 11.6 16 11.6 10.2 10 10.9 10 9.3 11.7 8.2Z"
     />
+  ),
+  // 一条被划掉、但仍旧淡淡画着的格线。
+  faintLine: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M12 3.4v17.2" strokeDasharray="1.5 1.9" />
+    </>
+  ),
+  // 同一排塔的两种画法:摊平成格子 / 立起来见高矮。towers 那个键的两张脸。
+  towersFlat: (
+    <>
+      <rect x="3.2" y="9.4" width="5.2" height="5.2" rx="1.2" />
+      <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.2" />
+      <rect x="15.6" y="9.4" width="5.2" height="5.2" rx="1.2" />
+    </>
+  ),
+  towersTall: (
+    <>
+      <path d="M5.8 20.2V15.4" strokeWidth="2.8" />
+      <path d="M12 20.2V10.6" strokeWidth="2.8" />
+      <path d="M18.2 20.2V5.8" strokeWidth="2.8" />
+    </>
+  ),
+  // 怪物画成图 / 写成字母。undead 那个键的两张脸;字母那张就是 G(幽灵)。
+  asPicture: (
+    <>
+      <path d="M6 20.4V9.6a6 6 0 0 1 12 0v10.8l-2.4-1.8-2.4 1.8-2.4-1.8-2.4 1.8z" />
+      <circle cx="9.9" cy="10.6" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="14.1" cy="10.6" r="1.1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  asLetter: <path d="M16.9 9.2A5.6 5.6 0 1 0 16.9 14.8L16.9 12.4 13.2 12.4" />,
+  // 计数怎么写:一个数 / 一个数还在往下走 / 两个数一道斜杠。三张脸一个键。
+  countTotal: <rect x="9" y="7.6" width="6" height="8.8" rx="1.4" />,
+  countLeft: (
+    <>
+      <rect x="3.8" y="7.6" width="6" height="8.8" rx="1.4" />
+      <path d="M16.6 8.2v7.6" />
+      <path d="m13.9 13.2 2.7 2.6 2.7-2.6" />
+    </>
+  ),
+  countBoth: (
+    <>
+      <rect x="3.2" y="7.6" width="5.6" height="8.8" rx="1.4" />
+      <rect x="15.2" y="7.6" width="5.6" height="8.8" rx="1.4" />
+      <path d="M13.4 6.8 10.6 17.2" />
+    </>
   ),
   // 虚线的桥 = 还架得上的地方;实线那根是 bridge,打叉那个是 noBridge。
   maybeBridge: (

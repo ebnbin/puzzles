@@ -10,6 +10,7 @@ import { act, cross } from './util/pad'
 const WORDS = ['Black', 'Circle', 'Restore', 'Remove']
 
 const BLACK_NUMS: Prefer = {
+  kind: 'flag',
   label: 'Show numbers on black squares',
   glyph: 'numberBlack',
 }

@@ -255,7 +255,7 @@ const swatchKey = (i: number): Key<Facts> => ({
 })
 
 // 三条偏好里只摆这一条:另外两条(通关闪法、候选点大小)是观感,不是解题信息。
-const NUMBERED: Prefer = { label: 'Number regions', glyph: 'numberRegion' }
+const NUMBERED: Prefer = { kind: 'flag', label: 'Number regions', glyph: 'numberRegion' }
 
 const map: Game<Facts> = {
   id: 'map',

@@ -90,7 +90,7 @@ const guess: Game = {
         }
       }),
       hintKey(),
-      ...preferKeys(prefs, [{ label: LABELLED, glyph: 'numberPeg' }]),
+      ...preferKeys(prefs, [{ kind: 'flag', label: LABELLED, glyph: 'numberPeg' }]),
     ]
   },
   arrows: {

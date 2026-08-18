@@ -9,7 +9,11 @@ import { hintKey, preferKeys } from './util/keys'
 import { act, arm, cross } from './util/pad'
 
 // 'g'/'G' 当场翻这条偏好(bridges.c:2589),所以偏好是 volatile 的:按完键要重读。
-const HINTS: Prefer = { label: 'Show possible bridge locations', glyph: 'maybeBridge' }
+const HINTS: Prefer = {
+  kind: 'flag',
+  label: 'Show possible bridge locations',
+  glyph: 'maybeBridge',
+}
 
 const bridges: Game = {
   id: 'bridges',
