@@ -27,6 +27,10 @@ const COL_1 = 6
 
 const LABELLED = 'Label colours with numbers'
 
+// 全靠颜色分辨的唯一一个游戏,手机上钉子还小:把上游默认的「不标数字」翻过来。
+// 数字同时落在棋盘的钉子和键区的色钉上(下面 swatch 的 label 读的是同一个真值)。
+const NUMBERED = { 'show-labels': 'true' } as const
+
 const fixed = (
   id: string,
   slot: Slot,
@@ -53,7 +57,7 @@ const guess: Game = {
   dark: { keep: [16, 17] },
   pages: samePages('guess'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: true },
+  prefs: { panel: verbatim, volatile: true, defaults: NUMBERED },
   keypad: ({ params, prefs }) => {
     const m = /^c(\d+)p(\d+)g\d+/.exec(params)
     if (!m) return null
