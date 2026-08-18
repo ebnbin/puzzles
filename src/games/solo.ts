@@ -4,7 +4,7 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { clearKey, digitKeys, marksKey, pencilKey } from './util/keys'
+import { PENCIL_HIGHLIGHT, clearKey, digitKeys, marksKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
 function params(text: string): { c: number; r: number } | null {
@@ -65,7 +65,7 @@ const solo: Game = {
       ...digitKeys(cr),
       clearKey(),
       marksKey(),
-      ...pencilKey(prefs),
+      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
     ]
   },
   arrows: {

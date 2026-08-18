@@ -108,6 +108,10 @@ export type IconName =
   | 'noBridge'
   | 'crossNext'
   | 'pencilHold'
+  | 'numberPeg'
+  | 'numberRegion'
+  | 'numberBlack'
+  | 'maybeBridge'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   back: (
@@ -356,6 +360,37 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M4.2 19.8 5.4 15.6 16.2 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L9 19.2Z" />
       <path d="m14.8 6.2 3 3" />
+    </>
+  ),
+  // 「标数字」三兄弟共用同一个 1 的折线:圆=色钉(guess)、方=区域(map)、
+  // 实心方里抠出来=涂黑的格子(singles,evenodd 把数字挖成洞)。
+  numberPeg: (
+    <>
+      <circle cx="12" cy="12" r="8.6" />
+      <path d="M13.3 8.2 13.3 16 11.6 16 11.6 10.2 10 10.9 10 9.3 11.7 8.2Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  numberRegion: (
+    <>
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6" />
+      <path d="M13.3 8.2 13.3 16 11.6 16 11.6 10.2 10 10.9 10 9.3 11.7 8.2Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  numberBlack: (
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      fill="currentColor"
+      stroke="none"
+      d="M6 3.4h12a2.6 2.6 0 0 1 2.6 2.6v12a2.6 2.6 0 0 1-2.6 2.6H6A2.6 2.6 0 0 1 3.4 18V6A2.6 2.6 0 0 1 6 3.4Z M13.3 8.2 13.3 16 11.6 16 11.6 10.2 10 10.9 10 9.3 11.7 8.2Z"
+    />
+  ),
+  // 虚线的桥 = 还架得上的地方;实线那根是 bridge,打叉那个是 noBridge。
+  maybeBridge: (
+    <>
+      <circle cx="4.6" cy="12" r="3" fill="currentColor" stroke="none" />
+      <circle cx="19.4" cy="12" r="3" fill="currentColor" stroke="none" />
+      <path d="M8.2 12h7.6" strokeWidth="2.4" strokeDasharray="2.2 2.6" />
     </>
   ),
   // 四角框 = 那圈高亮,框里一支笔 = 铅笔标记。整方框那一族已经很挤,四角是空位。

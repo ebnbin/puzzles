@@ -14,6 +14,8 @@ import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Spot } from './util/mirror'
 import { stepCursor } from './util/mirror'
+import type { Prefer } from './util/keys'
+import { preferKeys } from './util/keys'
 import { done, extend, fields, find, line, loadExtended } from './util/save'
 import { cross } from './util/pad'
 
@@ -252,6 +254,9 @@ const swatchKey = (i: number): Key<Facts> => ({
   press: paintPress(i),
 })
 
+// 三条偏好里只摆这一条:另外两条(通关闪法、候选点大小)是观感,不是解题信息。
+const NUMBERED: Prefer = { label: 'Number regions', glyph: 'numberRegion' }
+
 const map: Game<Facts> = {
   id: 'map',
   upstream: {
@@ -266,7 +271,10 @@ const map: Game<Facts> = {
   pages: samePages('map'),
   types: { menu: verbatim },
   prefs: { panel: verbatim, volatile: false },
-  keypad: () => Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),
+  keypad: ({ prefs }) => [
+    ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),
+    ...preferKeys<Facts>(prefs, [NUMBERED]),
+  ],
   arrows: {
     keys: [
       ...cross<Facts>(),

@@ -2,7 +2,14 @@
 import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
-import { clearKey, digitKeys, leadingNumber, marksKey, pencilKey } from './util/keys'
+import {
+  PENCIL_HIGHLIGHT,
+  clearKey,
+  digitKeys,
+  leadingNumber,
+  marksKey,
+  preferKeys,
+} from './util/keys'
 import { act, cross } from './util/pad'
 
 const towers: Game = {
@@ -20,7 +27,7 @@ const towers: Game = {
       ...digitKeys(size),
       clearKey(),
       marksKey(),
-      ...pencilKey(prefs),
+      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
     ]
   },
   arrows: {
