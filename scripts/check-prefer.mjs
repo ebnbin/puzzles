@@ -3,13 +3,14 @@
 //
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、createPuzzle 的
 // loadPrefs、任何一个游戏文件里的 Prefer 常量或 prefs.defaults,或者升级 vendor/ 之后跑。
-// 守五条:
+// 守六条:
 //   一、认控件只能按英文 label(emcc 只把 name 交给 JS,kw 到不了这一侧)。上游改了
 //       那句话,键会「消失」而不是「按下去没反应」——下面逐个游戏点名断言它还在。
 //   二、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
 //   三、多个键时按上游 get_prefs 的先后排,而不是游戏文件里的书写序。
 //   四、多选一的键一按走下一格、走到头绕回,且脸跟着换。
 //   五、下游换掉的默认值(prefs.defaults)开局到位,且压不过用户自己存过的那一条。
+//   六、键区摆出来的那几条从偏好面板里撤掉;总开关一关,面板恢复原样。
 import { boot, open, URL_BASE } from './lib/boot.mjs'
 
 // 每个游戏该有几个 prefer 键。数目对不上就是某条 label 没认出来。
@@ -93,16 +94,32 @@ else fail('再按之后没亮')
 if (new RegExp(`${KW}=true`).test((await saved()) ?? '')) ok(`存档里 ${KW}=true`)
 else fail('存档没写回 true:', await saved())
 
-// 偏好面板和键区读的必须是同一个真值。
+// 键区已经摆出来的那条要从面板里撤掉,别的行照旧在。
+const rows = () => page.evaluate(() =>
+  [...document.querySelectorAll('.sheet-prefs input[type=checkbox]')]
+    .map((b) => [b.closest('label')?.textContent ?? '', b.checked]),
+)
 await page.getByRole('button', { name: /Menu/i }).first().click()
 await page.waitForTimeout(400)
-const row = await page.evaluate(() =>
-  [...document.querySelectorAll('.sheet-prefs input[type=checkbox]')]
-    .map((b) => [b.closest('label')?.textContent ?? '', b.checked])
-    .find(([text]) => /pencil mark/i.test(text)) ?? null,
-)
-if (row?.[1] === true) ok('偏好面板里同一条也是勾上的')
-else fail('偏好面板和键区对不上:', JSON.stringify(row))
+const withKeys = await rows()
+if (!withKeys.some(([text]) => /pencil mark/i.test(text))) ok('键区有这个按钮,面板里那一行撤掉了')
+else fail('那一行没撤掉:', JSON.stringify(withKeys))
+if (withKeys.some(([text]) => /Ctrl/i.test(text))) ok('全局那条还在(撤的是键区认领的,不是整段)')
+else fail('面板被清空了:', JSON.stringify(withKeys))
+
+// 总开关关掉:键没了,那一行必须回来——而且读的和键区是同一个真值。
+await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+await page.evaluate(() => localStorage.setItem('puzzles.prefer', 'false'))
+await open(page, 'Solo', { clear: [] })
+if ((await keys.count()) === 0) ok('总开关关掉,偏好键不出现')
+else fail('总开关关掉还有偏好键')
+await page.getByRole('button', { name: /Menu/i }).first().click()
+await page.waitForTimeout(400)
+const back = (await rows()).find(([text]) => /pencil mark/i.test(text)) ?? null
+if (back?.[1] === true) ok('那一行回来了,勾的状态和键区一致')
+else fail('偏好面板和键区对不上:', JSON.stringify(back))
+await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+await page.evaluate(() => localStorage.setItem('puzzles.prefer', 'true'))
 
 console.log('\n多选一:一按走下一格,走到头绕回')
 await open(page, 'Undead', { clear: ['puzzles.prefs.undead', 'puzzles.save.undead'] })

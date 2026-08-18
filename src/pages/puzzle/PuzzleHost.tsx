@@ -271,10 +271,19 @@ export default function PuzzleHost({
 
   const arrowPad = game.arrows ? padButtons(game.arrows, board.view, board.handle) : null
 
+  // 键区已经摆出来的那几条从偏好面板里撤掉:同一个开关不在两处各占一行。撤的依据
+  // 是这一局真的显示出来的键(总开关关着、或上游改了 label 认不出,就一条都不撤,
+  // 那几行照旧在)。下标在两次借用之间稳:两边都是 midend_get_prefs() 的整表。
   const panelled =
     inline?.kind === 'prefs'
       ? (() => {
-          const controls = game.prefs.panel(inline.spec.controls)
+          const fronted = new Set<number>()
+          for (const key of keys) if (key.fronts !== undefined) fronted.add(key.fronts)
+          const left =
+            fronted.size === 0
+              ? inline.spec.controls
+              : inline.spec.controls.filter((_, i) => !fronted.has(i))
+          const controls = game.prefs.panel(left)
           return controls === inline.spec.controls
             ? inline.spec
             : { ...inline.spec, controls: [...controls] }

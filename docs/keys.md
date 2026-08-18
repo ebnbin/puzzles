@@ -387,6 +387,29 @@ volatile。
 「**物理按键**会改偏好」的游戏留的——guess 的 `l`、undead 的 `a`、bridges 的 `g` 三家。
 给别的游戏写上它不是保险,是每敲一个键都白借一次偏好 box。
 
+**上了键区就退出面板。** 同一个开关不在两处各占一行:键区摆出来的那几条,宿主在
+`panelled` 那一步先从偏好面板里撤掉,剩下的才交给 `game.prefs.panel`。依据是 `Key.fronts`
+——`preferKeys` 把它顶的那条在 `prefs` 里的下标挂在键上;下标在两次借用之间稳,两边都是
+`midend_get_prefs()` 的整表。
+
+撤的条件是**这一局真的显示出来的键**,所以两种情况都自动不撤:总开关 `puzzles.prefer`
+关着(键不存在),或者上游改了 label 认不出(`preferKeys` 一个键都不发)。开关一关,面板
+立刻恢复完整——不会出现「键没了、面板行也没了」。
+
+代价说在明处:面板是**一张能读的清单**,键区是**一排图标**,词藏在长按气泡里
+(`t.keys[字形名]` → `aria-label` / `title` / `HoldTip`),得一个一个问。多选一的还看不到
+全部选项、不能直选,只能按着绕一圈。开关默认关,所以这个代价只落在自己打开它的人身上。
+
+键上那几句英文是**我们自己写的,不是上游原话**,而且有意不一样:上游的
+「Fade grounded components」要先懂 grounded 是什么,我们写「Fade the diagonals that can no
+longer close a loop」。撤掉面板行之后上游那句话在 app 里就不出现了——这是选好的取舍,
+留的是看得懂的那句。
+
+撤完之后,19 个有偏好的游戏里 **13 个**的偏好面板只剩全局那一条 `one-key-shortcuts`;
+剩下 6 个各留一行,正好是当初判定「不该上键区」的那几条(map / signpost 的 `flash-type`、
+slant 的 `left-button`、range 的 `left-mouse-button`、fifteen 的 `arrow-semantics`、
+palisade 的 `cursor-mode`)。于是面板读起来是「键区放不下的那些」。
+
 **换掉上游偏好的默认值:`prefs.defaults`。** 上游没有「设默认值」这个 API:初值是各游戏
 `new_ui` 里写死的一行赋值,而 `vendor/` 不许改。开局唯一够得到 `game_ui` 的通道是偏好存档
 (`main()` 里无条件走一次 `js_load_prefs`),所以这一格是**开局伪造一份偏好文件递进去**:
