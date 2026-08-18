@@ -1,5 +1,10 @@
 ## 铁律
 
+- **开工第一件事:`git fetch --unshallow origin`**(已经完整会说 unshallow on a complete
+  repository,无害)。容器发的是浅克隆,本地 `main` 停在浅边界上的旧位置,`main..HEAD`
+  会把**早已合并**的提交报成未合并的——实际踩过:据此说「领先 main 五十个提交、没有
+  PR」,取回完整历史后 `main` 正是那五十个的顶端。此后一切与主干的比较都对
+  `origin/main`,不对本地 `main`。
 - `vendor/sgtpuzzles/` 是上游的逐字副本,**一行都不许改**;一切行为改动都在外面的
   JS/TS 层做。
 - **不直接 push `main`**,改动走分支 + PR。**PR 在这里是被授权的**——这句写给
