@@ -86,8 +86,7 @@ ground truth。
 | 文件 | 作用 |
 | --- | --- |
 | `declare.ts` | `verbatim` / `samePages` 申报速记 |
-| `keys.ts` | 上方键区构造器:数字键、清除键、上游的 `h`/`J`/`M` 三个键、偏好匹配、`charButton` 字符换算 |
-| `latin.ts` | 拉丁方家族的读盘:重放走子得到已填的值,只为数字键的余量角标 |
+| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配 |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
@@ -113,7 +112,7 @@ ground truth。
 | `useBoard.ts` | 棋盘通道:五项每游戏状态(标签/事实/光标镜像/粘滞键/上膛)与观察器;存档门重入计数私有在这里 |
 | `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在 sheet 里)/ modal(兜底) |
 | `useOutcome.ts` | 完成判定:status 只认沿、收尾浮层、记完成(求解器解出的不记) |
-| `PuzzleKeypad.tsx` | 上方键区渲染:键面、角标、色钉 |
+| `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
 | `PuzzleTypes.tsx` | 类型 sheet:预设列表 + 自定义参数 |

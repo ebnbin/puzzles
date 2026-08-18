@@ -1,5 +1,5 @@
 import type { Face, Key, View } from '../../games/game'
-import { fill, useStrings } from '../../i18n'
+import { useStrings } from '../../i18n'
 import HoldTip, { useHoldTip } from '../../ui/HoldTip'
 import Icon from '../../ui/Icon'
 import type { IconName } from '../../ui/Icon'
@@ -35,8 +35,8 @@ export default function PuzzleKeypad({
   const t = useStrings()
   const theme = useResolvedTheme()
 
-  // 词条只有键面说不出自己时才由这里派生:字形/图片按名字查 t.keys,
-  // 字面键靠角标句式;别的说法(色钉、高亮)由 face.says 自带。
+  // 词条只有键面说不出自己时才由这里派生:字形/图片按名字查 t.keys;
+  // 别的说法(色钉、高亮)由 face.says 自带。
   const worded = (name: string) => {
     const entry = (t.keys as Record<string, unknown>)[name]
     return typeof entry === 'string' ? entry : undefined
@@ -53,7 +53,6 @@ export default function PuzzleKeypad({
         {keys.map((key, i) => {
           const face: Face =
             typeof key.face === 'function' ? key.face(view) : key.face
-          const count = key.count ? key.count(view.facts) : null
           const said =
             face.says ??
             ('glyph' in face.art
@@ -89,9 +88,7 @@ export default function PuzzleKeypad({
               // midend_request_keys() 报的那组对得上。app 内没有读者。
               data-button={key.button ?? 0}
               disabled={face.dead}
-              aria-label={
-                said ?? (count !== null ? fill(t.keys.left, { digit: label ?? '', count }) : undefined)
-              }
+              aria-label={said}
               title={said}
               // 让焦点留在棋盘上:谜题从棋盘读键盘,按钮拿到焦点会吞方向键。
               onMouseDown={(e) => e.preventDefault()}
@@ -105,11 +102,6 @@ export default function PuzzleKeypad({
                 ('glyph' in face.art || 'image' in face.art
                   ? art('glyph' in face.art ? face.art.glyph : face.art.image, theme)
                   : label)}
-              {count !== null && (
-                <span className="key-left" aria-hidden="true">
-                  {count}
-                </span>
-              )}
             </button>
           )
         })}

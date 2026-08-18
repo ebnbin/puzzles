@@ -1,57 +1,39 @@
-// 上方键区的通用构造器,和拉丁方家族的观察器。全部看不见游戏:数字有几个、
-// 从哪起标、要不要角标,都由游戏文件说了算。
+// 上方键区的通用构造器。全部看不见游戏:数字有几个、从哪起标,都由游戏文件说了算。
 import type { DialogControl } from '../../engine/types'
-import type { Board, Key, Observe, Stroke } from '../game'
-import type { BoardReader } from './latin'
-import { remaining } from './latin'
+import type { Board, Key, Stroke } from '../game'
 
 export const tap =
   <F>(stroke: Stroke) =>
   (board: Board<F>) =>
     board.send(stroke)
 
-export type Counted = { left: Map<number, number> | null }
-
-// 拉丁方家族的观察:每步之后重读一遍「每个数字还差几个」。只数已填的值,
-// 铅笔标记不算——数字键的角标建立在这个区分上。
-export const counting = (read: BoardReader): Observe<Counted> => ({
-  init: { left: null },
-  saves: true,
-  next: (facts, saw) => ('moved' in saw ? { left: remaining(saw.moved, read) } : facts),
-})
+// 参数串开头的那个数,就是这一局的阶数;超出 1..36 的当认不出。
+export function leadingNumber(text: string | undefined): number | null {
+  const found = text ? /^(\d+)/.exec(text) : null
+  if (!found) return null
+  const n = Number(found[1])
+  return n >= 1 && n <= 36 ? n : null
+}
 
 // 0-9 之后接 a-z:上游数字键的字符约定(solo 的 16 阶用 a-f)。
 export const charButton = (shown: number) =>
   shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
 
-// 字符与数值是两回事:unequal 超过 9 阶从 '0' 起标以保持一字宽,此时 '0' 键的
-// value 是 1——键面显示前者、角标按后者计数。
+// unequal 超过 9 阶从 '0' 起标,为的是键面保持一字宽。
 export function digitKeys<F>(
   count: number,
-  options: {
-    startAtZero?: boolean
-    left?: (facts: F, value: number) => number | undefined | null
-  } = {},
+  options: { startAtZero?: boolean } = {},
 ): Key<F>[] {
   const first = options.startAtZero ? 0 : 1
   return Array.from({ length: count }, (_, i) => {
-    const shown = first + i
-    const button = charButton(shown)
+    const button = charButton(first + i)
     const label = String.fromCharCode(button)
-    const value = i + 1
-    const key: Key<F> = {
+    return {
       group: 'entry',
       face: { art: { text: label } },
       button,
       press: tap(label),
     }
-    const left = options.left
-    if (left)
-      key.count = (facts) => {
-        const n = left(facts, value)
-        return n !== undefined && n !== null && n > 0 ? n : null
-      }
-    return key
   })
 }
 

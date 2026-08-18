@@ -6,8 +6,7 @@ import type { Game, Key } from './game'
 import { still } from './game'
 import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
-import { leadingNumber } from './util/latin'
-import { charButton, tap } from './util/keys'
+import { charButton, leadingNumber, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Place', 'Remove', 'Line']
