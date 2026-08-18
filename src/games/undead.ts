@@ -1,7 +1,7 @@
 // Undead:镜子与三种怪物。上游 undead.c。
 // request_keys 报 G/V/Z/⌫(undead.c:1334);键面按偏好在图片和字母之间切换,
 // 而 'a' 键就能改这个偏好——所以偏好是 volatile 的,按键后要重读。
-// 读盘器解析 Undead 的描述(镜面、视线)和走子语法,喂给标记键;盘面不带
+// 读盘器解析 Undead 的描述(镜面、视线)和走子语法,喂给推理键;盘面不带
 // each,余量角标自然不画。
 import type { Field } from './util/save'
 import { find } from './util/save'
@@ -9,7 +9,8 @@ import type { Game, Key } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Board, MoveLanguage, Step } from './util/latin'
-import { clearKey, markActions, marksKey, preference, tap } from './util/keys'
+import { clearKey, marksKey, preference, tap } from './util/keys'
+import { latinDeduce } from './deduce/latin'
 import { act, cross } from './util/pad'
 
 const GHOST = 1
@@ -270,7 +271,7 @@ const undead: Game = {
       ),
       clearKey(),
       marksKey(),
-      ...markActions(readUndead),
+      ...latinDeduce(readUndead),
     ]
   },
   arrows: {

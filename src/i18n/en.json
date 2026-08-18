@@ -31,7 +31,9 @@
     "arrows": "Arrow keys",
     "arrowsHint": "Play with buttons instead of tapping the board",
     "assist": "Helper keys",
-    "assistHint": "Hints and shortcuts, in some puzzles"
+    "assistHint": "Hints and shortcuts, in some puzzles",
+    "deduce": "Deduction keys",
+    "deduceHint": "Fill in what the rules already settle, in some puzzles"
   },
 
   "puzzle": {

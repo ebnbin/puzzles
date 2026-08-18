@@ -1,7 +1,7 @@
 // Solo:数独(含 Killer、Jigsaw、X 变体)。上游 solo.c。
 // 数字键盘按参数推(重新实现 request_keys 的结果,emcc.c 不调用它),认不出的
 // 参数一律不显示键盘;对不对得上由 scripts/check-keys.mjs 去问引擎。
-// 读盘器解析 Solo 的参数/描述/走子,喂给 util/latin 的推理和角标。
+// 读盘器解析 Solo 的参数/描述/走子,喂给 deduce/latin 的推理和 util/latin 的角标。
 import type { Field } from './util/save'
 import { find } from './util/save'
 import type { Game } from './game'
@@ -9,14 +9,14 @@ import { samePages, verbatim } from './util/declare'
 import type { Board } from './util/latin'
 import {
   blockCells,
-  cageDigits,
   dividerBlocks,
   gridMoves,
   latinGroups,
   runLengthGrid,
 } from './util/latin'
 import type { Counted } from './util/keys'
-import { clearKey, counting, digitKeys, markActions, marksKey } from './util/keys'
+import { clearKey, counting, digitKeys, marksKey } from './util/keys'
+import { cageDigits, latinDeduce } from './deduce/latin'
 import { act, cross } from './util/pad'
 
 function params(
@@ -166,7 +166,7 @@ const solo: Game<Counted> = {
       ...digitKeys<Counted>(cr, { left: (facts, value) => facts.left?.get(value) }),
       clearKey(),
       marksKey(),
-      ...markActions(readSolo),
+      ...latinDeduce(readSolo),
     ]
   },
   arrows: {

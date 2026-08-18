@@ -86,12 +86,21 @@ ground truth。
 | 文件 | 作用 |
 | --- | --- |
 | `declare.ts` | `verbatim` / `samePages` 申报速记 |
-| `keys.ts` | 上方键区构造器:数字键、标记键、偏好匹配、`charButton` 字符换算 |
-| `latin.ts` | 拉丁方家族的读盘与推理:铺候选、摆单值、清空、余量 |
+| `keys.ts` | 上方键区构造器:数字键、清除键、上游的提示/重排/铺标记键、偏好匹配、`charButton` 字符换算 |
+| `latin.ts` | 拉丁方家族的读盘:走子重放出值与标记、描述编码、余量(推理在 `deduce/`) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
 | `verify.ts` | 构建期不变量:注册表与 games.json 双向对账、深色申报检查 |
+
+`src/games/deduce/` 是**全项目唯一一套上游不提供的能力**:上游给的只有读存档、写存档两块
+地基,推什么、推到哪一步全由这一侧自己定,没有任何东西可以对账。单独占一个目录就是为了让
+这件事一眼看得见;它也单独占一个开关(`puzzles.deduce`)。判据与规矩见 `docs/keys.md`。
+
+| 文件 | 作用 |
+| --- | --- |
+| `deduce.ts` | 这一类的契约:走存档门的键构造器 `deduceKey`,和「写下的每一格都必须可证明」这条规矩 |
+| `latin.ts` | 拉丁方家族的推理:候选、铺候选、摆单值、清标记、cage 枚举;三个键由 `latinDeduce` 出 |
 
 ### src/pages/ —— 三个页面,一页一包
 
@@ -125,6 +134,7 @@ ground truth。
 | `useHelp.ts` | 玩法速览文案装载(`public/help/`) |
 | `useArrows.ts` | 方向键总开关(`puzzles.arrows`) |
 | `useAssist.ts` | assist 键总开关(键名 `puzzles.aid` 已发布,只改了代码名) |
+| `useDeduce.ts` | deduce 键总开关(`puzzles.deduce`);独立于 assist,那一类是上游的键,这一类没有上游背书 |
 
 `pages/manual/`(手册):
 
@@ -206,7 +216,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 
 | 路径 | 作用 |
 | --- | --- |
-| `docs/keys.md` | 按键适配:判据、五类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
+| `docs/keys.md` | 按键适配:判据、六类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
 | `docs/inputs.md` | 上游 40 游戏的全部输入参考,带源码行号,钉着上游 commit |
 | `docs/structure.md` | 本清单 |
 | `docs/gallery.png` | README 首图(`build-shot.mjs` 生成) |

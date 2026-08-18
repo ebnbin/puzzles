@@ -6,14 +6,8 @@ import { samePages, verbatim } from './util/declare'
 import type { Board } from './util/latin'
 import { gridMoves, latinGroups, leadingNumber } from './util/latin'
 import type { Counted } from './util/keys'
-import {
-  clearKey,
-  counting,
-  digitKeys,
-  hintKey,
-  markActions,
-  marksKey,
-} from './util/keys'
+import { clearKey, counting, digitKeys, hintKey, marksKey } from './util/keys'
+import { latinDeduce } from './deduce/latin'
 import { act, cross } from './util/pad'
 
 const SIDES = [
@@ -144,7 +138,7 @@ const unequal: Game<Counted> = {
       clearKey(),
       marksKey(),
       hintKey(),
-      ...markActions(readUnequal),
+      ...latinDeduce(readUnequal),
     ]
   },
   arrows: {

@@ -6,6 +6,7 @@ import Dialog from '../../ui/Dialog'
 import Icon from '../../ui/Icon'
 import { useScrollLock } from '../../ui/useScrollLock'
 import { setAssist, useAssist } from '../puzzle/useAssist'
+import { setDeduce, useDeduce } from '../puzzle/useDeduce'
 import { setArrows, useArrows } from '../puzzle/useArrows'
 
 const ARMED_MS = 3000
@@ -21,6 +22,7 @@ export default function GallerySettings({
   const [lang] = useLang()
   const arrows = useArrows()
   const assist = useAssist()
+  const deduce = useDeduce()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -72,6 +74,18 @@ export default function GallerySettings({
           type="checkbox"
           checked={assist}
           onChange={(e) => setAssist(e.target.checked)}
+        />
+      </label>
+
+      <label className="setting">
+        <span className="setting-text">
+          {t.settings.deduce}
+          <em>{t.settings.deduceHint}</em>
+        </span>
+        <input
+          type="checkbox"
+          checked={deduce}
+          onChange={(e) => setDeduce(e.target.checked)}
         />
       </label>
 
