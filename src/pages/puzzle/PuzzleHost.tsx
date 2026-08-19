@@ -23,6 +23,7 @@ import { showGallery } from '../../view'
 import { useAssist } from './useAssist'
 import { useArrows } from './useArrows'
 import { usePrefer } from './usePrefer'
+import { SHORTCUTS_LABEL } from './useShortcuts'
 import { useBoard } from './useBoard'
 import { useConfigBox } from './useConfigBox'
 import { START_FAILED, useEngine } from './useEngine'
@@ -271,18 +272,19 @@ export default function PuzzleHost({
 
   const arrowPad = game.arrows ? padButtons(game.arrows, board.view, board.handle) : null
 
-  // 键区已经摆出来的那几条从偏好面板里撤掉:同一个开关不在两处各占一行。撤的依据
-  // 是这一局真的显示出来的键(总开关关着、或上游改了 label 认不出,就一条都不撤,
-  // 那几行照旧在)。下标在两次借用之间稳:两边都是 midend_get_prefs() 的整表。
+  // 面板上撤两样。一、键区已经摆出来的那几条:同一个开关不在两处各占一行,依据是
+  // 这一局真的显示出来的键(总开关关着、或上游改了 label 认不出就一条都不撤)。
+  // 下标在两次借用之间稳:两边都是 midend_get_prefs() 的整表。二、裸字母快捷键那条:
+  // 它归全局设置管(useShortcuts),开局压在存档上面,留着这一行会是个会撒谎的勾
+  // ——点得动、下次开局又被压回去。撤空了整段不画(PuzzleMenu 自己判 length)。
   const panelled =
     inline?.kind === 'prefs'
       ? (() => {
           const fronted = new Set<number>()
           for (const key of keys) if (key.fronts !== undefined) fronted.add(key.fronts)
-          const left =
-            fronted.size === 0
-              ? inline.spec.controls
-              : inline.spec.controls.filter((_, i) => !fronted.has(i))
+          const left = inline.spec.controls.filter(
+            (control, i) => !fronted.has(i) && control.label !== SHORTCUTS_LABEL,
+          )
           const controls = game.prefs.panel(left)
           return controls === inline.spec.controls
             ? inline.spec

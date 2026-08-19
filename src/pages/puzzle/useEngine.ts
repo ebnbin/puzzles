@@ -14,6 +14,7 @@ import {
 import type { DialogSpec, Preset, PuzzleApi } from '../../engine/types'
 import type { Game } from '../../games/game'
 import type { Resolved } from '../../useTheme'
+import { SHORTCUTS_KW, useShortcuts } from './useShortcuts'
 
 export const START_FAILED = '\0start'
 
@@ -79,6 +80,11 @@ export function useEngine({
   const savePending = useRef(false)
   const themeRef = useRef(theme)
   themeRef.current = theme
+  // 设置面板只在画廊出现,而画廊和棋局互斥(App.tsx),所以这一位在局内不会变:
+  // 改完再进游戏,loadPrefs 重跑一遍就是新值。
+  const shortcuts = useShortcuts()
+  const shortcutsRef = useRef(shortcuts)
+  shortcutsRef.current = shortcuts
 
   const queueSave = useCallback(() => {
     if (!armedSave.current || savePending.current) return
@@ -117,6 +123,7 @@ export function useEngine({
       dark: themeRef.current === 'dark',
       spec: game.dark,
       defaults: game.prefs.defaults,
+      forced: { [SHORTCUTS_KW]: String(shortcutsRef.current) },
       callbacks: {
         onReady(list, api) {
           apiRef.current = api

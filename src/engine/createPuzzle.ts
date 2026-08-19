@@ -9,9 +9,10 @@ export async function createPuzzle(options: {
   dark?: boolean
   spec?: Dark
   defaults?: Readonly<Record<string, string>>
+  forced?: Readonly<Record<string, string>>
   callbacks: PuzzleCallbacks
 }): Promise<{ api: PuzzleApi; renderer: CanvasRenderer }> {
-  const { name, canvas, gameId = '', dark = false, spec, defaults, callbacks } = options
+  const { name, canvas, gameId = '', dark = false, spec, defaults, forced, callbacks } = options
   const renderer = new CanvasRenderer(canvas, spec)
   renderer.setDark(dark)
 
@@ -49,18 +50,24 @@ export async function createPuzzle(options: {
       canvas.focus()
     },
 
-    // 申报的默认值垫在存档下面:上游逐行赋值,后写的盖先写的,于是用户存过的
-    // 那几条赢、没存过的落到申报。反过来拼就成了「强制值」,用户永远改不掉。
-    // 整份只要有一行解析不了,上游把它全丢掉(midend.c:3223),所以行只许在这里拼。
+    // 三层,上游逐行赋值、后写的盖先写的,所以位置就是语义:申报的默认值垫在
+    // 存档下面(用户改得动),全局的强制值压在存档上面(用户改不动)。整份只要有
+    // 一行解析不了,上游把它全丢掉(midend.c:3223),所以行只许在这里拼。
     loadPrefs(): string | null {
-      const under = Object.entries(defaults ?? {})
-        .map(([kw, value]) => `${kw}=${value}\n`)
-        .join('')
+      const lines = (from: Readonly<Record<string, string>> | undefined) =>
+        Object.entries(from ?? {})
+          .map(([kw, value]) => `${kw}=${value}\n`)
+          .join('')
+      const under = lines(defaults)
+      const over = lines(forced)
+      let stored = ''
       try {
-        return (under + (window.localStorage.getItem(prefsKey) ?? '')) || null
+        stored = window.localStorage.getItem(prefsKey) ?? ''
       } catch {
-        return under || null
       }
+      // 存档少了收尾的换行就会和压顶那行黏成一个认不出的关键字,补一个。
+      if (stored && !stored.endsWith('\n')) stored += '\n'
+      return under + stored + over || null
     },
 
     savePrefs(data: string) {
