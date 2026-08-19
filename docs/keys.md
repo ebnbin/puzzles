@@ -205,7 +205,7 @@ fifteen、loopy 三个本来就不读这两个键,**untangle 和 palisade 读但
 | unruly | ✅ | 两个开关:黑 · 白 ✅(六个转移每个一按,黑↔白也是,一个字节不记)· 线索格上一起灰 · `0`/`1`/`2` 直接设⭕ | —— |
 | flood | ✅ | `Enter` 淹没左上角 ✅ · `Space` 重放求解器下一步 ✅(按过求解才出现;这个键不看光标,`offCursor`)· 需要一份副本 | —— |
 | tracks | ✅ | 两个开关:铺轨 · 打叉 ✅(上游自己的绝对键;对方记号上一按替换,替换失败自动撤回)· 线索格两个一起灰 | ——(`h` 在 `#if 0` 里,死代码) |
-| palisade | ✅ | 两个开关:画墙 · 标记没有墙 ✅(后端一个标签都不报,键的死活从画面里读,`observe.frames`)· 死落点上两个一起灰 · 对方记号上一按替换 · 只在 Half-grid 光标模式下给按钮(face 读偏好,`prefs.volatile`) | 凑齐即收拾 ⚙️ |
+| palisade | ✅ | 两个开关:画墙 · 标记没有墙 ✅(后端一个标签都不报,键的死活从画面里读,`observe.frames`)· 死落点上两个一起灰 · 对方记号上一按替换 · **Full-grid 光标模式下同两个键改当上膛键**(face 读偏好,`prefs.volatile`) | 凑齐即收拾 ⚙️ |
 | mosaic | ✅ | 两个开关:黑 · 白 ✅(和 unruly 逐字同一套)· 解完之后两个一起灰(上游自己不报了) | —— |
 
 ⭕ = 碰棋盘就能做到,按判据一不该做成按钮。
@@ -219,7 +219,7 @@ fifteen、loopy 三个本来就不读这两个键,**untangle 和 palisade 读但
 
 | 谁 | 什么 | 卡在哪 |
 | --- | --- | --- |
-| 修饰键组合 | net 移原点/源、unequal 和 towers 划线索、palisade 画墙 | 机制已有(粘滞如 pattern 的刷、一次性如 bridges),剩「一个一个铺」。铺之前先分清是够不着还是只是快一点,再翻一遍上游手册——sixteen 那种上游自带的粘滞版本比造一个便宜 |
+| 修饰键组合 | net 移原点/源、unequal 和 towers 划线索 | 机制已有(粘滞如 pattern 的刷、一次性如 bridges、palisade 的 Full-grid),剩「一个一个铺」。铺之前先分清是够不着还是只是快一点,再翻一遍上游手册——sixteen 那种上游自带的粘滞版本比造一个便宜 |
 | signpost 的 `X` | 拆整条链 | 要一次右键拖拽,长按变拖拽的路已通;探过一次没写出走子,没查清是拖错了地方还是真不通 |
 
 ### 二、审计过,决定不补(2026-08-14,前提是上游 `3c36322`)
@@ -344,9 +344,9 @@ NULL 却每条分支都干活的键(untangle):恒可按,不看标签。
 
 **`mute`(豁免,不伪造)。** untangle、palisade 的 `current_key_label` 是 `NULL`,照字面读
 两个按钮会整局灰着。untangle 的两个键申报 `mute` 直接放行,免费(它的 `Enter` 每条分支都
-做事);palisade 的键从每帧画面里读死活(自己文件里的 `readStand`),Full-grid 模式下一个
-按钮都不给——修饰键发不出去,两个永远无效的亮键不如没有,所以它的 face 读偏好、偏好申报
-volatile。
+做事);palisade 的键从每帧画面里读死活(自己文件里的 `readStand`),Full-grid 模式下这两个
+键改当上膛键、不看脚下(那个模式里边由 `Ctrl`/`Shift`+方向压出来,确认键落在格心上游一律
+不受理),所以它的 face 读偏好、偏好申报 volatile。
 
 **存档门(`gate`)。** `midend_deserialise` 把走子直交 `execute_move`,不经 `interpret_move`
 ——键说不出的动作从这里写。map 的四个颜色键走这扇门(上游没有任何键能说出一个颜色,走子是

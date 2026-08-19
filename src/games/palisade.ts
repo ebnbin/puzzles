@@ -3,10 +3,10 @@
 // 光标框的形状说明脚下能不能画墙,框底边的颜色说明那里是墙、「没有墙」的记号
 // 还是空(palisade.c:1228)。都是在猜别人的绘图代码,错了是静悄悄的:改这里
 // 跑 scripts/check-palisade.mjs。
-// 对方记号上一按替换(先擦后画,两条走子);Full-grid 光标模式下按钮整个不给:
-// 修饰键发不出去,两个永远无效的亮键不如没有——所以偏好要读(volatile 是因为
-// 偏好面板可改光标模式,改完键盘形状要跟上)。
-import type { ArrowKey, Game, Slot } from './game'
+// 对方记号上一按替换(先擦后画,两条走子);Full-grid 光标模式下这两个键改当上膛
+// 键,把 Ctrl/Shift 交给下一次方向键——所以偏好要读(volatile 是因为偏好面板可改
+// 光标模式,改完键盘形状要跟上)。
+import type { ArrowKey, Game, Mods, Slot, View } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Prefer } from './util/keys'
@@ -67,6 +67,11 @@ type Facts = { stand: Stand | null }
 
 const CURSOR_MODE = ['Half-grid', 'Full-grid']
 
+const fullGrid = (prefs: View<Facts>['prefs']) => preference(prefs, CURSOR_MODE) === 1
+
+// 同一个键在两种光标模式下是两套活。Half-grid:光标停在边上,一按就地翻转。
+// Full-grid:光标只停格心,确认键落在格心上游一律不受理(palisade.c:1076),边只能
+// 由 Ctrl/Shift+方向压出来(palisade.c:1026)——所以这里改当上膛键,自己不发走子。
 const borderKey = (
   id: string,
   slot: Slot,
@@ -74,22 +79,31 @@ const borderKey = (
   glyph: 'edge' | 'noEdge',
   word: 'edge' | 'noEdge',
   mine: Border,
+  mods: Mods,
 ): ArrowKey<Facts> => ({
   id,
   slot,
   face: (view) => {
-    // 走满格的那种画法里,边由光标自己压出来,两个功能键没有活干。
-    if (preference(view.prefs, CURSOR_MODE) === 1) return null
+    const says = view.words.cursor[word]
+    if (fullGrid(view.prefs)) {
+      // 上膛键不看脚下:Ctrl+方向在哪一格都成立,越界由上游回绝。
+      const on = view.armed?.id === id
+      return { art: { glyph }, says, tip: true, on, held: on }
+    }
     const stand = view.facts.stand
     return {
       art: { glyph },
-      says: view.words.cursor[word],
+      says,
       tip: true,
       on: stand?.has === mine,
       dead: !!stand && !stand.live,
     }
   },
   press: (board) => {
+    if (fullGrid(board.view().prefs)) {
+      board.arm(board.view().armed?.id === id ? null : { id, mods })
+      return
+    }
     board.arm(null)
     const stand = board.view().facts.stand
     if (stand && !stand.live) return
@@ -119,8 +133,8 @@ const palisade: Game<Facts> = {
   arrows: {
     keys: [
       ...cross<Facts>(),
-      borderKey('wall', 4, 'Enter', 'edge', 'edge', 'wall'),
-      borderKey('nowall', 6, ' ', 'noEdge', 'noEdge', 'no'),
+      borderKey('wall', 4, 'Enter', 'edge', 'edge', 'wall', { ctrl: true }),
+      borderKey('nowall', 6, ' ', 'noEdge', 'noEdge', 'no', { shift: true }),
     ],
   },
   observe: {

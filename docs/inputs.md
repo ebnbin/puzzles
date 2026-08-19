@@ -1586,6 +1586,9 @@ Flood 只有第二个键播,第一个键仍然是正常染色。
 **`Ctrl`/`Shift`+方向键只在 Full-grid 模式下有效**——这是全文档里唯一一处
 「偏好设置决定某个修饰符组合存不存在」。默认的 Half-grid 模式下那套完全够不着。
 
+本前端两种模式都够得着:Half-grid 下方向键块那两个功能键就地翻转脚下的边;Full-grid 下
+同两个键改当**上膛键**,按一下亮着,再按方向才把 `Ctrl`/`Shift`+方向发出去(见 keys.md)。
+
 **偏好**:`cursor-mode`(Half-grid / Full-grid)和 `clear-complete-regions`(显示用)。
 
 ---
