@@ -5,9 +5,7 @@
 // 中键的锁定与之等价(net.c:2300)。
 import type { Field, Game, Span } from './game'
 import { still } from './game'
-import type { DialogControl } from '../engine/types'
 import { samePages, verbatim } from './util/declare'
-import { flagAt, numberAt } from './util/fields'
 import type { Prefer } from './util/keys'
 import { jumbleKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
@@ -22,27 +20,22 @@ const LOOPS: Prefer = {
 const WIDTH = 0
 const HEIGHT = 1
 const BARRIER = 3
-const UNIQUE = 4
 
-// 宽和高的界互相牵制,两条禁令:
-//   「不能都 ≤1」(net.c:322)——只堵掉 1×1,所以对方是 1 时自己至少 2;
-//   宽或高等于 2 而唯一解开着——2 夹在 1 和 3 中间,是个洞。上游只在**环绕**时
-//   禁它(net.c:390,那种情形能证明无解);非环绕它不禁,但生成器一样收敛不了,
-//   会在 goto begin_generation 里空转、把主线程冻住(实测 2×10 六次卡死四次,
-//   3×10 零次,2 宽关掉唯一解零次)。所以这里按「唯一解」整个禁掉,比上游宽。
-const size =
-  (other: number) =>
-  (controls: readonly DialogControl[]): Span => ({
-    min: numberAt(controls, other) <= 1 ? 2 : 1,
-    max: 100,
-    ...(flagAt(controls, UNIQUE) ? { skip: [2] } : {}),
-  })
+// 下界 3:宽或高**恰好等于 2** 会把主线程冻住,任何开关下都会。new_game_desc 有
+// 两个无界循环——唯一性那个(net.c:1343)和洗牌那个(net.c:1454,不看 unique,
+// 要求初始局面无闭环)。闭环最少要一个 2×2 的圈:1 宽形不成,≥3 宽有横向余量修得掉,
+// 只有 2 宽两头堵死,干净洗牌的概率随另一边变长而塌。实测(每档 6 次)2×3 零次卡死、
+// 2×12 两次、2×20 四次,而 1×60 和 3×60 在开关两态下都是零次。
+// 上游只禁了「环绕+唯一解」那一种(net.c:390,附了证明),另外两种它不禁,照样空转。
+// 1 是安全的,但 1×N 是一列直管、没有推理内容,不值为它多写两条规则。
+// 上界 50:桌面 1440×900 上每格 15.7 px、生成 70 ms;再大手机侧就只剩个位数像素。
+const size = (): Span => ({ min: 3, max: 50 })
 
 // 墙数是概率乘候选数((w−1)(h−1)),严格线性;按百分比分档是上游自己的做法
 // (bridges 的两个同类参数就是离散百分比)。
 const fields: readonly Field[] = [
-  { at: WIDTH, label: 'Width', span: size(HEIGHT) },
-  { at: HEIGHT, label: 'Height', span: size(WIDTH) },
+  { at: WIDTH, label: 'Width', span: size },
+  { at: HEIGHT, label: 'Height', span: size },
   {
     at: BARRIER,
     label: 'Barrier probability',
