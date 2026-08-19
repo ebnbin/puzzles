@@ -66,8 +66,10 @@ export type Prefs = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
   // 拿到的已经是宿主撤掉「键区已有按钮」那几条之后的剩余(见 Key.fronts)。
   panel(controls: readonly DialogControl[]): readonly DialogControl[]
-  // 物理按键也能改偏好的游戏(只有 undead 的 'a'),宿主在棋盘每次按键后重读一遍。
-  // 开局那一次读所有游戏都有,不看这一位:view.prefs 对谁都是真的。
+  // 棋盘上的一次输入就能翻掉自己偏好的游戏(guess 的 l、map 的 l、undead 的 a、
+  // bridges 的 g、singles 点棋盘外沿),宿主在每次按键和每次手势之后重读一遍。
+  // 偏好面板那条路不看这一位(提交完自己会 setPrefs);开局那一次读也不看,
+  // view.prefs 对谁都是真的。写多了不是保险,是每次输入都白借一次偏好 box。
   volatile: boolean
   // 换掉上游偏好的默认值:按 kw 申报,开局垫在存档下面(用户存过的那几条赢)。
   // 只给 kw 和值,行由 createPuzzle 拼——有一行解析不了会让整份偏好静默作废。

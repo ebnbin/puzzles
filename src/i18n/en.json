@@ -35,7 +35,7 @@
     "prefer": "Option keys",
     "preferHint": "The puzzle's own options as buttons, in some puzzles",
     "shortcuts": "Keyboard shortcuts without Ctrl",
-    "shortcutsHint": "Bare n, u, r and q for new game, undo, redo and quit; Ctrl combinations always work"
+    "shortcutsHint": "Bare n, u and r for new game, undo and redo; turn it off and the toolbar buttons are the only way"
   },
 
   "puzzle": {

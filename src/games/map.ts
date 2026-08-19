@@ -254,7 +254,8 @@ const swatchKey = (i: number): Key<Facts> => ({
   press: paintPress(i),
 })
 
-// 三条偏好里只摆这一条:另外两条(通关闪法、候选点大小)是观感,不是解题信息。
+// 三条偏好摆两条:通关闪法不摆,它只在解完那零点几秒可见,那时手已经离开键区。
+// 「Number regions」和 L 键是同一个开关(map.c:2500),所以偏好申报 volatile。
 const NUMBERED: Prefer = { kind: 'flag', label: 'Number regions', glyph: 'numberRegion' }
 
 const STIPPLES: Prefer = {
@@ -276,7 +277,7 @@ const map: Game<Facts> = {
   dark: {},
   pages: samePages('map'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: false },
+  prefs: { panel: verbatim, volatile: true },
   keypad: ({ prefs }) => [
     ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),
     ...preferKeys<Facts>(prefs, [NUMBERED, STIPPLES]),

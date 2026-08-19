@@ -110,7 +110,12 @@ export function preferKeys<F>(
         ? {
             group: 'prefer',
             fronts: at,
-            face: (view) => ({ art: { glyph: want.glyph }, on: flag(view.prefs, want.label) }),
+            // on 管填充色,held 管 aria-pressed:开关键两样都要,不然读屏软件
+            // 两个状态听起来一模一样(PuzzleActions 早就是这个分工)。
+            face: (view) => {
+              const on = flag(view.prefs, want.label)
+              return { art: { glyph: want.glyph }, on, held: on }
+            },
             press: (board) =>
               board.prefer((controls) => {
                 const found = controls[findAt(controls, want)]
