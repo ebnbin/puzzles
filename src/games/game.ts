@@ -27,6 +27,8 @@ export type Game<F = null> = {
   pages: Pages
   types: Types
   prefs: Prefs
+  // 自定义参数的控件申报。缺省 = 这个游戏还没接,整份对话框保持上游的文本框。
+  fields?: readonly Field[]
 
   // 上方键区。null = 这一局的参数认不出,整排不画;[] = 这个游戏没有上方键区。
   keypad(deal: Deal): Key<F>[] | null
@@ -74,6 +76,31 @@ export type Prefs = {
   // 换掉上游偏好的默认值:按 kw 申报,开局垫在存档下面(用户存过的那几条赢)。
   // 只给 kw 和值,行由 createPuzzle 拼——有一行解析不了会让整份偏好静默作废。
   defaults?: Readonly<Record<string, string>>
+}
+
+// ---------------------------------------------------------------- 自定义参数
+
+// 上游的自由文本框换成受约束的 widget。范围一概由这里给:config_item 不带任何
+// 界的信息,而 kw 在 configure 这条路上根本不存在(puzzles.h 的结构体注释:
+// get_prefs 填,configure 不填),emcc 也只把 name 交过来(emcc.c:625)。
+// 于是按下标认控件——那正是 custom_params 自己的读法——label 只作校验。
+export type Field = {
+  at: number // game_configure 返回的数组下标
+  label: string // 对不上 = 上游动过这个对话框,这一条不生效,退回文本框
+  // 界读的是全部控件的当前值:一个数的合法范围常由别的控件决定(改宽度会挪
+  // 高度的界,翻个开关也会)。每次取值前重问,不缓存。
+  span(controls: readonly DialogControl[]): Span
+  decimals?: number // 小数位;缺省 0 = 整数
+  percent?: true // 只改显示(0–1 显示成 0–100%),写回 C 的值不变
+}
+
+// skip 是区间**中间**挖掉的孤立值。上游有「环绕+唯一解时宽或高不许是 2」这类
+// 禁令,它既不在 min 也不在 max,slider 只能跳过去。
+export type Span = {
+  min: number
+  max: number
+  step?: number // 缺省 1
+  skip?: readonly number[]
 }
 
 // ---------------------------------------------------------------- 键面

@@ -1353,6 +1353,38 @@ p.notice-intro button:active {
   accent-color: var(--accent);
 }
 
+/* 数值格:名字和当前值一行,轨道占满下面一行——7rem 的输入框宽度拖不动。 */
+.sheet-custom .dialog-range {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem 0 0.65rem;
+  border-top: 1px solid var(--edge);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.sheet-custom .range-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sheet-custom .range-head b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--accent-soft-text);
+}
+
+.sheet-custom .dialog-range input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 
 .sheet-preset-group {
   width: 100%;

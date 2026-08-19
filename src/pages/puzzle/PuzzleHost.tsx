@@ -463,6 +463,7 @@ export default function PuzzleHost({
           standard={engine.standard}
           custom={inline?.kind === 'custom' ? inline.spec : null}
           customError={inlineError}
+          fields={game.fields}
           onSelectPreset={(value) => {
             engine.setSelected(value)
             act((a) => a.selectPreset(value))
