@@ -89,6 +89,7 @@ export default function PuzzleKeypad({
               data-button={key.button ?? 0}
               data-on={face.on || undefined}
               disabled={face.dead}
+              aria-pressed={face.held}
               aria-label={said}
               title={said}
               // 让焦点留在棋盘上:谜题从棋盘读键盘,按钮拿到焦点会吞方向键。

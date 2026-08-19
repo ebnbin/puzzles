@@ -3,7 +3,7 @@
 //
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、createPuzzle 的
 // loadPrefs、任何一个游戏文件里的 Prefer 常量或 prefs.defaults,或者升级 vendor/ 之后跑。
-// 守七条:
+// 守八条:
 //   一、认控件只能按英文 label(emcc 只把 name 交给 JS,kw 到不了这一侧)。上游改了
 //       那句话,键会「消失」而不是「按下去没反应」——下面逐个游戏点名断言它还在。
 //   二、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
@@ -13,6 +13,7 @@
 //   六、键区摆出来的那几条从偏好面板里撤掉;总开关一关,面板恢复原样。
 //   七、裸字母快捷键那条归全局设置(useShortcuts):不进任何游戏的面板,而且真的
 //       压得住——开着按 n 换一局,关掉按 n 什么都不发生。
+//   八、棋盘上的输入能翻掉的偏好(map 的 L、singles 点外沿),键面那盏灯要跟上。
 import { boot, open, URL_BASE } from './lib/boot.mjs'
 
 // 每个游戏该有几个 prefer 键。数目对不上就是某条 label 没认出来。
@@ -162,6 +163,28 @@ for (const [flag, want] of [['true', true], ['false', false]]) {
 }
 await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
 await page.evaluate(() => localStorage.removeItem('puzzles.shortcuts'))
+
+console.log('\n偏好被棋盘上的输入翻掉时,键面那盏灯要跟上(prefs.volatile)')
+// map 的 L 和 singles 点棋盘外沿都当场翻自己的偏好,引擎不会告诉 JS——不重读,
+// 灯就停在旧值上,按下去的效果和看到的相反。
+const lampOf = () => keys.first().getAttribute('data-on')
+
+await open(page, 'Map', { clear: ['puzzles.prefs.map', 'puzzles.save.map'] })
+const mapWas = await lampOf()
+await page.evaluate(() => document.querySelector('canvas')?.focus())
+await page.keyboard.press('l')
+await page.waitForTimeout(400)
+if ((await lampOf()) !== mapWas) ok('Map 按 l 之后「区域编号」那盏灯跟着翻了')
+else fail('Map 按 l 之后灯没跟上——volatile 漏了')
+
+await open(page, 'Singles', { clear: ['puzzles.prefs.singles', 'puzzles.save.singles'] })
+const singlesWas = await lampOf()
+const canvas = await page.locator('canvas').boundingBox()
+// 棋盘外沿那一圈(BORDER = TILE_SIZE/2),singles.c:1560 在这儿翻偏好。
+await page.mouse.click(canvas.x + 3, canvas.y + 3)
+await page.waitForTimeout(400)
+if ((await lampOf()) !== singlesWas) ok('Singles 点棋盘外沿之后那盏灯跟着翻了')
+else fail('Singles 点外沿之后灯没跟上——重读没挂在手势上')
 
 console.log('\n多选一:一按走下一格,走到头绕回')
 await open(page, 'Undead', { clear: ['puzzles.prefs.undead', 'puzzles.save.undead'] })

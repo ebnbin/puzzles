@@ -4,8 +4,8 @@
 // 还是空(palisade.c:1228)。都是在猜别人的绘图代码,错了是静悄悄的:改这里
 // 跑 scripts/check-palisade.mjs。
 // 对方记号上一按替换(先擦后画,两条走子);Full-grid 光标模式下这两个键改当上膛
-// 键,把 Ctrl/Shift 交给下一次方向键——所以偏好要读(volatile 是因为偏好面板可改
-// 光标模式,改完键盘形状要跟上)。
+// 键,把 Ctrl/Shift 交给下一次方向键——所以键面要读偏好。但不 volatile:它的两条
+// 偏好没有任何棋盘输入能翻,只有偏好面板能改,而那条路提交完自己会 setPrefs。
 import type { ArrowKey, Game, Mods, Slot, View } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
@@ -128,7 +128,7 @@ const palisade: Game<Facts> = {
   dark: {},
   pages: samePages('palisade'),
   types: { menu: verbatim },
-  prefs: { panel: verbatim, volatile: true },
+  prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys<Facts>(prefs, [TIDY]),
   arrows: {
     keys: [

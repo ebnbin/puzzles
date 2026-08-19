@@ -35,7 +35,7 @@
     "prefer": "偏好键",
     "preferHint": "把谜题自己的选项摆成按钮，仅部分谜题提供",
     "shortcuts": "无需 Ctrl 的键盘快捷键",
-    "shortcutsHint": "裸字母 n 新局、u 撤销、r 重做、q 退出；Ctrl 组合键始终有效"
+    "shortcutsHint": "裸字母 n 新局、u 撤销、r 重做；关掉之后就只剩界面上的按钮"
   },
 
   "puzzle": {
@@ -195,7 +195,7 @@
     "stippleBig": "候选点画大",
     "followOff": "不替我往下接",
     "followGrid": "只按格子形状往下接",
-    "followSmart": "连我划掉的边一起算,往下接",
+    "followSmart": "连我划掉的边一起算，往下接",
     "masyuStyle": "传统画法",
     "loopyStyle": "Loopy 画法",
     "clearRegion": "区域凑齐就收拾干净",

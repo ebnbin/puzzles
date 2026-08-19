@@ -20,6 +20,9 @@ export function usePuzzlePointer(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   hold: number = RIGHT_BUTTON,
+  // 一次手势结束。偏好会被指针改掉的游戏拿它重读(singles 点棋盘外沿就翻一条,
+  // singles.c:1560);别的游戏不传,一次都不多借。
+  settled?: () => void,
 ) {
   const held = useRef<Map<number, number>>(new Map())
   const pending = useRef<Pending | null>(null)
@@ -118,16 +121,18 @@ export function usePuzzlePointer(
       const { x, y } = at(e)
       if (api.mouseup(x, y, button)) e.preventDefault()
       held.current.delete(e.pointerId)
+      settled?.()
     },
-    [apiRef, at, flush],
+    [apiRef, at, flush, settled],
   )
 
   const onPointerCancel = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
       clearPending()
-      held.current.delete(e.pointerId)
+      // 按下那一刻就可能已经翻了偏好(取消的只是后半程),照样重读。
+      if (held.current.delete(e.pointerId)) settled?.()
     },
-    [],
+    [settled],
   )
 
   return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel }

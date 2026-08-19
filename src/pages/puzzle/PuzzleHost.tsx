@@ -173,6 +173,7 @@ export default function PuzzleHost({
     apiRef,
     rendererRef,
     game.touch.hold === 'middle' ? 1 : 2,
+    game.prefs.volatile ? readPrefs : undefined,
   )
 
   const [swatches, setSwatches] = useState<ReadonlyMap<number, string>>(NO_SWATCHES)
@@ -204,6 +205,12 @@ export default function PuzzleHost({
     },
     [dialog, acted],
   )
+
+  // 偏好变了就卸膛:上膛键的含义是偏好给的(palisade 切回 Half-grid 之后,原来那
+  // 支 Ctrl 上膛既画不出边、也因为走不成而永远不自动卸,同伴键还一直藏着)。
+  useEffect(() => {
+    board.handle.arm(null)
+  }, [board.handle, prefs])
 
   // 开局读一次。键面形状看偏好的游戏都要这一份(prefer 的亮灭、guess 的色钉标号、
   // palisade 的光标模式);volatile 只多管一件事——物理按键之后再重读一遍。
@@ -277,20 +284,21 @@ export default function PuzzleHost({
   // 下标在两次借用之间稳:两边都是 midend_get_prefs() 的整表。二、裸字母快捷键那条:
   // 它归全局设置管(useShortcuts),开局压在存档上面,留着这一行会是个会撒谎的勾
   // ——点得动、下次开局又被压回去。撤空了整段不画(PuzzleMenu 自己判 length)。
-  const panelled =
-    inline?.kind === 'prefs'
-      ? (() => {
-          const fronted = new Set<number>()
-          for (const key of keys) if (key.fronts !== undefined) fronted.add(key.fronts)
-          const left = inline.spec.controls.filter(
-            (control, i) => !fronted.has(i) && control.label !== SHORTCUTS_LABEL,
-          )
-          const controls = game.prefs.panel(left)
-          return controls === inline.spec.controls
-            ? inline.spec
-            : { ...inline.spec, controls: [...controls] }
-        })()
-      : null
+  // memo 是必需的,不是优化:裸字母那条每个游戏都在,所以每次都会滤掉东西、每次都
+  // 造新数组。这个页面每次重渲染(readPrefs 一路的 setState 很勤)都要走到这儿,
+  // 不 memo 就每次给 ConfigFields 递一份新的 spec。
+  const panelled = useMemo(() => {
+    if (inline?.kind !== 'prefs') return null
+    const fronted = new Set<number>()
+    for (const key of keys) if (key.fronts !== undefined) fronted.add(key.fronts)
+    const left = inline.spec.controls.filter(
+      (control, i) => !fronted.has(i) && control.label !== SHORTCUTS_LABEL,
+    )
+    const controls = game.prefs.panel(left)
+    return controls === inline.spec.controls
+      ? inline.spec
+      : { ...inline.spec, controls: [...controls] }
+  }, [inline, keys, game])
 
   return (
     <div
