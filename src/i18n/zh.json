@@ -33,7 +33,9 @@
     "assist": "辅助键",
     "assistHint": "提示和快捷操作，仅部分谜题提供",
     "prefer": "偏好键",
-    "preferHint": "把谜题自己的选项摆成按钮，仅部分谜题提供"
+    "preferHint": "把谜题自己的选项摆成按钮，仅部分谜题提供",
+    "shortcuts": "无需 Ctrl 的键盘快捷键",
+    "shortcutsHint": "裸字母 n 新局、u 撤销、r 重做、q 退出；Ctrl 组合键始终有效"
   },
 
   "puzzle": {

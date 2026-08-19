@@ -3,7 +3,7 @@
 //
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、createPuzzle 的
 // loadPrefs、任何一个游戏文件里的 Prefer 常量或 prefs.defaults,或者升级 vendor/ 之后跑。
-// 守六条:
+// 守七条:
 //   一、认控件只能按英文 label(emcc 只把 name 交给 JS,kw 到不了这一侧)。上游改了
 //       那句话,键会「消失」而不是「按下去没反应」——下面逐个游戏点名断言它还在。
 //   二、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
@@ -11,6 +11,8 @@
 //   四、多选一的键一按走下一格、走到头绕回,且脸跟着换。
 //   五、下游换掉的默认值(prefs.defaults)开局到位,且压不过用户自己存过的那一条。
 //   六、键区摆出来的那几条从偏好面板里撤掉;总开关一关,面板恢复原样。
+//   七、裸字母快捷键那条归全局设置(useShortcuts):不进任何游戏的面板,而且真的
+//       压得住——开着按 n 换一局,关掉按 n 什么都不发生。
 import { boot, open, URL_BASE } from './lib/boot.mjs'
 
 // 每个游戏该有几个 prefer 键。数目对不上就是某条 label 没认出来。
@@ -94,18 +96,22 @@ else fail('再按之后没亮')
 if (new RegExp(`${KW}=true`).test((await saved()) ?? '')) ok(`存档里 ${KW}=true`)
 else fail('存档没写回 true:', await saved())
 
-// 键区已经摆出来的那条要从面板里撤掉,别的行照旧在。
-const rows = () => page.evaluate(() =>
-  [...document.querySelectorAll('.sheet-prefs input[type=checkbox]')]
-    .map((b) => [b.closest('label')?.textContent ?? '', b.checked]),
+// 键区已经摆出来的那条要从面板里撤掉。Solo 的游戏偏好只有这一条,裸字母那条又
+// 归全局设置,所以整个偏好设置栏都不该画出来。
+const panelRows = () => page.evaluate(() =>
+  [...document.querySelectorAll('.sheet-prefs label')].map((l) => (l.textContent ?? '').trim()),
 )
+const panelChecked = (part) => page.evaluate((p) => {
+  const box = [...document.querySelectorAll('.sheet-prefs input[type=checkbox]')]
+    .find((b) => (b.closest('label')?.textContent ?? '').includes(p))
+  return box ? box.checked : null
+}, part)
+
 await page.getByRole('button', { name: /Menu/i }).first().click()
 await page.waitForTimeout(400)
-const withKeys = await rows()
-if (!withKeys.some(([text]) => /pencil mark/i.test(text))) ok('键区有这个按钮,面板里那一行撤掉了')
-else fail('那一行没撤掉:', JSON.stringify(withKeys))
-if (withKeys.some(([text]) => /Ctrl/i.test(text))) ok('全局那条还在(撤的是键区认领的,不是整段)')
-else fail('面板被清空了:', JSON.stringify(withKeys))
+const soloRows = await panelRows()
+if (soloRows.length === 0) ok('Solo 的偏好设置栏整段不画')
+else fail('偏好设置栏还留着:', JSON.stringify(soloRows))
 
 // 总开关关掉:键没了,那一行必须回来——而且读的和键区是同一个真值。
 await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
@@ -115,11 +121,47 @@ if ((await keys.count()) === 0) ok('总开关关掉,偏好键不出现')
 else fail('总开关关掉还有偏好键')
 await page.getByRole('button', { name: /Menu/i }).first().click()
 await page.waitForTimeout(400)
-const back = (await rows()).find(([text]) => /pencil mark/i.test(text)) ?? null
-if (back?.[1] === true) ok('那一行回来了,勾的状态和键区一致')
-else fail('偏好面板和键区对不上:', JSON.stringify(back))
+if ((await panelChecked('pencil mark')) === true) ok('那一行回来了,勾的状态和键区一致')
+else fail('偏好面板和键区对不上:', JSON.stringify(await panelRows()))
+if (!(await panelRows()).some((r) => /Ctrl/i.test(r))) ok('裸字母那条两种开关下都不进面板')
+else fail('裸字母那条露在面板里了')
 await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
 await page.evaluate(() => localStorage.setItem('puzzles.prefer', 'true'))
+
+console.log('\n裸字母快捷键归全局设置')
+// Map 留着 flash-type:撤的是键区认领的那几条 + 裸字母那条,不是把整段清空。
+await open(page, 'Map', { clear: ['puzzles.prefs.map', 'puzzles.save.map'] })
+await page.getByRole('button', { name: /Menu/i }).first().click()
+await page.waitForTimeout(400)
+const mapRows = await panelRows()
+if (mapRows.some((r) => /flash/i.test(r))) ok('Map 还留着 flash-type(撤的不是整段)')
+else fail('Map 的面板被清空了:', JSON.stringify(mapRows))
+if (!mapRows.some((r) => /Ctrl/i.test(r))) ok('裸字母那条也不在 Map 的面板里')
+else fail('裸字母那条还在 Map 的面板里')
+
+// 全局开关真的压住了每个游戏的存档:开着按 n 换一局,关掉按 n 什么都不发生。
+const boardHash = () => page.evaluate(() => {
+  const c = document.querySelector('canvas')
+  const g = c.getContext('2d', { willReadFrequently: true })
+  const d = g.getImageData(0, 0, c.width, c.height).data
+  let h = 0
+  for (let i = 0; i < d.length; i += 4) h = (h * 31 + d[i] + d[i + 1] * 3 + d[i + 2] * 7) | 0
+  return h
+})
+for (const [flag, want] of [['true', true], ['false', false]]) {
+  await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+  await page.evaluate((f) => localStorage.setItem('puzzles.shortcuts', f), flag)
+  await open(page, 'Net', { clear: ['puzzles.save.net'] })
+  const before = await boardHash()
+  await page.evaluate(() => document.querySelector('canvas')?.focus())
+  await page.keyboard.press('n')
+  await page.waitForTimeout(600)
+  const dealt = (await boardHash()) !== before
+  if (dealt === want) ok(`全局开关 ${flag}:按 n ${dealt ? '换了一局' : '什么都没发生'}`)
+  else fail(`全局开关 ${flag}:按 n 之后 dealt=${dealt}`)
+}
+await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+await page.evaluate(() => localStorage.removeItem('puzzles.shortcuts'))
 
 console.log('\n多选一:一按走下一格,走到头绕回')
 await open(page, 'Undead', { clear: ['puzzles.prefs.undead', 'puzzles.save.undead'] })

@@ -8,6 +8,7 @@ import { useScrollLock } from '../../ui/useScrollLock'
 import { setAssist, useAssist } from '../puzzle/useAssist'
 import { setArrows, useArrows } from '../puzzle/useArrows'
 import { setPrefer, usePrefer } from '../puzzle/usePrefer'
+import { setShortcuts, useShortcuts } from '../puzzle/useShortcuts'
 
 const ARMED_MS = 3000
 
@@ -23,6 +24,7 @@ export default function GallerySettings({
   const arrows = useArrows()
   const assist = useAssist()
   const prefer = usePrefer()
+  const shortcuts = useShortcuts()
   useScrollLock(lockAt)
 
   const [asking, setAsking] = useState(false)
@@ -86,6 +88,18 @@ export default function GallerySettings({
           type="checkbox"
           checked={prefer}
           onChange={(e) => setPrefer(e.target.checked)}
+        />
+      </label>
+
+      <label className="setting">
+        <span className="setting-text">
+          {t.settings.shortcuts}
+          <em>{t.settings.shortcutsHint}</em>
+        </span>
+        <input
+          type="checkbox"
+          checked={shortcuts}
+          onChange={(e) => setShortcuts(e.target.checked)}
         />
       </label>
 

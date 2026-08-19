@@ -66,7 +66,7 @@ ground truth。
 
 | 文件 | 作用 |
 | --- | --- |
-| `createPuzzle.ts` | 起一个游戏:装载 `/engine/<name>.js` 工厂、接回调、建渲染器、做深色翻译;偏好存档读写,并把 `prefs.defaults` 垫在存档下面换掉上游默认值 |
+| `createPuzzle.ts` | 起一个游戏:装载 `/engine/<name>.js` 工厂、接回调、建渲染器、做深色翻译;偏好存档读写,并把 `prefs.defaults` 垫在存档下面、全局强制值压在存档上面 |
 | `renderer.ts` | canvas 渲染器:上游画图原语 → 2D canvas;录像旁路(record / stop / watch)与调色板查询 |
 | `palette.ts` | 深色翻译引擎 + `Dark` 申报类型:按各游戏的 `dark` 申报把浅色表逐槽翻译 |
 | `saves.ts` | localStorage 全部读写:存档、最近、正在玩、隐藏、完成、滚动。键名已发布,只加不改 |
@@ -125,6 +125,7 @@ ground truth。
 | `useArrows.ts` | 方向键总开关(`puzzles.arrows`) |
 | `useAssist.ts` | assist 键总开关(键名 `puzzles.aid` 已发布,只改了代码名) |
 | `usePrefer.ts` | prefer 键总开关(`puzzles.prefer`) |
+| `useShortcuts.ts` | 裸字母快捷键总开关(`puzzles.shortcuts`,默认开);上游那两个字面也在这儿 |
 
 `pages/manual/`(手册):
 

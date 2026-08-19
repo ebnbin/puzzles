@@ -30,14 +30,19 @@ export function makeStore<T>(
   ]
 }
 
-// 布尔开关:默认关、只认字面的 'true'。
-export function makeFlag(key: string): [() => boolean, (on: boolean) => void] {
+// 布尔开关:只认字面的 'true' / 'false',别的(没存过、垃圾值、读不出来)一律回落
+// fallback。默认关是常态,fallback 只为「上游默认就是开」的那种开关留着。
+export function makeFlag(
+  key: string,
+  fallback = false,
+): [() => boolean, (on: boolean) => void] {
   return makeStore<boolean>(
     () => {
       try {
-        return window.localStorage.getItem(key) === 'true'
+        const raw = window.localStorage.getItem(key)
+        return raw === 'true' ? true : raw === 'false' ? false : fallback
       } catch {
-        return false
+        return fallback
       }
     },
     (on) => {
