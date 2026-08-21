@@ -192,8 +192,14 @@ const legal = (solid: number, d1: number, d2: number): boolean => {
   return !(solid === OCTAHEDRON && lo === 0 && hi === 3)
 }
 
-// 上界上游不管(只有 INT_MAX 溢出保护),50 是定下的一档,与 parseParams 的界同步。
-const CAP = 50
+// 上界上游不管(只有 INT_MAX 溢出保护),由这里定,两种网格不同档。
+// 方格网 50,与 Net 同档(桌面 1440×900 上每格 15.3 px)。
+// 三角网 32:同一坐标系里两种格子都是边长 1(cube.c:334 方格四角 x±0.5,cube.c:257
+// 三角底边 1、高 √3/2),而边长 1 的等边三角形只有同边长正方形的 √3/4 ≈ 0.433。
+// 32×32 = 6144 个三角、总面积 2660,和方格 50×50 的 2500 同一量级;真按 50 放,
+// 三角是 15000 个、面积 6495,是方格盘的 2.6 倍,画出来每格只剩 7 px。
+// parseParams 的界要盖住这里最大的那一档。
+const cap = (solid: number) => (solid === CUBE ? 50 : 32)
 
 // 另一维给定时,这一维的合法区间。合法集在单个维度上是一条**向上的射线**(面积对
 // 每一维单调,三个例外都是孤立点),所以从 0 往上找到第一个合法值就是下界。
@@ -206,10 +212,11 @@ const span =
     const solid = pickAt(controls, SOLID)
     const rest = numberAt(controls, other)
     const held = Number.isFinite(rest) ? Math.max(0, Math.round(rest)) : 0
+    const max = cap(solid)
     const at = (d: number) => (mine === D1 ? legal(solid, d, held) : legal(solid, held, d))
     let min = 0
-    while (min <= CAP && !at(min)) min++
-    return { min: min <= CAP ? min : 0, max: CAP }
+    while (min <= max && !at(min)) min++
+    return { min: min <= max ? min : 0, max }
   }
 
 const paramFields: readonly Field[] = [
