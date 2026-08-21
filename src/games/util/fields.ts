@@ -3,6 +3,12 @@
 import type { DialogControl } from '../../engine/types'
 import type { Field, Span } from '../game'
 
+// 方格盘每边的默认上限。**约定:方格盘封 50**,要更小可以,要更大得有特殊理由。
+// 这一档在桌面 1440×900 上每格 15 px 上下(net 15.7、cube 方格 15.3、fifteen 15.0、
+// sixteen 15.0),是这个前端的清晰度地板——它没有平移缩放,画小了就等于玩不了。
+// 改这个数是改约定,不是改一个游戏。
+export const SQUARE_MAX = 50
+
 // 小数步长(barrier 的 0.05)累加会漂,每一步都收一次尾。
 const tidy = (n: number, step: number) =>
   Number(n.toFixed(step < 1 ? 6 : 0))
