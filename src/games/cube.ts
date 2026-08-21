@@ -4,11 +4,13 @@
 // 从存档推出当前落点和它的邻格。模型漂了的表现是「能按的键被灰掉」,错灰和
 // 该灰长得一模一样,读者报不上来:升级 vendor/sgtpuzzles 后必须跑
 // scripts/check-cube.mjs。
-import type { ArrowKey, Game } from './game'
+import type { DialogControl } from '../engine/types'
+import type { ArrowKey, Field, Game, Span } from './game'
 import { samePages, verbatim } from './util/declare'
 import { done, fields, find } from './util/save'
 import type { Way } from './util/pad'
 import { DIRS, arrowFace, walk } from './util/pad'
+import { numberAt, pickAt } from './util/fields'
 
 // ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);
 // MOVES 的字母和每个 Square.dirs 的下标都按同一套编号,不可为可读性重排——
@@ -25,11 +27,15 @@ type Square = { pts: [number, number][]; dirs: (readonly [number, number] | unde
 
 type Params = { solid: string; d1: number; d2: number }
 
+// 这个界必须盖住 slider 到得了的**整个**范围,见下面的 CAP:出了界 rolls 返回
+// null、四个方向键全亮,置灰功能静默消失。两处不共用常量——这里还要挡住存档和
+// game ID 那条路喂进来的乱码尺寸,那条路不受 slider 管。改动任一处都要重跑
+// scripts/check-cube.mjs。
 export function parseParams(text: string): Params | null {
   const m = /^([tcoi])(\d+)x(\d+)$/.exec(text.trim())
   if (!m) return null
   const [d1, d2] = [Number(m[2]), Number(m[3])]
-  if (d1 < 1 || d2 < 1 || d1 > 32 || d2 > 32) return null
+  if (d1 < 0 || d2 < 0 || d1 > 50 || d2 > 50) return null
   return { solid: m[1], d1, d2 }
 }
 
@@ -145,6 +151,72 @@ export function rolls(save: string): Set<string> | null {
   return new Set(ARROWS.filter((_, dir) => neighbour(grid, at, dir) >= 0))
 }
 
+// ---------------------------------------------------------------- 自定义参数
+
+// game_configure 的下标(cube.c:489)。选的多面体决定另外两格的界,三格连动。
+const SOLID = 0
+const D1 = 1
+const D2 = 2
+
+// choices 的顺序就是 solids[] 的顺序(cube.c:151),也是 solid 枚举的值。
+const TETRAHEDRON = 0
+const CUBE = 1
+const OCTAHEDRON = 2
+const ICOSAHEDRON = 3
+
+// 两个数字的含义随多面体变:Cube 走方格网,其余三个走三角网,连面积公式都不是
+// 同一个(cube.c:471 grid_area 里有推导)。
+const area = (solid: number, d1: number, d2: number) =>
+  solid === CUBE ? d1 * d2 : d1 * d1 + d2 * d2 + 4 * d1 * d2
+
+// nfaces + 1:摆得下多面体,还要剩一格空地站(cube.c:597)。
+const FLOOR: Record<number, number> = {
+  [TETRAHEDRON]: 5,
+  [CUBE]: 7,
+  [OCTAHEDRON]: 9,
+  [ICOSAHEDRON]: 21,
+}
+
+// validate_params(cube.c:541)的等价闭式。上游那条「每一类都放得下蓝面」要先枚举
+// 全部格子、按 tetra_class 或 flip 分类再逐类计数,不是公式;但把 cube.c 的判定逐行
+// 复刻成 JS 比对后发现,面积够却被分类拒掉的格子**总共只有三个孤立点**,于是直接钉住
+// (61×61×4 = 14884 格上与这条闭式全等)。改了上游几何就要重跑那次比对。
+const legal = (solid: number, d1: number, d2: number): boolean => {
+  if (!(solid in FLOOR) || d1 < 0 || d2 < 0) return false
+  if (solid === CUBE) {
+    if (d1 < 2 || d2 < 2) return false // 两边都必须大于一(cube.c:553)
+  } else if (d1 === 0 && d2 === 0) return false // 至少一边大于零(cube.c:558)
+  if (area(solid, d1, d2) < FLOOR[solid]) return false
+  const [lo, hi] = d1 < d2 ? [d1, d2] : [d2, d1]
+  if (solid === TETRAHEDRON) return !(lo === 1 && hi === 1)
+  return !(solid === OCTAHEDRON && lo === 0 && hi === 3)
+}
+
+// 上界上游不管(只有 INT_MAX 溢出保护),50 是定下的一档,与 parseParams 的界同步。
+const CAP = 50
+
+// 另一维给定时,这一维的合法区间。合法集在单个维度上是一条**向上的射线**(面积对
+// 每一维单调,三个例外都是孤立点),所以从 0 往上找到第一个合法值就是下界。
+// 找不到 = 另一维自己越界了(存档或 game ID 带来的):这一维就不设下界、别乱动,
+// 交给 settle 的下一轮——另一维会先被拽回来,回头这一维就有解了。抓到 max 上去
+// 反而会把用户没碰过的那一维顶到头。
+const span =
+  (mine: number, other: number) =>
+  (controls: readonly DialogControl[]): Span => {
+    const solid = pickAt(controls, SOLID)
+    const rest = numberAt(controls, other)
+    const held = Number.isFinite(rest) ? Math.max(0, Math.round(rest)) : 0
+    const at = (d: number) => (mine === D1 ? legal(solid, d, held) : legal(solid, held, d))
+    let min = 0
+    while (min <= CAP && !at(min)) min++
+    return { min: min <= CAP ? min : 0, max: CAP }
+  }
+
+const paramFields: readonly Field[] = [
+  { at: D1, label: 'Width / top', span: span(D1, D2) },
+  { at: D2, label: 'Height / bottom', span: span(D2, D1) },
+]
+
 type Facts = { rolls: Set<string> | null }
 
 // 置灰的分界:棋盘自己会说的(顶到边界),我们不说;棋盘盖住了的(三角朝向被
@@ -171,6 +243,7 @@ const cube: Game<Facts> = {
   dark: {},
   pages: samePages('cube'),
   types: { menu: verbatim },
+  fields: paramFields,
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

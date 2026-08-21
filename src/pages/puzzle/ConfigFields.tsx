@@ -49,10 +49,14 @@ export default function ConfigFields({
                 step={span.step ?? 1}
                 value={at}
                 onChange={(e) => slide(control, field, Number(e.target.value))}
-                // 松手才提交:拖动途中每一帧都提交等于每一帧生成一局。
+                // 松手才提交:拖动途中每一帧都提交等于每一帧生成一局。range 的值
+                // 只会被指针或按键改,这两个事件就够了——**不能挂 onBlur**:碰第二个
+                // slider 会先让第一个失焦,一提交就重开对话框、控件全换新,刚按下的
+                // 那一下连着被抹掉(实测 cube:d2 拖到 5 之后把 d1 拖到 0,d1 弹回 4,
+                // 而引擎凭空生成了一局)。文本框仍然要 onBlur,那条路不受影响。
                 onPointerUp={onCommit}
+                onPointerCancel={onCommit}
                 onKeyUp={onCommit}
-                onBlur={onCommit}
               />
             </label>
           )
