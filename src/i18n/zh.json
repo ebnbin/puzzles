@@ -39,6 +39,7 @@
   },
 
   "puzzle": {
+    "busy": "正在生成新局…",
     "help": "玩法",
     "picture": "{name} 的棋盘",
     "fullInstructions": "完整说明",

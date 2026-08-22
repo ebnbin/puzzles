@@ -4,6 +4,7 @@
 // 自定义参数和偏好)、dialog(真正的模态,兜底)。
 import { useCallback, useRef, useState } from 'react'
 import type { DialogControl, DialogSpec, PuzzleApi } from '../../engine/types'
+import type { Deal } from '../../engine/generate'
 
 const CUSTOM_PRESET = -1
 
@@ -22,6 +23,9 @@ export function useConfigBox(
   apiRef: React.RefObject<PuzzleApi | null>,
   acted: () => void,
   setPrefs: React.Dispatch<React.SetStateAction<readonly DialogControl[]>>,
+  // 自定义参数走后台发牌;偏好不走(它不生成局面)。
+  deal: (how: Deal) => Promise<string | null>,
+  adopt: (save: string) => void,
 ) {
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [inline, setInline] = useState<Inline | null>(null)
@@ -97,13 +101,34 @@ export function useConfigBox(
     if (values(open.spec.controls) === inlineBaseline.current) return
     acted()
     setInlineError(null)
-    api.dialogOk()
-    if (!inlineRef.current) {
-      inlinePending.current = open.kind
-      ask(api, open.kind)
+    // 偏好照旧:它只写 game_ui,不生成局面,当场提交最省事。
+    if (open.kind === 'prefs') {
+      api.dialogOk()
+      if (!inlineRef.current) {
+        inlinePending.current = open.kind
+        ask(api, open.kind)
+      }
+      return
     }
-  }, [acted, apiRef])
+    // 自定义参数:值抄一份交给 worker 重放,**box 全程留着不动** —— 算的时候
+    // 用户还能接着改(改了就顶掉上一次)。算完了才收摊:关掉旧 box、接手、重开。
+    const chosen = open.spec.controls.map((c) => c.value)
+    void deal({ how: 'config', values: chosen })
+      .then((save) => {
+        const now = apiRef.current
+        if (!now || !save) return
+        if (inlineRef.current) now.dialogCancel()
+        adopt(save)
+        inlinePending.current = 'custom'
+        ask(now, 'custom')
+      })
+      .catch((error: unknown) => {
+        setInlineError(error instanceof Error ? error.message : String(error))
+      })
+  }, [acted, adopt, apiRef, deal])
 
+  // game ID 和 seed 都走后台:params#seed 会当场重新生成(实测大盘冻 12 秒),
+  // params:desc 虽然不生成,但走同一条路省得两套错误处理。
   const submitText = useCallback(
     (kind: TextKind, text: string) => {
       const api = apiRef.current
@@ -111,26 +136,26 @@ export function useConfigBox(
       acted()
       const resume = inlineRef.current?.kind ?? null
       if (resume) api.dialogCancel()
+      setTextError(null)
 
-      borrowed.current = { spec: null, error: null }
-      if (kind === 'desc') api.enterGameId()
-      else api.enterSeed()
-      const { spec } = borrowed.current
-      if (spec) {
-        spec.controls[0].value = text
-        api.dialogOk()
-        if (borrowed.current.error) api.dialogCancel()
+      const back = () => {
+        const now = apiRef.current
+        if (resume && now) {
+          inlinePending.current = resume
+          ask(now, resume)
+        }
       }
-      const message = borrowed.current.error
-      borrowed.current = null
-      setTextError(message ? { kind, message } : null)
-
-      if (resume) {
-        inlinePending.current = resume
-        ask(api, resume)
-      }
+      void deal({ how: 'id', text })
+        .then((save) => {
+          if (save) adopt(save)
+          back()
+        })
+        .catch((error: unknown) => {
+          setTextError({ kind, message: error instanceof Error ? error.message : String(error) })
+          back()
+        })
     },
-    [acted, apiRef],
+    [acted, adopt, apiRef, deal],
   )
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。

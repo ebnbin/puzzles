@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
 import type { DialogSpec, Preset } from '../../engine/types'
+import type { Field } from '../../games/game'
 import { useStrings } from '../../i18n'
 import Notice from '../../ui/Notice'
 import Sheet from '../../ui/Sheet'
@@ -13,6 +14,7 @@ export default function PuzzleTypes({
   standard,
   custom,
   customError,
+  fields,
   onSelectPreset,
   onOpenCustom,
   onCloseCustom,
@@ -24,6 +26,7 @@ export default function PuzzleTypes({
   standard: number | null
   custom: DialogSpec | null
   customError: string | null
+  fields?: readonly Field[]
   onSelectPreset: (value: number) => void
   onOpenCustom: () => void
   onCloseCustom: () => void
@@ -65,7 +68,7 @@ export default function PuzzleTypes({
 
         {custom && (
           <div className="sheet-custom" ref={paramsRef}>
-            <ConfigFields controls={custom.controls} onCommit={onCommitCustom} />
+            <ConfigFields controls={custom.controls} fields={fields} onCommit={onCommitCustom} />
             {customError && <Notice text={customError} />}
           </div>
         )}

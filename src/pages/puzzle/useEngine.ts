@@ -12,6 +12,7 @@ import {
   writeSave,
 } from '../../engine/saves'
 import type { DialogSpec, Preset, PuzzleApi } from '../../engine/types'
+import type { Deal } from '../../engine/generate'
 import type { Game } from '../../games/game'
 import type { Resolved } from '../../useTheme'
 import { SHORTCUTS_KW, useShortcuts } from './useShortcuts'
@@ -44,6 +45,9 @@ type EngineArgs = {
     tookDialog(spec: DialogSpec | null): void
     tookError(message: string): boolean
   }
+  // 开机那次重发也走后台,不然大盘存档一进来就把开屏冻住(实测 12 秒)。
+  deal(how: Deal): Promise<string | null>
+  adopt(save: string): void
 }
 
 export function useEngine({
@@ -59,6 +63,8 @@ export function useEngine({
   board,
   outcome,
   config,
+  deal,
+  adopt,
 }: EngineArgs) {
   const { heard, moved, sleep, gated, dealt, frame } = board
   const { checkStatus, arrived } = outcome
@@ -136,9 +142,21 @@ export function useEngine({
             } finally {
               restoring.current = false
             }
-            // 没走过子的存档也要先 load 再用 newGame 盖掉,不能跳过 load:
-            // 存档里还有玩家选的参数(尺寸、难度),参数要活下来,棋盘不留。
-            if (restored && !isPlayed(saved)) api.newGame()
+            // 没走过子的存档也要先 load 再重发,不能跳过 load:存档里还有玩家选的
+            // 参数(尺寸、难度),参数要活下来,棋盘不留。
+            // 重发交给 worker:参数调大过的存档在这里当场生成会把开屏冻住(实测
+            // twiddle 50x50n26 冻 12 秒)。回调栈上不做重入的事,推到微任务里。
+            if (restored && !isPlayed(saved)) {
+              const params =
+                /^(?:CPARAMS|PARAMS)\s*:\d+:(.*)$/m.exec(saved)?.[1] ?? ''
+              if (!params) api.newGame()
+              else
+                queueMicrotask(() => {
+                  void deal({ how: 'id', text: params })
+                    .then((next) => next && adopt(next))
+                    .catch(() => api.newGame())
+                })
+            }
           }
           setPresets(list && [...game.types.menu(list)])
           setReady(true)
