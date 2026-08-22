@@ -8,6 +8,7 @@ import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import Dialog from '../../ui/Dialog'
 import Icon from '../../ui/Icon'
+import Busy from '../../ui/Busy'
 import Notice from '../../ui/Notice'
 import ThemeToggle from '../../ui/ThemeToggle'
 // 写全 index:裸的 ../games 会被解析成 games.json。
@@ -16,6 +17,8 @@ import type { Key } from '../../games/game'
 import { padButtons } from '../../games/util/pad'
 import { markIntroduced, owesIntroduction } from '../../engine/saves'
 import type { CanvasRenderer } from '../../engine/renderer'
+import { generate } from '../../engine/generate'
+import type { Deal } from '../../engine/generate'
 import type { DialogControl, PuzzleApi } from '../../engine/types'
 import { openManual } from '../manual/Manual'
 import { manualHref, fill, useLang, useStrings } from '../../i18n'
@@ -24,6 +27,7 @@ import { useAssist } from './useAssist'
 import { useArrows } from './useArrows'
 import { usePrefer } from './usePrefer'
 import { SHORTCUTS_LABEL } from './useShortcuts'
+import { useBusy } from './useBusy'
 import { useBoard } from './useBoard'
 import { useConfigBox } from './useConfigBox'
 import { START_FAILED, useEngine } from './useEngine'
@@ -81,7 +85,33 @@ export default function PuzzleHost({
   )
   const board = useBoard(game, apiRef, rendererRef, acted, preferRef)
   const outcome = useOutcome(name, apiRef)
-  const config = useConfigBox(apiRef, acted, board.setPrefs)
+
+  // 发一局。生成交给 worker(上游的 new_desc 一路同步,放主线程会把整页冻住),
+  // 回来按整份存档接手:存档带着 SEED 和 AUXINFO,game ID 那条路两个都丢,而
+  // AUXINFO 是求解器要的。取消 = 掐掉 worker,主线程这个引擎全程没被碰过。
+  // **只负责算,不负责接手** —— 接手的时机各条路不一样(自定义参数那条要先把还
+  // 开着的 config box 收掉),交给调用方。返回 null = 取消了;抛出 = 引擎回绝了参数。
+  const { busy, run: runBusy, cancel: cancelBusy } = useBusy()
+  // engine 在下面才建,而 deal 要在它之前就位(useConfigBox 收它)。一只 ref 把
+  // 这个环打开,填在渲染里——同 preferRef 一个路数。
+  const permalinkRef = useRef('')
+
+  const deal = useCallback(
+    async (how: Deal) => {
+      const got = await runBusy((signal) => generate(name, how, signal))
+      return got?.save ?? null
+    },
+    [name, runBusy],
+  )
+
+  // 接手 worker 的产物。按整份存档 load 而不是喂 game ID:存档带着 SEED 和
+  // AUXINFO,game ID 两个都丢,而 AUXINFO 是求解器要的(Net、Rect 丢了就解不开)。
+  const adopt = useCallback((save: string) => {
+    apiRef.current?.loadGame(save)
+    canvasRef.current?.focus()
+  }, [])
+
+  const config = useConfigBox(apiRef, acted, board.setPrefs, deal, adopt)
   preferRef.current = config.writePrefs
   const engine = useEngine({
     name,
@@ -99,6 +129,8 @@ export default function PuzzleHost({
   })
 
   const { ready, permalink } = engine
+  permalinkRef.current = permalink?.desc ?? ''
+
   const {
     dialog,
     inline,
@@ -205,6 +237,23 @@ export default function PuzzleHost({
     },
     [dialog, acted],
   )
+
+  // 「再来一局」= 按当前参数重发。permalink.desc 是 params:desc,取冒号前那半。
+  // 还没拿到 permalink 就退回上游原路:那时局面必然是刚开的,生成快,不值得等。
+  const newGame = useCallback(() => {
+    const link = permalinkRef.current
+    const params = link ? decodeURIComponent(link).split(':')[0] : ''
+    if (!params) {
+      act((a) => a.newGame())
+      return
+    }
+    acted()
+    void deal({ how: 'id', text: params })
+      .then((save) => save && adopt(save))
+      .catch((error: unknown) => {
+        setError(error instanceof Error ? error.message : String(error))
+      })
+  }, [act, acted, adopt, deal])
 
   // 偏好变了就卸膛:上膛键的含义是偏好给的(palisade 切回 Half-grid 之后,原来那
   // 支 Ctrl 上膛既画不出边、也因为走不成而永远不自动卸,同伴键还一直藏着)。
@@ -375,7 +424,7 @@ export default function PuzzleHost({
               className="is-primary"
               onClick={() => {
                 outcome.dismiss()
-                act((a) => a.newGame())
+                newGame()
               }}
             >
               <Icon name="add" />
@@ -465,7 +514,12 @@ export default function PuzzleHost({
           customError={inlineError}
           onSelectPreset={(value) => {
             engine.setSelected(value)
-            act((a) => a.selectPreset(value))
+            acted()
+            void deal({ how: 'preset', index: value })
+              .then((save) => save && adopt(save))
+              .catch((error: unknown) => {
+                setError(error instanceof Error ? error.message : String(error))
+              })
           }}
           onOpenCustom={() => openInline('custom')}
           onCloseCustom={closeInline}
@@ -486,7 +540,8 @@ export default function PuzzleHost({
           onSubmitText={submitText}
           onAction={(action) => {
             abandonInline()
-            act((a) => a[action]())
+            if (action === 'newGame') newGame()
+            else act((a) => a[action]())
             setMenuOpen(false)
           }}
           onClose={closeMenu}
@@ -500,6 +555,8 @@ export default function PuzzleHost({
           onCancel={() => apiRef.current?.dialogCancel()}
         />
       )}
+
+      {busy && <Busy text={t.puzzle.busy} cancel={t.dialog.cancel} onCancel={cancelBusy} />}
     </div>
   )
 }

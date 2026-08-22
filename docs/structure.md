@@ -72,6 +72,8 @@ ground truth。
 | `saves.ts` | localStorage 全部读写:存档、最近、正在玩、隐藏、完成、滚动。键名已发布,只加不改 |
 | `solved.ts` | 从存档判「用过求解器」(完成记录的闸门之一) |
 | `types.ts` | `PuzzleApi`、回调、`DialogSpec`、`Preset` 等接口类型,`window.__puzzle` 声明 |
+| `generate.ts` | 后台发牌:把一次生成交给 worker,回来给整份存档;取消 = 掐 worker |
+| `generate.worker.ts` | worker 里那个只管生成的引擎实例:空操作渲染器 + 三行 window 垫片 |
 
 ### src/games/ —— 统一游戏接口:一个游戏一个文件
 
@@ -121,6 +123,7 @@ ground truth。
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
 | `usePuzzleKeys.ts` | 物理键盘唯一通路:判据是「这一按该不该归谜题」,不认焦点 |
 | `usePuzzlePointer.ts` | 指针 → 上游鼠标语义(长按 = 右键或中键,由游戏申报) |
+| `useBusy.ts` | 生成期间的忙态:宽限期之后才露遮罩,取消就 abort |
 | `useHelp.ts` | 玩法速览文案装载(`public/help/`) |
 | `useArrows.ts` | 方向键总开关(`puzzles.arrows`) |
 | `useAssist.ts` | assist 键总开关(键名 `puzzles.aid` 已发布,只改了代码名) |
@@ -152,6 +155,7 @@ ground truth。
 | --- | --- |
 | `Dialog.tsx` | 模态对话框壳:标题、关闭、滚动锁 |
 | `Sheet.tsx` | 底部弹层壳:scrim、把手、拖拽关闭 |
+| `Busy.tsx` | 生成中的遮罩:挡住整页,唯一出口是取消 |
 | `Notice.tsx` | 通知条:error / info 两种,可浮动可关闭 |
 | `Swatch.tsx` | 色块钉(键面上的颜色圆点) |
 | `Icon.tsx` | 全部图标字形与三张怪物图片的名字表 |
