@@ -126,6 +126,8 @@ export default function PuzzleHost({
     board,
     outcome,
     config,
+    deal,
+    adopt,
   })
 
   const { ready, permalink } = engine
