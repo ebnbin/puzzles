@@ -39,6 +39,7 @@
   },
 
   "puzzle": {
+    "busy": "Making a new game…",
     "help": "How to play",
     "picture": "A {name} board",
     "fullInstructions": "Full instructions",
