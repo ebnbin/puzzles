@@ -127,6 +127,8 @@ export function useConfigBox(
       })
   }, [acted, adopt, apiRef, deal])
 
+  // game ID 和 seed 都走后台:params#seed 会当场重新生成(实测大盘冻 12 秒),
+  // params:desc 虽然不生成,但走同一条路省得两套错误处理。
   const submitText = useCallback(
     (kind: TextKind, text: string) => {
       const api = apiRef.current
@@ -134,26 +136,26 @@ export function useConfigBox(
       acted()
       const resume = inlineRef.current?.kind ?? null
       if (resume) api.dialogCancel()
+      setTextError(null)
 
-      borrowed.current = { spec: null, error: null }
-      if (kind === 'desc') api.enterGameId()
-      else api.enterSeed()
-      const { spec } = borrowed.current
-      if (spec) {
-        spec.controls[0].value = text
-        api.dialogOk()
-        if (borrowed.current.error) api.dialogCancel()
+      const back = () => {
+        const now = apiRef.current
+        if (resume && now) {
+          inlinePending.current = resume
+          ask(now, resume)
+        }
       }
-      const message = borrowed.current.error
-      borrowed.current = null
-      setTextError(message ? { kind, message } : null)
-
-      if (resume) {
-        inlinePending.current = resume
-        ask(api, resume)
-      }
+      void deal({ how: 'id', text })
+        .then((save) => {
+          if (save) adopt(save)
+          back()
+        })
+        .catch((error: unknown) => {
+          setTextError({ kind, message: error instanceof Error ? error.message : String(error) })
+          back()
+        })
     },
-    [acted, apiRef],
+    [acted, adopt, apiRef, deal],
   )
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
