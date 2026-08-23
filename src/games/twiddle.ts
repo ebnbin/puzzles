@@ -47,8 +47,8 @@ const block = (controls: readonly DialogControl[]): Span => {
 
 // 洗牌步数同 Sixteen:0 是上游默认(八个预设全是 0),含义是「洗透」而不是
 // 「不打乱」;填了就变成标准杆,状态栏显示 Moves: k (target n)。上游无上界,
-// 50 取自 Sixteen 那次的结论——杆数要人去数。
-const shuffle = (): Span => ({ min: 0, max: 50 })
+// 100 与 Sixteen 同档;步长留 1,粗了会让 par-1 到 par-4 够不着。
+const shuffle = (): Span => ({ min: 0, max: 100 })
 
 const fields: readonly Field[] = [
   { at: WIDTH, label: 'Width', span: size },

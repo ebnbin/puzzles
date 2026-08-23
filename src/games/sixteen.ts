@@ -35,10 +35,13 @@ const size = (): Span => ({ min: 2, max: SQUARE_MAX })
 // 「不打乱」——两条生成路径完全不同(sixteen.c:216)。
 // 这个参数只出现在 sixteen / twiddle / netslide 三家,共同点是没有难度枚举、
 // solve_game 只返回 "S" 直接摆好:求解器评不了难度,于是「洗几步」就是唯一的旋钮。
-// 上界 50 是玩法判断,不是性能判断——杆数要人去数,而且上游自己说洗得越多
-// 「(target n)」越可能是假话(实际存在更短的解)。生成不要钱:实测 50×50 洗
-// 一千万步也只 164 ms,完全随机那条路(O(n²) 的 perm_parity)100×100 才 210 ms。
-const shuffle = (): Span => ({ min: 0, max: 50 })
+// 上界 100 是玩法判断,不是性能判断——杆数要人去数,而且上游自己说洗得越多
+// 「(target n)」越可能是假话(实际存在更短的解;小盘尤其早,3×3 的直径只有 8,
+// par 超过 8 一定是假话)。步长必须留 1:上游手册举的例子就是 par-4,粗步长会让
+// 1–4 变成够不着的值,而那正是这个玩法的主场。
+// 生成不要钱:实测 50×50 洗一千万步也只 164 ms,完全随机那条路(O(n²) 的
+// perm_parity)100×100 才 210 ms。
+const shuffle = (): Span => ({ min: 0, max: 100 })
 
 const fields: readonly Field[] = [
   { at: WIDTH, label: 'Width', span: size },
