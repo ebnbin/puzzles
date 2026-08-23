@@ -60,34 +60,36 @@ const WIDTH = 0
 const HEIGHT = 1
 const EXPAND = 2
 
-const sideAt = (controls: readonly DialogControl[], at: number, fallback: number) => {
-  const n = numberAt(controls, at)
-  return Number.isFinite(n) ? Math.max(1, Math.round(n)) : fallback
-}
+// 上游只要求 w ≥ 1、h ≥ 1、w×h ≥ 2(rect.c:220):1×N 合法,但一条带子只剩
+// 「切成几段」,照 net 的先例砍掉。两边都 ≥ 2 之后 w×h ≥ 2 恒成立,宽高互不牵制。
+const size = (): Span => ({ min: 2, max: SQUARE_MAX })
 
-// 上游只要求 w ≥ 1、h ≥ 1、w×h ≥ 2(rect.c:220),所以 1×N 合法、1×1 不合法:
-// 另一边是 1 的时候这一边最小 2。上限上游没有,照方格盘约定封 50。
-const side = (other: number) => (controls: readonly DialogControl[]): Span => ({
-  min: sideAt(controls, other, SQUARE_MAX) === 1 ? 2 : 1,
-  max: SQUARE_MAX,
-})
-
-// 拉伸系数上游只有 e ≥ 0,没有上界。唯一的事实线是**饱和点**:上游先生成
-// base = max(2, (int)(边长/(1+e))) 的小底盘再拉开(rect.c:1165),两边都钉到 2
-// 之后再调 e 生成的是逐字相同的局,那条线是 e = max(w,h)/3 − 1。
+// 拉伸系数管的是**块的粗细**:上游先在 (int)(边长/(1+e)) 的小盘上出一副完整的题,
+// 再随机插行插列撑到真实尺寸,一个矩形都不新增(rect.c:1165、1440)。所以 e 越大
+// 块越少越大——12×12 从 e=0 的 26 块(平均 5.5 格)到 e=2 的 7 块(20.6 格)。
+//
+// 上限两条取小,各管一件事:
+// 一、**2**:再往上就是手册说的「凑不出几个矩形,游戏变得无聊」。
+// 二、**max(w,h)/3 − 1**:小盘每边最小钉在 2,越过这条线底盘不再变,拖了生成的是
+//     逐字相同的局。只在长边 ≤ 8 时才咬住(8×8 → 1.6、5×5 → 0.6、3×3 → 0)。
 const EXPAND_STEP = 0.1
+const EXPAND_MAX = 2
 
 const expand = (controls: readonly DialogControl[]): Span => {
-  const w = sideAt(controls, WIDTH, SQUARE_MAX)
-  const h = sideAt(controls, HEIGHT, SQUARE_MAX)
-  // 收到步长网格上:顶格要拖得到。收尾是必须的,156 × 0.1 会漂成 15.600000000000001。
-  const stops = Math.max(0, Math.floor((Math.max(w, h) / 3 - 1) / EXPAND_STEP))
+  const w = numberAt(controls, WIDTH)
+  const h = numberAt(controls, HEIGHT)
+  const long = Math.max(
+    Number.isFinite(w) ? Math.round(w) : SQUARE_MAX,
+    Number.isFinite(h) ? Math.round(h) : SQUARE_MAX,
+  )
+  // 收到步长网格上,顶格才拖得到;收尾是必须的,乘出来会漂(156 × 0.1)。
+  const stops = Math.max(0, Math.floor(Math.min(EXPAND_MAX, long / 3 - 1) / EXPAND_STEP))
   return { min: 0, max: Number((stops * EXPAND_STEP).toFixed(6)), step: EXPAND_STEP }
 }
 
 const fields: readonly Field[] = [
-  { at: WIDTH, label: 'Width', span: side(HEIGHT) },
-  { at: HEIGHT, label: 'Height', span: side(WIDTH) },
+  { at: WIDTH, label: 'Width', span: size },
+  { at: HEIGHT, label: 'Height', span: size },
   { at: EXPAND, label: 'Expansion factor', span: expand, decimals: 1 },
 ]
 
