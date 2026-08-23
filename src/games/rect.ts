@@ -3,11 +3,13 @@
 // Mark/Erase;拖拽没动过两键同报 Cancel;动过之后开拖的键 Done、另一键 Cancel。
 // 「哪个键开的拖拽」标签说不出来,自己记一位:四个状态里三个标签说得清,只有
 // 「开了没动」靠记,猜错免费——那一格两个键本来都是放弃。
-import type { Game, Labels, View } from './game'
+import type { DialogControl } from '../engine/types'
+import type { Field, Game, Labels, Span, View } from './game'
 import { keyOf, plain } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { ActSpec, FaceSpec } from './util/pad'
 import { act, cross, wordOf } from './util/pad'
+import { SQUARE_MAX, numberAt } from './util/fields'
 
 type Facts = { opened: string | null }
 
@@ -53,6 +55,42 @@ const duo = (spec: Pick<ActSpec<Facts>, 'id' | 'slot' | 'key' | 'idle'>) =>
     } as Record<string, FaceSpec>,
   })
 
+// game_configure 的下标(rect.c:177)。[3] 是上游自带的勾选框,不归这里管。
+const WIDTH = 0
+const HEIGHT = 1
+const EXPAND = 2
+
+const sideAt = (controls: readonly DialogControl[], at: number, fallback: number) => {
+  const n = numberAt(controls, at)
+  return Number.isFinite(n) ? Math.max(1, Math.round(n)) : fallback
+}
+
+// 上游只要求 w ≥ 1、h ≥ 1、w×h ≥ 2(rect.c:220),所以 1×N 合法、1×1 不合法:
+// 另一边是 1 的时候这一边最小 2。上限上游没有,照方格盘约定封 50。
+const side = (other: number) => (controls: readonly DialogControl[]): Span => ({
+  min: sideAt(controls, other, SQUARE_MAX) === 1 ? 2 : 1,
+  max: SQUARE_MAX,
+})
+
+// 拉伸系数上游只有 e ≥ 0,没有上界。唯一的事实线是**饱和点**:上游先生成
+// base = max(2, (int)(边长/(1+e))) 的小底盘再拉开(rect.c:1165),两边都钉到 2
+// 之后再调 e 生成的是逐字相同的局,那条线是 e = max(w,h)/3 − 1。
+const EXPAND_STEP = 0.1
+
+const expand = (controls: readonly DialogControl[]): Span => {
+  const w = sideAt(controls, WIDTH, SQUARE_MAX)
+  const h = sideAt(controls, HEIGHT, SQUARE_MAX)
+  // 收到步长网格上:顶格要拖得到。收尾是必须的,156 × 0.1 会漂成 15.600000000000001。
+  const stops = Math.max(0, Math.floor((Math.max(w, h) / 3 - 1) / EXPAND_STEP))
+  return { min: 0, max: Number((stops * EXPAND_STEP).toFixed(6)), step: EXPAND_STEP }
+}
+
+const fields: readonly Field[] = [
+  { at: WIDTH, label: 'Width', span: side(HEIGHT) },
+  { at: HEIGHT, label: 'Height', span: side(WIDTH) },
+  { at: EXPAND, label: 'Expansion factor', span: expand, decimals: 1 },
+]
+
 const rect: Game<Facts> = {
   id: 'rect',
   // 拖拽没动过时两键同报 Cancel(rect.c:2374),要申报给边界复原。
@@ -61,6 +99,7 @@ const rect: Game<Facts> = {
   dark: {},
   pages: samePages('rect'),
   types: { menu: verbatim },
+  fields,
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
