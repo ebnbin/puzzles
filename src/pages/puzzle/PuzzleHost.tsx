@@ -141,6 +141,7 @@ export default function PuzzleHost({
     openInline,
     closeInline,
     commitInline,
+    revertInline,
     submitText,
     readPrefs,
     abandonInline,
@@ -559,7 +560,16 @@ export default function PuzzleHost({
         />
       )}
 
-      {busy && <Busy text={t.puzzle.busy} cancel={t.dialog.cancel} onCancel={cancelBusy} />}
+      {busy && (
+        <Busy
+          text={t.puzzle.busy}
+          cancel={t.dialog.cancel}
+          onCancel={() => {
+            cancelBusy()
+            revertInline()
+          }}
+        />
+      )}
     </div>
   )
 }

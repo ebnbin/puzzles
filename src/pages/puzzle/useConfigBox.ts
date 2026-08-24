@@ -195,6 +195,18 @@ export function useConfigBox(
     [acted, borrowPrefs],
   )
 
+  // 取消生成 = 这次修改作废,而 box 上还留着引擎没收到的值(commitInline 故意
+  // 让 box 全程开着,好让用户边算边改)。当场从引擎重读一遍,让「弹回去」发生在
+  // 按取消的那一刻,而不是等下次打开才神秘地变掉。
+  // 只管自定义参数:偏好不走发牌,取消跟它无关。
+  const revertInline = useCallback(() => {
+    const api = apiRef.current
+    if (!api || inlineRef.current?.kind !== 'custom') return
+    api.dialogCancel()
+    inlinePending.current = 'custom'
+    ask(api, 'custom')
+  }, [apiRef])
+
   // Types/Menu 收起时把挂着的 inline 一并退掉。
   const abandonInline = useCallback(() => {
     if (inlineRef.current) apiRef.current?.dialogCancel()
@@ -212,6 +224,7 @@ export function useConfigBox(
     openInline,
     closeInline,
     commitInline,
+    revertInline,
     submitText,
     readPrefs,
     writePrefs,
