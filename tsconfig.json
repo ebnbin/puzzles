@@ -5,7 +5,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "types": ["vite/client"],
+    // node 只为 vite.config.ts 而开(它要 execSync 读 commit):src/ 跑在浏览器里,
+    // 别因为 tsc 不再拦就在那边写 process。
+    "types": ["vite/client", "node"],
 
     "strict": true,
     "noUnusedLocals": true,

@@ -9,6 +9,7 @@ import { setAssist, useAssist } from '../puzzle/useAssist'
 import { setArrows, useArrows } from '../puzzle/useArrows'
 import { setPrefer, usePrefer } from '../puzzle/usePrefer'
 import { setShortcuts, useShortcuts } from '../puzzle/useShortcuts'
+import { COMMIT, COMMIT_URL } from '../../version'
 
 const ARMED_MS = 3000
 
@@ -118,6 +119,21 @@ export default function GallerySettings({
         </span>
         <Icon name="caret" size={18} />
       </a>
+
+      {COMMIT !== '' && (
+        <a
+          className="setting setting-link"
+          href={COMMIT_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span className="setting-text">
+            {t.settings.version}
+            <em>{t.settings.versionHint}</em>
+          </span>
+          <span className="setting-value">{COMMIT}</span>
+        </a>
+      )}
 
       {asking ? (
         <div className="setting setting-danger">
