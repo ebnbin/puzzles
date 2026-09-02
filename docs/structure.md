@@ -16,7 +16,7 @@ wasm 产物)。
 | `package.json` | 依赖与五个命令:`dev` / `build`(tsc + vite,唯一的自动检查)/ `preview` / `doc` / `verify-doc` |
 | `package-lock.json` | 依赖锁。playwright 故意不在里面,用时临时装 |
 | `tsconfig.json` | TypeScript 配置 |
-| `vite.config.ts` | 构建配置 + 构建期数据对账:注册表↔games.json(`games/util/verify.ts`)、两份文案键集与占位符(`i18n/verify.ts`),不过就不出包 |
+| `vite.config.ts` | 构建配置 + 构建期数据对账:注册表↔games.json(`games/util/verify.ts`)、两份文案键集与占位符(`i18n/verify.ts`),不过就不出包;另把这份构建的 commit 短 SHA define 进包(`src/version.ts` 接) |
 | `vercel.json` | 部署:SPA 重写、逐路径 Cache-Control(非内容寻址的 URL 不写 immutable,铁律) |
 | `.gitattributes` | 生成物与上游副本的名单(linguist-generated / vendored):哪些文件不许手改,以这里为准 |
 | `.gitignore` | `dist/`、`node_modules/` 等不入库 |
@@ -54,6 +54,7 @@ ground truth。
 | `transition.ts` | view transition 三样集中地:feature test、reduced-motion、flushSync |
 | `store.ts` | localStorage 可订阅状态工厂 `makeStore` / `makeFlag` |
 | `useTheme.ts` | 主题解析(只认 dark,垃圾值当 light 并规范化写回);与 index.html 内联脚本、build-doc.mjs 联动 |
+| `version.ts` | 版本号:接住 vite define 进来的 commit 短 SHA,拼出 GitHub commit 页地址;设置对话框显示 |
 | `games.json` | 生成物(`extract-games.mjs`):40 个游戏的 name / displayName / description / objective |
 | `games.zh.json` | 手写:游戏文案的中文翻译 |
 | `index.css` | 全局样式:画廊、谜题页、键区、sheet、dialog……类名词汇与页面词汇一致 |
@@ -99,7 +100,7 @@ ground truth。
 | 文件 | 作用 |
 | --- | --- |
 | `Gallery.tsx` | 画廊页:磁贴网格、最近在玩、隐藏收纳 |
-| `GallerySettings.tsx` | 设置面板:语言、主题、方向键、辅助键、手册入口、清数据 |
+| `GallerySettings.tsx` | 设置面板:方向键、辅助键、偏好键、快捷键、手册入口、版本、清数据(语言与主题在画廊顶栏,不在这里) |
 | `useHidden.ts` | 隐藏名单(`puzzles.hidden`,makeStore) |
 
 `pages/puzzle/`(谜题——对局页):
