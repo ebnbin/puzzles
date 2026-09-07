@@ -12,7 +12,6 @@ export const CAP = 100
 
 export type Read = {
   int(label: string): number
-  num(label: string): number
   flag(label: string): boolean
   pick(label: string): number
 }
@@ -99,7 +98,6 @@ export function reader(controls: readonly DialogControl[]): Read {
   }
   return {
     int: (label) => parseInt(text(label), 10),
-    num: (label) => parseFloat(text(label)),
     flag: (label) => {
       const c = control(controls, label)
       return c?.kind === 'boolean' ? c.value : false
@@ -111,7 +109,8 @@ export function reader(controls: readonly DialogControl[]): Read {
   }
 }
 
-// 最近的表内值;等距取大——被别的参数挤出去时往「更大的棋盘」那边让,不往退化的一边。
+// 最近的表内值(在表内就是它自己);等距取大——被别的参数挤出去时往「更大的棋盘」
+// 那边让,不往退化的一边。
 export function snap(list: readonly number[], v: number): number {
   let best = list[0]
   for (const x of list) {
@@ -135,8 +134,8 @@ export function parseSpan(text: string): [number, number] {
 export const formatSpan = (lo: number, hi: number): string =>
   lo === hi ? String(lo) : `${lo}-${hi}`
 
-const has = (list: readonly number[], v: number, eps = 0): boolean =>
-  list.some((x) => Math.abs(x - v) <= eps)
+// 表里的浮点是按位数取整过的,C 用 %g 回显再 parseFloat 得到同一个 double,精确比较就够。
+const has = (list: readonly number[], v: number): boolean => list.includes(v)
 
 // 就地把每个申报了的 string 控件夹进它此刻的表。返回改了哪些 label。
 export function settle(params: readonly Param[], controls: DialogControl[]): string[] {
@@ -153,17 +152,15 @@ export function settle(params: readonly Param[], controls: DialogControl[]): str
     } else if (p.kind === 'float') {
       const list = p.allowed(r)
       const v = parseFloat(c.value)
-      const eps = 10 ** -p.digits / 2
-      if (list.length > 0 && !has(list, v, eps)) next = formatFloat(snap(list, v), p.digits)
+      if (list.length > 0 && !has(list, v)) next = formatFloat(snap(list, v), p.digits)
     } else {
-      let [lo, hi] = parseSpan(c.value)
+      const [lo, hi] = parseSpan(c.value)
       const los = p.lo(r)
       if (los.length === 0) continue
-      if (!has(los, lo)) lo = snap(los, lo)
-      const his = p.hi(r, lo)
+      const lo2 = snap(los, lo)
+      const his = p.hi(r, lo2)
       if (his.length === 0) continue
-      if (!has(his, hi)) hi = snap(his, hi)
-      const text = formatSpan(lo, hi)
+      const text = formatSpan(lo2, snap(his, hi))
       if (text !== c.value) next = text
     }
     if (next !== null) {

@@ -3,12 +3,13 @@
 //
 // 改了 ConfigFields / ParamField、useConfigBox 的 commitInline、util/params.ts 的 settle,
 // 或任一游戏的 types.params 之后跑(表本身对不对由 check-params.mjs 对着上游源码守)。
-// 守四条:
+// 守五条:
 //   一、四十个游戏的自定义面板里没有文本框:每个 string 控件都画成了滑块。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
 //   三、派生参数被夹:Mines 宽高缩到最小时雷数跟着降;Twiddle 宽降到 2 时旋转块降到 2;
 //       Black Box「最少」拉过「最多」时「最多」跟上。
 //   四、翻开关时数字跟着让:Mines 关掉 Ensure solubility 把宽拉到 1,再打开,宽回到 3。
+//   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -46,7 +47,7 @@ const notices = () => page.locator('.sheet-custom .notice').count()
 // 按 label 找滑块;区间型带 ": Min" / ": Max" 后缀。
 const slider = (label) => page.locator(`.sheet-custom input[type=range][aria-label="${label}"]`)
 const stepper = (label, which) =>
-  slider(label).locator('..').locator(`button[aria-label="${which}"]`)
+  slider(label).locator('..').locator(`button[aria-label="${label}: ${which}"]`)
 const valueOf = (label) => slider(label).getAttribute('aria-valuetext')
 
 // 落定后新局要开、box 要重新拿到:等 PARAMS 变或 200ms。
@@ -141,7 +142,7 @@ await press('No. of balls: Min', 'End')
   if (await notices()) fail('Black Box', '冒出了错误 Notice')
 }
 
-// 步进按钮:Fifteen 宽 +1(存档里可能是上一轮扫过的尺寸,按相对值断言)。
+// 五:步进按钮 Fifteen 宽 +1(存档里可能是上一轮扫过的尺寸,按相对值断言)。
 await open(page, 'Fifteen', { settle: 200 })
 await openCustom()
 {

@@ -66,7 +66,7 @@ export default function ConfigFields({
           )
         const param = params?.find((p) => p.label === control.label)
         if (param && read && tableOf(param, read).length > 0)
-          return <ParamField key={i} control={control} param={param} read={read} onChange={commit} />
+          return <ParamField key={i} control={control} param={param} read={read} onCommit={commit} />
         return (
           <label key={i} className="dialog-string">
             {control.label}

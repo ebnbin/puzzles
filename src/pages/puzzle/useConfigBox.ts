@@ -100,9 +100,10 @@ export function useConfigBox(
     const api = apiRef.current
     const open = inlineRef.current
     if (!api || !open) return
+    // 改回基线值也算一次「再试」:上一次被拒的错误串不该留着。
+    setInlineError(null)
     if (values(open.spec.controls) === inlineBaseline.current) return
     acted()
-    setInlineError(null)
 
     if (open.kind === 'custom') {
       // 主线程这只 box 一直开着、一直没提交,所以参数非法时它原地等玩家改,

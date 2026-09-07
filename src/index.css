@@ -1373,6 +1373,7 @@ p.notice-intro button:active {
 }
 
 .sheet-custom .dialog-param-head {
+  display: block;
   min-height: 1.5rem;
   line-height: 1.5rem;
 }
@@ -1440,6 +1441,11 @@ p.notice-intro button:active {
   min-width: 3.2rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* 带附注(雷数占比)的读数会到「9991 99%」那么宽,先留够,免得拖到一半轨道缩水。 */
+.sheet-custom .dialog-param-value[data-note] {
+  min-width: 4.6rem;
 }
 
 .sheet-custom .dialog-param-value small {
