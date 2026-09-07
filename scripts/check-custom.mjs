@@ -3,7 +3,7 @@
 //
 // 改了 ConfigFields / ParamField、useConfigBox 的 commitInline、util/params.ts 的 settle,
 // 或任一游戏的 types.params 之后跑(表本身对不对由 check-params.mjs 对着上游源码守)。
-// 守五条:
+// 守七条:
 //   一、四十个游戏的自定义面板里没有文本框:每个 string 控件都画成了滑块。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
 //   三、派生参数被夹:Mines 宽高缩到最小时雷数跟着降;Twiddle 宽降到 2 时旋转块降到 2;
@@ -12,7 +12,8 @@
 //   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
 //   六、参数列表常驻,和上面的预设互相跟随:点预设参数跟着换,参数滑回某个预设
 //       身上选中态就跳回那个预设,滑开就一条都不选中(= 自定义)。
-//   七、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子。
+//   七、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子;
+//       面板开着时「类型」键当开关用,再点一次收起、又点一次参数列表还在。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -214,6 +215,21 @@ await openTypes()
   await press('Width', 'ArrowRight')
   if ((await paramsNow()) === was) fail('停靠', `动一档参数串没变:${was}`)
   if (await notices()) fail('停靠', '动一档之后冒出了错误 Notice')
+
+  // 停靠时「类型」键还点得到:它是开关。以前再点一次会把常驻的参数列表拆掉、
+  // 而且往一个已经关掉的 config box 上再发一次 cancel,wasm 当场 trap。
+  await named('Type').click()
+  await page.waitForTimeout(400)
+  if (await page.locator('.dock').count()) fail('停靠', '再点一次「类型」应收起面板')
+  await openTypes()
+  if (!(await page.locator('.sheet-params input[type=range]').count()))
+    fail('停靠', '收起再打开之后参数列表没回来')
+  else console.log('  ok   停靠 「类型」键当开关,收起再开参数列表还在')
+  await page.locator('.sheet-presets label', { hasText: '4x4' }).first().click()
+  await page.waitForTimeout(500)
+  if ((await paramsNow()) !== '4x4')
+    fail('停靠', `收起再开之后点预设应换到 4x4:${await paramsNow()}`)
+  if (await notices()) fail('停靠', '收起再开之后点预设冒出了错误 Notice')
 
   // 面板开着,棋盘照样能走子(停靠不算覆盖层)
   const before = await page.evaluate(() => window.__puzzle.saveGame())

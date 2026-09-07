@@ -85,8 +85,10 @@ export function useConfigBox(
     [apiRef, dialog],
   )
 
+  // 没开着就不许发 cancel:C 侧 command(4) 不查 cfg 是不是 NULL,free_cfg 直接
+  // 解引用 0 地址,wasm 当场 trap(memory access out of bounds),引擎就死了。
   const closeInline = useCallback(() => {
-    apiRef.current?.dialogCancel()
+    if (inlineRef.current) apiRef.current?.dialogCancel()
   }, [apiRef])
 
   // 提交完 box 要是关上了就再开一次:面板一直挂在 Types/Menu 里,得有活的控件。
@@ -178,11 +180,6 @@ export function useConfigBox(
     [acted, borrowPrefs],
   )
 
-  // Types/Menu 收起时把挂着的 inline 一并退掉。
-  const abandonInline = useCallback(() => {
-    if (inlineRef.current) apiRef.current?.dialogCancel()
-  }, [apiRef])
-
   return {
     dialog,
     inline,
@@ -194,6 +191,5 @@ export function useConfigBox(
     commitInline,
     readPrefs,
     writePrefs,
-    abandonInline,
   }
 }

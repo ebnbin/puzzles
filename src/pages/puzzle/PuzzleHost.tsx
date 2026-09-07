@@ -141,7 +141,6 @@ export default function PuzzleHost({
     closeInline,
     commitInline,
     readPrefs,
-    abandonInline,
   } = config
 
   const shortcuts = useShortcuts()
@@ -262,14 +261,14 @@ export default function PuzzleHost({
   }, [ready, game, readPrefs])
 
   const closeTypes = useCallback(() => {
-    abandonInline()
+    closeInline()
     setTypesOpen(false)
-  }, [abandonInline])
+  }, [closeInline])
 
   const closeMenu = useCallback(() => {
-    abandonInline()
+    closeInline()
     setMenuOpen(false)
-  }, [abandonInline])
+  }, [closeInline])
 
   const closeHelp = useCallback(() => setHelpOpen(false), [])
 
@@ -469,6 +468,12 @@ export default function PuzzleHost({
         onUndo={() => act((a) => a.undo())}
         onRedo={() => act((a) => a.redo())}
         onTypes={() => {
+          // 停靠成侧栏时这个键在面板开着的时候仍然点得到,所以它是开关:
+          // 再点一次收起,不是「关掉再开一次」。
+          if (typesOpen) {
+            closeTypes()
+            return
+          }
           closeMenu()
           setTypesOpen(true)
         }}
@@ -556,7 +561,7 @@ export default function PuzzleHost({
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           onAction={(action) => {
-            abandonInline()
+            closeInline()
             // 三个动作里只有 newGame 会走到 midend_new_game;restart/solve 不发牌。
             if (action === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
             else act((a) => a[action]())

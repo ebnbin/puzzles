@@ -38,13 +38,13 @@ export default function PuzzleTypes({
 }) {
   const t = useStrings()
 
-  // 参数列表常驻:面板一出来就要一份 config box,选了预设也不收起来(宿主换完
-  // 参数会再要一份)。
+  // 参数列表常驻:面板开着就得有一份 config box。开的时候要一次;万一被别处收走
+  // (C 侧只有一个 box)再要一次——不是挂在 mount 上,面板不重挂也得补得回来。
   const open = useRef(onOpen)
   open.current = onOpen
   useEffect(() => {
-    open.current()
-  }, [])
+    if (!spec) open.current()
+  }, [spec])
 
   const Shell = dock ? Dock : Sheet
   return (
