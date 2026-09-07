@@ -8,6 +8,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PAINT, act, arrowFace, labelsSilent, walk } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Black', 'White', 'Grey']
 
@@ -67,7 +68,13 @@ const pattern: Game = {
   touch: { hold: 'right' },
   dark: { keep: [1, 2, 4, 5] },
   pages: samePages('pattern'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(1, CAP)),
+      int('Height', (r) => range(r.int('Width') === 1 ? 2 : 1, CAP)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

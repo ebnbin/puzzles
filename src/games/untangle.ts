@@ -7,6 +7,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const SNAP: Prefer = { kind: 'flag', label: 'Snap points to a grid', glyph: 'snapGrid' }
 
@@ -28,7 +29,10 @@ const untangle: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('untangle'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Number of points', () => range(4, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys(prefs, [SNAP, CROSSED, VERTICES]),
   arrows: {

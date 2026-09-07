@@ -4,8 +4,12 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Select', 'Cancel']
+
+// 上游 pegs.c:206-228:十字板只有 {5,7,9}² 去掉 5×5 这八种,八角板只有 7×7。
+const CROSS = [5, 7, 9]
 
 const pegs: Game = {
   id: 'pegs',
@@ -13,7 +17,20 @@ const pegs: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[1, 2]] },
   pages: samePages('pegs'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', (r) => {
+        const type = r.pick('Board type')
+        return type === 0 ? CROSS : type === 1 ? [7] : range(4, CAP)
+      }),
+      int('Height', (r) => {
+        const type = r.pick('Board type')
+        if (type === 0) return r.int('Width') === 5 ? [7, 9] : CROSS
+        return type === 1 ? [7] : range(4, CAP)
+      }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

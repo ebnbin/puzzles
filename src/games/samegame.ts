@@ -6,8 +6,12 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWordsAwake } from './util/pad'
+import type { Read } from './util/params'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Select', 'Remove', 'Unselect']
+
+const soluble = (r: Read) => r.flag('Ensure solubility')
 
 const samegame: Game = {
   id: 'samegame',
@@ -21,7 +25,19 @@ const samegame: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[12, 13]] },
   pages: samePages('samegame'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(1, CAP)),
+      // 保证可解要面积 ≥ 2;不保证时每种颜色至少两格,颜色至少 2 种(samegame.c:299-311)。
+      int('Height', (r) => range(Math.ceil((soluble(r) ? 2 : 4) / r.int('Width')), CAP)),
+      int('No. of colours', (r) =>
+        soluble(r)
+          ? range(3, 9)
+          : range(2, Math.min(9, Math.floor((r.int('Width') * r.int('Height')) / 2))),
+      ),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

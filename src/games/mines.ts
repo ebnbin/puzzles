@@ -5,8 +5,12 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import type { Read } from './util/params'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
+
+const area = (r: Read) => r.int('Width') * r.int('Height')
 
 const mines: Game = {
   id: 'mines',
@@ -14,7 +18,17 @@ const mines: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[16, 17]] },
   pages: samePages('mines'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', (r) => range(r.flag('Ensure solubility') ? 3 : 1, CAP)),
+      // 雷数至少 1 而且 ≤ 格数 − 9(mines.c:309),所以面积至少 10。
+      int('Height', (r) =>
+        range(Math.max(r.flag('Ensure solubility') ? 3 : 1, Math.ceil(10 / r.int('Width'))), CAP),
+      ),
+      int('Mines', (r) => range(1, area(r) - 9), (n, r) => `${Math.round((100 * n) / area(r))}%`),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

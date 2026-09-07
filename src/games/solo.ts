@@ -6,6 +6,8 @@ import { still } from './game'
 import { keepPencil, samePages, verbatim } from './util/declare'
 import { PENCIL_HIGHLIGHT, clearKey, digitKeys, marksKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+import type { Read } from './util/params'
+import { int, range } from './util/params'
 
 function params(text: string): { c: number; r: number } | null {
   const first = /^(\d+)/.exec(text)
@@ -49,13 +51,30 @@ function params(text: string): { c: number; r: number } | null {
   return { c, r }
 }
 
+// 上游 solo.c:514-527:阶数 c·r ≤ 31,Killer 时 ≤ 9,X 时 ≥ 4,列数 ≥ 2。勾了 Jigsaw
+// 时 C 侧先把两数相乘再把行数归 1(solo.c:502),「≥ 2」落在乘积上,列数本身可以是 1。
+// 行数上游没查下限(0 也放行,生成时才出事),这里按语义从 1 起。
+const order = (r: Read) => (r.flag('Killer (digit sums)') ? 9 : 31)
+const jigsaw = (r: Read) => r.flag('Jigsaw (irregularly shaped sub-blocks)')
+
 const solo: Game = {
   id: 'solo',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('solo'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Columns of sub-blocks', (r) => range(jigsaw(r) ? 1 : 2, order(r))),
+      int('Rows of sub-blocks', (r) => {
+        const c = r.int('Columns of sub-blocks')
+        const x = r.flag('"X" (require every number in each main diagonal)')
+        const least = Math.max(jigsaw(r) ? Math.ceil(2 / c) : 1, x ? Math.ceil(4 / c) : 1)
+        return range(least, Math.floor(order(r) / c))
+      }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
   keypad: ({ params: p, prefs }) => {
     const parsed = params(p)

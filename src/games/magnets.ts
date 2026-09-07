@@ -4,6 +4,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['+', '-', 'X', '?', 'Clear']
 
@@ -13,7 +14,17 @@ const magnets: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('magnets'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(2, CAP)),
+      // 宽或高至少 3,Tricky(难度下标 1)时至少 5(magnets.c:242-248)。
+      int('Height', (r) => {
+        const need = r.pick('Difficulty') >= 1 ? 5 : 3
+        return range(r.int('Width') >= need ? 2 : need, CAP)
+      }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

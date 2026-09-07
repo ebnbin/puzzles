@@ -18,6 +18,7 @@ import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { done, extend, fields, find, line, loadExtended } from './util/save'
 import { cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 export const COLOURS = 4
 
@@ -276,7 +277,14 @@ const map: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('map'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(2, CAP)),
+      int('Height', (r) => range(Math.max(2, Math.ceil(5 / r.int('Width'))), CAP)),
+      int('Regions', (r) => range(5, r.int('Width') * r.int('Height'))),
+    ],
+  },
   prefs: { panel: verbatim, volatile: true },
   keypad: ({ prefs }) => [
     ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),

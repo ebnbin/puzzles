@@ -19,6 +19,7 @@ import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { flag, hintKey, preferKeys } from './util/keys'
 import { step } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 // 引擎调色板里按名字认下来的槽号:钉子色从 6 号起、边框借 1 号。升级 vendor
 // 后要重新核对。
@@ -56,7 +57,14 @@ const guess: Game = {
   touch: { hold: 'right' },
   dark: { keep: [16, 17] },
   pages: samePages('guess'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Colours', () => range(2, 10)),
+      int('Pegs per guess', (r) => range(2, r.flag('Allow duplicates') ? CAP : r.int('Colours'))),
+      int('Guesses', () => range(1, CAP)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: true, defaults: NUMBERED },
   keypad: ({ params, prefs }) => {
     const m = /^c(\d+)p(\d+)g\d+/.exec(params)

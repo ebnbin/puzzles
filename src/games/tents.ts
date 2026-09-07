@@ -8,6 +8,7 @@ import { fields, find } from './util/save'
 import type { Spot } from './util/mirror'
 import { stepCursor } from './util/mirror'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 export type Square = 'T' | 'N' | 'B'
 
@@ -70,7 +71,10 @@ const tents: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('tents'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(4, CAP)), int('Height', () => range(4, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

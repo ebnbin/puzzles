@@ -7,6 +7,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { hintKey, preferKeys } from './util/keys'
 import { act, arm, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 // 'g'/'G' 当场翻这条偏好(bridges.c:2589),所以偏好是 volatile 的:按完键要重读。
 const HINTS: Prefer = {
@@ -26,7 +27,10 @@ const bridges: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('bridges'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(3, CAP)), int('Height', () => range(3, CAP))],
+  },
   prefs: { panel: verbatim, volatile: true, defaults: SHOW_LANES },
   keypad: ({ prefs }) => [hintKey(), ...preferKeys(prefs, [HINTS])],
   arrows: {

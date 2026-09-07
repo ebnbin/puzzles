@@ -7,6 +7,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Light', 'Mark', 'Clear']
 
@@ -16,13 +17,27 @@ const LIT_BLOBS: Prefer = {
   glyph: 'litBlob',
 }
 
+// Symmetry 下标(lightup.c:96):3 = 4-way mirror,4 = 4-way rotational。
+
 const lightup: Game = {
   id: 'lightup',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: { keep: [2, 3], paper: true },
   pages: samePages('lightup'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', (r) => range(r.pick('Symmetry') === 4 ? 3 : 2, CAP)),
+      int('Height', (r) => {
+        const symm = r.pick('Symmetry')
+        const w = r.int('Width')
+        if (symm === 4) return range(w, w)
+        return range(symm === 3 && w === 2 ? 3 : 2, CAP)
+      }),
+      int('%age of black squares', () => range(5, 100)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys(prefs, [LIT_BLOBS]),
   arrows: {

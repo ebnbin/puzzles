@@ -9,6 +9,7 @@ import { samePages, verbatim } from './util/declare'
 import { done, fields, find } from './util/save'
 import type { Way } from './util/pad'
 import { DIRS, arrowFace, walk } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 // ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);
 // MOVES 的字母和每个 Square.dirs 的下标都按同一套编号,不可为可读性重排——
@@ -164,13 +165,61 @@ const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
   press: (board) => walk(board, dir),
 })
 
+// 上游 cube.c:541-602 的逐格分类计数(enum_grid_squares + count_grid_square_callback):
+// 每一类格子都要放得下均分给它的蓝面,总面积还要多出一格给立体落脚。
+// solid 下标:0 四面体、1 立方体、2 八面体、3 二十面体;order 4 = 方格,其余三角格。
+function roomFor(solid: number, d1: number, d2: number): boolean {
+  if (!(solid >= 0 && solid <= 3) || d1 < 0 || d2 < 0) return false
+  const order = solid === 1 ? 4 : 3
+  const faces = [4, 6, 8, 20][solid]
+  const kinds = solid === 0 ? 4 : solid === 2 ? 2 : 1
+  const count = [0, 0, 0, 0]
+  if (order === 4) {
+    if (d1 <= 1 || d2 <= 1) return false
+    count[0] = d1 * d2
+  } else {
+    if (d1 <= 0 && d2 <= 0) return false
+    let firstix = -1
+    for (let row = 0; row < d1 + d2; row++) {
+      const other = row < d2 ? 1 : -1
+      const rowlen = row < d2 ? row + d1 : 2 * d2 + d1 - row
+      for (let i = 0; i < rowlen; i++) {
+        let ix = 2 * i - (rowlen - 1)
+        if (firstix < 0) firstix = ix & 3
+        ix -= firstix
+        count[kinds === 4 ? ((row + (ix & 1)) & 2) ^ (ix & 3) : kinds === 2 ? 1 : 0]++
+      }
+      for (let i = 0; i < rowlen + other; i++) {
+        let ix = 2 * i - (rowlen + other - 1)
+        if (firstix < 0) firstix = (ix - 1) & 3
+        ix -= firstix
+        count[kinds === 4 ? ((row + (ix & 1)) & 2) ^ (ix & 3) : 0]++
+      }
+    }
+  }
+  for (let k = 0; k < kinds; k++) if (count[k] < Math.floor(faces / kinds)) return false
+  const area = order === 4 ? d1 * d2 : d1 * d1 + d2 * d2 + 4 * d1 * d2
+  return area >= faces + 1
+}
+
 const cube: Game<Facts> = {
   id: 'cube',
   upstream: { labels: 'none', cursor: { kind: 'none' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('cube'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 宽的表取「高放到最大时放得下」:面积与各类计数都随高单调不减。
+      int('Width / top', (r) =>
+        range(0, CAP).filter((d1) => roomFor(r.pick('Type of solid'), d1, CAP)),
+      ),
+      int('Height / bottom', (r) =>
+        range(0, CAP).filter((d2) => roomFor(r.pick('Type of solid'), r.int('Width / top'), d2)),
+      ),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

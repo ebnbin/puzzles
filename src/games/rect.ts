@@ -8,6 +8,7 @@ import { keyOf, plain } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { ActSpec, FaceSpec } from './util/pad'
 import { act, cross, wordOf } from './util/pad'
+import { CAP, float, int, range, steps } from './util/params'
 
 type Facts = { opened: string | null }
 
@@ -60,7 +61,15 @@ const rect: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('rect'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(1, CAP)),
+      int('Height', (r) => range(r.int('Width') === 1 ? 2 : 1, CAP)),
+      // 上游只要求非负(rect.c:229);5 以上手册已称退化,再宽改这一个数。
+      float('Expansion factor', 2, () => steps(0, 5, 0.05, 2)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

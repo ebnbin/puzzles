@@ -7,6 +7,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PUSH, act, arrowFace, walk } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock']
 
@@ -27,7 +28,14 @@ const sixteen: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('sixteen'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(2, CAP)),
+      int('Height', () => range(2, CAP)),
+      int('Number of shuffling moves', () => range(0, CAP)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

@@ -6,6 +6,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear']
 
@@ -15,7 +16,10 @@ const galaxies: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('galaxies'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(3, CAP)), int('Height', () => range(3, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
   arrows: {

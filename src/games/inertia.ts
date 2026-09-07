@@ -5,6 +5,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, layerByWords, step } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Advance']
 
@@ -14,7 +15,13 @@ const inertia: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('inertia'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(2, CAP)),
+      int('Height', (r) => range(Math.max(2, Math.ceil(6 / r.int('Width'))), CAP)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

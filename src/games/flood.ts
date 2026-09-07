@@ -5,6 +5,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWords } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Fill', 'Advance']
 
@@ -20,7 +21,15 @@ const flood: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[12, 13]] },
   pages: samePages('flood'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(1, CAP)),
+      int('Height', (r) => range(r.int('Width') === 1 ? 2 : 1, CAP)),
+      int('Colours', () => range(3, 10)),
+      int('Extra moves permitted', () => range(0, CAP)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

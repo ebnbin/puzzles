@@ -5,6 +5,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const flip: Game = {
   id: 'flip',
@@ -18,7 +19,10 @@ const flip: Game = {
   touch: { hold: 'right' },
   dark: { keep: [1, 2, 3, 4] },
   pages: samePages('flip'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(1, CAP)), int('Height', () => range(1, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

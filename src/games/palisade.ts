@@ -12,6 +12,7 @@ import type { Drawn } from '../engine/renderer'
 import type { Prefer } from './util/keys'
 import { preference, preferKeys } from './util/keys'
 import { cross } from './util/pad'
+import { CAP, divisors, int, range, without } from './util/params'
 
 const WALL = 2
 const MAYBE = 3
@@ -127,7 +128,20 @@ const palisade: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('palisade'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(1, CAP)),
+      int('Height', (r) => range(r.int('Width') === 1 ? 2 : 1, CAP)),
+      // 区域大小要整除面积、小于面积;2 只在某一边为 1 时可以(palisade.c:174-182)。
+      int('Region size', (r) => {
+        const w = r.int('Width')
+        const h = r.int('Height')
+        const list = without(divisors(w * h), w * h)
+        return w === 1 || h === 1 ? list : without(list, 2)
+      }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys<Facts>(prefs, [TIDY]),
   arrows: {

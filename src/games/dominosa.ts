@@ -8,6 +8,7 @@ import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { charButton, leadingNumber, tap } from './util/keys'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Place', 'Remove', 'Line']
 
@@ -23,7 +24,13 @@ const dominosa: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('dominosa'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 棋盘是 (n+2)×(n+1) 格,封顶按棋盘宽算。
+      int('Maximum number on dominoes', () => range(1, CAP - 2)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ params }) => {
     const n = leadingNumber(params)

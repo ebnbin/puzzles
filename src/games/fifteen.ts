@@ -6,6 +6,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const fifteen: Game = {
   id: 'fifteen',
@@ -13,7 +14,10 @@ const fifteen: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('fifteen'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(2, CAP)), int('Height', () => range(2, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
   arrows: { keys: cross() },

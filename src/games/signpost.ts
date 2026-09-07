@@ -8,6 +8,7 @@ import { keyOf, plain } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { FaceSpec } from './util/pad'
 import { act, cross, wordOf } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 type Facts = { opened: string | null }
 
@@ -73,7 +74,13 @@ const signpost: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('signpost'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(1, CAP)),
+      int('Height', (r) => range(r.int('Width') === 1 ? 2 : 1, CAP)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

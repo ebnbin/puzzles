@@ -6,8 +6,12 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import type { Read } from './util/params'
+import { CAP, int, range, span } from './util/params'
 
 const WORDS = ['Fire', 'Ball', 'Clear', 'Check', 'Lock', 'Unlock']
+
+const cells = (r: Read) => r.int('Width') * r.int('Height')
 
 const blackbox: Game = {
   id: 'blackbox',
@@ -15,7 +19,20 @@ const blackbox: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[5, 6]] },
   pages: samePages('blackbox'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(2, CAP)),
+      int('Height', () => range(2, CAP)),
+      // 上游只查下限 < 格数(blackbox.c:205);上限它没查,放球时超过格数会死循环,
+      // 这里按同一条封顶。
+      span(
+        'No. of balls',
+        (r) => range(1, cells(r) - 1),
+        (r, lo) => range(lo, cells(r) - 1),
+      ),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
