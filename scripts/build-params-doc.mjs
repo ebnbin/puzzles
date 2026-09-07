@@ -72,7 +72,7 @@ const info = Object.fromEntries(GAMES.map((g) => [g.id, describe(g.id)]))
 const tables = Object.fromEntries(GAMES.map((g) => [g.id, defaultTables(g, info[g.id].controls)]))
 const check = checkLog()
 
-const CAPSRC = { up: '上游自身', cap: 'CAP 100', grid: '棋盘 ≤ 100 宽', sem: '按语义补' }
+const CAPSRC = { up: '上游自身', cap: 'CAP 100', grid: '棋盘 ≤ 100 宽', sem: '按语义补', local: '本游戏自定' }
 // 已经逐个读上游 + 实测定过范围的游戏(params-doc 的 tuned),不再算「待调优」。
 const TUNED = GAMES.filter((g) => g.tuned)
 const KIND = { int: '整数', float: '浮点', span: '区间「a-b」' }

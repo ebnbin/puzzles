@@ -9,7 +9,7 @@ import { samePages, verbatim } from './util/declare'
 import { done, fields, find } from './util/save'
 import type { Way } from './util/pad'
 import { DIRS, arrowFace, walk } from './util/pad'
-import { CAP, int, range } from './util/params'
+import { int, range } from './util/params'
 
 // ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);
 // MOVES 的字母和每个 Square.dirs 的下标都按同一套编号,不可为可读性重排——
@@ -26,11 +26,21 @@ type Square = { pts: [number, number][]; dirs: (readonly [number, number] | unde
 
 type Params = { solid: string; d1: number; d2: number }
 
+// 上限逐网格不同:方格网 100、三角网 50。六边形跨 d1+d2 行,三角网 50×50 的铺展
+// 和方格网 100×100 相当。走位模型的定义域(parseParams)跟着同一对数走——越界就不
+// 建网格、方向键全亮,面板给得出来的每一局都得建得出来。
+const SQUARE_CAP = 100
+const TRI_CAP = 50
+// 上游 choices 的下标:0 四面体、1 立方体、2 八面体、3 二十面体;只有立方体是方格网。
+const capOf = (solid: number) => (solid === 1 ? SQUARE_CAP : TRI_CAP)
+
 export function parseParams(text: string): Params | null {
   const m = /^([tcoi])(\d+)x(\d+)$/.exec(text.trim())
   if (!m) return null
   const [d1, d2] = [Number(m[2]), Number(m[3])]
-  if (d1 < 1 || d2 < 1 || d1 > 32 || d2 > 32) return null
+  // 存档里的字母序就是 choices 的下标:上游 encode_params 写的是 "tcoi"[solid]。
+  const cap = capOf('tcoi'.indexOf(m[1]))
+  if (d1 > cap || d2 > cap) return null
   return { solid: m[1], d1, d2 }
 }
 
@@ -212,12 +222,17 @@ const cube: Game<Facts> = {
     menu: verbatim,
     params: [
       // 宽的表取「高放到最大时放得下」:面积与各类计数都随高单调不减。
-      int('Width / top', (r) =>
-        range(0, CAP).filter((d1) => roomFor(r.pick('Type of solid'), d1, CAP)),
-      ),
-      int('Height / bottom', (r) =>
-        range(0, CAP).filter((d2) => roomFor(r.pick('Type of solid'), r.int('Width / top'), d2)),
-      ),
+      int('Width / top', (r) => {
+        const solid = r.pick('Type of solid')
+        const cap = capOf(solid)
+        return range(0, cap).filter((d1) => roomFor(solid, d1, cap))
+      }),
+      int('Height / bottom', (r) => {
+        const solid = r.pick('Type of solid')
+        return range(0, capOf(solid)).filter((d2) =>
+          roomFor(solid, r.int('Width / top'), d2),
+        )
+      }),
     ],
   },
   prefs: { panel: verbatim, volatile: false },

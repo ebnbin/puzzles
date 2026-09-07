@@ -200,7 +200,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `build-appicon.mjs` | 四个应用图标(maskable 留白规矩在注释里) |
 | `build-params-doc.mjs` | 出 `docs/params.md`:手写源 + oracle 控件表 + 模型现算的默认表 + 当场跑 check-params 的结果;`--html` 另出 Artifact 用的单页(要 gcc) |
 | `check-keys.mjs` | 六游戏键面与上游 `midend_request_keys` 对账,五个自造键盘断言上游为空 |
-| `check-cube.mjs` | cube 滚动置灰模型对引擎逐格验证(升级上游后必跑) |
+| `check-cube.mjs` | cube 滚动置灰模型对引擎逐格验证(改走位模型或它的上限、升级上游后必跑;整轮几分钟) |
 | `check-map.mjs` | map 调色板走存档门涂色:涂的区域 = 光标站的区域 |
 | `check-clues.mjs` | map 线索格判定与引擎逐格对账 |
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |

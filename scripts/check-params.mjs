@@ -99,6 +99,9 @@ const EXPECTED_NARROWER = {
   // 本仓库定的下限:1×n 是一条直管,不成谜题。抬到 3 之后上游那两条(1×1、
   // wrap+unique 下的 2)永远触发不了。
   net: (label, v) => (label === 'Width' || label === 'Height') && v === 2,
+  // 三角网(除立方体外的三个)封到 50:六边形跨 d1+d2 行,50×50 的铺展和方格网
+  // 100×100 相当。立方体那张表到 100,和 CAP 同高,探针够不着。
+  cube: (label, v, side, forced) => forced[0].value !== 1 && v > 50,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
