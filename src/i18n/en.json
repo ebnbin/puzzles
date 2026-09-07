@@ -221,7 +221,9 @@
     "solve": "Solve",
     "preferences": "Preferences",
     "gameId": "Game ID",
-    "seed": "Random seed"
+    "seed": "Random seed",
+    "copy": "Copy",
+    "copied": "Copied"
   },
 
   "types": {

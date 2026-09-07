@@ -1201,7 +1201,7 @@ p.notice-intro button:active {
 }
 
 .sheet h2,
-.sheet-id label {
+.sheet-id-label {
   display: block;
   margin: 0 0 0.5rem;
   color: var(--text-3);
@@ -1378,23 +1378,60 @@ p.notice-intro button:active {
   gap: 0.9rem;
 }
 
-.sheet-id input {
-  display: block;
-  width: 100%;
-  min-width: 0;
+.sheet-id-value {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   min-height: var(--tap-h);
-  padding: 0 0.6rem;
-  border: 1px solid var(--edge-strong);
+  padding: 0 0.25rem 0 0.6rem;
+  border: 1px solid var(--edge);
   border-radius: var(--r-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
-  font-variant-numeric: tabular-nums;
+  background: var(--surface-2);
 }
 
-.sheet-id p.notice-error {
+.sheet-id-value code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.sheet-id-value button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-h);
+  height: var(--tap-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .sheet-id-value button:hover {
+    background: var(--surface-3);
+  }
+}
+
+.sheet-id-value button:active {
+  background: var(--surface-3);
+  transform: scale(0.96);
+}
+
+.sheet-id-copied {
+  display: block;
   margin-top: 0.35rem;
+  color: var(--text-3);
+  font-size: var(--t-2xs);
 }
 
 .dialog-dimmer {

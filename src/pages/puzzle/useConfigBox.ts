@@ -1,7 +1,7 @@
-// config box 协议:后端只有一个对话框(game ID、参数、偏好共用),打开了就
-// 必须有人回答,答案归谁按打开的人算。三条路,onDialog 按这个顺序路由:
-// borrowed(借用不显示,答案在路过时被截下)、inline(嵌在 Types/Menu 里的
-// 自定义参数和偏好)、dialog(真正的模态,兜底)。
+// config box 协议:后端只有一个对话框(参数、偏好共用),打开了就必须有人
+// 回答,答案归谁按打开的人算。三条路,onDialog 按这个顺序路由:borrowed(借用
+// 不显示,答案在路过时被截下)、inline(嵌在 Types/Menu 里的自定义参数和偏好)、
+// dialog(真正的模态,兜底)。
 import { useCallback, useRef, useState } from 'react'
 import type { DialogControl, DialogSpec, PuzzleApi } from '../../engine/types'
 
@@ -9,8 +9,6 @@ const CUSTOM_PRESET = -1
 
 export type InlineKind = 'custom' | 'prefs'
 export type Inline = { kind: InlineKind; spec: DialogSpec }
-
-export type TextKind = 'desc' | 'seed'
 
 const values = (controls: readonly DialogControl[]) =>
   JSON.stringify(controls.map((c) => c.value))
@@ -31,10 +29,8 @@ export function useConfigBox(
   const inlineBaseline = useRef('')
 
   const borrowed = useRef<{ spec: DialogSpec | null; error: string | null } | null>(null)
-  const [textError, setTextError] = useState<{ kind: TextKind; message: string } | null>(null)
 
-  // onDialog 的全部路由。game ID 和 seed 也是 config box,但只有一个字段、
-  // 值早已在手:借用而不显示,box 的答案在路过这里时被截下。
+  // onDialog 的全部路由。借用的 box 不显示,答案在路过这里时被截下。
   const tookDialog = useCallback(
     (spec: DialogSpec | null) => {
       if (spec && borrowed.current) {
@@ -104,35 +100,6 @@ export function useConfigBox(
     }
   }, [acted, apiRef])
 
-  const submitText = useCallback(
-    (kind: TextKind, text: string) => {
-      const api = apiRef.current
-      if (!api) return
-      acted()
-      const resume = inlineRef.current?.kind ?? null
-      if (resume) api.dialogCancel()
-
-      borrowed.current = { spec: null, error: null }
-      if (kind === 'desc') api.enterGameId()
-      else api.enterSeed()
-      const { spec } = borrowed.current
-      if (spec) {
-        spec.controls[0].value = text
-        api.dialogOk()
-        if (borrowed.current.error) api.dialogCancel()
-      }
-      const message = borrowed.current.error
-      borrowed.current = null
-      setTextError(message ? { kind, message } : null)
-
-      if (resume) {
-        inlinePending.current = resume
-        ask(api, resume)
-      }
-    },
-    [acted, apiRef],
-  )
-
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
   // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
   const borrowPrefs = useCallback(
@@ -175,22 +142,17 @@ export function useConfigBox(
     if (inlineRef.current) apiRef.current?.dialogCancel()
   }, [apiRef])
 
-  const clearTextError = useCallback(() => setTextError(null), [])
-
   return {
     dialog,
     inline,
     inlineError,
-    textError,
     tookDialog,
     tookError,
     openInline,
     closeInline,
     commitInline,
-    submitText,
     readPrefs,
     writePrefs,
     abandonInline,
-    clearTextError,
   }
 }

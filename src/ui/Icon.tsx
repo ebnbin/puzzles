@@ -27,6 +27,7 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'trash'
+  | 'copy'
   | 'arrowUp'
   | 'arrowDown'
   | 'arrowLeft'
@@ -995,6 +996,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   done: <path d="m4.6 12.4 5 5 9.8-11" />,
+  copy: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h8.5A1.5 1.5 0 0 1 15 5v.5" />
+    </>
+  ),
   cancel: (
     <>
       <path d="M6 6l12 12" />
