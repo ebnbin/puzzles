@@ -90,6 +90,7 @@ ground truth。
 | `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
+| `params.ts` | 自定义参数的范围模型:`Param` 申报词汇(表 = 升序允许值)、`reader`、`settle`(按申报序逐个夹进表);范围本身在各游戏文件的 `types.params`,索引与理由在 `docs/params.md` |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
 | `verify.ts` | 构建期不变量:注册表与 games.json 双向对账、深色申报检查 |
 
@@ -202,8 +203,10 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
+| `check-params.mjs` | 自定义参数范围模型对着上游源码逐值对账(要 gcc,不要浏览器):覆盖、表内组合全放行、表外一格全被拒;编译产物在 `.build/params-oracle/` |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
+| `lib/params-oracle.c` | check-params 的 C 侧:链接一个上游游戏,直接调 configure / custom_params / validate_params(full),不生成棋盘 |
 
 ## docs/ 与 doc-zh/ —— 文档
 
@@ -211,6 +214,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | --- | --- |
 | `docs/keys.md` | 按键适配:判据、六类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
 | `docs/inputs.md` | 上游 40 游戏的全部输入参考,带源码行号,钉着上游 commit |
+| `docs/params.md` | 自定义参数 91 个 string 控件的取值范围:上游规则带行号、本仓库的表、依赖、上限来源、与上游的出入、契约测试结果(生成自 check-params 的 oracle + 模型,手写部分是逐参数的语义与理由) |
 | `docs/structure.md` | 本清单 |
 | `docs/gallery.png` | README 首图(`build-shot.mjs` 生成) |
 | `doc-zh/` | 手册中文翻译源(手写,40 个游戏页与公共章节共 45 页);`build-doc.mjs` 出 `public/doc/zh/`,改动后跑 `npm run verify-doc` |
