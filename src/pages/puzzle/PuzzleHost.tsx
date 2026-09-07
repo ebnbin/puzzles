@@ -33,12 +33,17 @@ import { START_FAILED, useEngine } from './useEngine'
 import { useHelp } from './useHelp'
 import { useOutcome } from './useOutcome'
 import HoldTip, { useHoldTip } from '../../ui/HoldTip'
+import { useMedia } from '../../ui/useMedia'
 import { useResolvedTheme } from '../../useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzleKeys, type Shortcut } from './usePuzzleKeys'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
+
+// 够宽的桌面上类型面板停靠成右侧栏:棋盘让出这条宽度,不被盖住。和 index.css 里
+// .puzzle[data-dock] 的那条查询必须同值,两处一起改。
+const DOCK = '(min-width: 64em) and (hover: hover)'
 
 export default function PuzzleHost({
   name,
@@ -270,9 +275,14 @@ export default function PuzzleHost({
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
+  // 停靠的类型面板不是覆盖层:棋盘整个露着,键盘照旧归谜题(焦点在滑块上时
+  // usePuzzleKeys 自己会让开)。
+  const wide = useMedia(DOCK)
+  const docked = typesOpen && wide
+
   // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。手册也是
   // 覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必再报一位进来。
-  const covered = !!dialog || helpOpen || typesOpen || menuOpen
+  const covered = !!dialog || helpOpen || (typesOpen && !docked) || menuOpen
   // 上游那三个裸字母快捷键由我们补发,理由和判据都在 useShortcuts.SHORTCUTS_OFF。
   // n 走镜像,u / r 本来就不发牌,照旧同步。
   const onShortcut = useCallback(
@@ -357,6 +367,7 @@ export default function PuzzleHost({
     <div
       className="puzzle"
       data-ready={ready}
+      data-dock={docked || undefined}
       data-arrows={arrows ? 'true' : undefined}
     >
       <header className="puzzle-bar">
@@ -451,6 +462,7 @@ export default function PuzzleHost({
         typesShown={!ready || !!engine.presets}
         typesEnabled={!!engine.presets}
         typesOpen={typesOpen}
+        typesDocked={docked}
         menuOpen={menuOpen}
         holdToAsk={holdToAsk}
         wasHeld={wasHeld}
@@ -516,6 +528,7 @@ export default function PuzzleHost({
           custom={inline?.kind === 'custom' ? inline.spec : null}
           customError={inlineError}
           params={game.types.params}
+          dock={docked}
           // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
           // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
           // select_appropriate_preset,选中项由引擎自己报回来。

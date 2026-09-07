@@ -10,6 +10,7 @@
 //       Black Box「最少」拉过「最多」时「最多」跟上。
 //   四、翻开关时数字跟着让:Mines 关掉 Ensure solubility 把宽拉到 1,再打开,宽回到 3。
 //   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
+//   六、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -153,6 +154,46 @@ await openCustom()
   const w = (s) => Number(/^(\d+)x/.exec(s ?? '')?.[1])
   if (w(p) !== w(before) + 1) fail('Fifteen', `宽 +1 应从 ${before} 到宽加一:${p}`)
   else console.log(`  ok   Fifteen 步进 ${before} → ${p}`)
+}
+
+// 六:桌面停靠。这一条守的是「让出宽度」而不是「盖上去」——盖住了棋盘还在,
+// 截图也看不出错,只有量边界能发现。
+await page.setViewportSize({ width: 1280, height: 900 })
+await open(page, 'Fifteen', { settle: 200 })
+await openCustom()
+{
+  const dock = await page.locator('.dock').boundingBox()
+  const canvas = await page.locator('.puzzle-canvas').boundingBox()
+  if (await page.locator('.sheet-dimmer').count()) fail('停靠', '不该还有 scrim')
+  if (Math.round(dock.width) !== 360) fail('停靠', `面板应是 360 宽:${dock.width}`)
+  if (canvas.x + canvas.width > dock.x + 1)
+    fail('停靠', `棋盘右边 ${Math.round(canvas.x + canvas.width)} 越过了面板左边 ${dock.x}`)
+  else console.log(`  ok   停靠 面板 ${dock.width} 宽,棋盘右边 ${Math.round(canvas.x + canvas.width)}`)
+  if (await textboxes()) fail('停靠', '面板里还有文本框')
+
+  // 滑块照旧落定
+  const was = await paramsNow()
+  await press('Width', 'ArrowRight')
+  if ((await paramsNow()) === was) fail('停靠', `动一档参数串没变:${was}`)
+  if (await notices()) fail('停靠', '动一档之后冒出了错误 Notice')
+
+  // 面板开着,棋盘照样能走子(停靠不算覆盖层)
+  const before = await page.evaluate(() => window.__puzzle.saveGame())
+  await page.locator('.puzzle-canvas').click()
+  for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'])
+    await page.keyboard.press(key)
+  await page.waitForTimeout(200)
+  if ((await page.evaluate(() => window.__puzzle.saveGame())) === before)
+    fail('停靠', '面板开着时方向键没到谜题')
+  else console.log('  ok   停靠 面板开着照样走子')
+}
+
+await page.locator('.dock-close').click()
+await page.waitForTimeout(300)
+{
+  if (await page.locator('.dock').count()) fail('停靠', '收起后面板还在')
+  if (await page.locator('.puzzle[data-dock]').count()) fail('停靠', '收起后棋盘没拿回宽度')
+  else console.log('  ok   停靠 收起后棋盘拿回宽度')
 }
 
 await browser.close()

@@ -117,7 +117,7 @@ ground truth。
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
-| `PuzzleTypes.tsx` | 类型 sheet:预设列表 + 自定义参数 |
+| `PuzzleTypes.tsx` | 类型面板:预设列表 + 自定义参数;够宽的桌面上停靠成右侧栏(Dock),否则从下面拉起(Sheet) |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型的 string 控件交给 ParamField,每次落定先 settle 再提交;没申报的仍是文本框 |
 | `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定 |
@@ -155,12 +155,14 @@ ground truth。
 | --- | --- |
 | `Dialog.tsx` | 模态对话框壳:标题、关闭、滚动锁 |
 | `Sheet.tsx` | 底部弹层壳:scrim、把手、拖拽关闭 |
+| `Dock.tsx` | 停靠在右侧的面板壳:非模态,没有 scrim、不锁滚动、不收焦点;让出宽度的是外面那层 |
 | `Notice.tsx` | 通知条:error / info 两种,可浮动可关闭 |
 | `Swatch.tsx` | 色块钉(键面上的颜色圆点) |
 | `Icon.tsx` | 全部图标字形与三张怪物图片的名字表 |
 | `ThemeToggle.tsx` | 主题切换按钮 |
 | `HoldTip.tsx` | 长按提示:`useHoldTip` 发 handlers,组件负责画 |
 | `useScrollLock.ts` | 弹层期间锁背景滚动 |
+| `useMedia.ts` | 一条媒体查询的当下答案:给排版之外行为也要跟着改的地方(类型面板停不停靠) |
 
 ## public/ —— 静态资源与生成物
 

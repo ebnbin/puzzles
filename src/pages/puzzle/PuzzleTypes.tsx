@@ -3,6 +3,7 @@ import ConfigFields from './ConfigFields'
 import type { DialogSpec, Preset } from '../../engine/types'
 import type { Param } from '../../games/util/params'
 import { useStrings } from '../../i18n'
+import Dock from '../../ui/Dock'
 import Notice from '../../ui/Notice'
 import Sheet from '../../ui/Sheet'
 
@@ -15,6 +16,7 @@ export default function PuzzleTypes({
   custom,
   customError,
   params,
+  dock,
   onSelectPreset,
   onOpenCustom,
   onCloseCustom,
@@ -27,6 +29,9 @@ export default function PuzzleTypes({
   custom: DialogSpec | null
   customError: string | null
   params: readonly Param[]
+  // 停靠成右侧栏(桌面够宽)还是从下面拉起来。两种壳只差外框:里面的类名一样,
+  // 内容的样式两边通用。
+  dock: boolean
   onSelectPreset: (value: number) => void
   onOpenCustom: () => void
   onCloseCustom: () => void
@@ -53,10 +58,12 @@ export default function PuzzleTypes({
     if (shown) paramsRef.current?.scrollIntoView({ block: 'nearest' })
   }, [shown])
 
+  const Shell = dock ? Dock : Sheet
   return (
-    <Sheet label={t.types.title} onClose={onClose}>
+    <Shell label={t.types.title} onClose={onClose}>
         <section>
-          <h2>{t.types.title}</h2>
+          {/* 停靠时标题已经在面板头上,这里不再重一遍。 */}
+          {!dock && <h2>{t.types.title}</h2>}
           <PresetList
             presets={presets}
             chosen={custom ? CUSTOM : selected}
@@ -72,7 +79,7 @@ export default function PuzzleTypes({
             {customError && <Notice text={customError} />}
           </div>
         )}
-    </Sheet>
+    </Shell>
   )
 }
 

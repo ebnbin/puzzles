@@ -467,6 +467,8 @@ footer p {
   /* 键盘总宽 = 3×tap-w + 2×act-w + 5×gap + 2×rim = 6×tap-w + 7×gap = 268。
      五道缝:两块之间两道(acts 内部一道 + 那条 margin),四列网格之间三道。 */
   --keys-w: calc(6 * var(--tap-w) + 7 * var(--key-gap));
+  /* 停靠的类型面板占这么宽(360px)。 */
+  --dock-w: 22.5rem;
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -1192,11 +1194,13 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
-.sheet section {
+.sheet section,
+.dock section {
   margin-top: 1.4rem;
 }
 
-.sheet-handle + section {
+.sheet-handle + section,
+.dock-head + section {
   margin-top: 0;
 }
 
@@ -1211,7 +1215,8 @@ p.notice-intro button:active {
   text-transform: uppercase;
 }
 
-.sheet p:not(.notice-error) {
+.sheet p:not(.notice-error),
+.dock p:not(.notice-error) {
   margin: 0;
   color: var(--text-2);
   font-size: var(--t-sm);
@@ -1520,6 +1525,59 @@ p.notice-intro button:active {
   transform: scale(0.96);
 }
 
+/* 停靠在右侧的类型面板。棋盘不是被盖住而是让出宽度:.puzzle 加一条右内边距,
+   棋盘照旧量自己的可用空间(usePuzzleFit 的 ResizeObserver),不用另算尺寸。
+   查询和 PuzzleHost 的 DOCK 必须同值,两处一起改。 */
+@media (min-width: 64em) and (hover: hover) {
+  .puzzle[data-dock] {
+    padding-right: calc(var(--dock-w) + env(safe-area-inset-right));
+  }
+}
+
+.dock {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: calc(var(--dock-w) + env(safe-area-inset-right));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(0.9rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right))
+    calc(1rem + env(safe-area-inset-bottom)) 1rem;
+  border-left: 1px solid var(--edge);
+  background: var(--surface);
+  animation: dock-in var(--dur) var(--ease);
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+}
+
+.dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dock-head h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
 .dialog-dimmer {
   position: fixed;
   inset: 0;
@@ -1694,7 +1752,8 @@ p.notice-intro button:active {
   margin: 0;
 }
 
-.dialog-close {
+.dialog-close,
+.dock-close {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -1711,13 +1770,15 @@ p.notice-intro button:active {
 }
 
 @media (hover: hover) {
-  .dialog-close:hover {
+  .dialog-close:hover,
+  .dock-close:hover {
     background: var(--surface-2);
     color: var(--text);
   }
 }
 
-.dialog-close:active {
+.dialog-close:active,
+.dock-close:active {
   background: var(--surface-3);
   color: var(--text);
 }
