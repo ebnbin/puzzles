@@ -86,9 +86,11 @@ const INTRO = [
 
 const MECHANISM = [
   ['1.1 参数从哪来、到哪去', [
-    '类型 sheet 里选「自定义」,宿主向后端要 config box。C 侧 `game_configure` 给出一组控件,wasm 胶水(`engine/puzzle-lib.js`)只把三样交到 JS:英文 label、类型(string / choices / boolean)、当前值的字符串。没有 kw,也没有任何范围信息(`emcc.c:616-637`)。',
+    '类型面板一打开,宿主就向后端要一份 config box,参数列表常驻。C 侧 `game_configure` 给出一组控件,wasm 胶水(`engine/puzzle-lib.js`)只把三样交到 JS:英文 label、类型(string / choices / boolean)、当前值的字符串。没有 kw,也没有任何范围信息(`emcc.c:616-637`)。',
     '提交时 JS 把每个控件的值原样交回(`dlg_return_sval`),C 侧 `custom_params` 用 atoi / atof / sscanf 解析成 `game_params`,再过 `validate_params(params, full)`。**自定义面板这条路 full 恒为 true**(`midend.c:2011`)——文中所有「full:」开头的规则都生效。不通过就把错误串回传显示成 Notice,box 保持打开;通过就开新局并重新要一次 box。',
     '所以范围知识只能放在 JS 侧,而且只能按 label 认控件。',
+    '**预设与参数互相跟随**,两个方向都是上游算的:点一条预设时,C 侧只有一个 config box,所以宿主先让位(`dialogCancel`)、换参数(`selectPreset`)、再要一份——新的这份就是那条预设的值。反过来,每次参数落定后 `midend_set_config` 都会跟一次 `select_appropriate_preset`(`emcc.c:705`),它拿 `midend_which_preset` 按编码后的参数串逐个比对(`midend.c`),命中就报那条预设、不命中报 −1,界面照着它点亮「自定义」。所以选中态不是界面自己猜的。',
+    '常驻的这份 box 占着 C 侧唯一的那个位置:键区的偏好键要借同一个 box 用,借之前先让位、借完再要回来(`useConfigBox` 的 `borrowPrefs`),否则那一借会被静默丢掉。',
   ]],
   ['1.2 范围模型', [
     '每个 string 控件在游戏文件里申报一条 `Param`:label、类型、一个函数 `allowed(read)`,输入其它控件的当前值,输出**升序的允许值表**。连续区间、偶数、约数、浮点等距取样、只有一个值(钉死)都是同一种东西:一张表。',
@@ -101,6 +103,7 @@ const MECHANISM = [
     '**区间「a-b」**(只有 Black Box 的球数):同一个 label 下两行滑块,最少 / 最多;两者相等时写回单个数,和上游回显格式一致。',
     '**附注读数**:Mines 的雷数旁边显示占比,顶替下线的「20%」写法。',
     '**兜底**:没申报的 string 控件(比如模态对话框那条路)仍画成文本框;label 对不上上游时申报被忽略,同样回落到文本框。',
+    '**「自定义」是状态不是选项**:参数列表常驻之后它没有动作可做,只报告当前参数不落在任何预设上,所以留在同一组里但不可点。',
   ]],
   ['1.4 上限的规矩', [
     `上游自身有上限的用上游的。上游没有的:网格维度封顶 ${CAP}(棋盘最多 ${CAP}×${CAP} 格),其它计数类参数先同用 ${CAP},第五节列出全部这样的参数——它们是本阶段的占位,下一阶段逐个调。`,
@@ -119,7 +122,8 @@ const KNOWN = [
 const NEXT = [
   '`src/pages/puzzle/ParamField.tsx`:范围模型驱动的数字行。滑块按表的下标走,两侧 −/+ 单步,读数在行尾;区间型两行(最少 / 最多)。拖动只改读数,原生 change 才落定,方向键每按一下落定一次。',
   '`src/pages/puzzle/ConfigFields.tsx`:拿到范围模型后,有申报且表非空的 string 控件交给 ParamField;每次落定(滑块、步进、checkbox、select、回落的文本框)先 `settle` 再提交。没给模型的调用方(偏好面板、模态对话框)行为不变。',
-  '`src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进自定义面板。',
+  '`src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进面板;参数列表常驻,选中态只认引擎报的那条预设,点预设走「让位、换参数、再要一份」三步。',
+  '`src/ui/Dock.tsx` / `useMedia.ts`:够宽的桌面上类型面板停靠成右侧栏(360px),棋盘让出宽度而不是被盖住;非模态,面板开着照样能走子。',
   '`src/index.css`:`.sheet-custom .dialog-param*`,颜色全部走 tokens,两种主题同一套规则。',
   '`src/i18n/en.json` / `zh.json`:`types.min` / `max` / `decrease` / `increase` 四个键(区间小标与步进按钮的读法)。',
   '`scripts/check-custom.mjs`:playwright 走真实链路——四十个游戏的自定义面板没有文本框、动一档即开新局、Mines 缩到最小雷数被夹、Twiddle 宽降到 2 旋转块跟着降、Black Box 最少拉过最多时最多跟上、Mines 翻 Ensure solubility 时宽从 1 回到 3、步进按钮加一,全程不出错误 Notice。',

@@ -112,12 +112,12 @@ ground truth。
 | `PuzzleHost.tsx` | 装配处:把四个域接起来再画出来 |
 | `useEngine.ts` | 引擎生命周期:起 wasm、绑回调、存档持久化、把引擎事件泵进旁边三个域 |
 | `useBoard.ts` | 棋盘通道:五项每游戏状态(标签/事实/光标镜像/粘滞键/上膛)与观察器;存档门重入计数私有在这里 |
-| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在 sheet 里)/ modal(兜底);偏好的读与写都从 borrowed 那条走 |
+| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在面板里)/ modal(兜底);偏好的读与写都从 borrowed 那条走,借之前给常驻的 inline 让位、借完要回来 |
 | `useOutcome.ts` | 完成判定:status 只认沿、收尾浮层、记完成(求解器解出的不记) |
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
-| `PuzzleTypes.tsx` | 类型面板:预设列表 + 自定义参数;够宽的桌面上停靠成右侧栏(Dock),否则从下面拉起(Sheet) |
+| `PuzzleTypes.tsx` | 类型面板:预设列表 + 常驻的参数列表,两者互相跟随(选中态认引擎报的 `midend_which_preset`);够宽的桌面上停靠成右侧栏(Dock),否则从下面拉起(Sheet) |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型的 string 控件交给 ParamField,每次落定先 settle 再提交;没申报的仍是文本框 |
 | `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定 |

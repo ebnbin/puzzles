@@ -241,10 +241,10 @@ export default function PuzzleHost({
   // act 的发牌版:同样的守卫和 acted(),只是动手的是镜像。direct 是没有镜像时
   // (起不了模块 worker)在主线程上直接做的那件事——会卡,但不会没得玩。
   const deal = useCallback(
-    (action: DealAction, direct: (api: PuzzleApi) => void) => {
-      if (!apiRef.current || dialog) return
+    (action: DealAction, direct: (api: PuzzleApi) => void): Promise<void> => {
+      if (!apiRef.current || dialog) return Promise.resolve()
       acted()
-      void runDeal(action, direct)
+      return runDeal(action, direct)
     },
     [dialog, acted, runDeal],
   )
@@ -525,19 +525,24 @@ export default function PuzzleHost({
           presets={engine.presets}
           selected={engine.selected}
           standard={engine.standard}
-          custom={inline?.kind === 'custom' ? inline.spec : null}
-          customError={inlineError}
+          spec={inline?.kind === 'custom' ? inline.spec : null}
+          error={inlineError}
           params={game.types.params}
           dock={docked}
-          // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
-          // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
-          // select_appropriate_preset,选中项由引擎自己报回来。
-          onSelectPreset={(value) =>
-            deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value))
-          }
-          onOpenCustom={() => openInline('custom')}
-          onCloseCustom={closeInline}
-          onCommitCustom={commitInline}
+          onOpen={() => openInline('custom')}
+          onSelectPreset={(value) => {
+            // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
+            // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
+            // select_appropriate_preset,选中项由引擎自己报回来。
+            // 那份按旧参数建的 cfg 要等发完牌再丢:抢在发牌前丢,PuzzleTypes 里
+            // 「没有 spec 就再要一份」的常驻 effect 会立刻照旧参数补一份回来,
+            // 新参数反倒没人去问。
+            void deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value)).then(() => {
+              closeInline()
+              openInline('custom')
+            })
+          }}
+          onCommit={commitInline}
           onClose={closeTypes}
         />
       )}

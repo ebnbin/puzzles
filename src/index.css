@@ -1259,6 +1259,15 @@ p.notice-intro button:active {
   font-weight: 600;
 }
 
+/* 「自定义」不可点:参数列表常驻之后它只报告「当前参数不落在任何预设上」。 */
+.sheet-presets .sheet-preset-custom {
+  cursor: default;
+}
+
+.sheet-presets .sheet-preset-custom:not([data-selected='true']) {
+  color: var(--text-3);
+}
+
 .sheet-presets .sheet-preset-tag {
   color: var(--text-2);
   font-size: var(--t-2xs);
@@ -1286,27 +1295,13 @@ p.notice-intro button:active {
   );
 }
 
-.sheet-custom {
+.sheet-params {
   margin-top: 1rem;
-  animation: custom-in var(--dur) var(--ease);
 }
 
-@keyframes custom-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.3rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet-custom {
-    animation: none;
-  }
-}
-
-.sheet-custom .dialog-string,
-.sheet-custom .dialog-choices,
-.sheet-custom .dialog-boolean,
+.sheet-params .dialog-string,
+.sheet-params .dialog-choices,
+.sheet-params .dialog-boolean,
 .sheet-prefs .dialog-string,
 .sheet-prefs .dialog-choices,
 .sheet-prefs .dialog-boolean {
@@ -1322,13 +1317,13 @@ p.notice-intro button:active {
   font-size: var(--t-sm);
 }
 
-.sheet-custom .dialog-boolean,
+.sheet-params .dialog-boolean,
 .sheet-prefs .dialog-boolean {
   flex-direction: row-reverse;
 }
 
-.sheet-custom .dialog-string input,
-.sheet-custom .dialog-choices select,
+.sheet-params .dialog-string input,
+.sheet-params .dialog-choices select,
 .sheet-prefs .dialog-string input,
 .sheet-prefs .dialog-choices select {
   flex: none;
@@ -1344,20 +1339,20 @@ p.notice-intro button:active {
   font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
 }
 
-.sheet-custom .dialog-string input,
+.sheet-params .dialog-string input,
 .sheet-prefs .dialog-string input {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.sheet-custom .dialog-choices select,
+.sheet-params .dialog-choices select,
 .sheet-prefs .dialog-choices select {
   width: auto;
   max-width: 62%;
   padding-right: 0.25rem;
 }
 
-.sheet-custom .dialog-boolean input,
+.sheet-params .dialog-boolean input,
 .sheet-prefs .dialog-boolean input {
   flex: none;
   width: 1.15rem;
@@ -1367,7 +1362,7 @@ p.notice-intro button:active {
 }
 
 /* 范围模型驱动的数字行(ParamField):标签一行,滑块一行;区间型两行滑块带小标。 */
-.sheet-custom .dialog-param {
+.sheet-params .dialog-param {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -1377,27 +1372,27 @@ p.notice-intro button:active {
   font-size: var(--t-sm);
 }
 
-.sheet-custom .dialog-param-head {
+.sheet-params .dialog-param-head {
   display: block;
   min-height: 1.5rem;
   line-height: 1.5rem;
 }
 
-.sheet-custom .dialog-param-track {
+.sheet-params .dialog-param-track {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   min-height: var(--tap-h);
 }
 
-.sheet-custom .dialog-param-tag {
+.sheet-params .dialog-param-tag {
   flex: none;
   width: 2.6rem;
   color: var(--text-3);
   font-size: var(--t-xs);
 }
 
-.sheet-custom .dialog-param-track input[type='range'] {
+.sheet-params .dialog-param-track input[type='range'] {
   flex: 1;
   min-width: 0;
   height: var(--tap-h);
@@ -1406,11 +1401,11 @@ p.notice-intro button:active {
   accent-color: var(--accent);
 }
 
-.sheet-custom .dialog-param-track input[type='range']:disabled {
+.sheet-params .dialog-param-track input[type='range']:disabled {
   opacity: 0.4;
 }
 
-.sheet-custom .dialog-param-track button {
+.sheet-params .dialog-param-track button {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -1426,22 +1421,22 @@ p.notice-intro button:active {
 }
 
 @media (hover: hover) {
-  .sheet-custom .dialog-param-track button:not(:disabled):hover {
+  .sheet-params .dialog-param-track button:not(:disabled):hover {
     background: var(--surface-3);
   }
 }
 
-.sheet-custom .dialog-param-track button:not(:disabled):active {
+.sheet-params .dialog-param-track button:not(:disabled):active {
   background: var(--surface-3);
   transform: scale(0.96);
 }
 
-.sheet-custom .dialog-param-track button:disabled {
+.sheet-params .dialog-param-track button:disabled {
   opacity: 0.3;
   cursor: default;
 }
 
-.sheet-custom .dialog-param-value {
+.sheet-params .dialog-param-value {
   flex: none;
   min-width: 3.2rem;
   text-align: right;
@@ -1449,11 +1444,11 @@ p.notice-intro button:active {
 }
 
 /* 带附注(雷数占比)的读数会到「9991 99%」那么宽,先留够,免得拖到一半轨道缩水。 */
-.sheet-custom .dialog-param-value[data-note] {
+.sheet-params .dialog-param-value[data-note] {
   min-width: 4.6rem;
 }
 
-.sheet-custom .dialog-param-value small {
+.sheet-params .dialog-param-value small {
   margin-left: 0.3em;
   color: var(--text-3);
   font-size: var(--t-xs);

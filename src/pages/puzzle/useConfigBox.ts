@@ -135,10 +135,14 @@ export function useConfigBox(
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
   // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
+  // C 侧只有一个 config box:嵌着的那个(类型面板的参数列表常驻)先让位,借完再
+  // 要回来——不让位这一借会被静默丢掉,键区的偏好键就成了哑巴。
   const borrowPrefs = useCallback(
     (use: (controls: DialogControl[]) => boolean) => {
       const api = apiRef.current
-      if (!api || dialog || inlineRef.current) return
+      if (!api || dialog) return
+      const held = inlineRef.current?.kind
+      if (held) api.dialogCancel()
       borrowed.current = { spec: null, error: null }
       api.preferences()
       const { spec } = borrowed.current
@@ -152,6 +156,10 @@ export function useConfigBox(
         }
       }
       borrowed.current = null
+      if (held) {
+        inlinePending.current = held
+        ask(api, held)
+      }
       if (spec)
         setPrefs((was) => (values(was) === values(spec.controls) ? was : spec.controls))
     },

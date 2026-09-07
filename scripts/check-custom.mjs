@@ -10,7 +10,9 @@
 //       Black Box「最少」拉过「最多」时「最多」跟上。
 //   四、翻开关时数字跟着让:Mines 关掉 Ensure solubility 把宽拉到 1,再打开,宽回到 3。
 //   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
-//   六、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子。
+//   六、参数列表常驻,和上面的预设互相跟随:点预设参数跟着换,参数滑回某个预设
+//       身上选中态就跳回那个预设,滑开就落到「自定义」。
+//   七、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -35,18 +37,24 @@ const paramsNow = () =>
     return m ? m[1] : null
   })
 
-async function openCustom() {
+// 参数列表不用再选「自定义」才出来:面板一开就在。
+async function openTypes() {
   await named('Type').click()
-  await page.locator('.sheet-preset-custom input').click()
-  await page.locator('.sheet-custom').waitFor({ timeout: 5000 })
+  await page.locator('.sheet-params').waitFor({ timeout: 5000 })
   await page.waitForTimeout(150)
 }
 
-const textboxes = () => page.locator('.sheet-custom input[type=text]').count()
-const notices = () => page.locator('.sheet-custom .notice').count()
+// 此刻选中的那一条预设的文字。
+const chosen = () =>
+  page.$$eval('.sheet-presets label[data-selected=true]', (ls) =>
+    ls.map((l) => l.textContent.trim()).join(' / '),
+  )
+
+const textboxes = () => page.locator('.sheet-params input[type=text]').count()
+const notices = () => page.locator('.sheet-params .notice').count()
 
 // 按 label 找滑块;区间型带 ": Min" / ": Max" 后缀。
-const slider = (label) => page.locator(`.sheet-custom input[type=range][aria-label="${label}"]`)
+const slider = (label) => page.locator(`.sheet-params input[type=range][aria-label="${label}"]`)
 const stepper = (label, which) =>
   slider(label).locator('..').locator(`button[aria-label="${label}: ${which}"]`)
 const valueOf = (label) => slider(label).getAttribute('aria-valuetext')
@@ -67,14 +75,14 @@ async function press(label, key) {
   await page.waitForTimeout(120)
 }
 
-// 一、二:逐个游戏开自定义面板,没有文本框;第一个滑块往右一档(不推到头:100 宽的
+// 一、二:逐个游戏开参数面板,没有文本框;第一个滑块往右一档(不推到头:100 宽的
 // 棋盘生成起来能卡几分钟,那是已知问题,不归这里测),参数串变了、没有错误 Notice。
 for (const game of GAMES) {
   await open(page, game, { settle: 200 })
-  await openCustom()
+  await openTypes()
   const boxes = await textboxes()
   if (boxes) fail(game, `自定义面板还有 ${boxes} 个文本框`)
-  const first = page.locator('.sheet-custom input[type=range]').first()
+  const first = page.locator('.sheet-params input[type=range]').first()
   const label = await first.getAttribute('aria-label')
   const before = await paramsNow()
   const atEnd = (await first.getAttribute('value')) === (await first.getAttribute('max'))
@@ -88,7 +96,7 @@ for (const game of GAMES) {
 
 // 三 a:Mines 宽高缩到最小,雷数跟着被夹到 ≤ 面积 − 9。
 await open(page, 'Mines', { settle: 200 })
-await openCustom()
+await openTypes()
 await press('Width', 'Home')
 await press('Height', 'Home')
 {
@@ -103,7 +111,7 @@ await press('Height', 'Home')
 
 // 四:关掉 Ensure solubility 把宽拉到 1,再打开开关,宽回到 3。
 {
-  const unique = page.locator('.sheet-custom input[type=checkbox]').first()
+  const unique = page.locator('.sheet-params input[type=checkbox]').first()
   await unique.uncheck()
   await page.waitForTimeout(300)
   await press('Width', 'Home')
@@ -119,7 +127,7 @@ await press('Height', 'Home')
 
 // 三 b:Twiddle 宽降到 2,旋转块边长跟着降到 2。
 await open(page, 'Twiddle', { settle: 200 })
-await openCustom()
+await openTypes()
 await press('Rotating block size', 'End')
 await press('Width', 'Home')
 {
@@ -131,7 +139,7 @@ await press('Width', 'Home')
 
 // 三 c:Black Box「最少」推到头,「最多」跟上;再把「最多」拉回最小,两者相等写回单个数。
 await open(page, 'Black Box', { settle: 200 })
-await openCustom()
+await openTypes()
 await press('No. of balls: Min', 'End')
 {
   const p = await paramsNow()
@@ -145,7 +153,7 @@ await press('No. of balls: Min', 'End')
 
 // 五:步进按钮 Fifteen 宽 +1(存档里可能是上一轮扫过的尺寸,按相对值断言)。
 await open(page, 'Fifteen', { settle: 200 })
-await openCustom()
+await openTypes()
 {
   const before = await paramsNow()
   await stepper('Width', 'One step up').click()
@@ -156,11 +164,41 @@ await openCustom()
   else console.log(`  ok   Fifteen 步进 ${before} → ${p}`)
 }
 
-// 六:桌面停靠。这一条守的是「让出宽度」而不是「盖上去」——盖住了棋盘还在,
+// 六:预设与参数互相跟随。
+await open(page, 'Mines', { settle: 200 })
+await openTypes()
+{
+  await page.getByText('16x16, 40 mines').click()
+  await page.waitForTimeout(500)
+  const read = async () => [
+    await valueOf('Width'),
+    await valueOf('Height'),
+    (await valueOf('Mines')).split(' ')[0],
+  ]
+  if ((await read()).join('x') !== '16x16x40')
+    fail('跟随', `点了预设参数没跟着换:${(await read()).join(' ')}`)
+  else if (!(await chosen()).startsWith('16x16, 40 mines'))
+    fail('跟随', `点了预设选中态不对:${await chosen()}`)
+  else console.log(`  ok   跟随 点预设 → ${(await read()).join(' ')} / ${await chosen()}`)
+
+  // 滑开一档 → 落到「自定义」
+  await press('Width', 'ArrowLeft')
+  if (!/Custom/.test(await chosen())) fail('跟随', `滑开之后应落到自定义:${await chosen()}`)
+  else console.log(`  ok   跟随 滑开一档 → ${await paramsNow()} / ${await chosen()}`)
+
+  // 滑回去 → 选中态跳回那个预设
+  await press('Width', 'ArrowRight')
+  if (!(await chosen()).startsWith('16x16, 40 mines'))
+    fail('跟随', `滑回预设身上应重新选中它:${await paramsNow()} / ${await chosen()}`)
+  else console.log(`  ok   跟随 滑回去 → ${await paramsNow()} / ${await chosen()}`)
+  if (await notices()) fail('跟随', '冒出了错误 Notice')
+}
+
+// 七:桌面停靠。这一条守的是「让出宽度」而不是「盖上去」——盖住了棋盘还在,
 // 截图也看不出错,只有量边界能发现。
 await page.setViewportSize({ width: 1280, height: 900 })
 await open(page, 'Fifteen', { settle: 200 })
-await openCustom()
+await openTypes()
 {
   const dock = await page.locator('.dock').boundingBox()
   const canvas = await page.locator('.puzzle-canvas').boundingBox()
