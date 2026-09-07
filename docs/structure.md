@@ -119,7 +119,8 @@ ground truth。
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
 | `PuzzleTypes.tsx` | 类型 sheet:预设列表 + 自定义参数 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
-| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象,text 只在落定时提交) |
+| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型的 string 控件交给 ParamField,每次落定先 settle 再提交;没申报的仍是文本框 |
+| `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定 |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
 | `usePuzzleKeys.ts` | 物理键盘唯一通路:判据是「这一按该不该归谜题」,不认焦点 |
 | `usePuzzlePointer.ts` | 指针 → 上游鼠标语义(长按 = 右键或中键,由游戏申报) |
@@ -204,6 +205,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
 | `check-params.mjs` | 自定义参数范围模型对着上游源码逐值对账(要 gcc,不要浏览器):覆盖、表内组合全放行、表外一格全被拒;编译产物在 `.build/params-oracle/` |
+| `check-custom.mjs` | 自定义参数面板:四十个游戏没有文本框、滑块落定即开新局、派生参数被夹、翻开关时数字跟着让,全程不出错误 Notice |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 | `lib/params-oracle.c` | check-params 的 C 侧:链接一个上游游戏,直接调 configure / custom_params / validate_params(full),不生成棋盘 |

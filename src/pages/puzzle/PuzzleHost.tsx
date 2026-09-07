@@ -515,6 +515,7 @@ export default function PuzzleHost({
           standard={engine.standard}
           custom={inline?.kind === 'custom' ? inline.spec : null}
           customError={inlineError}
+          params={game.types.params}
           // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
           // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
           // select_appropriate_preset,选中项由引擎自己报回来。

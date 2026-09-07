@@ -1361,6 +1361,93 @@ p.notice-intro button:active {
   accent-color: var(--accent);
 }
 
+/* 范围模型驱动的数字行(ParamField):标签一行,滑块一行;区间型两行滑块带小标。 */
+.sheet-custom .dialog-param {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0 0.45rem;
+  border-top: 1px solid var(--edge);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.sheet-custom .dialog-param-head {
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+}
+
+.sheet-custom .dialog-param-track {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--tap-h);
+}
+
+.sheet-custom .dialog-param-tag {
+  flex: none;
+  width: 2.6rem;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+}
+
+.sheet-custom .dialog-param-track input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  height: var(--tap-h);
+  margin: 0;
+  background: none;
+  accent-color: var(--accent);
+}
+
+.sheet-custom .dialog-param-track input[type='range']:disabled {
+  opacity: 0.4;
+}
+
+.sheet-custom .dialog-param-track button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-h);
+  height: var(--tap-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .sheet-custom .dialog-param-track button:not(:disabled):hover {
+    background: var(--surface-3);
+  }
+}
+
+.sheet-custom .dialog-param-track button:not(:disabled):active {
+  background: var(--surface-3);
+  transform: scale(0.96);
+}
+
+.sheet-custom .dialog-param-track button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.sheet-custom .dialog-param-value {
+  flex: none;
+  min-width: 3.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-custom .dialog-param-value small {
+  margin-left: 0.3em;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+}
+
 
 .sheet-preset-group {
   width: 100%;

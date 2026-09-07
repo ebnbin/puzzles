@@ -228,7 +228,11 @@
 
   "types": {
     "title": "类型",
-    "standard": "默认"
+    "standard": "默认",
+    "min": "最少",
+    "max": "最多",
+    "decrease": "减一档",
+    "increase": "加一档"
   },
 
   "deal": {
