@@ -131,17 +131,13 @@ function IdRow({ label, value }: { label: string; value: string }) {
         <button
           type="button"
           aria-label={copied ? t.menu.copied : t.menu.copy}
+          aria-live="polite"
           title={t.menu.copy}
           onClick={copy}
         >
           <Icon name={copied ? 'done' : 'copy'} size={18} />
         </button>
       </div>
-      {copied && (
-        <span className="sheet-id-copied" role="status">
-          {t.menu.copied}
-        </span>
-      )}
     </div>
   )
 }

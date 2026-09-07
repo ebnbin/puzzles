@@ -1427,13 +1427,6 @@ p.notice-intro button:active {
   transform: scale(0.96);
 }
 
-.sheet-id-copied {
-  display: block;
-  margin-top: 0.35rem;
-  color: var(--text-3);
-  font-size: var(--t-2xs);
-}
-
 .dialog-dimmer {
   position: fixed;
   inset: 0;
