@@ -182,7 +182,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 
 ## scripts/ —— 生成与契约测试
 
-两类:`build-*` 重画生成物,平时不跑(生成物已全部提交);`check-*` 是手动契约测试
+两类:`build-*` 重出生成物,平时不跑(生成物已全部提交);`check-*` 是手动契约测试
 (要 vite preview + 临时装 playwright),**何时跑钉在被测文件的头部注释里**。
 
 | 文件 | 作用 |
@@ -196,6 +196,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `build-art.mjs` | undead 怪物图 |
 | `build-shot.mjs` | README 首图 `docs/gallery.png` 与分享卡 `og.png` |
 | `build-appicon.mjs` | 四个应用图标(maskable 留白规矩在注释里) |
+| `build-params-doc.mjs` | 出 `docs/params.md`:手写源 + oracle 控件表 + 模型现算的默认表 + 当场跑 check-params 的结果;`--html` 另出 Artifact 用的单页(要 gcc) |
 | `check-keys.mjs` | 六游戏键面与上游 `midend_request_keys` 对账,五个自造键盘断言上游为空 |
 | `check-cube.mjs` | cube 滚动置灰模型对引擎逐格验证(升级上游后必跑) |
 | `check-map.mjs` | map 调色板走存档门涂色:涂的区域 = 光标站的区域 |
@@ -204,11 +205,13 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
-| `check-params.mjs` | 自定义参数范围模型对着上游源码逐值对账(要 gcc,不要浏览器):覆盖、表内组合全放行、表外一格全被拒;编译产物在 `.build/params-oracle/` |
-| `check-custom.mjs` | 自定义参数面板:四十个游戏没有文本框、滑块落定即开新局、派生参数被夹、翻开关时数字跟着让,全程不出错误 Notice |
+| `check-params.mjs` | 自定义参数范围模型对着上游源码逐值对账(要 gcc,不要浏览器):覆盖、表内组合全放行、表外一格全被拒,登记过的几处故意收窄除外 |
+| `check-custom.mjs` | 自定义参数面板:四十个游戏没有文本框、滑块落定即开新局、派生参数被夹、翻开关时数字跟着让、−/+ 步进真落定一档,全程不出错误 Notice |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
-| `lib/params-oracle.c` | check-params 的 C 侧:链接一个上游游戏,直接调 configure / custom_params / validate_params(full),不生成棋盘 |
+| `lib/params-oracle.c` | oracle 的 C 侧:链接一个上游游戏,直接调 configure / custom_params / validate_params(full);`--gen` 才真的生成一局(查不终止的组合用) |
+| `lib/params-oracle.mjs` | check-params 与 build-params-doc 共用:gcc 编 oracle 到 `.build/params-oracle/`、rolldown 打包注册表给 node、读控件表 |
+| `lib/params-doc.mjs` | `docs/params.md` 的手写源:逐参数的语义、上游规则(带行号)、本仓库的表与理由、与上游的出入 |
 
 ## docs/ 与 doc-zh/ —— 文档
 
@@ -216,7 +219,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | --- | --- |
 | `docs/keys.md` | 按键适配:判据、六类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
 | `docs/inputs.md` | 上游 40 游戏的全部输入参考,带源码行号,钉着上游 commit |
-| `docs/params.md` | 自定义参数 91 个 string 控件的取值范围:上游规则带行号、本仓库的表、依赖、上限来源、与上游的出入、契约测试结果(生成自 check-params 的 oracle + 模型,手写部分是逐参数的语义与理由) |
+| `docs/params.md` | 生成物(`build-params-doc.mjs`):自定义参数 91 个 string 控件的取值范围——上游规则带行号、本仓库的表、依赖、上限来源、与上游的出入、契约测试结果;手写源在 `scripts/lib/params-doc.mjs` |
 | `docs/structure.md` | 本清单 |
 | `docs/gallery.png` | README 首图(`build-shot.mjs` 生成) |
 | `doc-zh/` | 手册中文翻译源(手写,40 个游戏页与公共章节共 45 页);`build-doc.mjs` 出 `public/doc/zh/`,改动后跑 `npm run verify-doc` |

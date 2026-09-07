@@ -16,6 +16,7 @@ public/icon-192.png linguist-generated
 public/apple-touch-icon.png linguist-generated
 public/favicon-32.png linguist-generated
 docs/gallery.png linguist-generated
+docs/params.md linguist-generated
 src/games.json linguist-generated
 
 public/engine/*.wasm binary

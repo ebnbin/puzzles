@@ -2,7 +2,7 @@
 
 Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面板里,全部 91 个 string 控件(上游 C_STRING)的取值范围:每一个的语义、上游 validate_params 的每一条规则(带源码行号)、本仓库最终给它的表、它看哪些别的控件、上限从哪来。choices 和 boolean 控件不在范围内,它们在上游本来就不是输入框。
 
-**来源**:`vendor/sgtpuzzles/`,commit `3c3632259d298ab62aafa8a5858823569ab1af46`(2026-07-19)。全部规则直接读 C 源码得出;每条带 `文件:行号`,升级上游后照着重查。**代码是 SSOT**:范围写在各 `src/games/<game>.ts` 的 `types.params`,词汇在 `src/games/util/params.ts`;这份文档是索引和理由,不是第二份真相。两者是否一致由 `scripts/check-params.mjs` 对着上游源码验证(第七节)。
+**来源**:`vendor/sgtpuzzles/`,commit `3c3632259d298ab62aafa8a5858823569ab1af46`(2026-07-19)。全部规则直接读 C 源码得出;每条带 `文件:行号`,升级上游后照着重查。**代码是 SSOT**:范围写在各 `src/games/<game>.ts` 的 `types.params`,词汇在 `src/games/util/params.ts`;这份文档是索引和理由,不是第二份真相;它本身是生成物,手写源在 `scripts/lib/params-doc.mjs`,生成器 `scripts/build-params-doc.mjs`。两者是否一致由 `scripts/check-params.mjs` 对着上游源码验证(第七节)。
 
 ## 怎么读
 
@@ -73,8 +73,8 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | Netslide | `Number of shuffling moves` | 整数 | 0..100 | — | CAP 100 |
 | Pattern | `Width` | 整数 | 1..100 | 主 | CAP 100 |
 | Pattern | `Height` | 整数 | 1..100;宽是 1 时从 2 起 | 看宽 | CAP 100 |
-| Solo | `Columns of sub-blocks` | 整数 | 2..31;Killer 时 2..9;勾了 Jigsaw 时从 1 起 | 看 Killer、Jigsaw | 上游自身 |
-| Solo | `Rows of sub-blocks` | 整数 | 1..⌊31/c⌋(Killer 时 ⌊9/c⌋);X 时从 ⌈4/c⌉ 起;Jigsaw 时从 ⌈2/c⌉ 起 | 看列数、X、Killer、Jigsaw;列数变大时被夹 | 上游自身 |
+| Solo | `Columns of sub-blocks` | 整数 | 勾了 Jigsaw:1..31(Killer 1..9);没勾:2..15(Killer 2..4),给行数 ≥ 2 留位 | 看 Killer、Jigsaw | 上游自身 |
+| Solo | `Rows of sub-blocks` | 整数 | 勾了 Jigsaw:⌈2/c⌉..⌊31/c⌋(Killer ⌊9/c⌋);没勾:2..⌊31/c⌋;X 时从 ⌈4/c⌉ 起;二阶(c·r = 2 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像或 Killer 时去掉 | 看列数、X、Killer、Jigsaw、Symmetry;列数变大时被夹 | 上游自身 |
 | Mines | `Width` | 整数 | 1..100;勾了「Ensure solubility」时 3..100 | 看开关 | CAP 100 |
 | Mines | `Height` | 整数 | 同宽,再要求宽×高 ≥ 10(宽 1 时高 ≥ 10,宽 3 时高 ≥ 4) | 看宽和开关 | CAP 100 |
 | Mines | `Mines` | 整数 | 1..宽×高−9 | 看宽高;缩小棋盘时被夹 | 上游自身 |
@@ -101,8 +101,8 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | Map | `Width` | 整数 | 2..100 | 主 | CAP 100 |
 | Map | `Height` | 整数 | 2..100;宽 2 时从 3 起 | 看宽 | CAP 100 |
 | Map | `Regions` | 整数 | 5..宽×高 | 看宽高;缩小棋盘时被夹 | 上游自身 |
-| Loopy | `Width` | 整数 | amin..100 | 看「Grid type」 | CAP 100 |
-| Loopy | `Height` | 整数 | amin..100;宽 < omin 时从 omin 起 | 看网格类型和宽 | CAP 100 |
+| Loopy | `Width` | 整数 | amin..100;Penrose (kite/dart) 从 4 起,Penrose (rhombs) 从 5 起 | 看「Grid type」 | CAP 100 |
+| Loopy | `Height` | 整数 | amin..100;宽 < omin 时从 omin 起;两种 Penrose 同宽的下限 | 看网格类型和宽 | CAP 100 |
 | Inertia | `Width` | 整数 | 2..100 | 主 | CAP 100 |
 | Inertia | `Height` | 整数 | 2..100;宽 2 时从 3 起 | 看宽 | CAP 100 |
 | Tents | `Width` | 整数 | 4..100 | — | CAP 100 |
@@ -501,9 +501,9 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
   - Killer 时 c·r ≤ 9(522)
   - X 时 c·r ≥ 4(524)
   - 勾了 Jigsaw:custom_params 先令 c := c·r、r := 1(502),所以「c ≥ 2」落在乘积上
-- **本仓库的表**:2..31;Killer 时 2..9;勾了 Jigsaw 时从 1 起
+- **本仓库的表**:勾了 Jigsaw:1..31(Killer 1..9);没勾:2..15(Killer 2..4),给行数 ≥ 2 留位
 - **依赖**:看 Killer、Jigsaw;**上限来源**:上游自身;**控件**:滑块 + 步进
-- **默认参数下的表**:2..31(30 个)
+- **默认参数下的表**:2..15(14 个)
 
 #### `Rows of sub-blocks`(整数)
 
@@ -511,13 +511,15 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 - **上游**(`solo.c`):
   - 上游没有查 r 的下限(0、负数都放行,生成时才出事)
   - 其余同上
-- **本仓库的表**:1..⌊31/c⌋(Killer 时 ⌊9/c⌋);X 时从 ⌈4/c⌉ 起;Jigsaw 时从 ⌈2/c⌉ 起
-- **依赖**:看列数、X、Killer、Jigsaw;列数变大时被夹;**上限来源**:上游自身;**控件**:滑块 + 步进
-- **默认参数下的表**:1..10(10 个)
+- **本仓库的表**:勾了 Jigsaw:⌈2/c⌉..⌊31/c⌋(Killer ⌊9/c⌋);没勾:2..⌊31/c⌋;X 时从 ⌈4/c⌉ 起;二阶(c·r = 2 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像或 Killer 时去掉
+- **依赖**:看列数、X、Killer、Jigsaw、Symmetry;列数变大时被夹;**上限来源**:上游自身;**控件**:滑块 + 步进
+- **默认参数下的表**:2..10(9 个)
 
 > 勾 Jigsaw 提交后,C 侧把两数相乘、行数归 1,再次打开面板看到的是 (c·r, 1)——和上游桌面版一样。Jigsaw 模式下再拉行数会让阶数成倍增长,这里不拦(上游放行)。
 
-> 行数下限 1 是本仓库按语义补的(见「与上游的出入」)。
+> 没勾 Jigsaw 时行数从 2 起,是因为上游把 r = 1 定义成 Jigsaw(solo.c:471):行数滑到 1 棋盘会悄悄变成 jigsaw、勾选框自己亮起;而勾掉 Jigsaw 提交回去的仍是 r = 1,勾不掉。列数相应封到 order/2。见「与上游的出入」。
+
+> 二阶配 4 向旋转、4 向镜像、8 向镜像(2j 与 2×2 都是),以及二阶 Killer(2jk),上游生成不终止:原生 oracle 五个种子全部超时。表里去掉,见「与上游的出入」。
 
 预设:2x2 Trivial `2x2`;2x3 Basic `2x3db`;3x3 Trivial `3x3`;3x3 Basic `3x3db`;3x3 Basic X `3x3xdb`;3x3 Intermediate `3x3di`;3x3 Advanced `3x3da`;3x3 Advanced X `3x3xda`;3x3 Extreme `3x3de`;3x3 Unreasonable `3x3du`;3x3 Killer `3x3ka`;9 Jigsaw Basic `9jdb`;9 Jigsaw Basic X `9jxdb`;9 Jigsaw Advanced `9jda`;3x4 Basic `3x4db`;4x4 Basic `4x4db`。
 
@@ -944,7 +946,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 - **上游**(`loopy.c`):
   - 每种网格有两个下限(281-300 的 GRIDLIST):两边都 ≥ amin(704),至少一边 ≥ omin(707)
   - grid.c 里各网格的 grid_validate_params_* 只防溢出,100 以内不起作用
-- **本仓库的表**:amin..100
+- **本仓库的表**:amin..100;Penrose (kite/dart) 从 4 起,Penrose (rhombs) 从 5 起
 - **依赖**:看「Grid type」;**上限来源**:CAP 100;**控件**:滑块 + 步进
 - **默认参数下的表**:3..100(98 个)
 
@@ -953,11 +955,13 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 - **语义**:网格高
 - **上游**(`loopy.c`):
   - 同上
-- **本仓库的表**:amin..100;宽 < omin 时从 omin 起
+- **本仓库的表**:amin..100;宽 < omin 时从 omin 起;两种 Penrose 同宽的下限
 - **依赖**:看网格类型和宽;**上限来源**:CAP 100;**控件**:滑块 + 步进
 - **默认参数下的表**:3..100(98 个)
 
 > amin/omin 表:Squares 3/3、Triangular 3/3、Honeycomb 3/3、Snub-Square 3/3、Cairo 3/4、Great-Hexagonal 3/3、Octagonal 3/3、Kites 3/3、Floret 1/2、Dodecagonal 2/2、Great-Dodecagonal 2/2、Penrose (kite/dart) 3/3、Penrose (rhombs) 3/3、Great-Great-Dodecagonal 2/2、Kagome 3/3、Compass-Dodecagonal 2/2、Hats 6/6、Spectres 6/6。
+
+> 两种 Penrose 在上游放行的最小尺寸附近生成不正常:原生 oracle 五个种子各跑 10 秒,kite/dart 宽 3 全部超时、宽 4..7 配高 3 超时;rhombs 宽 3、4 全部超时,宽 5 配高 3、4 超时,宽 6..9 配高 3 超时(4×9 用 120 秒能出来,是极慢不是死循环);浏览器里探测另撞到过除零和 dsf 断言,引擎当场死掉。所以两边各抬到 4 / 5,见第四节。
 
 预设:7x7 Squares - Easy `7x7t0de`;10x10 Squares - Easy `10x10t0de`;7x7 Squares - Normal `7x7t0dn`;10x10 Squares - Normal `10x10t0dn`;7x7 Squares - Hard `7x7t0dh`;10x10 Squares - Hard `10x10t0dh`;10x12 Triangular - Hard `12x10t1dh`;7x7 Snub-Square - Hard `7x7t3dh`;9x9 Cairo - Hard `9x9t4dh`;5x5 Kites - Hard `5x5t7dh`;10x10 Penrose (kite/dart) - Hard `10x10t11dh`;10x10 Penrose (rhombs) - Hard `10x10t12dh`;10x10 Honeycomb - Hard `10x10t2dh`;4x5 Great-Hexagonal - Hard `5x4t5dh`;4x5 Kagome - Hard `5x4t14dh`;7x7 Octagonal - Hard `7x7t6dh`;5x5 Floret - Hard `5x5t8dh`;4x5 Dodecagonal - Hard `5x4t9dh`;4x5 Great-Dodecagonal - Hard `5x4t10dh`;3x5 Great-Great-Dodecagonal - Hard `5x3t13dh`;4x5 Compass-Dodecagonal - Hard `5x4t15dh`;10x10 Hats - Hard `10x10t16dh`;10x10 Spectres - Hard `10x10t17dh`。
 
@@ -1568,9 +1572,12 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | --- | --- | --- |
 | dominosa | 最大点数封顶 98 | 棋盘宽 n+2 ≤ 100;上游只防溢出。 |
 | solo | 行数从 1 起 | 上游 validate_params 没查 r 的下限,0 和负数放行,new_game_desc 才出事;r = 1 是 Jigsaw 布局的定义值。 |
+| solo | 没勾 Jigsaw 时行数从 2 起,列数封到 order/2 | 上游 r = 1 即 Jigsaw(solo.c:471)。每个控件各自提交之后,勾掉 Jigsaw 送回去的仍是 r = 1,勾选框会自己弹回来,普通棋盘就到不了了;行数从 2 起,settle 在勾掉时把 1 抬成 2。 |
+| solo | 二阶(2j、2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像,及二阶 Killer,去掉 | 上游放行但生成不终止:原生 oracle 五个种子各 10 秒全部超时(其它对称、三阶起全部正常)。 |
+| loopy | Penrose (kite/dart) 宽高从 4 起,Penrose (rhombs) 从 5 起 | 上游 amin 3。最小尺寸附近生成极慢(五个种子 10 秒全超时,4×9 要 120 秒)且浏览器里撞到过除零 / dsf 断言,引擎当场死掉;取一个把超时格全盖住的矩形。 |
 | blackbox | 「最多球数」≤ 宽×高−1 | 上游只查最少 < 格数;最多超过格数时放球循环永不结束。 |
 | rect | 扩展因子封顶 5.00、步长 0.05 | 上游只要求非负;缩小后的边不足 2 会钉 2,所以 5 以上和更大的值没有区别(100×100 时 49 以上才完全一样)。 |
-| (浮点) | 障碍概率步长 0.01 | 滑块只能取有限个值;上游接受任意小数。 |
+| (浮点) | 障碍概率步长 0.01、扩展因子步长 0.05 | 滑块只能取有限个值;上游接受任意小数。Game ID 载进来的表外小数,第一次落定时吸到最近一档。 |
 | mines | 不再接受「20%」写法 | 滑块只出绝对雷数,占比作为读数显示;可达的雷数集合不变。 |
 
 ## 五、被 CAP 封顶的参数
@@ -1618,8 +1625,8 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | Light Up | `Height` | 棋盘高 | 2..100;「4-way rotational」时钉在宽;「4-way mirror」且宽 2 时从 3 起 |
 | Map | `Width` | 棋盘宽 | 2..100 |
 | Map | `Height` | 棋盘高 | 2..100;宽 2 时从 3 起 |
-| Loopy | `Width` | 网格宽(单位随网格类型) | amin..100 |
-| Loopy | `Height` | 网格高 | amin..100;宽 < omin 时从 omin 起 |
+| Loopy | `Width` | 网格宽(单位随网格类型) | amin..100;Penrose (kite/dart) 从 4 起,Penrose (rhombs) 从 5 起 |
+| Loopy | `Height` | 网格高 | amin..100;宽 < omin 时从 omin 起;两种 Penrose 同宽的下限 |
 | Inertia | `Width` | 棋盘宽 | 2..100 |
 | Inertia | `Height` | 棋盘高 | 2..100;宽 2 时从 3 起 |
 | Tents | `Width` | 棋盘宽 | 4..100 |
@@ -1656,6 +1663,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 - 生成是同步跑在主线程上的:参数越大,`midend_new_game` 卡住页面的时间越长,滑块一滑到底就能撞上。本阶段只记录,不为耗时调低上限(下一阶段的事)。已知的重灾区:Loopy(尤其 Penrose / Hats / Spectres 网格)、Pattern、Solo 高阶(31 阶 Unreasonable 几乎不会结束)、Mines 大盘 + 多雷、Untangle 100 点、Map 大盘多区域、Bridges / Tracks / Galaxies 100×100。
 - 页面卡在生成里时,存档不会写坏:重开页面恢复的是上一局(存档按序列化的局面存,不重新生成)。但「新局」会再生成一次,同样卡。
 - 每次松手都开一局:在滑块上用方向键连按,每按一下都生成一局。
+- 另一类不是「大」而是「小到无解」的不终止:浏览器探测到 Light Up 3×3、黑格 5%、4 向旋转、难度 Tricky / Hard,Galaxies 3×3 Unreasonable,Solo 2×2 Killer + X,上游生成器死循环重试(lightup.c:1558、galaxies.c:1456)。这几处上游放行、表也放行,本阶段只记录;二阶 Solo 配对称 / Killer 与 Penrose 最小尺寸那几处因为一碰就死,已按第四节收窄。
 - Solo 勾了 Jigsaw 之后,行数滑块每拉一档阶数就翻倍(上游语义,C 侧把两数相乘)。表允许,因为上游允许;要不要在界面上钉住行数,留给下一阶段。
 
 ## 七、验证
@@ -1666,7 +1674,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 2. **健全**:choices × boolean 的全部组合(超过 96 种抽 96 种)下,按申报顺序把每张表走一遍(大表抽两头、等距、随机共 14 个),走出来的每个组合上游都放行;路上没有空表;settle 对表内组合是 no-op;另从随机乱值出发 settle 之后上游也放行。
 3. **紧**:表外一格(下界减一、上界加一、表中间的洞)按界面做法钉住、后面的参数照 settle 落定,上游若放行就是「比上游窄」——只有第四节登记过的算预期。
 
-最近一次全量结果(耗时 0m26.155s):
+最近一次全量结果(耗时 18 秒):
 
 | 游戏 | 结果 | 固定组合 | 走过的组合 | 表外探针 | 预期的收窄 |
 | --- | --- | --- | --- | --- | --- |
@@ -1678,7 +1686,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | rect | ok | 2 | 5130 | 398 | 369 |
 | netslide | ok | 2 | 70432 | 401 | 0 |
 | pattern | ok | 1 | 203 | 14 | 0 |
-| solo | ok | 96 | 5613 | 2163 | 224 |
+| solo | ok | 96 | 5586 | 2027 | 512 |
 | mines | ok | 2 | 5028 | 449 | 0 |
 | samegame | ok | 4 | 5541 | 1511 | 0 |
 | flip | ok | 2 | 402 | 28 | 0 |
@@ -1690,7 +1698,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | slant | ok | 2 | 400 | 28 | 0 |
 | lightup | ok | 15 | 31768 | 2543 | 0 |
 | map | ok | 4 | 9979 | 877 | 0 |
-| loopy | ok | 72 | 15242 | 1055 | 0 |
+| loopy | ok | 72 | 15246 | 1055 | 119 |
 | inertia | ok | 1 | 202 | 14 | 0 |
 | tents | ok | 2 | 401 | 28 | 0 |
 | bridges | ok | 96 | 20361 | 1409 | 0 |
@@ -1723,3 +1731,4 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 - `src/index.css`:`.sheet-custom .dialog-param*`,颜色全部走 tokens,两种主题同一套规则。
 - `src/i18n/en.json` / `zh.json`:`types.min` / `max` / `decrease` / `increase` 四个键(区间小标与步进按钮的读法)。
 - `scripts/check-custom.mjs`:playwright 走真实链路——四十个游戏的自定义面板没有文本框、动一档即开新局、Mines 缩到最小雷数被夹、Twiddle 宽降到 2 旋转块跟着降、Black Box 最少拉过最多时最多跟上、Mines 翻 Ensure solubility 时宽从 1 回到 3、步进按钮加一,全程不出错误 Notice。
+- `scripts/build-params-doc.mjs`:本文档的生成器,手写源在 `scripts/lib/params-doc.mjs`;第七节的结果表每次生成时当场跑 check-params 得到。
