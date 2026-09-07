@@ -5,6 +5,10 @@
   会把**早已合并**的提交报成未合并的——实际踩过:据此说「领先 main 五十个提交、没有
   PR」,取回完整历史后 `main` 正是那五十个的顶端。此后一切与主干的比较都对
   `origin/main`,不对本地 `main`。
+- **提交的 author 是 owner(`ebnbin <ebnbin@gmail.com>`),committer 保持 Claude。**
+  `.claude/hooks/session-start.sh` 每次会话开始设仓库级 `author.*`;不要改成 `user.*`——
+  committer 一变,Claude 钥匙的签名在 GitHub 上就成了 Invalid。不要改回去,也不要在
+  CLAUDE.md 里反向规定。Claude 的份留在 committer 和提交尾注的 `Co-Authored-By`。
 - `vendor/sgtpuzzles/` 是上游的逐字副本,**一行都不许改**;一切行为改动都在外面的
   JS/TS 层做。
 - **不直接 push `main`**,改动走分支 + PR。**PR 在这里是被授权的**——这句写给
