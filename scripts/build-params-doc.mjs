@@ -73,6 +73,8 @@ const tables = Object.fromEntries(GAMES.map((g) => [g.id, defaultTables(g, info[
 const check = checkLog()
 
 const CAPSRC = { up: '上游自身', cap: 'CAP 100', grid: '棋盘 ≤ 100 宽', sem: '按语义补' }
+// 已经逐个读上游 + 实测定过范围的游戏(params-doc 的 tuned),不再算「待调优」。
+const TUNED = GAMES.filter((g) => g.tuned)
 const KIND = { int: '整数', float: '浮点', span: '区间「a-b」' }
 const WIDGET = { int: '滑块 + 步进', float: '滑块 + 步进', span: '一对滑块(最少 / 最多)' }
 const nStrings = GAMES.reduce((n, g) => n + g.params.length, 0)
@@ -106,17 +108,17 @@ const MECHANISM = [
     '**上游那条「自定义」不画**:参数列表常驻之后它没有动作可做。参数不落在任何预设上时一条都不选中,那就是自定义。',
   ]],
   ['1.4 上限的规矩', [
-    `上游自身有上限的用上游的。上游没有的:网格维度封顶 ${CAP}(棋盘最多 ${CAP}×${CAP} 格),其它计数类参数先同用 ${CAP},第五节列出全部这样的参数——它们是本阶段的占位,下一阶段逐个调。`,
+    `上游自身有上限的用上游的。上游没有的:网格维度封顶 ${CAP}(棋盘最多 ${CAP}×${CAP} 格),其它计数类参数先同用 ${CAP}。第五节列出还没逐个定夺的那些——它们是占位,按游戏一个个读上游 + 实测来定。`,
     '几处故意与上游不同(补上游漏查的、或按语义封顶),全部列在第四节;契约测试把它们登记为「预期的收窄」,再多一处就 FAIL。',
   ]],
 ]
 
 const KNOWN = [
-  '生成是同步跑在主线程上的:参数越大,`midend_new_game` 卡住页面的时间越长,滑块一滑到底就能撞上。本阶段只记录,不为耗时调低上限(下一阶段的事)。已知的重灾区:Loopy(尤其 Penrose / Hats / Spectres 网格)、Pattern、Solo 高阶(31 阶 Unreasonable 几乎不会结束)、Mines 大盘 + 多雷、Untangle 100 点、Map 大盘多区域、Bridges / Tracks / Galaxies 100×100。',
+  '生成是同步跑在主线程上的:参数越大,`midend_new_game` 卡住页面的时间越长,滑块一滑到底就能撞上。还没定夺范围的游戏只记录,不为耗时调低上限。已知的重灾区:Loopy(尤其 Penrose / Hats / Spectres 网格)、Pattern、Solo 高阶(31 阶 Unreasonable 几乎不会结束)、Mines 大盘 + 多雷、Untangle 100 点、Map 大盘多区域、Bridges / Tracks / Galaxies 100×100。',
   '页面卡在生成里时,存档不会写坏:重开页面恢复的是上一局(存档按序列化的局面存,不重新生成)。但「新局」会再生成一次,同样卡。',
   '每次松手都开一局:在滑块上用方向键连按,每按一下都生成一局。',
-  '另一类不是「大」而是「小到无解」的不终止:浏览器探测到 Light Up 3×3、黑格 5%、4 向旋转、难度 Tricky / Hard,Galaxies 3×3 Unreasonable,Solo 2×2 Killer + X,上游生成器死循环重试(lightup.c:1558、galaxies.c:1456)。这几处上游放行、表也放行,本阶段只记录;二阶 Solo 配对称 / Killer 与 Penrose 最小尺寸那几处因为一碰就死,已按第四节收窄。',
-  'Solo 勾了 Jigsaw 之后,行数滑块每拉一档阶数就翻倍(上游语义,C 侧把两数相乘)。表允许,因为上游允许;要不要在界面上钉住行数,留给下一阶段。',
+  '另一类不是「大」而是「小到无解」的不终止:浏览器探测到 Light Up 3×3、黑格 5%、4 向旋转、难度 Tricky / Hard,Galaxies 3×3 Unreasonable,Solo 2×2 Killer + X,上游生成器死循环重试(lightup.c:1558、galaxies.c:1456)。这几处上游放行、表也放行,还没定夺的先只记录;二阶 Solo 配对称 / Killer 与 Penrose 最小尺寸那几处因为一碰就死,已按第四节收窄。',
+  'Solo 勾了 Jigsaw 之后,行数滑块每拉一档阶数就翻倍(上游语义,C 侧把两数相乘)。表允许,因为上游允许;要不要在界面上钉住行数,等定 Solo 的范围时再说。',
 ]
 
 const NEXT = [
@@ -137,7 +139,7 @@ md.push('# 自定义参数的取值范围\n')
 md.push(...INTRO.map((p) => p + '\n'))
 md.push(`## 怎么读
 
-分八节:**一、机制**是四十个游戏共有的那一层——值怎么进出 C、模型长什么样、控件怎么画;**二、总览**一张表横扫全部 ${nStrings} 个参数;**三、逐游戏详表**按上游收录序,每个游戏一节,列全该游戏的全部控件、每个 string 参数的语义与上游规则、本仓库的表、默认参数下模型算出的实际表、预设;**四、与上游的出入**;**五、被 CAP 封顶的参数**(下一阶段的调优清单);**六、已知问题**;**七、验证**;**八、实现**。
+分八节:**一、机制**是四十个游戏共有的那一层——值怎么进出 C、模型长什么样、控件怎么画;**二、总览**一张表横扫全部 ${nStrings} 个参数;**三、逐游戏详表**按上游收录序,每个游戏一节,列全该游戏的全部控件、每个 string 参数的语义与上游规则、本仓库的表、默认参数下模型算出的实际表、预设;**四、与上游的出入**;**五、被 CAP 封顶的参数**(还没定夺范围的清单);**六、已知问题**;**七、验证**;**八、实现**。
 
 表里的「依赖」一栏写的是这个参数看谁:「主」= 不看别的数字参数;「看宽」= 表由宽算出,宽动了它可能被夹。
 `)
@@ -193,14 +195,16 @@ for (const d of DEVIATIONS) md.push(`| ${d.game} | ${d.what} | ${d.why} |`)
 md.push('')
 
 md.push('## 五、被 CAP 封顶的参数\n')
-md.push(`上游没有上限、本仓库先用 ${CAP} 封顶的参数。网格维度按「棋盘最多 ${CAP}×${CAP} 格」定,其余计数类是占位,下一阶段逐个定夺;每一个都是游戏文件里的一处 \`CAP\`,改起来一行。\n`)
+md.push(`上游没有上限、本仓库先用 ${CAP} 封顶的参数。网格维度按「棋盘最多 ${CAP}×${CAP} 格」定,其余计数类是占位,还没逐个定夺;每一个都是游戏文件里的一处 \`CAP\`,改起来一行。\n`)
 md.push('| 游戏 | 控件 | 语义 | 现在的表 |')
 md.push('| --- | --- | --- | --- |')
 for (const g of GAMES)
-  for (const p of g.params)
-    if (p.c === 'cap' || p.c === 'grid') md.push(`| ${g.title} | \`${p.label}\` | ${p.sem} | ${p.f} |`)
+  if (!g.tuned)
+    for (const p of g.params)
+      if (p.c === 'cap' || p.c === 'grid') md.push(`| ${g.title} | \`${p.label}\` | ${p.sem} | ${p.f} |`)
 md.push('')
-md.push('不是网格维度的计数(下一阶段最该先看的):Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。\n')
+md.push(`已经逐个实测定夺过、不在此列的游戏:${TUNED.map((g) => g.title).join('、')}。\n`)
+md.push('不是网格维度的计数(最该先看的):Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。\n')
 
 md.push('## 六、已知问题\n')
 md.push(...KNOWN.map((k) => `- ${k}`))
@@ -404,13 +408,15 @@ for (const d of DEVIATIONS) h.push(`<tr><td>${esc(d.game)}</td><td>${inline(d.wh
 h.push('</tbody></table></div>')
 
 h.push(`<h2 id="s5">五、被 CAP 封顶的参数</h2>
-<p>上游没有上限、本仓库先用 ${CAP} 封顶的参数。网格维度按「棋盘最多 ${CAP}×${CAP} 格」定,其余计数类是占位,下一阶段逐个定夺;每一个都是游戏文件里的一处 <code>CAP</code>,改起来一行。</p>
+<p>上游没有上限、本仓库先用 ${CAP} 封顶的参数。网格维度按「棋盘最多 ${CAP}×${CAP} 格」定,其余计数类是占位,还没逐个定夺;每一个都是游戏文件里的一处 <code>CAP</code>,改起来一行。</p>
 <div class="table"><table><thead><tr><th>游戏</th><th>控件</th><th>语义</th><th>现在的表</th></tr></thead><tbody>`)
 for (const g of GAMES)
-  for (const p of g.params)
-    if (p.c === 'cap' || p.c === 'grid') h.push(`<tr><td><a href="#g-${g.id}">${esc(g.title)}</a></td><td class="label"><code>${esc(p.label)}</code></td><td>${inline(p.sem)}</td><td>${inline(p.f)}</td></tr>`)
+  if (!g.tuned)
+    for (const p of g.params)
+      if (p.c === 'cap' || p.c === 'grid') h.push(`<tr><td><a href="#g-${g.id}">${esc(g.title)}</a></td><td class="label"><code>${esc(p.label)}</code></td><td>${inline(p.sem)}</td><td>${inline(p.f)}</td></tr>`)
 h.push(`</tbody></table></div>
-<p>不是网格维度的计数,下一阶段最该先看:Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。</p>`)
+<p>已经逐个实测定夺过、不在此列的游戏:${TUNED.map((g) => esc(g.title)).join('、')}。</p>
+<p>不是网格维度的计数,最该先看:Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。</p>`)
 
 h.push(`<h2 id="s6">六、已知问题</h2><ul>${KNOWN.map((k) => `<li>${inline(k)}</li>`).join('')}</ul>`)
 

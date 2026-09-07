@@ -9,17 +9,13 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { jumbleKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
-import type { Read } from './util/params'
-import { CAP, float, int, range, steps, without } from './util/params'
+import { CAP, float, int, range, steps } from './util/params'
 
 const LOOPS: Prefer = {
   kind: 'flag',
   label: 'Highlight loops involving unlocked squares',
   glyph: 'loopWarn',
 }
-
-// 上游 net.c:322-378:1×1 不行;wrap 且 unique 时宽或高都不能是 2。
-const noTwo = (r: Read) => r.flag('Walls wrap around') && r.flag('Ensure unique solution')
 
 const net: Game = {
   id: 'net',
@@ -37,11 +33,10 @@ const net: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', (r) => (noTwo(r) ? without(range(1, CAP), 2) : range(1, CAP))),
-      int('Height', (r) => {
-        const list = range(r.int('Width') === 1 ? 2 : 1, CAP)
-        return noTwo(r) ? without(list, 2) : list
-      }),
+      // 下限 3 是本仓库定的;要降回 2 以下得把上游那两条查回来:1×1 不行,
+      // wrap 且 unique 时宽高都不能是 2(net.c:324、376)。
+      int('Width', () => range(3, CAP)),
+      int('Height', () => range(3, CAP)),
       float('Barrier probability', 2, () => steps(0, 1, 0.01, 2)),
     ],
   },

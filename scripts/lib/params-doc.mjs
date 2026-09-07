@@ -5,17 +5,24 @@
 
 export const GAMES = [
   {
-    id: 'net', title: 'Net', file: 'net.c',
+    id: 'net', title: 'Net', file: 'net.c', tuned: true,
     params: [
       { label: 'Width', kind: 'int', sem: '棋盘宽(格)',
         u: ['宽高都 > 0(322)', '宽高不能同时 ≤ 1(324)', 'full 且 unique 且 wrap 时,宽或高都不能是 2(376)'],
-        f: '1..100;勾了「Walls wrap around」和「Ensure unique solution」时去掉 2', d: '看两个开关', c: 'cap' },
+        f: '3..100', d: '—', c: 'cap' },
       { label: 'Height', kind: 'int', sem: '棋盘高(格)',
         u: ['同上'],
-        f: '1..100;宽是 1 时从 2 起;wrap+unique 时去掉 2', d: '看宽和两个开关', c: 'cap' },
-      { label: 'Barrier probability', kind: 'float', sem: '每条边成为墙的概率',
+        f: '3..100', d: '—', c: 'cap' },
+      { label: 'Barrier probability', kind: 'float', sem: '解上没走线的边里,画成实心墙的比例(nbarriers = 比例 × 候选边数,1534);上游文档把它写成提示旋钮',
         u: ['≥ 0(328)', '≤ 1(330)', 'atof 解析(314),%g 回显'],
         f: '0.00..1.00,步长 0.01', d: '—', c: 'up' },
+    ],
+    notes: [
+      '实测:3..100 全域(宽 × 高 × wrap × unique × 101 档概率,3,880,016 组)逐组过 oracle,全部放行。',
+      '生成耗时不构成约束——最贵的是 100×100 wrapping,原生 200 个种子平均 0.28 秒、最坏 1.35 秒;'
+        + '偏长宽比反而更便宜(100×3 最坏 0.004 秒)。浏览器里从松手到新局画完最坏 534 毫秒。',
+      '上限 100 以长边为准:2560×1440 上 100×50 是每格 25 px,读得清;同一局在手机上是每格 3 px,'
+        + '这是用户自己拉出来的取舍。',
     ],
   },
   {
@@ -372,6 +379,7 @@ export const GAMES = [
 
 // 与上游的出入:本仓库故意比上游窄(或补了上游漏掉的)的地方。
 export const DEVIATIONS = [
+  { game: 'net', what: '宽高从 3 起', why: '上游只禁 1×1、和 wrap+unique 下的 2;1×n 是一条直管,不成谜题。下限抬到 3 之后上游那两条永远触发不了,宽和高之间也不再互相依赖。' },
   { game: 'dominosa', what: '最大点数封顶 98', why: '棋盘宽 n+2 ≤ 100;上游只防溢出。' },
   { game: 'solo', what: '行数从 1 起', why: '上游 validate_params 没查 r 的下限,0 和负数放行,new_game_desc 才出事;r = 1 是 Jigsaw 布局的定义值。' },
   { game: 'solo', what: '没勾 Jigsaw 时行数从 2 起,列数封到 order/2', why: '上游 r = 1 即 Jigsaw(solo.c:471)。每个控件各自提交之后,勾掉 Jigsaw 送回去的仍是 r = 1,勾选框会自己弹回来,普通棋盘就到不了了;行数从 2 起,settle 在勾掉时把 1 抬成 2。' },

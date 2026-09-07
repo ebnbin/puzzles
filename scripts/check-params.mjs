@@ -96,6 +96,9 @@ function table(M, param, controls) {
 // 故意比上游窄的几处,文档 docs/params.md「与上游的出入」一节逐条对应。span 的探针
 // 带 side:只有「最多」那头的封顶是登记过的。
 const EXPECTED_NARROWER = {
+  // 本仓库定的下限:1×n 是一条直管,不成谜题。抬到 3 之后上游那两条(1×1、
+  // wrap+unique 下的 2)永远触发不了。
+  net: (label, v) => (label === 'Width' || label === 'Height') && v === 2,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
