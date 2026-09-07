@@ -104,6 +104,8 @@ const EXPECTED_NARROWER = {
   cube: (label, v, side, forced) => forced[0].value !== 1 && v > 50,
   // 封到 50:格子里要写编号,再大字号就认不出了(见 docs/params.md 第四节)。
   fifteen: (label, v) => v > 50,
+  // 同上,只有宽高;打乱步数封到 100,探针试的 101 超过 CAP,够不着。
+  sixteen: (label, v) => label !== 'Number of shuffling moves' && v > 50,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)

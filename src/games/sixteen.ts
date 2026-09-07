@@ -7,7 +7,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PUSH, act, arrowFace, walk } from './util/pad'
-import { CAP, int, range } from './util/params'
+import { int, range } from './util/params'
 
 const WORDS = ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock']
 
@@ -31,9 +31,13 @@ const sixteen: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', () => range(2, CAP)),
-      int('Height', () => range(2, CAP)),
-      int('Number of shuffling moves', () => range(0, CAP)),
+      // 宽高 50:格子里要写编号,字号是格边的 1/3(sixteen.c:889),50×50 在
+      // 2560×1440 上是每格 24 px、字号 8 px,四位数刚好读得出来。
+      int('Width', () => range(2, 50)),
+      int('Height', () => range(2, 50)),
+      // 打乱步数 100:它的用途是「数出这几步再倒回去」,不是打乱——真要打乱用 0
+      // (完全随机,也是默认和全部预设的取值)。100 远超人数得过来的量级。
+      int('Number of shuffling moves', () => range(0, 100)),
     ],
   },
   prefs: { panel: verbatim, volatile: false },
