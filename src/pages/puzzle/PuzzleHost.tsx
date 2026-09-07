@@ -103,14 +103,11 @@ export default function PuzzleHost({
     dialog,
     inline,
     inlineError,
-    textError,
     openInline,
     closeInline,
     commitInline,
-    submitText,
     readPrefs,
     abandonInline,
-    clearTextError,
   } = config
 
   const wanted = useArrows()
@@ -409,7 +406,6 @@ export default function PuzzleHost({
         }}
         onMenu={() => {
           closeTypes()
-          clearTextError()
           setMenuOpen(true)
         }}
         onPress={(key) => {
@@ -482,8 +478,6 @@ export default function PuzzleHost({
           prefsError={inlineError}
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
-          textError={textError}
-          onSubmitText={submitText}
           onAction={(action) => {
             abandonInline()
             act((a) => a[action]())

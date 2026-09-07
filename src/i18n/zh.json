@@ -221,7 +221,9 @@
     "solve": "求解",
     "preferences": "偏好设置",
     "gameId": "Game ID",
-    "seed": "随机种子"
+    "seed": "随机种子",
+    "copy": "复制",
+    "copied": "已复制"
   },
 
   "types": {

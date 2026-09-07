@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ConfigFields from './ConfigFields'
 import type { DialogSpec } from '../../engine/types'
 import { useStrings } from '../../i18n'
@@ -15,10 +15,8 @@ const ACTIONS: { action: Action; icon: IconName }[] = [
   { action: 'solve', icon: 'solve' },
 ]
 
-type TextKind = 'desc' | 'seed'
-
-// 后端给的 desc/seed 是放在 # 后的形式、即 %-escaped(seed 形如 3x3%23124…):
-// 显示和回喂都必须用 decode 后的形式,原样回喂会被拒。
+// 后端给的 desc/seed 是放在 # 后的形式、即 %-escaped(seed 形如 3x3%23124…),
+// 显示用 decode 后的形式。
 const plain = (value: string) => {
   try {
     return decodeURIComponent(value)
@@ -34,8 +32,6 @@ export default function PuzzleMenu({
   prefsError,
   onOpenPrefs,
   onCommitPrefs,
-  textError,
-  onSubmitText,
   onAction,
   onClose,
 }: {
@@ -45,8 +41,6 @@ export default function PuzzleMenu({
   prefsError: string | null
   onOpenPrefs: () => void
   onCommitPrefs: () => void
-  textError: { kind: TextKind; message: string } | null
-  onSubmitText: (kind: TextKind, text: string) => void
   onAction: (action: Action) => void
   onClose: () => void
 }) {
@@ -76,21 +70,9 @@ export default function PuzzleMenu({
 
         {permalink && (
           <section className="sheet-ids">
-            <TextRow
-              kind="desc"
-              label={t.menu.gameId}
-              value={permalink.desc}
-              error={textError?.kind === 'desc' ? textError.message : null}
-              onSubmit={onSubmitText}
-            />
+            <IdRow label={t.menu.gameId} value={plain(permalink.desc)} />
             {permalink.seed !== null && (
-              <TextRow
-                kind="seed"
-                label={t.menu.seed}
-                value={permalink.seed}
-                error={textError?.kind === 'seed' ? textError.message : null}
-                onSubmit={onSubmitText}
-              />
+              <IdRow label={t.menu.seed} value={plain(permalink.seed)} />
             )}
           </section>
         )}
@@ -108,56 +90,58 @@ export default function PuzzleMenu({
   )
 }
 
-function TextRow({
-  kind,
-  label,
-  value,
-  error,
-  onSubmit,
-}: {
-  kind: TextKind
-  label: string
-  value: string
-  error: string | null
-  onSubmit: (kind: TextKind, text: string) => void
-}) {
-  const id = useId()
-  const [text, setText] = useState(() => plain(value))
+const COPIED_MS = 1500
 
-  // 记「上次交出去的」,不能拿 value 当基准:被拒的 id 永远不会变成 value,
-  // 比较对象错了,拒绝后每次 blur 都会把同一个 id 再送去被拒一遍。
-  const sent = useRef(text)
+function IdRow({ label, value }: { label: string; value: string }) {
+  const t = useStrings()
+  const [copied, setCopied] = useState(false)
+  const valueRef = useRef<HTMLElement>(null)
+
   useEffect(() => {
-    setText(plain(value))
-    sent.current = plain(value)
+    if (!copied) return
+    const timer = window.setTimeout(() => setCopied(false), COPIED_MS)
+    return () => window.clearTimeout(timer)
+  }, [copied])
+
+  useEffect(() => {
+    setCopied(false)
   }, [value])
 
-  const commit = () => {
-    if (text === sent.current) return
-    sent.current = text
-    onSubmit(kind, text)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+    } catch {
+      // 剪贴板不可用(非安全上下文、权限被拒)时退成选中文字,交给系统复制。
+      const el = valueRef.current
+      if (!el) return
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      const selection = window.getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+    }
   }
 
   return (
     <div className="sheet-id">
-      <label htmlFor={id}>{label}</label>
-      <input
-        id={id}
-        type="text"
-        value={text}
-        spellCheck={false}
-        autoComplete="off"
-        autoCapitalize="off"
-        autoCorrect="off"
-        onChange={(e) => setText(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key !== 'Enter') return
-          e.preventDefault()
-          commit()
-        }}
-      />
-      {error && <Notice text={error} />}
+      <span className="sheet-id-label">{label}</span>
+      <div className="sheet-id-value">
+        <code ref={valueRef}>{value}</code>
+        <button
+          type="button"
+          aria-label={copied ? t.menu.copied : t.menu.copy}
+          title={t.menu.copy}
+          onClick={copy}
+        >
+          <Icon name={copied ? 'done' : 'copy'} size={18} />
+        </button>
+      </div>
+      {copied && (
+        <span className="sheet-id-copied" role="status">
+          {t.menu.copied}
+        </span>
+      )}
     </div>
   )
 }
