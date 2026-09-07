@@ -3,108 +3,20 @@
 //
 //   node scripts/check-params.mjs [game ...]
 //
-// 要 gcc:把 vendor/ 的 C 源码和 scripts/lib/params-oracle.c 编进 .build/params-oracle/
-// (不动 vendor 一行),每个游戏一个 oracle,直接调 custom_params + validate_params(full)。
+// 要 gcc(lib/params-oracle.mjs 把 vendor/ 的 C 源码编进 .build/params-oracle/,不动 vendor
+// 一行),每个游戏一个 oracle,直接调 custom_params + validate_params(full)。
 // 对账三件事,任一条不成立就 FAIL:
 //   1. 覆盖:每个 string 控件都有申报,每条申报都能按 label 认到控件。
 //   2. 健全:按申报顺序把每张表走一遍(大表抽样),走出来的每个组合上游都放行;
 //      走的路上没有空表;settle 对这些组合是 no-op;从乱值出发 settle 之后上游放行。
 //   3. 紧:表外一格(下界减一、上界加一、表中间的洞)按界面的做法钉住再落定后面的,
 //      上游若放行就说明表比上游窄——除了文档里写明的几处故意收窄。
-import { execFileSync, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
-
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const VENDOR = join(ROOT, 'vendor', 'sgtpuzzles')
-const BUILD = join(ROOT, '.build', 'params-oracle')
-const CAP = 100
-
-// vendor CMakeLists 的 common 库(core_obj + hat + spectre)。
-const COMMON = [
-  'combi', 'divvy', 'draw-poly', 'drawing', 'dsf', 'findloop', 'grid', 'latin',
-  'laydomino', 'loopgen', 'malloc', 'matching', 'midend', 'misc', 'penrose',
-  'penrose-legacy', 'ps', 'random', 'sort', 'tdq', 'tree234', 'version', 'hat', 'spectre',
-]
+import { spawnSync } from 'node:child_process'
+import { buildOracles, describe, loadModel } from './lib/params-oracle.mjs'
 
 const only = process.argv.slice(2)
 
-// ---------------------------------------------------------------- 编译
-
-const newer = (a, b) => !existsSync(b) || statSync(a).mtimeMs > statSync(b).mtimeMs
-
-function gcc(args) {
-  execFileSync('gcc', ['-O1', '-w', `-I${VENDOR}`, '-DVER="oracle"', ...args], { stdio: 'inherit' })
-}
-
-function buildOracles(names) {
-  mkdirSync(BUILD, { recursive: true })
-  const lib = join(BUILD, 'libcommon.a')
-  const objs = []
-  let dirty = false
-  for (const c of COMMON) {
-    const src = join(VENDOR, `${c}.c`)
-    const obj = join(BUILD, `${c}.o`)
-    if (newer(src, obj)) {
-      gcc(['-c', src, '-o', obj])
-      dirty = true
-    }
-    objs.push(obj)
-  }
-  if (dirty || !existsSync(lib)) execFileSync('ar', ['rcs', lib, ...objs])
-  const harness = join(ROOT, 'scripts', 'lib', 'params-oracle.c')
-  const bins = {}
-  for (const name of names) {
-    const src = join(VENDOR, `${name}.c`)
-    const bin = join(BUILD, name)
-    if (newer(src, bin) || newer(harness, bin) || newer(lib, bin))
-      gcc(['-o', bin, harness, src, join(VENDOR, 'nullfe.c'), lib, '-lm'])
-    bins[name] = bin
-  }
-  return bins
-}
-
-// 注册表和范围词汇都是 TS,用 vite 自带的 rolldown 打成一个 node 能 import 的文件。
-async function loadModel() {
-  mkdirSync(BUILD, { recursive: true })
-  const entry = join(BUILD, 'entry.mjs')
-  writeFileSync(
-    entry,
-    `export * from ${JSON.stringify(join(ROOT, 'src/games/util/params.ts'))}\n` +
-      `export { GAMES } from ${JSON.stringify(join(ROOT, 'src/games/index.ts'))}\n`,
-  )
-  const out = join(BUILD, 'model.mjs')
-  execFileSync(
-    join(ROOT, 'node_modules', '.bin', 'rolldown'),
-    [entry, '--format', 'esm', '--platform', 'node', '--file', out],
-    { stdio: ['ignore', 'ignore', 'inherit'] },
-  )
-  return import(pathToFileURL(out).href + `?t=${Date.now()}`)
-}
-
 // ---------------------------------------------------------------- oracle 往返
-
-function describe(bin) {
-  const out = execFileSync(bin, ['--describe'], { encoding: 'utf8' })
-  const controls = []
-  const presets = []
-  for (const line of out.split('\n')) {
-    const f = line.split('\t')
-    if (f[0] === 'control') {
-      const kind = f[2] === 'S' ? 'string' : f[2] === 'B' ? 'boolean' : 'choices'
-      const c = { index: Number(f[1]), kind, label: f[3] }
-      if (kind === 'string') c.initial = f[4]
-      else if (kind === 'boolean') c.initial = f[4] === '1'
-      else {
-        c.initial = Number(f[4])
-        c.choices = f[5].slice(1).split(f[5][0])
-      }
-      controls.push(c)
-    } else if (f[0] === 'preset') presets.push({ name: f[2], params: f[3] })
-  }
-  return { controls, presets }
-}
 
 function ask(bin, lines) {
   if (lines.length === 0) return []
@@ -181,18 +93,40 @@ function table(M, param, controls) {
   return param.kind === 'span' ? param.lo(r) : param.allowed(r)
 }
 
-// 故意比上游窄的几处,文档 docs/params.md「与上游的出入」一节逐条对应。
+// 故意比上游窄的几处,文档 docs/params.md「与上游的出入」一节逐条对应。span 的探针
+// 带 side:只有「最多」那头的封顶是登记过的。
 const EXPECTED_NARROWER = {
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
-  solo: (label, v) => label === 'Rows of sub-blocks' && v < 1,
-  blackbox: (label) => label === 'No. of balls',
+  solo: (label, v, side, forced) => {
+    const c = Number(forced[0].value)
+    const r = Number(forced[1].value)
+    const jigsaw = forced[3].value
+    const symm = Number(forced[5].value)
+    if (label === 'Rows of sub-blocks' && v < 1) return true
+    // 不勾 Jigsaw 时行数从 2 起(上游 r=1 即 Jigsaw,勾不掉)
+    if (label === 'Rows of sub-blocks' && !jigsaw && v === 1) return true
+    if (label === 'Columns of sub-blocks' && !jigsaw && c * 2 > (forced[4].value ? 9 : 31)) return true
+    // 二阶(2j 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像,或二阶 Killer:生成不终止
+    const order2 = jigsaw ? c * r === 2 : c === 2 && r === 2
+    return order2 && ([2, 5, 7].includes(symm) || forced[4].value)
+  },
+  blackbox: (label, v, side) => label === 'No. of balls' && side === 'hi',
   rect: (label, v) => label === 'Expansion factor' && v > 5,
+  loopy: (label, v, side, forced) => {
+    const w = Number(forced[0].value)
+    const h = Number(forced[1].value)
+    const type = Number(forced[2].value)
+    // Penrose 两种网格在最小尺寸附近生成极慢或崩溃(见 docs/params.md 第四节)
+    if (type === 11) return w < 4 || h < 4
+    if (type === 12) return w < 5 || h < 5
+    return false
+  },
 }
 
 // ---------------------------------------------------------------- 主流程
 
 const model = await loadModel()
-const { GAMES } = model
+const { GAMES, CAP } = model
 const names = (only.length ? only : Object.keys(GAMES)).filter((n) => {
   if (GAMES[n]) return true
   console.log(`  FAIL 没有叫 ${n} 的游戏`)
@@ -204,7 +138,8 @@ let failed = 0
 for (const name of names) {
   const bin = bins[name]
   const params = GAMES[name].types.params
-  const { controls: shape } = describe(bin)
+  const shape = describe(bin).controls
+  const combos = fixedCombos(shape)
   const problems = []
   const fail = (...m) => problems.push(m.join(' '))
   const rng = mulberry32(7)
@@ -228,14 +163,15 @@ for (const name of names) {
   const fresh = () => shape.map((c) => ({ kind: c.kind, label: c.label, value: c.initial }))
   const byLabel = (controls, label) => controls.find((c) => c.label === label)
 
-  const queries = [] // { line, expectOk, why }
+  // 每条:送给 oracle 的一行、期望放行与否、说明;表外探针另带 label / value / side / forced。
+  const queries = []
   let vectors = 0
   let probes = 0
   let empties = 0
   let unstable = 0
   const narrower = []
 
-  for (const combo of fixedCombos(shape)) {
+  for (const combo of combos) {
     const base = fresh()
     for (const [index, v] of combo) base[index].value = v
     const describeCombo = () =>
@@ -277,28 +213,9 @@ for (const name of names) {
           if (v < 0 || v > CAP) continue
           const forced = controls.map((c) => ({ ...c }))
           write(model, byLabel(forced, p.label), p, v)
-          // 后面的参数能不能落定:空表 = 界面本来就到不了这里
-          let complete = true
-          for (let d = depth + 1; d < params.length; d++) {
-            const q = params[d]
-            const t = table(model, q, forced)
-            if (t.length === 0) {
-              complete = false
-              break
-            }
-            const qc = byLabel(forced, q.label)
-            if (q.kind === 'span') {
-              const [a, b] = model.parseSpan(qc.value)
-              const los = q.lo(model.reader(forced))
-              const nlo = los.includes(a) ? a : model.snap(los, a)
-              const his = q.hi(model.reader(forced), nlo)
-              write(model, qc, q, [nlo, his.includes(b) ? b : model.snap(his, b)])
-            } else {
-              const cur = q.kind === 'int' ? parseInt(qc.value, 10) : parseFloat(qc.value)
-              write(model, qc, q, t.includes(cur) ? cur : model.snap(t, cur))
-            }
-          }
-          if (!complete) continue
+          // 后面的参数照界面的做法落定;有空表 = 界面本来就到不了这里
+          if (params.slice(depth + 1).some((q) => table(model, q, forced).length === 0)) continue
+          model.settle(params.slice(depth + 1), forced)
           probes++
           queries.push({
             line: line(forced),
@@ -306,6 +223,7 @@ for (const name of names) {
             why: `${describeCombo()} 「${p.label}」=${v} 表外却放行`,
             label: p.label,
             value: v,
+            forced,
           })
         }
       } else {
@@ -314,11 +232,11 @@ for (const name of names) {
         const his = p.hi(r, los[0])
         const c2 = () => controls.map((c) => ({ ...c }))
         const tries = [
-          [los[0] - 1, los[0] - 1],
-          [los[los.length - 1] + 1, los[los.length - 1] + 1],
-          [los[0], his[his.length - 1] + 1],
+          [los[0] - 1, los[0] - 1, 'lo'],
+          [los[los.length - 1] + 1, los[los.length - 1] + 1, 'lo'],
+          [los[0], his[his.length - 1] + 1, 'hi'],
         ]
-        for (const [a, b] of tries) {
+        for (const [a, b, side] of tries) {
           if (a < 0 || b < 0) continue
           const forced = c2()
           write(model, byLabel(forced, p.label), p, [a, b])
@@ -329,6 +247,8 @@ for (const name of names) {
             why: `${describeCombo()} 「${p.label}」=${a}-${b} 表外却放行`,
             label: p.label,
             value: b,
+            side,
+            forced,
           })
         }
       }
@@ -374,7 +294,7 @@ for (const name of names) {
       rejected++
       if (rejected <= 5) fail(`上游拒绝:${q.why} [${q.line.replace(/\t/g, ' ')}] → ${a.text}`)
     } else if (!q.expectOk && a.ok) {
-      const expected = EXPECTED_NARROWER[name]?.(q.label, q.value)
+      const expected = EXPECTED_NARROWER[name]?.(q.label, q.value, q.side, q.forced)
       narrower.push({ ...q, expected })
     }
   }
@@ -384,7 +304,7 @@ for (const name of names) {
   if (unexpected.length > 5) fail(`……共 ${unexpected.length} 处比上游窄`)
 
   const summary =
-    `combos=${fixedCombos(shape).length} vectors=${vectors} probes=${probes}` +
+    `combos=${combos.length} vectors=${vectors} probes=${probes}` +
     ` narrower=${narrower.length - unexpected.length}(expected)`
   if (problems.length) {
     failed++

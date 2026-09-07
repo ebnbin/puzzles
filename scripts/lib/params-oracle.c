@@ -7,7 +7,11 @@
  *                        与预设表(名字 / 编码参数)
  *   oracle < lines       每行一组控件值(tab 分隔,按控件序;boolean 0/1,choices 下标,
  *                        string 原文),每行答 ok<TAB>encoded 或 err<TAB>message
+ *   oracle --gen [seed]  同上,但放行的组合再真的生成一局(种子可选,10 秒 alarm):
+ *                        答 gen<TAB>encoded;生成里 assert 或超时会让进程死掉,所以
+ *                        调用方要一行一个进程。
  */
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +34,9 @@ static void describe_presets(struct preset_menu *menu, int depth)
         }
     }
 }
+
+static bool generate = false;
+static const char *seed = "params-oracle";
 
 static void describe(void)
 {
@@ -62,7 +69,7 @@ static void describe(void)
     if (thegame.preset_menu) {
         struct preset_menu *menu = thegame.preset_menu();
         describe_presets(menu, 0);
-        (void)menu; /* 静态于 midend.c,进程即退,不释放 */
+        /* 进程即退,不释放 */
     } else {
         char *name;
         game_params *p;
@@ -86,6 +93,10 @@ int main(int argc, char **argv)
     if (argc > 1 && !strcmp(argv[1], "--describe")) {
         describe();
         return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--gen")) {
+        generate = true;
+        if (argc > 2) seed = argv[2];
     }
 
     dp = thegame.default_params();
@@ -119,6 +130,20 @@ int main(int argc, char **argv)
         err = thegame.validate_params(params, true);
         if (err) {
             printf("err\t%s\n", err);
+        } else if (generate) {
+            random_state *rs = random_new(seed, strlen(seed));
+            char *aux = NULL, *desc;
+            char *enc = thegame.encode_params(params, true);
+            printf("gen\t%s\n", enc);
+            fflush(stdout);
+            alarm(10);
+            desc = thegame.new_desc(params, rs, &aux, false);
+            alarm(0);
+            printf("done\t%s\n", enc);
+            sfree(desc);
+            sfree(aux);
+            sfree(enc);
+            random_free(rs);
         } else {
             char *enc = thegame.encode_params(params, true);
             printf("ok\t%s\n", enc);
