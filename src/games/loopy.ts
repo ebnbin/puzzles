@@ -21,6 +21,9 @@ const FOLLOW: Prefer = {
 }
 
 // 每种网格的最小尺寸 [两边都至少, 至少一边至少],按 GRIDLIST 顺序(loopy.c:281-300)。
+// 两种 Penrose 网格在上游放行的最小尺寸附近生成要么几十秒不出结果、要么在 wasm 里
+// 除零 / dsf 断言死掉(docs/params.md 第四节有逐格图),两边各抬到 4 / 5 才稳。
+const PENROSE: Readonly<Record<number, number>> = { 11: 4, 12: 5 }
 const LIMITS: readonly (readonly [number, number])[] = [
   [3, 3], [3, 3], [3, 3], [3, 3], [3, 4], [3, 3], [3, 3], [3, 3], [1, 2],
   [2, 2], [2, 2], [3, 3], [3, 3], [2, 2], [3, 3], [2, 2], [6, 6], [6, 6],
@@ -35,10 +38,14 @@ const loopy: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', (r) => range(LIMITS[r.pick('Grid type')]?.[0] ?? NaN, CAP)),
+      int('Width', (r) => {
+        const type = r.pick('Grid type')
+        return range(PENROSE[type] ?? LIMITS[type]?.[0] ?? NaN, CAP)
+      }),
       int('Height', (r) => {
-        const [amin, omin] = LIMITS[r.pick('Grid type')] ?? [NaN, NaN]
-        return range(r.int('Width') >= omin ? amin : omin, CAP)
+        const type = r.pick('Grid type')
+        const [amin, omin] = LIMITS[type] ?? [NaN, NaN]
+        return range(PENROSE[type] ?? (r.int('Width') >= omin ? amin : omin), CAP)
       }),
     ],
   },
