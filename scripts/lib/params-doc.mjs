@@ -47,10 +47,17 @@ export const GAMES = [
     ],
   },
   {
-    id: 'fifteen', title: 'Fifteen', file: 'fifteen.c',
+    id: 'fifteen', title: 'Fifteen', file: 'fifteen.c', tuned: true,
     params: [
-      { label: 'Width', kind: 'int', sem: '棋盘宽', u: ['宽高都 ≥ 2(149)'], f: '2..100', d: '—', c: 'cap' },
-      { label: 'Height', kind: 'int', sem: '棋盘高', u: ['同上'], f: '2..100', d: '—', c: 'cap' },
+      { label: 'Width', kind: 'int', sem: '棋盘宽', u: ['宽高都 ≥ 2(149)', '宽×高不得溢出 int(151)'], f: '2..50', d: '—', c: 'local' },
+      { label: 'Height', kind: 'int', sem: '棋盘高', u: ['同上'], f: '2..50', d: '—', c: 'local' },
+    ],
+    notes: [
+      '上限由字号定,不由格数定:格子里要写编号(最大 w·h−1),字号写死成格边的 1/3(fifteen.c:946)。'
+        + '实测 8 px 字号是还认得出的底——50×50 在 2560×1440 上正好是每格 25 px、字号 8 px;'
+        + '1440×900 上 30×30、手机上 15×15 也都落在这条线上。',
+      '耗时不是约束:生成是 O(n²)(放置扫描 + perm_parity),原生 50×50 0.015 秒、100×100 0.28 秒;'
+        + '走子只重画动的那几格,全尺寸 5–15 ms。DESC 是完整编号表,50×50 的存档 11.6 KB。',
     ],
   },
   {
@@ -386,6 +393,7 @@ export const GAMES = [
 
 // 与上游的出入:本仓库故意比上游窄(或补了上游漏掉的)的地方。
 export const DEVIATIONS = [
+  { game: 'fifteen', what: '宽高封到 50', why: '格子里要写编号,字号是格边的 1/3;50×50 在 2560×1440 上是字号 8 px,四位数刚好读得出来,再大就是一片灰点。上游只要求 ≥ 2。' },
   { game: 'cube', what: '三角格(四面体 / 八面体 / 二十面体)两维封到 50,方格(立方体)封到 100', why: '六边形跨 d1+d2 行,50×50 的铺展和方格 100×100 相当;再往上每走一步的重画就从 220 ms 起跳(带动画,O(面积)),格子也掉到 4 px 以下。' },
   { game: 'net', what: '宽高从 3 起', why: '上游只禁 1×1、和 wrap+unique 下的 2;1×n 是一条直管,不成谜题。下限抬到 3 之后上游那两条永远触发不了,宽和高之间也不再互相依赖。' },
   { game: 'dominosa', what: '最大点数封顶 98', why: '棋盘宽 n+2 ≤ 100;上游只防溢出。' },

@@ -102,6 +102,8 @@ const EXPECTED_NARROWER = {
   // 三角网(除立方体外的三个)封到 50:六边形跨 d1+d2 行,50×50 的铺展和方格网
   // 100×100 相当。立方体那张表到 100,和 CAP 同高,探针够不着。
   cube: (label, v, side, forced) => forced[0].value !== 1 && v > 50,
+  // 封到 50:格子里要写编号,再大字号就认不出了(见 docs/params.md 第四节)。
+  fifteen: (label, v) => v > 50,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
