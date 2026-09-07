@@ -1259,15 +1259,6 @@ p.notice-intro button:active {
   font-weight: 600;
 }
 
-/* 「自定义」不可点:参数列表常驻之后它只报告「当前参数不落在任何预设上」。 */
-.sheet-presets .sheet-preset-custom {
-  cursor: default;
-}
-
-.sheet-presets .sheet-preset-custom:not([data-selected='true']) {
-  color: var(--text-3);
-}
-
 .sheet-presets .sheet-preset-tag {
   color: var(--text-2);
   font-size: var(--t-2xs);

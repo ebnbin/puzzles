@@ -22,7 +22,7 @@ export default function PuzzleTypes({
 }: {
   presets: Preset[]
   // 上游算出来的「当前参数落在哪个预设上」(midend_which_preset,按编码后的参数串
-  // 比对);不落在任何一个就是负数,显示为「自定义」。
+  // 比对);不落在任何一个就是负数,一条都不选中。
   selected: number
   standard: number | null
   spec: DialogSpec | null
@@ -70,6 +70,9 @@ export default function PuzzleTypes({
   )
 }
 
+// 上游把「自定义」也放在预设列表里,值是负数;子菜单的值是 null。
+const usable = (preset: Preset) => preset.value === null || preset.value >= 0
+
 function PresetList({
   presets,
   chosen,
@@ -84,12 +87,11 @@ function PresetList({
   const t = useStrings()
   return (
     <ul className="sheet-presets">
-      {presets.map((preset, i) => {
-        // 「自定义」这一条是状态不是选项:参数列表常驻之后它没有动作可做,只报告
-        // 当前参数不落在任何预设上。留在同一组里,选中态才说得出来。
-        const custom = preset.value !== null && preset.value < 0
-        const isChosen = custom ? chosen < 0 : chosen === preset.value
-        const isStandard = !custom && standard !== null && standard === preset.value
+      {/* 上游那条「自定义」不画:参数列表常驻之后它没有动作可做。参数不落在任何
+          预设上时一条都不选中,那就是自定义。 */}
+      {presets.filter(usable).map((preset, i) => {
+        const isChosen = chosen === preset.value
+        const isStandard = standard !== null && standard === preset.value
         return (
           <li key={i}>
             {preset.submenu ? (
@@ -103,16 +105,11 @@ function PresetList({
                 />
               </>
             ) : (
-              <label
-                className={custom ? 'sheet-preset-custom' : undefined}
-                data-selected={isChosen}
-                data-standard={isStandard || undefined}
-              >
+              <label data-selected={isChosen} data-standard={isStandard || undefined}>
                 <input
                   type="radio"
                   name="preset"
                   checked={isChosen}
-                  disabled={custom}
                   onChange={() => onSelect(preset.value as number)}
                 />
                 {preset.name}

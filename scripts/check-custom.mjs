@@ -11,7 +11,7 @@
 //   四、翻开关时数字跟着让:Mines 关掉 Ensure solubility 把宽拉到 1,再打开,宽回到 3。
 //   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
 //   六、参数列表常驻,和上面的预设互相跟随:点预设参数跟着换,参数滑回某个预设
-//       身上选中态就跳回那个预设,滑开就落到「自定义」。
+//       身上选中态就跳回那个预设,滑开就一条都不选中(= 自定义)。
 //   七、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子。
 import { boot, open } from './lib/boot.mjs'
 
@@ -181,10 +181,10 @@ await openTypes()
     fail('跟随', `点了预设选中态不对:${await chosen()}`)
   else console.log(`  ok   跟随 点预设 → ${(await read()).join(' ')} / ${await chosen()}`)
 
-  // 滑开一档 → 落到「自定义」
+  // 滑开一档 → 一条都不选中
   await press('Width', 'ArrowLeft')
-  if (!/Custom/.test(await chosen())) fail('跟随', `滑开之后应落到自定义:${await chosen()}`)
-  else console.log(`  ok   跟随 滑开一档 → ${await paramsNow()} / ${await chosen()}`)
+  if ((await chosen()) !== '') fail('跟随', `滑开之后不该有选中的:${await chosen()}`)
+  else console.log(`  ok   跟随 滑开一档 → ${await paramsNow()} / 无选中`)
 
   // 滑回去 → 选中态跳回那个预设
   await press('Width', 'ArrowRight')

@@ -117,7 +117,7 @@ ground truth。
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
-| `PuzzleTypes.tsx` | 类型面板:预设列表 + 常驻的参数列表,两者互相跟随(选中态认引擎报的 `midend_which_preset`);够宽的桌面上停靠成右侧栏(Dock),否则从下面拉起(Sheet) |
+| `PuzzleTypes.tsx` | 类型面板:预设列表 + 常驻的参数列表,两者互相跟随(选中态认引擎报的 `midend_which_preset`,不命中就一条都不选);上游那条「自定义」不画;够宽的桌面上停靠成右侧栏(Dock),否则从下面拉起(Sheet) |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型的 string 控件交给 ParamField,每次落定先 settle 再提交;没申报的仍是文本框 |
 | `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定 |

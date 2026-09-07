@@ -44,7 +44,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 **兜底**:没申报的 string 控件(比如模态对话框那条路)仍画成文本框;label 对不上上游时申报被忽略,同样回落到文本框。
 
-**「自定义」是状态不是选项**:参数列表常驻之后它没有动作可做,只报告当前参数不落在任何预设上,所以留在同一组里但不可点。
+**上游那条「自定义」不画**:参数列表常驻之后它没有动作可做。参数不落在任何预设上时一条都不选中,那就是自定义。
 
 ### 1.4 上限的规矩
 
@@ -1680,7 +1680,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 2. **健全**:choices × boolean 的全部组合(超过 96 种抽 96 种)下,按申报顺序把每张表走一遍(大表抽两头、等距、随机共 14 个),走出来的每个组合上游都放行;路上没有空表;settle 对表内组合是 no-op;另从随机乱值出发 settle 之后上游也放行。
 3. **紧**:表外一格(下界减一、上界加一、表中间的洞)按界面做法钉住、后面的参数照 settle 落定,上游若放行就是「比上游窄」——只有第四节登记过的算预期。
 
-最近一次全量结果(耗时 19 秒):
+最近一次全量结果(耗时 20 秒):
 
 | 游戏 | 结果 | 固定组合 | 走过的组合 | 表外探针 | 预期的收窄 |
 | --- | --- | --- | --- | --- | --- |
@@ -1733,7 +1733,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 - `src/pages/puzzle/ParamField.tsx`:范围模型驱动的数字行。滑块按表的下标走,两侧 −/+ 单步,读数在行尾;区间型两行(最少 / 最多)。拖动只改读数,原生 change 才落定,方向键每按一下落定一次。
 - `src/pages/puzzle/ConfigFields.tsx`:拿到范围模型后,有申报且表非空的 string 控件交给 ParamField;每次落定(滑块、步进、checkbox、select、回落的文本框)先 `settle` 再提交。没给模型的调用方(偏好面板、模态对话框)行为不变。
-- `src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进面板;参数列表常驻,选中态只认引擎报的那条预设,点预设走「让位、换参数、再要一份」三步。
+- `src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进面板;参数列表常驻,选中态只认引擎报的那条预设(不命中就一条都不选),点预设走「让位、换参数、再要一份」三步。
 - `src/ui/Dock.tsx` / `useMedia.ts`:够宽的桌面上类型面板停靠成右侧栏(360px),棋盘让出宽度而不是被盖住;非模态,面板开着照样能走子。
 - `src/index.css`:`.sheet-custom .dialog-param*`,颜色全部走 tokens,两种主题同一套规则。
 - `src/i18n/en.json` / `zh.json`:`types.min` / `max` / `decrease` / `increase` 四个键(区间小标与步进按钮的读法)。
