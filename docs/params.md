@@ -6,7 +6,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 ## 怎么读
 
-分七节:**一、机制**是四十个游戏共有的那一层——值怎么进出 C、模型长什么样、控件怎么画;**二、总览**一张表横扫全部 91 个参数;**三、逐游戏详表**按上游收录序,每个游戏一节,列全该游戏的全部控件、每个 string 参数的语义与上游规则、本仓库的表、默认参数下模型算出的实际表、预设;**四、与上游的出入**;**五、被 CAP 封顶的参数**(下一阶段的调优清单);**六、已知问题**;**七、验证**。
+分八节:**一、机制**是四十个游戏共有的那一层——值怎么进出 C、模型长什么样、控件怎么画;**二、总览**一张表横扫全部 91 个参数;**三、逐游戏详表**按上游收录序,每个游戏一节,列全该游戏的全部控件、每个 string 参数的语义与上游规则、本仓库的表、默认参数下模型算出的实际表、预设;**四、与上游的出入**;**五、被 CAP 封顶的参数**(下一阶段的调优清单);**六、已知问题**;**七、验证**;**八、实现**。
 
 表里的「依赖」一栏写的是这个参数看谁:「主」= 不看别的数字参数;「看宽」= 表由宽算出,宽动了它可能被夹。
 
@@ -1711,11 +1711,15 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | palisade | ok | 1 | 1405 | 2400 | 0 |
 | mosaic | ok | 2 | 403 | 28 | 0 |
 
-界面层的链路(滑块写回字符串 → dialogOk → 新局)在实现阶段用 playwright 走一遍,见 `scripts/check-*.mjs` 的惯例。
+界面层的链路(滑块写回字符串 → dialogOk → 新局)由 `scripts/check-custom.mjs` 用 playwright 走一遍,见第八节。
 
-## 八、下一阶段要动的文件
+## 八、实现
 
-- `src/pages/puzzle/ConfigFields.tsx`:string 控件按 `game.types.params` 找到申报就画滑块(+步进、读数、区间成对),没有申报仍是文本框;每次落定先 `settle` 再 `onCommit`。
-- `src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进 ConfigFields(偏好面板和模态对话框不传)。
-- `src/index.css`:`.sheet-custom` 里滑块行的样式,深色跟 tokens。
-- `docs/structure.md`:登记 `util/params.ts`、`scripts/check-params.mjs`、`scripts/lib/params-oracle.c`、`docs/params.md`。
+范围模型落地为控件,动到的文件:
+
+- `src/pages/puzzle/ParamField.tsx`:范围模型驱动的数字行。滑块按表的下标走,两侧 −/+ 单步,读数在行尾;区间型两行(最少 / 最多)。拖动只改读数,原生 change 才落定,方向键每按一下落定一次。
+- `src/pages/puzzle/ConfigFields.tsx`:拿到范围模型后,有申报且表非空的 string 控件交给 ParamField;每次落定(滑块、步进、checkbox、select、回落的文本框)先 `settle` 再提交。没给模型的调用方(偏好面板、模态对话框)行为不变。
+- `src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进自定义面板。
+- `src/index.css`:`.sheet-custom .dialog-param*`,颜色全部走 tokens,两种主题同一套规则。
+- `src/i18n/en.json` / `zh.json`:`types.min` / `max` / `decrease` / `increase` 四个键(区间小标与步进按钮的读法)。
+- `scripts/check-custom.mjs`:playwright 走真实链路——四十个游戏的自定义面板没有文本框、动一档即开新局、Mines 缩到最小雷数被夹、Twiddle 宽降到 2 旋转块跟着降、Black Box 最少拉过最多时最多跟上、Mines 翻 Ensure solubility 时宽从 1 回到 3、步进按钮加一,全程不出错误 Notice。
