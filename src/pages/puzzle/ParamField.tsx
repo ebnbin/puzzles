@@ -24,6 +24,7 @@ function Slider({
   format,
   note,
   foot,
+  home = false,
   onPick,
 }: {
   name: string
@@ -36,6 +37,8 @@ function Slider({
   // note 跟在读数后面(雷数占比那种短的),foot 是轨道下面单独一行。
   note?: (v: number) => string
   foot?: (v: number) => string
+  // 表外的值一按就回第一档,不是吸到最近的一档(申报了 reset 的参数)。
+  home?: boolean
   onPick: (v: number) => void
 }) {
   const t = useStrings()
@@ -58,9 +61,10 @@ function Slider({
     return () => el.removeEventListener('change', done)
   }, [])
 
-  const index = list.indexOf(snap(list, value))
+  const found = list.indexOf(snap(list, value))
   // 表外的当前值(表外 = 上游给的,还没被夹):任何一按都先把它夹进表。
-  const off = list[index] !== value
+  const off = list[found] !== value
+  const index = off && home ? 0 : found
   // 拖回原位松手不发 change,drag 会留下;落定后的位置一变就作废它。
   useEffect(() => setDrag(null), [index, list.length])
   const shown = drag ?? index
@@ -71,6 +75,14 @@ function Slider({
   const readout = drag !== null ? format(live) : off ? text : format(value)
   const said = format(list[shown] ?? live)
   const aside = note ?? foot
+  // 读数列按表里最宽的一条留位(两头加中间等距采十来档就够):宽度跟着值变的话,
+  // 拖到一半轨道就缩水,滑块会从手指底下跑掉。ch 是数字宽,「×」「%」比它宽一点,
+  // 末尾那 0.25rem 就是给它们的富余。
+  let wide = 3
+  for (let i = 0; i <= 10; i++) {
+    const v = list[Math.round((i * (list.length - 1)) / 10)]
+    if (v !== undefined) wide = Math.max(wide, format(v).length + (note ? note(v).length + 1 : 0))
+  }
   const step = (d: number) => {
     onPick(list[off ? index : index + d])
     input.current?.focus()
@@ -114,7 +126,11 @@ function Slider({
         >
           <Icon name="plusSquare" />
         </button>
-        <span className="dialog-param-value" data-note={note ? '' : undefined} aria-hidden="true">
+        <span
+          className="dialog-param-value"
+          style={{ minWidth: `max(3.2rem, calc(${wide}ch + 0.25rem))` }}
+          aria-hidden="true"
+        >
           {readout}
           {note && Number.isFinite(live) && <small>{note(live)}</small>}
         </span>
@@ -193,6 +209,7 @@ export default function ParamField({
         format={show}
         note={note}
         foot={foot}
+        home={param.kind === 'float' && param.reset === true}
         onPick={(v) => {
           control.value = write(v)
           onCommit()

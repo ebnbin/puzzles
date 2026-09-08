@@ -1427,16 +1427,13 @@ p.notice-intro button:active {
   cursor: default;
 }
 
+/* 3.2rem 是底,真正的宽度由 ParamField 按这张表最宽的一条读数算出来写在行内:
+   宽度跟着值变的话,拖到一半轨道就缩水,滑块会从手指底下跑掉。 */
 .sheet-params .dialog-param-value {
   flex: none;
   min-width: 3.2rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
-}
-
-/* 带附注(雷数占比)的读数会到「9991 99%」那么宽,先留够,免得拖到一半轨道缩水。 */
-.sheet-params .dialog-param-value[data-note] {
-  min-width: 4.6rem;
 }
 
 .sheet-params .dialog-param-value small {
@@ -1445,8 +1442,8 @@ p.notice-intro button:active {
   font-size: var(--t-xs);
 }
 
-/* 轨道下面单独一行的附注(Rectangles 由粒度算出来的 e 和 base):跟着滑块实时变,
-   放这儿是因为它比读数长得多,挤在读数后面会把轨道吃掉一截。 */
+/* 轨道下面单独一行的附注(Rectangles 由枚举算出来的 e):跟着滑块实时变,
+   放这儿是因为它和读数连起来太长,挤在一行会把轨道吃掉一截。 */
 .sheet-params .dialog-param-foot {
   margin: 0;
   color: var(--text-3);

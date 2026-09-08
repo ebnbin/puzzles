@@ -31,8 +31,11 @@ export type Param =
       allowed(r: Read): readonly number[]
       // 读数换成别的量(Rectangles 的粒度 t):只管显示,写进控件的仍是 digits 位的原值。
       show?(v: number, r: Read): string
-      // 轨道下面单独一行的附注(Rectangles 由 t 算出来的 e 和 base),也只是给人看。
+      // 轨道下面单独一行的附注(Rectangles 由枚举算出来的 e),也只是给人看。
       foot?(v: number, r: Read): string
+      // 值不在表里时回到第一档,不吸到最近的一档:Rectangles 换了棋盘整套枚举就换了,
+      // 旧的 e 落在新表哪一档都没有意义。
+      reset?: boolean
     }
   // 「a-b」区间型字符串:两个数各一张表,hi 的表看得见 lo 的当前值。
   | {
@@ -52,7 +55,11 @@ export const float = (
   label: string,
   digits: number,
   allowed: (r: Read) => readonly number[],
-  extra?: { show?(v: number, r: Read): string; foot?(v: number, r: Read): string },
+  extra?: {
+    show?(v: number, r: Read): string
+    foot?(v: number, r: Read): string
+    reset?: boolean
+  },
 ): Param => ({ kind: 'float', label, digits, allowed, ...extra })
 
 export const span = (
@@ -162,7 +169,8 @@ export function settle(params: readonly Param[], controls: DialogControl[]): str
     } else if (p.kind === 'float') {
       const list = p.allowed(r)
       const v = parseFloat(c.value)
-      if (list.length > 0 && !has(list, v)) next = formatFloat(snap(list, v), p.digits)
+      if (list.length > 0 && !has(list, v))
+        next = formatFloat(p.reset ? list[0] : snap(list, v), p.digits)
     } else {
       const [lo, hi] = parseSpan(c.value)
       const los = p.lo(r)
