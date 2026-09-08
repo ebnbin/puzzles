@@ -22,6 +22,9 @@
   跑的命令。`scripts/check-*.mjs` 是手动契约测试(要 vite preview + playwright),何时跑
   钉在被测文件的头部注释里。
 - 改了 `public/doc/` 或 `doc-zh/` 要自己跑 `npm run verify-doc`(要 halibut,不在 build 里)。
+- **不用弹窗式的选择器提问**(`AskUserQuestion` 一类),要问就在回复正文里问。选择器是
+  阻塞的,还把答案挤成几个预设选项;正文提问 owner 可以忽略、可以只答一半、可以顺带说
+  别的。拿不准就把假设写清楚接着做,别停下来等回答。
 
 ## 生成物不手改
 
