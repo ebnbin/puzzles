@@ -106,6 +106,9 @@ const EXPECTED_NARROWER = {
   fifteen: (label, v) => v > 50,
   // 同上,只有宽高;打乱步数封到 100,探针试的 101 超过 CAP,够不着。
   sixteen: (label, v) => label !== 'Number of shuffling moves' && v > 50,
+  // 宽高同上;块边长再封 30(默认打乱是 O(w·h·n⁴),50×50n30 就要 9.5 秒)。
+  twiddle: (label, v) =>
+    label === 'Rotating block size' ? v > 30 : label !== 'Number of shuffling moves' && v > 50,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)

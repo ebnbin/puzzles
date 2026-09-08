@@ -4,7 +4,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
-import { CAP, int, range } from './util/params'
+import { int, range } from './util/params'
 
 const twiddle: Game = {
   id: 'twiddle',
@@ -15,10 +15,16 @@ const twiddle: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', () => range(2, CAP)),
-      int('Height', () => range(2, CAP)),
-      int('Rotating block size', (r) => range(2, Math.min(r.int('Width'), r.int('Height')))),
-      int('Number of shuffling moves', () => range(0, CAP)),
+      // 宽高 50:格子里要写编号,字号是格边的 1/3(twiddle.c:1005),和 Fifteen 同一条线。
+      int('Width', () => range(2, 50)),
+      int('Height', () => range(2, 50)),
+      // 块边长再封 30:打乱步数为 0(默认)时上游要走 w·h·n²·2 步、每步 O(n²)
+      // (twiddle.c:340),50×50 上 n=30 落定 9.5 秒、n=40 已经 22 秒、n=50 是 140 秒。
+      int('Rotating block size', (r) =>
+        range(2, Math.min(r.int('Width'), r.int('Height'), 30)),
+      ),
+      // 打乱步数同 Sixteen:用途是「数出这几步再倒回去」,真要打乱用 0。
+      int('Number of shuffling moves', () => range(0, 100)),
     ],
   },
   prefs: { panel: verbatim, volatile: false },
