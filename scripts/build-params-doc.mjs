@@ -132,7 +132,8 @@ const MECHANISM = [
 
 const KNOWN = [
   '本文档里的耗时数字全部测自一台共享的 2.8 GHz Xeon(开发容器),比现代桌面 CPU 慢两三倍——同一组参数 owner 在自己机器上实测能快到三分之一。逐个游戏定范围时按这台机器的数字取,偏保守。',
-  '生成是同步跑在主线程上的:参数越大,`midend_new_game` 卡住页面的时间越长,滑块一滑到底就能撞上。还没定夺范围的游戏只记录,不为耗时调低上限。已知的重灾区:Loopy(尤其 Penrose / Hats / Spectres 网格)、Pattern、Solo 高阶(31 阶 Unreasonable 几乎不会结束)、Mines 大盘 + 多雷、Untangle 100 点、Map 大盘多区域、Bridges / Tracks / Galaxies 100×100。',
+  '生成是同步跑在主线程上的:参数越大,`midend_new_game` 卡住页面的时间越长,滑块一滑到底就能撞上。还没定夺范围的游戏只记录,不为耗时调低上限。已知的重灾区:Loopy(尤其 Penrose / Hats / Spectres 网格)、Solo 高阶(31 阶 Unreasonable 几乎不会结束)、Mines 大盘 + 多雷、Untangle 100 点、Map 大盘多区域、Bridges / Tracks / Galaxies 100×100。',
+  '**已定夺的游戏里 Pattern 是唯一一个仍会明显卡顿的**:顶格 50×50 本机平均 >70 秒(owner 的机器 25–35 秒起)。owner 看过逐档实测后仍选择不设面积上限,取规则简单;要收的话「面积 ≤ 2100」正好只砍掉 45×50 和 50×50 两格。',
   '页面卡在生成里时,存档不会写坏:重开页面恢复的是上一局(存档按序列化的局面存,不重新生成)。但「新局」会再生成一次,同样卡。',
   '每次松手都开一局:在滑块上用方向键连按,每按一下都生成一局。',
   '另一类不是「大」而是「小到无解」的不终止:浏览器探测到 Light Up 3×3、黑格 5%、4 向旋转、难度 Tricky / Hard,Galaxies 3×3 Unreasonable,Solo 2×2 Killer + X,上游生成器死循环重试(lightup.c:1558、galaxies.c:1456)。这几处上游放行、表也放行,还没定夺的先只记录;二阶 Solo 配对称 / Killer 与 Penrose 最小尺寸那几处因为一碰就死,已按第四节收窄。',
