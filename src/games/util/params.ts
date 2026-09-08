@@ -24,7 +24,15 @@ export type Param =
       // 值旁边附的说明(比如雷数换算成占比),只是给人看。
       note?(v: number, r: Read): string
     }
-  | { kind: 'float'; label: string; digits: number; allowed(r: Read): readonly number[] }
+  | {
+      kind: 'float'
+      label: string
+      digits: number
+      allowed(r: Read): readonly number[]
+      // 读数换成别的量(Rectangles 的粒度 t):只管显示,写进控件的仍是 digits 位的原值。
+      show?(v: number, r: Read): string
+      note?(v: number, r: Read): string
+    }
   // 「a-b」区间型字符串:两个数各一张表,hi 的表看得见 lo 的当前值。
   | {
       kind: 'span'
@@ -43,7 +51,8 @@ export const float = (
   label: string,
   digits: number,
   allowed: (r: Read) => readonly number[],
-): Param => ({ kind: 'float', label, digits, allowed })
+  extra?: { show?(v: number, r: Read): string; note?(v: number, r: Read): string },
+): Param => ({ kind: 'float', label, digits, allowed, ...extra })
 
 export const span = (
   label: string,

@@ -63,7 +63,9 @@ function Slider({
   const shown = drag ?? index
   const pinned = list.length <= 1
   const live = drag === null ? value : list[drag]
-  const readout = drag === null ? text : format(live)
+  // 松手且值在表内时用 format 画:这样 show 换掉的读数(粒度 t)也能显示出来。
+  // 表外(Game ID 带进来的)照旧显示原文。
+  const readout = drag !== null ? format(live) : off ? text : format(value)
   const said = format(list[shown] ?? live)
   const step = (d: number) => {
     onPick(list[off ? index : index + d])
@@ -164,8 +166,11 @@ export default function ParamField({
 
   const list = param.allowed(read)
   const value = param.kind === 'int' ? parseInt(control.value, 10) : parseFloat(control.value)
-  const format = param.kind === 'int' ? String : (v: number) => formatFloat(v, param.digits)
-  const note = param.kind === 'int' && param.note ? (v: number) => param.note!(v, read) : undefined
+  // write 是写进控件的那一份(必须是上游认的量);show 只管读数。
+  const write = param.kind === 'int' ? String : (v: number) => formatFloat(v, param.digits)
+  const show =
+    param.kind === 'float' && param.show ? (v: number) => param.show!(v, read) : write
+  const note = param.note ? (v: number) => param.note!(v, read) : undefined
   return (
     <div className="dialog-param">
       <label className="dialog-param-head">{control.label}</label>
@@ -174,10 +179,10 @@ export default function ParamField({
         list={list}
         value={value}
         text={control.value}
-        format={format}
+        format={show}
         note={note}
         onPick={(v) => {
-          control.value = format(v)
+          control.value = write(v)
           onCommit()
         }}
       />

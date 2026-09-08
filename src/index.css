@@ -1434,9 +1434,10 @@ p.notice-intro button:active {
   font-variant-numeric: tabular-nums;
 }
 
-/* 带附注(雷数占比)的读数会到「9991 99%」那么宽,先留够,免得拖到一半轨道缩水。 */
+/* 带附注的读数最宽是 Rectangles 的「0.99 e 10.2107」(Mines 那条是「9991 99%」),
+   一次留够:宽度跟着值变的话,拖到一半轨道就缩水,滑块会从手指底下跑掉。 */
 .sheet-params .dialog-param-value[data-note] {
-  min-width: 4.6rem;
+  min-width: 5.9rem;
 }
 
 .sheet-params .dialog-param-value small {
