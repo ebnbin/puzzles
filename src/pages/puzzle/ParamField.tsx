@@ -23,6 +23,7 @@ function Slider({
   text,
   format,
   note,
+  foot,
   onPick,
 }: {
   name: string
@@ -32,7 +33,9 @@ function Slider({
   // 松手状态下的读数用原文:当前值可能在表外(Game ID 输进来的),照实显示。
   text: string
   format: (v: number) => string
+  // note 跟在读数后面(雷数占比那种短的),foot 是轨道下面单独一行。
   note?: (v: number) => string
+  foot?: (v: number) => string
   onPick: (v: number) => void
 }) {
   const t = useStrings()
@@ -67,53 +70,61 @@ function Slider({
   // 表外(Game ID 带进来的)照旧显示原文。
   const readout = drag !== null ? format(live) : off ? text : format(value)
   const said = format(list[shown] ?? live)
+  const aside = note ?? foot
   const step = (d: number) => {
     onPick(list[off ? index : index + d])
     input.current?.focus()
   }
 
   return (
-    <div className="dialog-param-track">
-      {tag && (
-        <label className="dialog-param-tag" htmlFor={id}>
-          {tag}
-        </label>
+    <>
+      <div className="dialog-param-track">
+        {tag && (
+          <label className="dialog-param-tag" htmlFor={id}>
+            {tag}
+          </label>
+        )}
+        <button
+          type="button"
+          aria-label={`${name}: ${t.types.decrease}`}
+          disabled={pinned || (!off && index <= 0)}
+          onClick={() => step(-1)}
+        >
+          <Icon name="minusSquare" />
+        </button>
+        <input
+          ref={input}
+          id={id}
+          type="range"
+          aria-label={name}
+          aria-valuetext={aside && Number.isFinite(live) ? `${said} (${aside(live)})` : said}
+          min={0}
+          max={Math.max(0, list.length - 1)}
+          step={1}
+          value={shown}
+          disabled={pinned}
+          onChange={(e) => setDrag(Number(e.target.value))}
+          onBlur={() => setDrag(null)}
+        />
+        <button
+          type="button"
+          aria-label={`${name}: ${t.types.increase}`}
+          disabled={pinned || (!off && index >= list.length - 1)}
+          onClick={() => step(1)}
+        >
+          <Icon name="plusSquare" />
+        </button>
+        <span className="dialog-param-value" data-note={note ? '' : undefined} aria-hidden="true">
+          {readout}
+          {note && Number.isFinite(live) && <small>{note(live)}</small>}
+        </span>
+      </div>
+      {foot && Number.isFinite(live) && (
+        <p className="dialog-param-foot" aria-hidden="true">
+          {foot(live)}
+        </p>
       )}
-      <button
-        type="button"
-        aria-label={`${name}: ${t.types.decrease}`}
-        disabled={pinned || (!off && index <= 0)}
-        onClick={() => step(-1)}
-      >
-        <Icon name="minusSquare" />
-      </button>
-      <input
-        ref={input}
-        id={id}
-        type="range"
-        aria-label={name}
-        aria-valuetext={note && Number.isFinite(live) ? `${said} (${note(live)})` : said}
-        min={0}
-        max={Math.max(0, list.length - 1)}
-        step={1}
-        value={shown}
-        disabled={pinned}
-        onChange={(e) => setDrag(Number(e.target.value))}
-        onBlur={() => setDrag(null)}
-      />
-      <button
-        type="button"
-        aria-label={`${name}: ${t.types.increase}`}
-        disabled={pinned || (!off && index >= list.length - 1)}
-        onClick={() => step(1)}
-      >
-        <Icon name="plusSquare" />
-      </button>
-      <span className="dialog-param-value" data-note={note ? '' : undefined} aria-hidden="true">
-        {readout}
-        {note && Number.isFinite(live) && <small>{note(live)}</small>}
-      </span>
-    </div>
+    </>
   )
 }
 
@@ -166,11 +177,11 @@ export default function ParamField({
 
   const list = param.allowed(read)
   const value = param.kind === 'int' ? parseInt(control.value, 10) : parseFloat(control.value)
-  // write 是写进控件的那一份(必须是上游认的量);show 只管读数。
+  // write 是写进控件的那一份(必须是上游认的量);show / foot 只管显示。
   const write = param.kind === 'int' ? String : (v: number) => formatFloat(v, param.digits)
-  const show =
-    param.kind === 'float' && param.show ? (v: number) => param.show!(v, read) : write
-  const note = param.note ? (v: number) => param.note!(v, read) : undefined
+  const show = param.kind === 'float' && param.show ? (v: number) => param.show!(v, read) : write
+  const note = param.kind === 'int' && param.note ? (v: number) => param.note!(v, read) : undefined
+  const foot = param.kind === 'float' && param.foot ? (v: number) => param.foot!(v, read) : undefined
   return (
     <div className="dialog-param">
       <label className="dialog-param-head">{control.label}</label>
@@ -181,6 +192,7 @@ export default function ParamField({
         text={control.value}
         format={show}
         note={note}
+        foot={foot}
         onPick={(v) => {
           control.value = write(v)
           onCommit()
