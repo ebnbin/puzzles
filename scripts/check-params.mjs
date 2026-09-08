@@ -112,6 +112,9 @@ const EXPECTED_NARROWER = {
   // 宽高只给 5 的倍数 5..50:表外的一律是预期收窄(下界减一、上界加一、中间的洞)。
   // 上游只查 > 0 和面积 ≥ 2,窄盘与大盘各自卡在生成的两条判据上,见 docs/params.md。
   pattern: (label, v) => v < 5 || v > 50 || v % 5 !== 0,
+  // 宽高从 4 起:上游放行 3×4(勾了唯一解时两维 > 2 即可),但 3×3 面积不够放雷、
+  // 3×n 高密度时唯一解生成不收敛(见 docs/params.md 第四节)。
+  mines: (label, v) => (label === 'Width' || label === 'Height') && v < 4,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)

@@ -21,11 +21,12 @@ const mines: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', (r) => range(r.flag('Ensure solubility') ? 3 : 1, CAP)),
-      // 雷数至少 1 而且 ≤ 格数 − 9(mines.c:309),所以面积至少 10。
-      int('Height', (r) =>
-        range(Math.max(r.flag('Ensure solubility') ? 3 : 1, Math.ceil(10 / r.int('Width'))), CAP),
-      ),
+      // 宽高从 4 起。上游只在勾了「Ensure solubility」时要求两维 > 2(mines.c:290),
+      // 但 3×3 的面积 9 连一颗雷都放不下(雷数 ≤ 面积 − 9,309),而 3×n 一到高密度,
+      // 唯一解那条路修不出来(3×100 撒 30% 的雷跑五分钟也不出)。4 起面积恒 ≥ 16,
+      // 两条都不再是问题,高也不用再看宽。
+      int('Width', () => range(4, CAP)),
+      int('Height', () => range(4, CAP)),
       int('Mines', (r) => range(1, area(r) - 9), (n, r) => `${Math.round((100 * n) / area(r))}%`),
     ],
   },

@@ -8,7 +8,7 @@
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
 //   三、派生参数被夹:Mines 宽高缩到最小时雷数跟着降;Twiddle 宽降到 2 时旋转块降到 2;
 //       Black Box「最少」拉过「最多」时「最多」跟上。
-//   四、翻开关时数字跟着让:Mines 关掉 Ensure solubility 把宽拉到 1,再打开,宽回到 3。
+//   四、翻开关时数字跟着让:Solo 勾上 Killer,阶数被夹到 ≤ 9。
 //   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
 //   六、参数列表常驻,和上面的预设互相跟随:点预设参数跟着换,参数滑回某个预设
 //       身上选中态就跳回那个预设,滑开就一条都不选中(= 自定义)。
@@ -110,20 +110,21 @@ await press('Height', 'Home')
   if (await notices()) fail('Mines', '缩到最小时冒出了错误 Notice')
 }
 
-// 四:关掉 Ensure solubility 把宽拉到 1,再打开开关,宽回到 3。
+// 四:翻开关时数字跟着让——Solo 勾上 Killer,阶数被夹到 ≤ 9(solo.c:522)。
+await open(page, 'Solo', { settle: 200 })
+await openTypes()
+await press('Columns of sub-blocks', 'End')
+await press('Rows of sub-blocks', 'End')
 {
-  const unique = page.locator('.sheet-params input[type=checkbox]').first()
-  await unique.uncheck()
-  await page.waitForTimeout(300)
-  await press('Width', 'Home')
-  let p = await paramsNow()
-  if (!/^1x/.test(p ?? '')) fail('Mines', `不保证可解时宽应能到 1:${p}`)
-  await unique.check()
-  await page.waitForTimeout(400)
-  p = await paramsNow()
-  if (!/^3x/.test(p ?? '')) fail('Mines', `打开 Ensure solubility 后宽应回到 3:${p}`)
-  else console.log(`  ok   Mines 翻开关后 ${p}`)
-  if (await notices()) fail('Mines', '翻开关后冒出了错误 Notice')
+  const killer = page.locator('.sheet-params label', { hasText: 'Killer' }).locator('input')
+  await killer.check()
+  await page.waitForTimeout(500)
+  const p = await paramsNow()
+  const m = /^(\d+)x(\d+)/.exec(p ?? '')
+  if (!m) fail('Solo', `参数串认不出:${p}`)
+  else if (Number(m[1]) * Number(m[2]) > 9) fail('Solo', `勾了 Killer 阶数应 ≤ 9:${p}`)
+  else console.log(`  ok   Solo 勾上 Killer ${p}`)
+  if (await notices()) fail('Solo', '勾上 Killer 后冒出了错误 Notice')
 }
 
 // 三 b:Twiddle 宽降到 2,旋转块边长跟着降到 2。
