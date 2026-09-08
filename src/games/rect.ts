@@ -64,10 +64,14 @@ const rect: Game<Facts> = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', () => range(1, CAP)),
-      int('Height', (r) => range(r.int('Width') === 1 ? 2 : 1, CAP)),
-      // 上游只要求非负(rect.c:229);5 以上手册已称退化,再宽改这一个数。
-      float('Expansion factor', 2, () => steps(0, 5, 0.05, 2)),
+      // 宽高从 2 起:上游允许 1×n(只查 w·h ≥ 2),但生成时 base 边长 = ⌊1/(1+e)⌋ = 0
+      // ——钳位那句写的是 w >= 2,救不了它——扩展因子一动就把引擎打死
+      // (random.c:275 断言)。两维都 ≥ 2 时 base 必 ≥ 2×2。
+      int('Width', () => range(2, CAP)),
+      int('Height', () => range(2, CAP)),
+      // 上游只要求非负(rect.c:229)。33 覆盖到 100 宽的棋盘把 base 缩到最小(2×2)
+      // 那一点:base 边长 = ⌊边/(1+e)⌋,掉到 2 需要 e > 边/3 − 1,100 那档是 32.3。
+      float('Expansion factor', 2, () => steps(0, 33, 0.05, 2)),
     ],
   },
   prefs: { panel: verbatim, volatile: false },

@@ -124,7 +124,9 @@ const EXPECTED_NARROWER = {
     return order2 && ([2, 5, 7].includes(symm) || forced[4].value)
   },
   blackbox: (label, v, side) => label === 'No. of balls' && side === 'hi',
-  rect: (label, v) => label === 'Expansion factor' && v > 5,
+  rect: (label, v) =>
+    // 宽高从 2 起(上游放行 1×n,生成时崩,见 docs/params.md 第四节);扩展因子封到 33。
+    label === 'Expansion factor' ? v > 33 : v < 2,
   loopy: (label, v, side, forced) => {
     const w = Number(forced[0].value)
     const h = Number(forced[1].value)
