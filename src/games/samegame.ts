@@ -13,6 +13,11 @@ const WORDS = ['Select', 'Remove', 'Unselect']
 
 const soluble = (r: Read) => r.flag('Ensure solubility')
 
+// 色数上限:保证可解时每次插两格(奇数面积开头有一次三格,samegame.c:24-26),块数
+// 就是 ⌊面积/2⌋,能出现的颜色不可能比块多——2×2 只出得来 2 色、3×3 只出得来 4 色,
+// 实测取等。不保证可解时上游自己要求每色两格(309),两侧同一个式子。
+const palette = (r: Read) => Math.min(9, Math.floor((r.int('Width') * r.int('Height')) / 2))
+
 const samegame: Game = {
   id: 'samegame',
   upstream: {
@@ -28,14 +33,19 @@ const samegame: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', () => range(1, CAP)),
-      // 保证可解要面积 ≥ 2;不保证时每种颜色至少两格,颜色至少 2 种(samegame.c:299-311)。
-      int('Height', (r) => range(Math.ceil((soluble(r) ? 2 : 4) / r.int('Width')), CAP)),
-      int('No. of colours', (r) =>
-        soluble(r)
-          ? range(3, 9)
-          : range(2, Math.min(9, Math.floor((r.int('Width') * r.int('Height')) / 2))),
-      ),
+      // 宽高从 2 起:上游只查面积(302/309),1×n 能生成也不崩,但消完的复位是「各列
+      // 下落 + 空列左移」(1214),宽 1 没有列可移、高 1 没有格可落,都退化成一维消除。
+      // 两维都 ≥ 2 后面积恒 ≥ 4,不勾时那条「面积 ≥ 2×色数 ⇒ ≥ 4」自动满足,高不用再看宽。
+      int('Width', () => range(2, CAP)),
+      int('Height', () => range(2, CAP)),
+      // 下限:上游勾着要 ≥ 3(300)、不勾要 ≥ 2(305);勾着且宽 > 20 时再抬到 4——三色
+      // 保证可解是拒绝采样,重来次数对宽是指数的(每加一列 ×1.7),而四色起整个 100×100
+      // 最坏 0.21 秒(五色起一格最多四个邻居,鸽笼保证永不堵色,528)。
+      // 2×2 勾着时上限比下限还低,取下限:那一格上游只认 3。
+      int('No. of colours', (r) => {
+        const lo = soluble(r) ? (r.int('Width') > 20 ? 4 : 3) : 2
+        return range(lo, Math.max(lo, palette(r)))
+      }),
     ],
   },
   prefs: { panel: verbatim, volatile: false },

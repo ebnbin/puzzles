@@ -115,6 +115,14 @@ const EXPECTED_NARROWER = {
   // 宽高从 4 起:上游放行 3×4(勾了唯一解时两维 > 2 即可),但 3×3 面积不够放雷、
   // 3×n 高密度时唯一解生成不收敛(见 docs/params.md 第四节)。
   mines: (label, v) => (label === 'Width' || label === 'Height') && v < 4,
+  // 宽高从 2 起(1×n 退化成一维消除);色数上限统一封到 ⌊面积/2⌋(勾着时上游不查,
+  // 但块数就这么多,多出来的档拖了也一格不变),勾着且宽 > 20 时下限抬到 4。
+  samegame: (label, v, side, forced) => {
+    if (label === 'Width' || label === 'Height') return v < 2
+    const w = Number(forced[0].value)
+    const h = Number(forced[1].value)
+    return v > Math.floor((w * h) / 2) || (forced[4].value && w > 20 && v < 4)
+  },
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
