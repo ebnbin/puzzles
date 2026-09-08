@@ -1731,7 +1731,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 已经逐个实测定夺过、不在此列的游戏:Net、Cube、Fifteen、Sixteen、Twiddle、Rectangles、Netslide。
 
-不是网格维度的计数(最该先看的):Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。
+不是网格维度的计数(最该先看的):Guess 的 `Pegs per guess`、Guess 的 `Guesses`、Dominosa 的 `Maximum number on dominoes`、Untangle 的 `Number of points`、Flood 的 `Extra moves permitted`。
 
 ## 六、已知问题
 

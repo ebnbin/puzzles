@@ -75,6 +75,13 @@ const check = checkLog()
 const CAPSRC = { up: '上游自身', cap: 'CAP 100', grid: '棋盘 ≤ 100 宽', sem: '按语义补', local: '本游戏自定' }
 // 已经逐个读上游 + 实测定过范围的游戏(params-doc 的 tuned),不再算「待调优」。
 const TUNED = GAMES.filter((g) => g.tuned)
+// 第五节那句「最该先看的」自己算出来:还没定夺、被 CAP 封顶、又不是网格维度的参数。
+// 手写会过期——Sixteen / Twiddle / Netslide 定完之后那句话就错了一轮。
+const COUNTS = GAMES.filter((g) => !g.tuned).flatMap((g) =>
+  g.params
+    .filter((p) => (p.c === 'cap' || p.c === 'grid') && p.label !== 'Width' && p.label !== 'Height')
+    .map((p) => ({ game: g.title, label: p.label })),
+)
 const KIND = { int: '整数', float: '浮点', span: '区间「a-b」' }
 const WIDGET = { int: '滑块 + 步进', float: '滑块 + 步进', span: '一对滑块(最少 / 最多)' }
 const nStrings = GAMES.reduce((n, g) => n + g.params.length, 0)
@@ -215,7 +222,7 @@ for (const g of GAMES)
       if (p.c === 'cap' || p.c === 'grid') md.push(`| ${g.title} | \`${p.label}\` | ${p.sem} | ${p.f} |`)
 md.push('')
 md.push(`已经逐个实测定夺过、不在此列的游戏:${TUNED.map((g) => g.title).join('、')}。\n`)
-md.push('不是网格维度的计数(最该先看的):Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。\n')
+md.push(`不是网格维度的计数(最该先看的):${COUNTS.map((c) => `${c.game} 的 \`${c.label}\``).join('、')}。\n`)
 
 md.push('## 六、已知问题\n')
 md.push(...KNOWN.map((k) => `- ${k}`))
@@ -427,7 +434,7 @@ for (const g of GAMES)
       if (p.c === 'cap' || p.c === 'grid') h.push(`<tr><td><a href="#g-${g.id}">${esc(g.title)}</a></td><td class="label"><code>${esc(p.label)}</code></td><td>${inline(p.sem)}</td><td>${inline(p.f)}</td></tr>`)
 h.push(`</tbody></table></div>
 <p>已经逐个实测定夺过、不在此列的游戏:${TUNED.map((g) => esc(g.title)).join('、')}。</p>
-<p>不是网格维度的计数,最该先看:Sixteen / Twiddle / Netslide 的打乱步数、Guess 的钉数(允许重复时)与猜测次数、Untangle 的点数、Flood 的额外步数。</p>`)
+<p>不是网格维度的计数,最该先看:${COUNTS.map((c) => `${esc(c.game)} 的 <code>${esc(c.label)}</code>`).join('、')}。</p>`)
 
 h.push(`<h2 id="s6">六、已知问题</h2><ul>${KNOWN.map((k) => `<li>${inline(k)}</li>`).join('')}</ul>`)
 
