@@ -144,6 +144,10 @@ const EXPECTED_NARROWER = {
   // 钉数和次数都封到 50:上游两个都没有上限(219、225)。50 钉平均要 36 次才
   // 猜得出来,50 次给到 1.4 倍富余;再往上提示点数不清(见 docs/params.md)。
   guess: (label, v) => (label === 'Pegs per guess' || label === 'Guesses') && v > 50,
+  // Random 封到 30:上游对它没有上限(只要求 > 3),但生成是拒绝采样,长出来那片的
+  // 面积恒为盘面的 57%,细长盘上够不到两头(50×10 两万次尝试零通过);见 docs/params.md。
+  // Cross / Octagon 的表是上游自己的穷举,探针试的都被上游拒,不算收窄。
+  pegs: (label, v, side, forced) => Number(forced[2].value) === 2 && v > 30,
   blackbox: (label, v, side) => label === 'No. of balls' && side === 'hi',
   // 宽高从 2 起(上游放行 1×n,生成时崩,见 docs/params.md 第四节);扩展因子的表是
   // 粒度 t = 0..1 换算出来的,顶到 base 缩成 2 那一点(e = 长边/2 − 1),再往上是同一局。
