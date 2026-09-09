@@ -14,7 +14,7 @@ import {
 import type { DialogSpec, Preset, PuzzleApi } from '../../engine/types'
 import type { Game } from '../../games/game'
 import type { Resolved } from '../../useTheme'
-import { SHORTCUTS_KW, useShortcuts } from './useShortcuts'
+import { SHORTCUTS_OFF } from './useShortcuts'
 
 export const START_FAILED = '\0start'
 
@@ -44,6 +44,9 @@ type EngineArgs = {
     tookDialog(spec: DialogSpec | null): void
     tookError(message: string): boolean
   }
+  // 开局补发的那一手也会走到 midend_new_game,用的还是存档里玩家选的参数,
+  // 所以和别的发牌一样走镜像。
+  redeal(api: PuzzleApi): void
 }
 
 export function useEngine({
@@ -59,6 +62,7 @@ export function useEngine({
   board,
   outcome,
   config,
+  redeal,
 }: EngineArgs) {
   const { heard, moved, sleep, gated, dealt, frame } = board
   const { checkStatus, arrived } = outcome
@@ -80,11 +84,6 @@ export function useEngine({
   const savePending = useRef(false)
   const themeRef = useRef(theme)
   themeRef.current = theme
-  // 设置面板只在画廊出现,而画廊和棋局互斥(App.tsx),所以这一位在局内不会变:
-  // 改完再进游戏,loadPrefs 重跑一遍就是新值。
-  const shortcuts = useShortcuts()
-  const shortcutsRef = useRef(shortcuts)
-  shortcutsRef.current = shortcuts
 
   const queueSave = useCallback(() => {
     if (!armedSave.current || savePending.current) return
@@ -123,7 +122,7 @@ export function useEngine({
       dark: themeRef.current === 'dark',
       spec: game.dark,
       defaults: game.prefs.defaults,
-      forced: { [SHORTCUTS_KW]: String(shortcutsRef.current) },
+      forced: SHORTCUTS_OFF,
       callbacks: {
         onReady(list, api) {
           apiRef.current = api
@@ -136,9 +135,9 @@ export function useEngine({
             } finally {
               restoring.current = false
             }
-            // 没走过子的存档也要先 load 再用 newGame 盖掉,不能跳过 load:
+            // 没走过子的存档也要先 load 再用发牌盖掉,不能跳过 load:
             // 存档里还有玩家选的参数(尺寸、难度),参数要活下来,棋盘不留。
-            if (restored && !isPlayed(saved)) api.newGame()
+            if (restored && !isPlayed(saved)) redeal(api)
           }
           setPresets(list && [...game.types.menu(list)])
           setReady(true)

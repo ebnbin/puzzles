@@ -11,4 +11,10 @@ import { makeFlag } from '../../store'
 export const SHORTCUTS_KW = 'one-key-shortcuts'
 export const SHORTCUTS_LABEL = 'Keyboard shortcuts without Ctrl'
 
+// 在引擎里一律关掉,这几个键改由 usePuzzleKeys 补发。原因只有一个:里头的 n 会
+// 走到 midend_new_game(midend.c:1005),而发牌不能在主线程上跑。判据照抄上游的
+// ——只有游戏本身没要这一按(key() 答 PKR_UNUSED)才算快捷键,所以 tents 那种
+// 拿 N 当走子键的游戏行为不变。开关本身还是全局那一位,只是由我们执行。
+export const SHORTCUTS_OFF = { [SHORTCUTS_KW]: 'false' } as const
+
 export const [useShortcuts, setShortcuts] = makeFlag('puzzles.shortcuts', true)

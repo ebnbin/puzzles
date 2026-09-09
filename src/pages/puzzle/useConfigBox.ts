@@ -4,6 +4,7 @@
 // dialog(真正的模态,兜底)。
 import { useCallback, useRef, useState } from 'react'
 import type { DialogControl, DialogSpec, PuzzleApi } from '../../engine/types'
+import type { DealResult } from './useDeal'
 
 const CUSTOM_PRESET = -1
 
@@ -20,6 +21,8 @@ export function useConfigBox(
   apiRef: React.RefObject<PuzzleApi | null>,
   acted: () => void,
   setPrefs: React.Dispatch<React.SetStateAction<readonly DialogControl[]>>,
+  // 自定义参数的「确定」会发牌,所以它走镜像,不在主线程上 dialogOk。
+  deal: (values: readonly (string | number | boolean)[]) => Promise<DealResult>,
 ) {
   const [dialog, setDialog] = useState<DialogSpec | null>(null)
   const [inline, setInline] = useState<Inline | null>(null)
@@ -86,6 +89,13 @@ export function useConfigBox(
     apiRef.current?.dialogCancel()
   }, [apiRef])
 
+  // 提交完 box 要是关上了就再开一次:面板一直挂在 Types/Menu 里,得有活的控件。
+  const reopen = useCallback((api: PuzzleApi, kind: InlineKind) => {
+    if (inlineRef.current) return
+    inlinePending.current = kind
+    ask(api, kind)
+  }, [])
+
   const commitInline = useCallback(() => {
     const api = apiRef.current
     const open = inlineRef.current
@@ -93,12 +103,30 @@ export function useConfigBox(
     if (values(open.spec.controls) === inlineBaseline.current) return
     acted()
     setInlineError(null)
-    api.dialogOk()
-    if (!inlineRef.current) {
-      inlinePending.current = open.kind
-      ask(api, open.kind)
+
+    if (open.kind === 'custom') {
+      // 主线程这只 box 一直开着、一直没提交,所以参数非法时它原地等玩家改,
+      // 取消时也什么都不用退。只有镜像算出新的一局才轮到主线程接手。
+      const wanted = open.spec.controls.map((control) => control.value)
+      void deal(wanted).then((outcome) => {
+        const live = apiRef.current
+        if (!live) return
+        if (outcome.status === 'failed') return setInlineError(outcome.error)
+        if (outcome.status === 'unavailable') {
+          live.dialogOk()
+          return reopen(live, 'custom')
+        }
+        if (outcome.status !== 'done') return
+        live.dialogCancel()
+        live.loadGame(outcome.save)
+        reopen(live, 'custom')
+      })
+      return
     }
-  }, [acted, apiRef])
+
+    api.dialogOk()
+    reopen(api, open.kind)
+  }, [acted, apiRef, deal, reopen])
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
   // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
