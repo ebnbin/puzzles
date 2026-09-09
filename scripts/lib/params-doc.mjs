@@ -519,9 +519,18 @@ export const GAMES = [
     ],
   },
   {
-    id: 'untangle', title: 'Untangle', file: 'untangle.c',
+    id: 'untangle', title: 'Untangle', file: 'untangle.c', tuned: true,
     params: [
       { label: 'Number of points', kind: 'int', sem: '点数', u: ['≥ 4(224)', '无上限(仅防溢出,230)'], f: '4..100', d: '—', c: 'cap' },
+    ],
+    notes: [
+      '**定下来的**:4..100,一格没改——下限就是上游自己的,上限 100 由 owner 真机验过(生成不慢、也看得清)。'
+        + '唯一的 string 控件,没有跨参数依赖,所以也没有夹值问题。',
+      '**下限 4 要看对分支**:`validate_params`(222-232)有两套门槛,`#ifndef EDITOR` 那支是 **n ≥ 4**、'
+        + '`#else` 那支是 n ≥ 1。`EDITOR` 只在 `CMakeLists.txt:272` 的 `grapheditor` 那个独立程序上定义'
+        + '(`guiprogram(grapheditor untangle.c ... COMPILE_DEFINITIONS EDITOR)`),`puzzle(untangle ...)` 这条正常目标不带它——'
+        + '我们的 wasm 走的是后者,所以生效的是 **n ≥ 4**,那条 n ≥ 1 够不着。',
+      '上游那条 `n ≤ INT_MAX/3`(230)只是防溢出,离 100 差着十个数量级。预设 6 / 10 / 15 / 20 / 25,默认 10,都落在表里。',
     ],
   },
   {

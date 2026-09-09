@@ -953,6 +953,12 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 - **依赖**:—;**上限来源**:CAP 100;**控件**:滑块 + 步进
 - **默认参数下的表**:4..100(97 个)
 
+> **定下来的**:4..100,一格没改——下限就是上游自己的,上限 100 由 owner 真机验过(生成不慢、也看得清)。唯一的 string 控件,没有跨参数依赖,所以也没有夹值问题。
+
+> **下限 4 要看对分支**:`validate_params`(222-232)有两套门槛,`#ifndef EDITOR` 那支是 **n ≥ 4**、`#else` 那支是 n ≥ 1。`EDITOR` 只在 `CMakeLists.txt:272` 的 `grapheditor` 那个独立程序上定义(`guiprogram(grapheditor untangle.c ... COMPILE_DEFINITIONS EDITOR)`),`puzzle(untangle ...)` 这条正常目标不带它——我们的 wasm 走的是后者,所以生效的是 **n ≥ 4**,那条 n ≥ 1 够不着。
+
+> 上游那条 `n ≤ INT_MAX/3`(230)只是防溢出,离 100 差着十个数量级。预设 6 / 10 / 15 / 20 / 25,默认 10,都落在表里。
+
 预设:6 points `6`;10 points `10`;15 points `15`;20 points `20`;25 points `25`。
 
 ### Black Box(`blackbox.c`)
@@ -1782,7 +1788,6 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 | 游戏 | 控件 | 语义 | 现在的表 |
 | --- | --- | --- | --- |
-| Untangle | `Number of points` | 点数 | 4..100 |
 | Black Box | `Width` | 棋盘宽 | 2..100 |
 | Black Box | `Height` | 棋盘高 | 2..100 |
 | Slant | `Width` | 棋盘宽 | 2..100 |
@@ -1822,9 +1827,9 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | Mosaic | `Height` | 棋盘高(上游把高排在宽前面) | 3..100 |
 | Mosaic | `Width` | 棋盘宽 | 3..100 |
 
-已经逐个实测定夺过、不在此列的游戏:Net、Cube、Fifteen、Sixteen、Twiddle、Rectangles、Netslide、Pattern、Mines、Same Game、Flip、Guess、Pegs、Dominosa。
+已经逐个实测定夺过、不在此列的游戏:Net、Cube、Fifteen、Sixteen、Twiddle、Rectangles、Netslide、Pattern、Mines、Same Game、Flip、Guess、Pegs、Dominosa、Untangle。
 
-不是网格维度的计数(最该先看的):Untangle 的 `Number of points`、Flood 的 `Extra moves permitted`。
+不是网格维度的计数(最该先看的):Flood 的 `Extra moves permitted`。
 
 ## 六、已知问题
 
