@@ -123,6 +123,10 @@ const EXPECTED_NARROWER = {
     const h = Number(forced[1].value)
     return v > Math.floor((w * h) / 2) || (forced[4].value && w > 20 && v < 4)
   },
+  // 宽高 2..50 且面积 ≤ 1000。上游只查 > 0(191)和面积² ≤ INT_MAX−3(195):
+  // 1×2 配 Random 是结构性死循环,上限则是 DESC = ⌈面积²/4⌉ 个字符撑不住(596)。
+  flip: (label, v, side, forced) =>
+    v < 2 || v > 50 || Number(forced[0].value) * Number(forced[1].value) > 1000,
   dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
