@@ -106,19 +106,23 @@ export function useConfigBox(
 
     if (open.kind === 'custom') {
       // 主线程这只 box 一直开着、一直没提交,所以参数非法时它原地等玩家改,
-      // 取消时也什么都不用退。只有镜像算出新的一局才轮到主线程接手。
+      // 和上游一样。只有镜像算出新的一局才轮到主线程接手。
       const wanted = open.spec.controls.map((control) => control.value)
       void deal(wanted).then((outcome) => {
         const live = apiRef.current
         if (!live) return
         if (outcome.status === 'failed') return setInlineError(outcome.error)
+        // busy 说明还有一次发牌在路上,由它去收尾,这里动手会把它的现场掀了。
+        if (outcome.status === 'busy') return
         if (outcome.status === 'unavailable') {
           live.dialogOk()
           return reopen(live, 'custom')
         }
-        if (outcome.status !== 'done') return
+        // done 和 cancelled 都要把玩家改过的那份 cfg 丢掉——它从没提交过。不丢的话
+        // 取消之后框里留着一个改了却没生效的值,和引擎里的参数对不上,是会撒谎的界面。
+        // 重开一份是问引擎现在的参数要的,两种情况显示的都是真话。
         live.dialogCancel()
-        live.loadGame(outcome.save)
+        if (outcome.status === 'done') live.loadGame(outcome.save)
         reopen(live, 'custom')
       })
       return
