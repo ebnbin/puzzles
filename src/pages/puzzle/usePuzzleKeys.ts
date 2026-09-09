@@ -12,6 +12,20 @@ const BARE = new Set([
   'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'NumLock', 'ScrollLock',
 ])
 
+// 上游的四个裸字母快捷键里我们补三个(midend.c:1005-1036)。q 不补:emcc 拿到
+// PKR_QUIT 什么都不做,网页里本来就退不出去。
+//
+// 大小写两个键名都收,但按住 Shift 的那一次不算:上游比的是带修饰位的 button,
+// 而 emcc 会给 Shift 的按键加上 MOD_SHFT(emcc.c:445),'N'|MOD_SHFT 匹配不上
+// 'N',所以在这个前端里 Shift+N 从来就不是快捷键。CapsLock 打出的 N 没有那一位,
+// 是快捷键——这里的判据要和它一模一样。
+export type Shortcut = 'newGame' | 'undo' | 'redo'
+const SHORTCUTS: Readonly<Record<string, Shortcut>> = {
+  n: 'newGame', N: 'newGame',
+  u: 'undo', U: 'undo',
+  r: 'redo', R: 'redo',
+}
+
 // 焦点当下归谁。'control' 只让出 Space / Enter——按钮和链接只对这两个键有
 // 意义,别的键让给谜题,玩家就不必为了继续玩而先去点一下棋盘。
 type Seat = 'typing' | 'control' | 'none'
@@ -35,6 +49,8 @@ export function usePuzzleKeys({
   typed,
   volatile,
   readPrefs,
+  shortcuts,
+  onShortcut,
 }: {
   ready: boolean
   blocked: boolean
@@ -43,6 +59,9 @@ export function usePuzzleKeys({
   typed: (s: Stroke) => void
   volatile: boolean
   readPrefs: () => void
+  // 全局那一位。引擎里的同名偏好被我们强制关掉了,见 useShortcuts.SHORTCUTS_OFF。
+  shortcuts: boolean
+  onShortcut: (which: Shortcut) => void
 }) {
   useEffect(() => {
     if (!ready || blocked) return
@@ -66,11 +85,17 @@ export function usePuzzleKeys({
         ...(e.shiftKey ? { shift: true as const } : {}),
         ...(e.ctrlKey ? { ctrl: true as const } : {}),
       })
-      if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0))
+      // 先问引擎要不要。答不要(PKR_UNUSED)才轮到快捷键——这一条就是上游的
+      // 判据,照抄它,拿 n/u/r 当走子键的游戏才不会被抢走。
+      if (api.key(e.keyCode, e.key, '', e.location, e.shiftKey ? 1 : 0, e.ctrlKey ? 1 : 0)) {
         e.preventDefault()
+      } else if (shortcuts && !e.shiftKey && SHORTCUTS[e.key]) {
+        e.preventDefault()
+        onShortcut(SHORTCUTS[e.key])
+      }
       if (volatile) readPrefs()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, blocked, apiRef, acted, typed, volatile, readPrefs])
+  }, [ready, blocked, apiRef, acted, typed, volatile, readPrefs, shortcuts, onShortcut])
 }

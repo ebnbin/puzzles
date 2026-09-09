@@ -2,6 +2,29 @@ import type { Dark } from './palette'
 import { CanvasRenderer } from './renderer'
 import type { Preset, PuzzleApi, PuzzleCallbacks } from './types'
 
+// 三层,上游逐行赋值、后写的盖先写的,所以位置就是语义:申报的默认值垫在存档
+// 下面(用户改得动),全局的强制值压在存档上面(用户改不动)。整份只要有一行解析
+// 不了,上游把它全丢掉(midend.c:3223),所以行只许在这里拼。镜像也要同一份:
+// 偏好住在 game_ui 里,而 decode_ui 跑在 apply_prefs 之后。
+export function composePrefs(
+  name: string,
+  defaults?: Readonly<Record<string, string>>,
+  forced?: Readonly<Record<string, string>>,
+): string | null {
+  const lines = (from: Readonly<Record<string, string>> | undefined) =>
+    Object.entries(from ?? {})
+      .map(([kw, value]) => `${kw}=${value}\n`)
+      .join('')
+  let stored = ''
+  try {
+    stored = window.localStorage.getItem(`puzzles.prefs.${name}`) ?? ''
+  } catch {
+  }
+  // 存档少了收尾的换行就会和压顶那行黏成一个认不出的关键字,补一个。
+  if (stored && !stored.endsWith('\n')) stored += '\n'
+  return lines(defaults) + stored + lines(forced) || null
+}
+
 export async function createPuzzle(options: {
   name: string
   canvas: HTMLCanvasElement
@@ -50,25 +73,7 @@ export async function createPuzzle(options: {
       canvas.focus()
     },
 
-    // 三层,上游逐行赋值、后写的盖先写的,所以位置就是语义:申报的默认值垫在
-    // 存档下面(用户改得动),全局的强制值压在存档上面(用户改不动)。整份只要有
-    // 一行解析不了,上游把它全丢掉(midend.c:3223),所以行只许在这里拼。
-    loadPrefs(): string | null {
-      const lines = (from: Readonly<Record<string, string>> | undefined) =>
-        Object.entries(from ?? {})
-          .map(([kw, value]) => `${kw}=${value}\n`)
-          .join('')
-      const under = lines(defaults)
-      const over = lines(forced)
-      let stored = ''
-      try {
-        stored = window.localStorage.getItem(prefsKey) ?? ''
-      } catch {
-      }
-      // 存档少了收尾的换行就会和压顶那行黏成一个认不出的关键字,补一个。
-      if (stored && !stored.endsWith('\n')) stored += '\n'
-      return under + stored + over || null
-    },
+    loadPrefs: () => composePrefs(name, defaults, forced),
 
     savePrefs(data: string) {
       try {

@@ -2,6 +2,7 @@
 // useConfigBox 管对话框协议、useOutcome 判完成),这里把它们接起来再画出来。
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PuzzleActions from './PuzzleActions'
+import PuzzleDealing from './PuzzleDealing'
 import PuzzleDialog from './PuzzleDialog'
 import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
@@ -16,6 +17,7 @@ import type { Key } from '../../games/game'
 import { padButtons } from '../../games/util/pad'
 import { markIntroduced, owesIntroduction } from '../../engine/saves'
 import type { CanvasRenderer } from '../../engine/renderer'
+import type { DealAction } from '../../engine/deal'
 import type { DialogControl, PuzzleApi } from '../../engine/types'
 import { openManual } from '../manual/Manual'
 import { manualHref, fill, useLang, useStrings } from '../../i18n'
@@ -23,16 +25,17 @@ import { showGallery } from '../../view'
 import { useAssist } from './useAssist'
 import { useArrows } from './useArrows'
 import { usePrefer } from './usePrefer'
-import { SHORTCUTS_LABEL } from './useShortcuts'
+import { SHORTCUTS_LABEL, useShortcuts } from './useShortcuts'
 import { useBoard } from './useBoard'
 import { useConfigBox } from './useConfigBox'
+import { useDeal } from './useDeal'
 import { START_FAILED, useEngine } from './useEngine'
 import { useHelp } from './useHelp'
 import { useOutcome } from './useOutcome'
 import HoldTip, { useHoldTip } from '../../ui/HoldTip'
 import { useResolvedTheme } from '../../useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
-import { usePuzzleKeys } from './usePuzzleKeys'
+import { usePuzzleKeys, type Shortcut } from './usePuzzleKeys'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
@@ -81,7 +84,33 @@ export default function PuzzleHost({
   )
   const board = useBoard(game, apiRef, rendererRef, acted, preferRef)
   const outcome = useOutcome(name, apiRef)
-  const config = useConfigBox(apiRef, acted, board.setPrefs)
+  const dealer = useDeal(name, game, apiRef)
+
+  // 发牌:镜像算完才让主线程 loadGame 接手。失败弹提示,取消什么都不做——主线程
+  // 那一局从头到尾没被碰过,回滚就是原地不动。load_game 不像 command(2)/(5) 那样
+  // 自己收焦点(emcc.c),这里补上,不然发完牌键盘玩法要等玩家先点一下棋盘。
+  const runDeal = useCallback(
+    async (action: DealAction, direct: (api: PuzzleApi) => void) => {
+      const outcome = await dealer.deal(action)
+      const api = apiRef.current
+      if (!api) return
+      if (outcome.status === 'unavailable') direct(api)
+      else if (outcome.status === 'done') api.loadGame(outcome.save)
+      else if (outcome.status === 'failed') setError(outcome.error)
+      else return
+      canvasRef.current?.focus()
+    },
+    [dealer.deal],
+  )
+
+  // 自定义参数的提交也走镜像。包一层 useCallback 是为了让 commitInline 的身份
+  // 稳住:这个页面重渲染很勤(readPrefs 一路的 setState)。
+  const dealCustom = useCallback(
+    (values: readonly (string | number | boolean)[]) =>
+      dealer.deal({ kind: 'custom', values }),
+    [dealer.deal],
+  )
+  const config = useConfigBox(apiRef, acted, board.setPrefs, dealCustom)
   preferRef.current = config.writePrefs
   const engine = useEngine({
     name,
@@ -96,6 +125,8 @@ export default function PuzzleHost({
     board,
     outcome,
     config,
+    // 开局补发不算玩家动手:不 acted(),存档还是等玩家真走一步才写。
+    redeal: (api) => void runDeal({ kind: 'newGame' }, () => api.newGame()),
   })
 
   const { ready, permalink } = engine
@@ -110,6 +141,7 @@ export default function PuzzleHost({
     abandonInline,
   } = config
 
+  const shortcuts = useShortcuts()
   const wanted = useArrows()
   const arrows = wanted && game.arrows !== null
   const helping = useAssist()
@@ -203,6 +235,17 @@ export default function PuzzleHost({
     [dialog, acted],
   )
 
+  // act 的发牌版:同样的守卫和 acted(),只是动手的是镜像。direct 是没有镜像时
+  // (起不了模块 worker)在主线程上直接做的那件事——会卡,但不会没得玩。
+  const deal = useCallback(
+    (action: DealAction, direct: (api: PuzzleApi) => void) => {
+      if (!apiRef.current || dialog) return
+      acted()
+      void runDeal(action, direct)
+    },
+    [dialog, acted, runDeal],
+  )
+
   // 偏好变了就卸膛:上膛键的含义是偏好给的(palisade 切回 Half-grid 之后,原来那
   // 支 Ctrl 上膛既画不出边、也因为走不成而永远不自动卸,同伴键还一直藏着)。
   useEffect(() => {
@@ -232,14 +275,26 @@ export default function PuzzleHost({
   // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。手册也是
   // 覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必再报一位进来。
   const covered = !!dialog || helpOpen || typesOpen || menuOpen
+  // 上游那三个裸字母快捷键由我们补发,理由和判据都在 useShortcuts.SHORTCUTS_OFF。
+  // n 走镜像,u / r 本来就不发牌,照旧同步。
+  const onShortcut = useCallback(
+    (which: Shortcut) => {
+      if (which === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
+      else act((a) => (which === 'undo' ? a.undo() : a.redo()))
+    },
+    [act, deal],
+  )
+
   usePuzzleKeys({
     ready,
-    blocked: covered,
+    blocked: covered || dealer.dealing,
     apiRef,
     acted,
     typed: board.typed,
     volatile: game.prefs.volatile,
     readPrefs,
+    shortcuts,
+    onShortcut,
   })
 
   // 覆盖层全关上的那一刻把焦点还给棋盘。键盘不靠焦点活,但焦点留在触发键上会让
@@ -256,6 +311,9 @@ export default function PuzzleHost({
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key !== 'Escape') return
+      // 发牌期间 Escape 什么都不关:拦截层挡得住指针,挡不住键盘,而关掉底下那张
+      // sheet 会把还开着的参数 box 一起退掉,发牌回来就没地方落。
+      if (dealer.dealing) return
       if (typesOpen) closeTypes()
       else if (menuOpen) closeMenu()
       else return
@@ -263,7 +321,7 @@ export default function PuzzleHost({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, menuOpen, typesOpen, closeTypes, closeMenu])
+  }, [ready, menuOpen, typesOpen, closeTypes, closeMenu, dealer.dealing])
 
   const pressKey = useCallback(
     (key: Key<unknown>) => {
@@ -372,7 +430,7 @@ export default function PuzzleHost({
               className="is-primary"
               onClick={() => {
                 outcome.dismiss()
-                act((a) => a.newGame())
+                deal({ kind: 'newGame' }, (a) => a.newGame())
               }}
             >
               <Icon name="add" />
@@ -461,7 +519,7 @@ export default function PuzzleHost({
           customError={inlineError}
           onSelectPreset={(value) => {
             engine.setSelected(value)
-            act((a) => a.selectPreset(value))
+            deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value))
           }}
           onOpenCustom={() => openInline('custom')}
           onCloseCustom={closeInline}
@@ -480,7 +538,9 @@ export default function PuzzleHost({
           onCommitPrefs={commitInline}
           onAction={(action) => {
             abandonInline()
-            act((a) => a[action]())
+            // 三个动作里只有 newGame 会走到 midend_new_game;restart/solve 不发牌。
+            if (action === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
+            else act((a) => a[action]())
             setMenuOpen(false)
           }}
           onClose={closeMenu}
@@ -493,6 +553,10 @@ export default function PuzzleHost({
           onOk={() => apiRef.current?.dialogOk()}
           onCancel={() => apiRef.current?.dialogCancel()}
         />
+      )}
+
+      {dealer.dealing && (
+        <PuzzleDealing waiting={dealer.waiting} onCancel={dealer.cancel} />
       )}
     </div>
   )

@@ -2,7 +2,8 @@
 //   npm i --no-save playwright && node scripts/check-prefer.mjs
 //
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、createPuzzle 的
-// loadPrefs、任何一个游戏文件里的 Prefer 常量或 prefs.defaults,或者升级 vendor/ 之后跑。
+// composePrefs、usePuzzleKeys 补发的裸字母快捷键(见 useShortcuts.SHORTCUTS_OFF)、
+// 任何一个游戏文件里的 Prefer 常量或 prefs.defaults,或者升级 vendor/ 之后跑。
 // 守八条:
 //   一、认控件只能按英文 label(emcc 只把 name 交给 JS,kw 到不了这一侧)。上游改了
 //       那句话,键会「消失」而不是「按下去没反应」——下面逐个游戏点名断言它还在。
