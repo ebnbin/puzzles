@@ -127,7 +127,10 @@ const EXPECTED_NARROWER = {
   // 1×2 配 Random 是结构性死循环,上限则是 DESC = ⌈面积²/4⌉ 个字符撑不住(596)。
   flip: (label, v, side, forced) =>
     v < 2 || v > 50 || Number(forced[0].value) * Number(forced[1].value) > 1000,
-  dominosa: (label, v) => label === 'Maximum number on dominoes' && v > CAP - 2,
+  // n 的上限随难度走(Trivial / Basic / Hard / Extreme / Ambiguous):上游只查 n ≥ 1,
+  // 但它要求局面「恰好需要这个难度」,两头都贵——Hard 从 n=11、Extreme 从 n=9 起就是
+  // 几十秒,Ambiguous 不跑求解器所以免费。见 docs/params.md。
+  dominosa: (label, v, side, forced) => v > [25, 30, 15, 10, 50][Number(forced[1].value)],
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
     const r = Number(forced[1].value)

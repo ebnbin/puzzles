@@ -108,7 +108,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | Guess | `Guesses` | 整数 | 1..50 | — | 本游戏自定 |
 | Pegs | `Width` | 整数 | Cross:{5, 7, 9};Octagon:{7};Random:4..30 | 看「Board type」 | 本游戏自定 |
 | Pegs | `Height` | 整数 | Cross:{5, 7, 9},宽 5 时 {7, 9};Octagon:{7};Random:4..30 | 看类型和宽 | 本游戏自定 |
-| Dominosa | `Maximum number on dominoes` | 整数 | 1..98 | — | 棋盘 ≤ 100 宽 |
+| Dominosa | `Maximum number on dominoes` | 整数 | 1..上限,上限随难度:Trivial 25 / Basic 30 / Hard 15 / Extreme 10 / Ambiguous 50 | 看「Difficulty」 | 本游戏自定 |
 | Untangle | `Number of points` | 整数 | 4..100 | — | CAP 100 |
 | Black Box | `Width` | 整数 | 2..100 | 主 | CAP 100 |
 | Black Box | `Height` | 整数 | 2..100 | 主 | CAP 100 |
@@ -911,15 +911,27 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 #### `Maximum number on dominoes`(整数)
 
-- **语义**:骨牌上的最大点数 n;棋盘 (n+2)×(n+1) 格
+- **语义**:骨牌上的最大点数 n;棋盘 (n+2)×(n+1) 格,骨牌 (n+1)(n+2)/2 张
 - **上游**(`dominosa.c`):
   - ≥ 1(249)
   - 无上限(仅防溢出,251)
-- **本仓库的表**:1..98
-- **依赖**:—;**上限来源**:棋盘 ≤ 100 宽;**控件**:滑块 + 步进
-- **默认参数下的表**:1..98(98 个)
+- **本仓库的表**:1..上限,上限随难度:Trivial 25 / Basic 30 / Hard 15 / Extreme 10 / Ambiguous 50
+- **依赖**:看「Difficulty」;**上限来源**:本游戏自定;**控件**:滑块 + 步进
+- **默认参数下的表**:1..30(30 个)
 
-> 98 = 棋盘宽 n+2 不超过 100。
+> **定下来的**:n 的上限随难度走——Trivial 25、Basic 30、Hard 15、Extreme 10、Ambiguous 50,下限五档都是上游的 1。上游对 n 只有「≥ 1」和防溢出两条,没有实质上限。
+
+> **成本按难度裂开,而且是 U 形的**,机制在生成循环的两句判据(2337-2345):`run_solver(sc, diff) > 1` 就重来(这个难度解不出来),`sc->max_diff_used < diff` 也重来(更低的难度就能解出来)——要求局面**恰好**需要这个难度,而且没有次数上限。Hard 以上还要先过两道预筛(2317-2334):`alloc_try_hard`,再要求 Basic 解不出来、且没有任何骨牌只剩一个可放位置。Ambiguous 那一支根本不跑求解器(2289)。于是 **Basic 最便宜**(大多数随机盘天然落在这一档),**Trivial 贵**(盘子一大,「只用最傻的推理就能解完」越来越罕见),**Hard / Extreme 最贵**(要求基本推理做不出来),**Ambiguous 免费**。
+
+> **实测**(原生,每格 3–5 个种子)。Trivial:n=15 → 0.117 秒、18 → 0.534、**20 → 2.35**、21 → 3.20、22 → 10.8、23 → 18.3、25 → 17.1。Basic:15 → 0.134、18 → 0.439、20 → 0.761、**25 → 5.25**、26 → 15.4、27 → **59.9**、28 → >180。Hard:6 → 0.065、8 → 1.20、9 → 2.10、**10 → 1.64**、11 → 25.9(单局)、12 起五个种子全部 >120 秒,一直到 98。Extreme:6 → 0.223、7 → 0.317、**8 → 1.71**、9 → 11.7、10 → 10.9、11 → 24.9、12 → 单局 900 秒不出,12 起同样整段打不开。Ambiguous:n=98(100×99 的盘)也只要 0.009 秒。**小 n 那头没有坑**:n=1..5 在五个难度下全部瞬时(专门查过「3×2 的盘能不能要求 Extreme 推理」,实测能)。
+
+> **上限是 owner 定的,明知代价**:选的 25 / 30 / 15 / 10 / 50 都比我建议的 20 / 25 / 10 / 8 / 30 高一档,也就是明确接受了「Trivial 25 要十几秒、Basic 30 和 Hard 15 是分钟量级」。要收回来的话我建议的那一组对应的实测分别是 2.35 / 5.25 / 1.64 / 1.71 / 0.000 秒。
+
+> **可读性**:棋盘 (n+2)×(n+1),每格写一个 0..n 的数字,字号 = 格边长的一半(3257),n ≥ 10 起是两位数。1440×900 实测字号:n=9 是 32 px、15 是 21、20 是 16.5、25 是 13.5、30 是 **11.5**、40 是 8.5、50 是 7.0、98 是 3.5;2560×1440 上 50 是 12、60 是 10;390×844 手机上 15 就只有 10.5 了。按大屏字号 ≥ 10 px 是 n ≤ 60,按笔记本 ≥ 11.5 px 是 n ≤ 30。
+
+> **工作量** = 要摆的骨牌数 = (n+1)(n+2)/2:n=9 是 55 张(上游最大的预设)、20 是 231、25 是 351、30 是 496、50 是 1326。
+
+> `Ambiguous` 这一档就是上游删掉的那个「确保唯一解」开关——`decode_params` 里 `'a'` 那一支的注释写着 "Legacy encoding from before the difficulty system"。上游把 checkbox 折进了难度梯,12 个预设里没有一个用它。
 
 预设:Order 3, Trivial `3dt`;Order 4, Trivial `4dt`;Order 5, Trivial `5dt`;Order 6, Trivial `6dt`;Order 4, Basic `4db`;Order 5, Basic `5db`;Order 6, Basic `6db`;Order 7, Basic `7db`;Order 8, Basic `8db`;Order 9, Basic `9db`;Order 6, Hard `6dh`;Order 6, Extreme `6de`。
 
@@ -1770,7 +1782,6 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 
 | 游戏 | 控件 | 语义 | 现在的表 |
 | --- | --- | --- | --- |
-| Dominosa | `Maximum number on dominoes` | 骨牌上的最大点数 n;棋盘 (n+2)×(n+1) 格 | 1..98 |
 | Untangle | `Number of points` | 点数 | 4..100 |
 | Black Box | `Width` | 棋盘宽 | 2..100 |
 | Black Box | `Height` | 棋盘高 | 2..100 |
@@ -1811,9 +1822,9 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | Mosaic | `Height` | 棋盘高(上游把高排在宽前面) | 3..100 |
 | Mosaic | `Width` | 棋盘宽 | 3..100 |
 
-已经逐个实测定夺过、不在此列的游戏:Net、Cube、Fifteen、Sixteen、Twiddle、Rectangles、Netslide、Pattern、Mines、Same Game、Flip、Guess、Pegs。
+已经逐个实测定夺过、不在此列的游戏:Net、Cube、Fifteen、Sixteen、Twiddle、Rectangles、Netslide、Pattern、Mines、Same Game、Flip、Guess、Pegs、Dominosa。
 
-不是网格维度的计数(最该先看的):Dominosa 的 `Maximum number on dominoes`、Untangle 的 `Number of points`、Flood 的 `Extra moves permitted`。
+不是网格维度的计数(最该先看的):Untangle 的 `Number of points`、Flood 的 `Extra moves permitted`。
 
 ## 六、已知问题
 
@@ -1834,7 +1845,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 2. **健全**:choices × boolean 的全部组合(超过 96 种抽 96 种)下,按申报顺序把每张表走一遍(大表抽两头、等距、随机共 14 个),走出来的每个组合上游都放行;路上没有空表;settle 对表内组合是 no-op;另从随机乱值出发 settle 之后上游也放行。
 3. **紧**:表外一格(下界减一、上界加一、表中间的洞)按界面做法钉住、后面的参数照 settle 落定,上游若放行就是「比上游窄」——只有第四节登记过的算预期。
 
-最近一次全量结果(耗时 11 秒):
+最近一次全量结果(耗时 10 秒):
 
 | 游戏 | 结果 | 固定组合 | 走过的组合 | 表外探针 | 预期的收窄 |
 | --- | --- | --- | --- | --- | --- |
@@ -1852,7 +1863,7 @@ Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面�
 | flip | ok | 2 | 383 | 56 | 56 |
 | guess | ok | 4 | 4623 | 748 | 353 |
 | pegs | ok | 3 | 254 | 47 | 14 |
-| dominosa | ok | 5 | 187 | 10 | 5 |
+| dominosa | ok | 5 | 178 | 10 | 5 |
 | untangle | ok | 1 | 37 | 1 | 0 |
 | blackbox | ok | 1 | 26778 | 551 | 179 |
 | slant | ok | 2 | 400 | 28 | 0 |
