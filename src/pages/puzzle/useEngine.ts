@@ -245,7 +245,6 @@ export function useEngine({
     status,
     presets,
     selected,
-    setSelected,
     standard,
     canSolve,
     undoRedo,
