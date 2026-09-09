@@ -19,7 +19,7 @@ import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { flag, hintKey, preferKeys } from './util/keys'
 import { step } from './util/pad'
-import { CAP, int, range } from './util/params'
+import { int, range } from './util/params'
 
 // 引擎调色板里按名字认下来的槽号:钉子色从 6 号起、边框借 1 号。升级 vendor
 // 后要重新核对。
@@ -60,9 +60,12 @@ const guess: Game = {
   types: {
     menu: verbatim,
     params: [
+      // 上游对钉数和次数都不设上限(219、225),这两个 50 是本仓库定的:布局是
+      // 一条线性式子(1029-1053),宽跟着钉数、高跟着「色数和次数的较大者」,
+      // 50×50 时一个钉子 12 px、格里的数字 6 px、右边的提示点只剩 4 px。
       int('Colours', () => range(2, 10)),
-      int('Pegs per guess', (r) => range(2, r.flag('Allow duplicates') ? CAP : r.int('Colours'))),
-      int('Guesses', () => range(1, CAP)),
+      int('Pegs per guess', (r) => range(2, r.flag('Allow duplicates') ? 50 : r.int('Colours'))),
+      int('Guesses', () => range(1, 50)),
     ],
   },
   prefs: { panel: verbatim, volatile: true, defaults: NUMBERED },

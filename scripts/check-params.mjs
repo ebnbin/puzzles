@@ -141,6 +141,9 @@ const EXPECTED_NARROWER = {
     const order2 = jigsaw ? c * r === 2 : c === 2 && r === 2
     return order2 && ([2, 5, 7].includes(symm) || forced[4].value)
   },
+  // 钉数和次数都封到 50:上游两个都没有上限(219、225)。50 钉平均要 36 次才
+  // 猜得出来,50 次给到 1.4 倍富余;再往上提示点数不清(见 docs/params.md)。
+  guess: (label, v) => (label === 'Pegs per guess' || label === 'Guesses') && v > 50,
   blackbox: (label, v, side) => label === 'No. of balls' && side === 'hi',
   // 宽高从 2 起(上游放行 1×n,生成时崩,见 docs/params.md 第四节);扩展因子的表是
   // 粒度 t = 0..1 换算出来的,顶到 base 缩成 2 那一点(e = 长边/2 − 1),再往上是同一局。
