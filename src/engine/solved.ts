@@ -8,8 +8,7 @@ import { done, fields } from '../games/util/save'
 //
 // RESTART 会把 cheated 洗掉(midend_restart_game 从 state 0 重新复制),所以只看
 // 最后一个 RESTART 之后有没有 SOLVE,不是整段历史。这一条和上游的 flash 一致。
-// 读不懂就按「求解过」算,方向和 isPlayed 相反:那边怕丢玩家一局,这边怕把求解器
-// 的成果记成玩家的。
+// 读不懂的存档就按「求解过」算:宁可漏记一次,也别把求解器的成果记成玩家的。
 export function usedSolver(save: string): boolean {
   const lines = fields(save)
   if (!lines) return true

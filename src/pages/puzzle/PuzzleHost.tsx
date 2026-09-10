@@ -125,8 +125,6 @@ export default function PuzzleHost({
     board,
     outcome,
     config,
-    // 开局补发不算玩家动手:不 acted(),存档还是等玩家真走一步才写。
-    redeal: (api) => void runDeal({ kind: 'newGame' }, () => api.newGame()),
   })
 
   const { ready, permalink } = engine
