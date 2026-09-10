@@ -1954,40 +1954,83 @@ p.notice-intro button:active {
   animation: scrim-in var(--dur) var(--ease) backwards;
 }
 
-/* 只有转圈和取消两样,卡片跟着内容收窄,别撑成一张空荡荡的大卡。 */
+/* 主角是那条一直在动的进度,取消是出口不是重点:所以进度给足宽度和呼吸,按钮
+   照仓库里其它对话框的样子,不额外加重。 */
 .deal-card {
   display: grid;
   justify-items: center;
-  gap: 1.1rem;
-  padding: 1.5rem;
+  gap: 1.25rem;
+  width: min(17rem, 100%);
+  padding: 1.4rem;
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-3);
   animation: sheet-in var(--dur-slow) var(--ease) backwards;
 }
 
+.deal-card:focus {
+  outline: none;
+}
+
+/* 和进度条同宽:两行左右对齐,卡片才像一件东西,不是两个物件凑在一起。 */
 .deal-card button {
+  width: 100%;
   min-height: var(--tap-h);
-  padding: 0.4rem 1.1rem;
+  padding: 0 1rem;
 }
 
-.deal-spinner {
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 2px solid var(--edge-key);
-  border-top-color: var(--accent);
+.deal-progress {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
   border-radius: var(--r-full);
-  animation: deal-spin 700ms linear infinite;
+  background: var(--surface-3);
 }
 
-@keyframes deal-spin {
-  to {
-    transform: rotate(1turn);
+/* 从左长满、再从右缩掉,来回不停:比「一截横着飞过去」好在任何一刻轨道上都有墨,
+   静止的截图里也看得出在动。只动 transform,不动布局。 */
+.deal-progress::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: deal-run 1.5s ease-in-out infinite;
+}
+
+@keyframes deal-run {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  49.9% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  50% {
+    transform: scaleX(1);
+    transform-origin: right;
+  }
+
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
   }
 }
 
+/* 不要横扫就改成整条呼吸:还在动,但不牵着视线跑。 */
 @media (prefers-reduced-motion: reduce) {
-  .deal-spinner {
-    animation-duration: 2s;
+  .deal-progress::before {
+    animation: deal-breathe 1.8s ease-in-out infinite;
+  }
+
+  @keyframes deal-breathe {
+    50% {
+      opacity: 0.3;
+    }
   }
 }
+
