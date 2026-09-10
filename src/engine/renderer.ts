@@ -201,7 +201,10 @@ export class CanvasRenderer {
   circle(x: number, y: number, r: number, fill: number, outline: number) {
     const { ctx } = this
     ctx.beginPath()
-    ctx.arc(x + 0.5, y + 0.5, r, 0, 2 * Math.PI)
+    // 半径夹到 0:上游把「半径 ≤ 0」当成一个点(undead.c:2464),而 blackbox.c 每格
+    // 无条件画 crad−3(1285),格边长 ≤ 6 时为负。canvas 的 arc 遇负半径必抛,异常会
+    // 穿过 wasm 栈冒回 resize / 点击,整块棋盘就是一片黑。
+    ctx.arc(x + 0.5, y + 0.5, Math.max(0, r), 0, 2 * Math.PI)
     if (fill >= 0) {
       ctx.fillStyle = this.ink(fill)
       ctx.fill()
