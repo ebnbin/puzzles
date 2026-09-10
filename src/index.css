@@ -752,7 +752,6 @@ p.notice-intro button:active {
 .keypad button,
 .sheet-actions button,
 .dialog-buttons button,
-.deal-card button,
 .puzzle-over button {
   display: inline-flex;
   align-items: center;
@@ -775,7 +774,6 @@ p.notice-intro button:active {
   .keypad button:hover,
   .sheet-actions button:hover,
   .dialog-buttons button:hover,
-  .deal-card button:hover,
   .puzzle-over button:hover {
     background: var(--surface-3);
   }
@@ -785,7 +783,6 @@ p.notice-intro button:active {
 .keypad button:active,
 .sheet-actions button:active,
 .dialog-buttons button:active,
-.deal-card button:active,
 .puzzle-over button:active {
   background: var(--surface-3);
   transform: scale(0.96);
@@ -1954,14 +1951,14 @@ p.notice-intro button:active {
   animation: scrim-in var(--dur) var(--ease) backwards;
 }
 
-/* 主角是那条一直在动的进度,取消是出口不是重点:所以进度给足宽度和呼吸,按钮
-   照仓库里其它对话框的样子,不额外加重。 */
+/* 一张方卡:环在正中,叉在右上角,和玩法弹窗同一个 .dialog-close。除了「还在转」
+   和「可以停」没有别的要说,所以卡片里也没有别的东西。 */
 .deal-card {
+  position: relative;
   display: grid;
-  justify-items: center;
-  gap: 1.25rem;
-  width: min(17rem, 100%);
-  padding: 1.4rem;
+  place-items: center;
+  width: 8.5rem;
+  aspect-ratio: 1;
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-3);
@@ -1972,58 +1969,69 @@ p.notice-intro button:active {
   outline: none;
 }
 
-/* 和进度条同宽:两行左右对齐,卡片才像一件东西,不是两个物件凑在一起。 */
-.deal-card button {
-  width: 100%;
-  min-height: var(--tap-h);
-  padding: 0 1rem;
-}
-
-.deal-progress {
-  position: relative;
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border-radius: var(--r-full);
-  background: var(--surface-3);
-}
-
-/* 从左长满、再从右缩掉,来回不停:比「一截横着飞过去」好在任何一刻轨道上都有墨,
-   静止的截图里也看得出在动。只动 transform,不动布局。 */
-.deal-progress::before {
-  content: '';
+/* .dialog-close 的负边距是给 dialog-head 那一行用的,这里自己定位,得抵掉。 */
+.deal-card .dialog-close {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--accent);
-  animation: deal-run 1.5s ease-in-out infinite;
+  top: 0.35rem;
+  right: 0.35rem;
+  margin: 0;
 }
 
-@keyframes deal-run {
-  0% {
-    transform: scaleX(0);
-    transform-origin: left;
+.deal-ring {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.deal-ring circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform-origin: center;
+}
+
+.deal-ring-track {
+  stroke: var(--surface-3);
+}
+
+/* 转和「弧长伸缩」是两条各管各的动画:只转不伸缩看着像匀速空转,加上伸缩才有
+   「在使劲」的样子。dashoffset 一路往前走,弧头才不会原地折返。 */
+.deal-ring-arc {
+  stroke: var(--accent);
+  animation: deal-spin 1.4s linear infinite, deal-arc 1.4s ease-in-out infinite;
+}
+
+@keyframes deal-spin {
+  from {
+    transform: rotate(-90deg);
   }
 
-  49.9% {
-    transform: scaleX(1);
-    transform-origin: left;
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+@keyframes deal-arc {
+  0% {
+    stroke-dasharray: 6 94;
+    stroke-dashoffset: 0;
   }
 
   50% {
-    transform: scaleX(1);
-    transform-origin: right;
+    stroke-dasharray: 62 38;
+    stroke-dashoffset: -14;
   }
 
   100% {
-    transform: scaleX(0);
-    transform-origin: right;
+    stroke-dasharray: 6 94;
+    stroke-dashoffset: -100;
   }
 }
 
-/* 不要横扫就改成整条呼吸:还在动,但不牵着视线跑。 */
+/* 不要转就定住一段弧,改成呼吸:还在动,但不牵着视线跑。 */
 @media (prefers-reduced-motion: reduce) {
-  .deal-progress::before {
+  .deal-ring-arc {
+    stroke-dasharray: 28 72;
+    transform: rotate(-90deg);
     animation: deal-breathe 1.8s ease-in-out infinite;
   }
 
@@ -2033,4 +2041,5 @@ p.notice-intro button:active {
     }
   }
 }
+
 
