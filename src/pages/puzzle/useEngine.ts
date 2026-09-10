@@ -5,7 +5,6 @@ import { createPuzzle } from '../../engine/createPuzzle'
 import type { CanvasRenderer, Drawn } from '../../engine/renderer'
 import {
   clearSave,
-  isPlayed,
   readSave,
   setPlaying,
   writeRecent,
@@ -44,9 +43,6 @@ type EngineArgs = {
     tookDialog(spec: DialogSpec | null): void
     tookError(message: string): boolean
   }
-  // 开局补发的那一手也会走到 midend_new_game,用的还是存档里玩家选的参数,
-  // 所以和别的发牌一样走镜像。
-  redeal(api: PuzzleApi): void
 }
 
 export function useEngine({
@@ -62,7 +58,6 @@ export function useEngine({
   board,
   outcome,
   config,
-  redeal,
 }: EngineArgs) {
   const { heard, moved, sleep, gated, dealt, frame } = board
   const { checkStatus, arrived } = outcome
@@ -114,7 +109,6 @@ export function useEngine({
     if (!canvas || !area) return
 
     const saved = readSave(name)
-    let restored = true
 
     createPuzzle({
       name,
@@ -128,6 +122,9 @@ export function useEngine({
           apiRef.current = api
           if (!liveRef.current) return api.stopTimer()
           window.__puzzle = api
+          // 有存档就照原样复原,走没走过子都一样:上一次留下的那一局就是这一局。
+          // 装不进去(存档太旧、认不出来)的那份在 onError 里被丢掉,留着 main()
+          // 按默认参数发的那一局兜底。
           if (saved) {
             restoring.current = true
             try {
@@ -135,9 +132,6 @@ export function useEngine({
             } finally {
               restoring.current = false
             }
-            // 没走过子的存档也要先 load 再用发牌盖掉,不能跳过 load:
-            // 存档里还有玩家选的参数(尺寸、难度),参数要活下来,棋盘不留。
-            if (restored && !isPlayed(saved)) redeal(api)
           }
           setPresets(list && [...game.types.menu(list)])
           setReady(true)
@@ -150,7 +144,6 @@ export function useEngine({
         },
         onError: (message) => {
           if (restoring.current) {
-            restored = false
             clearSave(name)
             console.warn(`discarded a stale save for ${name}:`, message)
             return

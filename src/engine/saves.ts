@@ -9,15 +9,6 @@ const save = (name: string) => `puzzles.save.${name}`
 
 const MAGIC = 'SAVEFILE'
 
-const STATES = /^NSTATES\s*:\d+:(\d+)$/m
-
-// 问 NSTATES>1,不能问 midend_can_undo(它跨局保留 undo,新发牌后也为真)。
-// 读不懂的存档一律按「玩过」:代价不对称——多一次白写 vs 丢玩家一局。
-export function isPlayed(game: string): boolean {
-  const found = STATES.exec(game)
-  return found ? Number(found[1]) > 1 : true
-}
-
 export function readSave(name: string): string | null {
   try {
     const text = window.localStorage.getItem(save(name))
