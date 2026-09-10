@@ -1,8 +1,10 @@
 //   npm run build && npm exec -- vite preview --port 4173 --strictPort &
 //   npm i --no-save playwright && node scripts/check-custom.mjs
 //
-// 改了 ConfigFields / ParamField、useConfigBox 的 commitInline、util/params.ts 的 settle,
-// 或任一游戏的 types.params 之后跑(表本身对不对由 check-params.mjs 对着上游源码守)。
+// 改了 ConfigFields / ParamField、useConfigBox 的 commitInline、util/params.ts 的 settle
+// 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
+// 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
+// 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
 // 守七条:
 //   一、四十个游戏的自定义面板里没有文本框:每个 string 控件都画成了滑块。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -23,6 +25,12 @@ const GAMES = [
   'Unequal', 'Galaxies', 'Filling', 'Keen', 'Towers', 'Singles', 'Magnets', 'Signpost',
   'Range', 'Pearl', 'Undead', 'Unruly', 'Flood', 'Tracks', 'Palisade', 'Mosaic',
 ]
+
+// 只给游戏名就只走一、二条(逐游戏那部分);不给就全量,后面五条也一起跑。
+const only = process.argv.slice(2)
+const walk = only.length ? GAMES.filter((g) => only.includes(g)) : GAMES
+for (const name of only)
+  if (!GAMES.includes(name)) throw new Error(`没有叫「${name}」的游戏`)
 
 const { browser, page } = await boot()
 
@@ -78,7 +86,7 @@ async function press(label, key) {
 
 // 一、二:逐个游戏开参数面板,没有文本框;第一个滑块往右一档(不推到头:100 宽的
 // 棋盘生成起来能卡几分钟,那是已知问题,不归这里测),参数串变了、没有错误 Notice。
-for (const game of GAMES) {
+for (const game of walk) {
   await open(page, game, { settle: 200 })
   await openTypes()
   const boxes = await textboxes()
@@ -93,6 +101,14 @@ for (const game of GAMES) {
     fail(game, `「${label}」动一档之后参数串没变:${before}`)
   if (await notices()) fail(game, `「${label}」动一档之后冒出了错误 Notice`)
   console.log(`  ok   ${game.padEnd(12)} ${before} → ${after}`)
+}
+
+// 给了游戏名就到此为止:后面五条守的是面板机制(派生参数被夹、开关让路、步进、
+// 预设跟随、桌面停靠),各自钉死在某一两个游戏上,和「改了哪个游戏的表」无关。
+if (only.length) {
+  await browser.close()
+  console.log(bad ? `\n${bad} 处没过` : '\n全部通过')
+  process.exit(bad ? 1 : 0)
 }
 
 // 三 a:Mines 宽高缩到最小,雷数跟着被夹到 ≤ 面积 − 9。
