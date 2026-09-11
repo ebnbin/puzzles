@@ -18,12 +18,18 @@ const LIT_BLOBS: Prefer = {
   glyph: 'litBlob',
 }
 
-// Symmetry 下标(lightup.c:96):3 = 4-way mirror,4 = 4-way rotational。
-
-// 难度 ≥ Tricky 时窄盘会让上游生成器回不来:盘子窄到 Easy 的推理就解完一切,
-// 「低一档解不出来」那道门(1598)永远过不去,而爬黑格比例的兜底封顶在 90
-// (1609),到顶之后原地无限重试。逐档实测在 docs/params.md。
-const floor = (r: Read) => [2, 3, 4][r.pick('Difficulty')] ?? 2
+// 尺寸下限:行 = Symmetry 下标(lightup.c:96),列 = 难度。盘子一窄,Easy 的推理就
+// 解完一切,「低一档解不出来」那道门(1598)永远过不去,而爬黑格比例的兜底封顶在 90
+// (1609),到顶就原地无限重试;对称砍掉大半可选黑格布局,那道门更难过,所以四种对称
+// 都比 None 高一格。逐格种子数在 docs/params.md。
+const FLOOR = [
+  [2, 3, 4], // None
+  [2, 4, 5], // 2-way mirror
+  [2, 4, 5], // 2-way rotational
+  [3, 4, 5], // 4-way mirror
+  [3, 4, 5], // 4-way rotational
+]
+const floor = (r: Read) => FLOOR[r.pick('Symmetry')]?.[r.pick('Difficulty')] ?? 2
 
 const lightup: Game = {
   id: 'lightup',
@@ -34,13 +40,11 @@ const lightup: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', (r) => range(Math.max(floor(r), r.pick('Symmetry') === 4 ? 3 : 2), CAP)),
+      int('Width', (r) => range(floor(r), CAP)),
       int('Height', (r) => {
-        const symm = r.pick('Symmetry')
-        const w = r.int('Width')
-        if (symm === 4) return range(w, w)
-        // 上游只禁 2×2 配 4-way(368):宽 2 时高得从 3 起。
-        return range(Math.max(floor(r), symm === 3 && w === 2 ? 3 : 2), CAP)
+        // 4-way rotational 只能方盘(364-367)。
+        if (r.pick('Symmetry') === 4) return range(r.int('Width'), r.int('Width'))
+        return range(floor(r), CAP)
       }),
       // 上游给到 100,这里封到 90:91 起 blackpc 不再爬升(1609),生成不出来就
       // 原地死转;100 更是整盘全黑、一盏灯都放不下。

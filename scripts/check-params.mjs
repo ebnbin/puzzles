@@ -152,11 +152,12 @@ const EXPECTED_NARROWER = {
   // Cross / Octagon 的表是上游自己的穷举,探针试的都被上游拒,不算收窄。
   pegs: (label, v, side, forced) => Number(forced[2].value) === 2 && v > 30,
   blackbox: (label, v, side) => label === 'No. of balls' && side === 'hi',
-  // 难度 ≥ Tricky 时窄盘让上游生成器回不来(「低一档解不出来」那道门永远过不去,
-  // 而爬黑格比例的兜底封顶在 90),黑格比例封 90(91 起不再爬升);见 docs/params.md。
+  // 窄盘上生成器回不来(「低一档解不出来」那道门永远过不去,而爬黑格比例的兜底封顶
+  // 在 90),下限按对称 × 难度查表;黑格比例封 90(91 起不再爬升);见 docs/params.md。
   lightup: (label, v, side, forced) => {
     if (label === '%age of black squares') return v > 90
-    return v < ([2, 3, 4][Number(forced[4].value)] ?? 2)
+    const floor = [[2, 3, 4], [2, 4, 5], [2, 4, 5], [3, 4, 5], [3, 4, 5]]
+    return v < (floor[Number(forced[3].value)]?.[Number(forced[4].value)] ?? 2)
   },
   // 宽高从 2 起(上游放行 1×n,生成时崩,见 docs/params.md 第四节);扩展因子的表是
   // 粒度 t = 0..1 换算出来的,顶到 base 缩成 2 那一点(e = 长边/2 − 1),再往上是同一局。
