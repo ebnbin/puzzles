@@ -1222,20 +1222,13 @@ p.notice-intro button:active {
   font-size: var(--t-sm);
 }
 
-.sheet-presets,
-.sheet-presets ul {
+.sheet-presets {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.sheet-presets ul {
-  width: 100%;
-  margin-top: 0.4rem;
-  padding-left: 0.75rem;
 }
 
 .sheet-presets label {
