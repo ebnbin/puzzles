@@ -159,6 +159,9 @@ const EXPECTED_NARROWER = {
     const floor = [[2, 3, 4], [2, 4, 5], [2, 4, 5], [3, 4, 5], [3, 4, 5]]
     return v < (floor[Number(forced[3].value)]?.[Number(forced[4].value)] ?? 2)
   },
+  // 宽高从 3 起(上游放行 2:两行的盘用不到第四种颜色,不成四色谜题);区域数封到
+  // 1000,探针试的 1001 超过 CAP、够不着,不用申报。见 docs/params.md。
+  map: (label, v) => label !== 'Regions' && v < 3,
   // 宽高从 2 起(上游放行 1×n,生成时崩,见 docs/params.md 第四节);扩展因子的表是
   // 粒度 t = 0..1 换算出来的,顶到 base 缩成 2 那一点(e = 长边/2 − 1),再往上是同一局。
   rect: (label, v, side, forced) =>
