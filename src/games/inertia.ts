@@ -18,8 +18,11 @@ const inertia: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', () => range(2, CAP)),
-      int('Height', (r) => range(Math.max(2, Math.ceil(6 / r.int('Width'))), CAP)),
+      // 宽高从 3 起:窄条的生成对长边是指数慢(短边 2 时每 +10 乘约 3.5 倍,
+      // 2×100 要 171 秒),上游只查面积 ≥ 6。3 起之后面积恒 ≥ 9,那条再也触发
+      // 不了,宽和高之间不再互相依赖。逐档实测在 docs/params.md。
+      int('Width', () => range(3, CAP)),
+      int('Height', () => range(3, CAP)),
     ],
   },
   prefs: { panel: verbatim, volatile: false },
