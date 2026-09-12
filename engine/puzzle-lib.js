@@ -28,20 +28,17 @@ mergeInto(LibraryManager.library, {
     },
 
     js_add_preset: function(menuid, ptr, value) {
-        preset_submenus[menuid].push({
+        presets.push({
             name: UTF8ToString(ptr),
             value: value,
         });
     },
 
+    // 上游只有 Loopy 建子菜单(loopy.c:608 的 "More...",18 种网格塞不进一层)。
+    // 这里铺平:标题不收,返回父 menuid 让子项落进同一个数组。预设的身份是
+    // value(上游的 entry->id),和画在第几层无关,所以铺平不改语义。
     js_add_preset_submenu: function(menuid, ptr, value) {
-        var submenu = [];
-        preset_submenus[menuid].push({
-            name: UTF8ToString(ptr),
-            value: null,
-            submenu: submenu,
-        });
-        return preset_submenus.push(submenu) - 1;
+        return menuid;
     },
 
     js_get_selected_preset: function() {

@@ -24,7 +24,7 @@ var midend_status, midend_request_keys, free_keys, midend_freeze_timer;
 var timer = null;
 var timer_reference;
 
-var preset_submenus = [[]];
+var presets = [];
 var presets_removed = false;
 
 var dlg_controls = null;
@@ -138,5 +138,5 @@ function initPuzzle() {
 }
 
 function post_init() {
-    PZ.onReady(presets_removed ? null : preset_submenus[0]);
+    PZ.onReady(presets_removed ? null : presets);
 }

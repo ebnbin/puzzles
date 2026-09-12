@@ -70,8 +70,8 @@ export default function PuzzleTypes({
   )
 }
 
-// 上游把「自定义」也放在预设列表里,值是负数;子菜单的值是 null。
-const usable = (preset: Preset) => preset.value === null || preset.value >= 0
+// 上游把「自定义」也放在预设列表里,值是负数。
+const usable = (preset: Preset) => preset.value >= 0
 
 function PresetList({
   presets,
@@ -94,28 +94,16 @@ function PresetList({
         const isStandard = standard !== null && standard === preset.value
         return (
           <li key={i}>
-            {preset.submenu ? (
-              <>
-                <span className="sheet-preset-group">{preset.name}</span>
-                <PresetList
-                  presets={preset.submenu}
-                  chosen={chosen}
-                  standard={standard}
-                  onSelect={onSelect}
-                />
-              </>
-            ) : (
-              <label data-selected={isChosen} data-standard={isStandard || undefined}>
-                <input
-                  type="radio"
-                  name="preset"
-                  checked={isChosen}
-                  onChange={() => onSelect(preset.value as number)}
-                />
-                {preset.name}
-                {isStandard && <span className="sheet-preset-tag">{t.types.standard}</span>}
-              </label>
-            )}
+            <label data-selected={isChosen} data-standard={isStandard || undefined}>
+              <input
+                type="radio"
+                name="preset"
+                checked={isChosen}
+                onChange={() => onSelect(preset.value)}
+              />
+              {preset.name}
+              {isStandard && <span className="sheet-preset-tag">{t.types.standard}</span>}
+            </label>
           </li>
         )
       })}

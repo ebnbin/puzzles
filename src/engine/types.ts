@@ -1,7 +1,6 @@
 export interface Preset {
   name: string
-  value: number | null
-  submenu?: Preset[]
+  value: number
 }
 
 export type DialogControl =
