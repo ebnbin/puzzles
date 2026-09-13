@@ -98,11 +98,11 @@ function table(M, param, controls) {
 // 故意比上游窄的几处,文档 docs/params.md「与上游的出入」一节逐条对应。span 的探针
 // 带 side:只有「最多」那头的封顶是登记过的。
 const EXPECTED_NARROWER = {
-  // 宽高只给 3..49 的奇数且互锁在 2:1 内,表外的一律是设计使然(docs/params.md)。
+  // 宽高只给 3..49 的奇数且互锁在 4:1 内,表外的一律是设计使然(docs/params.md)。
   net: (label) => label === 'Width' || label === 'Height',
-  // 四张成对表(面积 ≤ 预设 × 4、方格单边 ≤ 16)之外的一律是设计使然,见 docs/params.md。
+  // 四张成对表(面积 ≤ 预设 × 4、方格长边 ≤ 短边 × 4)之外的一律是设计使然,见 docs/params.md。
   cube: () => true,
-  // 宽高 2..16、2:1 且面积 ≥ 6:表外探针只有 17,是设计使然(见 docs/params.md)。
+  // 宽高 2..16、4:1 且面积 ≥ 6:表外探针只有 17,是设计使然(见 docs/params.md)。
   fifteen: (label, v) => v > 16,
   // 同上,只有宽高;打乱步数封到 100,探针试的 101 超过 CAP,够不着。
   sixteen: (label, v) => label !== 'Number of shuffling moves' && v > 50,

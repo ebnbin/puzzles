@@ -20,7 +20,7 @@
 //   八、分段按钮一点即落定:Map 点「Hard」,参数串以 dh 结尾、按钮带选中态。
 //   九、下拉装的数值阶梯是滑块:Bridges「Max. bridges per direction」右一档,桥数加一,
 //       读数是选项文字。
-//   十、对等参数互推:Net 宽拉到头 49,高被推到 2:1 内最近的 25;高拉到最小 3,宽被推到 5。
+//   十、对等参数互推:Net 宽拉到头 49,高被推到 4:1 内最近的 13;高拉到最小 3,宽被推到 11。
 //   十一、成对表互推:Cube 从预设 4×4 把宽拉到头 16,高 4 配得上不动;再把高拉到头 16,宽被推到 4。
 //   十二、面积下限也走互推:Fifteen 高拉到最小 2,再把宽拉到最小 2,高被推到 3(2×2 不到面积 6)。
 import { boot, open } from './lib/boot.mjs'
@@ -312,17 +312,17 @@ await openTypes()
   }
 }
 
-// 十:对等参数互推。Net 的宽高档位都是全表,动一根另一根被推到 2:1 内最近的合法档。
+// 十:对等参数互推。Net 的宽高档位都是全表,动一根另一根被推到 4:1 内最近的合法档。
 await open(page, 'Net', { settle: 200 })
 await openTypes()
 {
   await press('Width', 'End')
   let p = await paramsNow()
-  if (!/^49x25\b/.test(p ?? '')) fail('Net', `宽拉到头后高应被推到 25:${p}`)
+  if (!/^49x13\b/.test(p ?? '')) fail('Net', `宽拉到头后高应被推到 13:${p}`)
   else console.log(`  ok   Net 宽 49 → ${p}`)
   await press('Height', 'Home')
   p = await paramsNow()
-  if (!/^5x3\b/.test(p ?? '')) fail('Net', `高拉到最小后宽应被推到 5:${p}`)
+  if (!/^11x3\b/.test(p ?? '')) fail('Net', `高拉到最小后宽应被推到 11:${p}`)
   else console.log(`  ok   Net 高 3 → ${p}`)
   if (await notices()) fail('Net', '互推后冒出了错误 Notice')
 }
@@ -345,7 +345,7 @@ await openTypes()
   if (await notices()) fail('Cube', '互推后冒出了错误 Notice')
 }
 
-// 十二:面积下限也走互推。Fifteen 高拉到最小 2,宽被推进 2:1;再把宽拉到最小 2,高被推到 3。
+// 十二:面积下限也走互推。Fifteen 高拉到最小 2,宽被推进 4:1;再把宽拉到最小 2,高被推到 3。
 await open(page, 'Fifteen', { settle: 200 })
 await openTypes()
 {
