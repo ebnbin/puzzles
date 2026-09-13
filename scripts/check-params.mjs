@@ -104,8 +104,11 @@ const EXPECTED_NARROWER = {
   cube: () => true,
   // 宽高 2..16、4:1 且面积 ≥ 6:表外探针只有 17,是设计使然(见 docs/params.md)。
   fifteen: (label, v) => v > 16,
-  // 同上,只有宽高;打乱步数封到 100,探针试的 101 超过 CAP,够不着。
-  sixteen: (label, v) => label !== 'Number of shuffling moves' && v > 50,
+  // 宽高 2..16、4:1 且面积 ≥ 6;打乱步数 0..w+h(0 由「门」切换),表外一律是设计使然。
+  sixteen: (label, v, side, forced) =>
+    label === 'Number of shuffling moves'
+      ? v > Number(forced[0].value) + Number(forced[1].value)
+      : v > 16,
   // 同上;块边长只跟上游的 n ≤ min(宽, 高),不额外收。
   twiddle: (label, v) =>
     label === 'Width' || label === 'Height' ? v > 50 : false,
@@ -200,7 +203,7 @@ let failed = 0
 for (const name of names) {
   const bin = bins[name]
   const declared = GAMES[name].types.params
-  const params = declared.filter((p) => p.kind !== 'ordinal')
+  const params = declared.filter((p) => p.kind !== 'ordinal' && p.kind !== 'gate')
   const shape = describe(bin).controls
   const combos = fixedCombos(shape)
   const problems = []

@@ -232,7 +232,8 @@
     "min": "最少",
     "max": "最多",
     "decrease": "减一档",
-    "increase": "加一档"
+    "increase": "加一档",
+    "limitShuffle": "限定打乱步数"
   },
 
   "deal": {

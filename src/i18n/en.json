@@ -232,7 +232,8 @@
     "min": "Min",
     "max": "Max",
     "decrease": "One step down",
-    "increase": "One step up"
+    "increase": "One step up",
+    "limitShuffle": "Limit shuffling moves"
   },
 
   "deal": {

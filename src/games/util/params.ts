@@ -6,7 +6,8 @@
 // 推到最近的合法档。settle 单趟走完必是上游 validate_params(full=true) 放行的组合
 // ——这条不变量由 scripts/check-params.mjs 对着链接了上游源码的 oracle 逐值验证。
 // 表里的值在游戏文件里逐个列出,是枚举不是规则;下面 range / evens / steps 这些算表的
-// 词汇只服务于还没按这个规矩重定的游戏。
+// 词汇只服务于还没按这个规矩重定的游戏。「门」是下游自己加的开关,没有上游控件:它读写
+// 某个数字控件,关 = 写 off 值,开 = 写 on 值;关着时那根滑块置灰。
 import type { DialogControl } from '../../engine/types'
 
 // 上游没给上限时的封顶:网格维度 100 = 棋盘最多 100×100 格。计数类参数先同用这
@@ -52,6 +53,11 @@ export type Param =
   // 上游用下拉装的数值阶梯(Bridges 的桥数、岛占比、扩展因子):画成滑块,一档一个选项,
   // 写回的仍是选项下标。没有表,settle 不碰它。
   | { kind: 'ordinal'; label: string }
+  // 门:管 label 那个 int 控件的开关。关 = 控件值为 off(表里仍有它,check-params 照旧覆盖),
+  // 开 = 非 off,打开时写 on;开着时滑块的档位是表里去掉 off 的部分。word 是开关文案的键。
+  | { kind: 'gate'; label: string; off: number; on: number; word: GateWord }
+
+export type GateWord = 'limitShuffle'
 
 export const int = (
   label: string,
@@ -80,6 +86,12 @@ export const span = (
 ): Param => ({ kind: 'span', label, lo, hi })
 
 export const ordinal = (label: string): Param => ({ kind: 'ordinal', label })
+
+export const gate = (label: string, extra: { off: number; on: number; word: GateWord }): Param => ({
+  kind: 'gate',
+  label,
+  ...extra,
+})
 
 // ---------------------------------------------------------------- 表的词汇
 
@@ -177,7 +189,7 @@ export function settle(
   const changed: string[] = []
   const r = reader(controls)
   for (const p of params) {
-    if (p.kind === 'ordinal') continue
+    if (p.kind === 'ordinal' || p.kind === 'gate') continue
     // 区间型的两个数共用一个控件:动了「最少」也要让「最多」跟上,所以主动方只跳过单值参数。
     if (p.label === moved && p.kind !== 'span') continue
     const c = control(controls, p.label)

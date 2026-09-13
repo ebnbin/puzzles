@@ -1,6 +1,6 @@
 import { useId, useReducer } from 'react'
 import ParamField, { OrdinalField, tableOf } from './ParamField'
-import type { ChoicesControl, RangeParam } from './ParamField'
+import type { ChoicesControl, GateParam, RangeParam } from './ParamField'
 import type { DialogControl } from '../../engine/types'
 import type { Param } from '../../games/util/params'
 import { reader, settle } from '../../games/util/params'
@@ -108,7 +108,11 @@ export default function ConfigFields({
           )
         }
         const param = params?.find(
-          (p): p is RangeParam => p.kind !== 'ordinal' && p.label === control.label,
+          (p): p is RangeParam =>
+            p.kind !== 'ordinal' && p.kind !== 'gate' && p.label === control.label,
+        )
+        const gate = params?.find(
+          (p): p is GateParam => p.kind === 'gate' && p.label === control.label,
         )
         if (param && read && tableOf(param, read).length > 0)
           return (
@@ -116,6 +120,7 @@ export default function ConfigFields({
               key={i}
               control={control}
               param={param}
+              gate={gate}
               read={read}
               onCommit={() => commit(control.label)}
             />

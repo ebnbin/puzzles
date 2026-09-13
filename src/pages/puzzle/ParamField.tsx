@@ -11,8 +11,9 @@ import Icon from '../../ui/Icon'
 
 export type StringControl = Extract<DialogControl, { kind: 'string' }>
 export type ChoicesControl = Extract<DialogControl, { kind: 'choices' }>
-// 有表的那几种申报;ordinal 是 choices 控件的画法,不进这里。
-export type RangeParam = Exclude<Param, { kind: 'ordinal' }>
+// 有表的那几种申报;ordinal 是 choices 控件的画法,gate 是挂在 int 上的开关,都不进这里。
+export type RangeParam = Exclude<Param, { kind: 'ordinal' } | { kind: 'gate' }>
+export type GateParam = Extract<Param, { kind: 'gate' }>
 
 // 这一行能不能画成滑块:表空(别的控件的值认不出)就回落到文本框。
 export const tableOf = (param: RangeParam, r: Read): readonly number[] =>
@@ -28,6 +29,7 @@ function Slider({
   note,
   foot,
   home = false,
+  disabled = false,
   onPick,
 }: {
   name: string
@@ -42,6 +44,8 @@ function Slider({
   foot?: (v: number) => string
   // 表外的值一按就回第一档,不是吸到最近的一档(申报了 reset 的参数)。
   home?: boolean
+  // 门关着:整行置灰,不响应。
+  disabled?: boolean
   onPick: (v: number) => void
 }) {
   const t = useStrings()
@@ -102,7 +106,7 @@ function Slider({
         <button
           type="button"
           aria-label={`${name}: ${t.types.decrease}`}
-          disabled={pinned || (!off && index <= 0)}
+          disabled={disabled || pinned || (!off && index <= 0)}
           onClick={() => step(-1)}
         >
           <Icon name="minusSquare" />
@@ -117,14 +121,14 @@ function Slider({
           max={Math.max(0, list.length - 1)}
           step={1}
           value={shown}
-          disabled={pinned}
+          disabled={disabled || pinned}
           onChange={(e) => setDrag(Number(e.target.value))}
           onBlur={() => setDrag(null)}
         />
         <button
           type="button"
           aria-label={`${name}: ${t.types.increase}`}
-          disabled={pinned || (!off && index >= list.length - 1)}
+          disabled={disabled || pinned || (!off && index >= list.length - 1)}
           onClick={() => step(1)}
         >
           <Icon name="plusSquare" />
@@ -179,11 +183,14 @@ export function OrdinalField({
 export default function ParamField({
   control,
   param,
+  gate,
   read,
   onCommit,
 }: {
   control: StringControl
   param: RangeParam
+  // 管这个控件的门(有的话):画成一行开关,关着时下面的滑块置灰。
+  gate?: GateParam
   read: Read
   onCommit: () => void
 }) {
@@ -223,30 +230,48 @@ export default function ParamField({
     )
   }
 
-  const list = param.allowed(read)
   const value = param.kind === 'int' ? parseInt(control.value, 10) : parseFloat(control.value)
+  // 门开着时滑块只给表里 off 以外的档;关着时整张表都在,值就停在 off 上,只是置灰。
+  const open = gate ? value !== gate.off : true
+  const list = gate && open ? param.allowed(read).filter((v) => v !== gate.off) : param.allowed(read)
   // write 是写进控件的那一份(必须是上游认的量);show / foot 只管显示。
   const write = param.kind === 'int' ? String : (v: number) => formatFloat(v, param.digits)
   const show = param.kind === 'float' && param.show ? (v: number) => param.show!(v, read) : write
   const note = param.kind === 'int' && param.note ? (v: number) => param.note!(v, read) : undefined
   const foot = param.kind === 'float' && param.foot ? (v: number) => param.foot!(v, read) : undefined
   return (
-    <div className="dialog-param">
-      <label className="dialog-param-head">{control.label}</label>
-      <Slider
-        name={control.label}
-        list={list}
-        value={value}
-        text={control.value}
-        format={show}
-        note={note}
-        foot={foot}
-        home={param.kind === 'float' && param.reset === true}
-        onPick={(v) => {
-          control.value = write(v)
-          onCommit()
-        }}
-      />
-    </div>
+    <>
+      {gate && (
+        <label className="dialog-boolean">
+          <input
+            type="checkbox"
+            checked={open}
+            onChange={(e) => {
+              control.value = write(e.target.checked ? gate.on : gate.off)
+              onCommit()
+            }}
+          />
+          {t.types[gate.word]}
+        </label>
+      )}
+      <div className="dialog-param" data-off={open ? undefined : true}>
+        <label className="dialog-param-head">{control.label}</label>
+        <Slider
+          name={control.label}
+          list={list}
+          value={value}
+          text={control.value}
+          format={show}
+          note={note}
+          foot={foot}
+          home={param.kind === 'float' && param.reset === true}
+          disabled={!open}
+          onPick={(v) => {
+            control.value = write(v)
+            onCommit()
+          }}
+        />
+      </div>
+    </>
   )
 }

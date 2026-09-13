@@ -5,7 +5,7 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守十二条:
+// 守十三条:
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -23,6 +23,8 @@
 //   十、对等参数互推:Net 宽拉到头 49,高被推到 4:1 内最近的 13;高拉到最小 3,宽被推到 11。
 //   十一、成对表互推:Cube 从预设 4×4 把宽拉到头 16,高 4 配得上不动;再把高拉到头 16,宽被推到 4。
 //   十二、面积下限也走互推:Fifteen 高拉到最小 2,再把宽拉到最小 2,高被推到 3(2×2 不到面积 6)。
+//   十三、门:Sixteen 的打乱步数默认关着、滑块置灰;打开写 1;步数拉到头等于 w+h,宽缩到 2 后
+//       被推到新的 w+h;关掉后参数串里没有 m。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -355,6 +357,37 @@ await openTypes()
   if (p !== '2x3') fail('Fifteen', `宽高都拉到最小后应是 2×3:${p}`)
   else console.log(`  ok   Fifteen 最小 → ${p}`)
   if (await notices()) fail('Fifteen', '互推后冒出了错误 Notice')
+}
+
+// 十三:门。Sixteen 的打乱步数由「限定打乱步数」开关管:关着时滑块 disabled、值是 0。
+await open(page, 'Sixteen', { settle: 200 })
+await openTypes()
+{
+  const moves = 'Number of shuffling moves'
+  const toggle = page.locator('.sheet-params .dialog-boolean input[type=checkbox]').first()
+  await page.locator('.sheet-presets label', { hasText: '4x4' }).first().click()
+  await page.waitForTimeout(500)
+  if (await toggle.isChecked()) fail('Sixteen', '预设 4x4 下门应该是关的')
+  if (!(await slider(moves).isDisabled())) fail('Sixteen', '门关着时步数滑块应 disabled')
+  await toggle.click()
+  await page.waitForTimeout(500)
+  let p = await paramsNow()
+  if (p !== '4x4m1') fail('Sixteen', `打开门后应写 1:${p}`)
+  else console.log(`  ok   Sixteen 开门 → ${p}`)
+  await press(moves, 'End')
+  p = await paramsNow()
+  if (p !== '4x4m8') fail('Sixteen', `步数拉到头应是 w+h = 8:${p}`)
+  else console.log(`  ok   Sixteen 步数到头 → ${p}`)
+  await press('Width', 'Home')
+  p = await paramsNow()
+  if (p !== '2x4m6') fail('Sixteen', `宽缩到 2 后步数应被推到 6:${p}`)
+  else console.log(`  ok   Sixteen 宽缩到 2 → ${p}`)
+  await toggle.click()
+  await page.waitForTimeout(500)
+  p = await paramsNow()
+  if (p !== '2x4') fail('Sixteen', `关门后参数串不该带 m:${p}`)
+  else console.log(`  ok   Sixteen 关门 → ${p}`)
+  if (await notices()) fail('Sixteen', '开关门后冒出了错误 Notice')
 }
 
 await browser.close()
