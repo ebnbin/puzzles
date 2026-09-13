@@ -119,8 +119,8 @@ ground truth。
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
 | `PuzzleTypes.tsx` | 类型面板:预设列表 + 常驻的参数列表,两者互相跟随(选中态认引擎报的 `midend_which_preset`,不命中就一条都不选);上游那条「自定义」不画;上游唯一的子菜单(Loopy 的 `More...`)在 `puzzle-lib.js` 里就铺平了,这里只画一层 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
-| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型的 string 控件交给 ParamField,每次落定先 settle 再提交;没申报的仍是文本框 |
-| `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定 |
+| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型时 string 控件交给 ParamField、choices 画成分段按钮(申报了 ordinal 的交给 OrdinalField 当滑块),每次落定先 settle 再提交;没申报的仍是文本框,没给模型的调用方仍是下拉 |
+| `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定。OrdinalField 把下拉装的数值阶梯画成同样的滑块 |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
 | `usePuzzleKeys.ts` | 物理键盘唯一通路:判据是「这一按该不该归谜题」,不认焦点 |
 | `usePuzzlePointer.ts` | 指针 → 上游鼠标语义(长按 = 右键或中键,由游戏申报) |

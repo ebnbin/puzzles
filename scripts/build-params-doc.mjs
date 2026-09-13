@@ -46,6 +46,7 @@ function defaultTables(game, controls) {
   const r = model.reader(live)
   const out = []
   for (const p of model.GAMES[game.id].types.params) {
+    if (p.kind === 'ordinal') continue
     if (p.kind === 'span') {
       const los = p.lo(r)
       out.push({ label: p.label, text: `最少 ${compact(los)};最多(最少取 ${los[0]} 时)${compact(p.hi(r, los[0]))}` })
@@ -89,7 +90,7 @@ const nStrings = GAMES.reduce((n, g) => n + g.params.length, 0)
 // ---------------------------------------------------------------- 公共文案
 
 const INTRO = [
-  `Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面板里,全部 ${nStrings} 个 string 控件(上游 C_STRING)的取值范围:每一个的语义、上游 validate_params 的每一条规则(带源码行号)、本仓库最终给它的表、它看哪些别的控件、上限从哪来。choices 和 boolean 控件不在范围内,它们在上游本来就不是输入框。`,
+  `Simon Tatham's Portable Puzzle Collection 四十个游戏的自定义参数面板里,全部 ${nStrings} 个 string 控件(上游 C_STRING)的取值范围:每一个的语义、上游 validate_params 的每一条规则(带源码行号)、本仓库最终给它的表、它看哪些别的控件、上限从哪来。choices 和 boolean 控件不在范围内,它们在上游本来就不是输入框:choices 画成分段按钮(Bridges 那三个数值阶梯画成滑块),boolean 是勾选框,取值就是上游给的那几个。`,
   `**来源**:\`vendor/sgtpuzzles/\`,commit \`${COMMIT}\`(2026-07-19)。全部规则直接读 C 源码得出;每条带 \`文件:行号\`,升级上游后照着重查。**代码是 SSOT**:范围写在各 \`src/games/<game>.ts\` 的 \`types.params\`,词汇在 \`src/games/util/params.ts\`;这份文档是索引和理由,不是第二份真相;它本身是生成物,手写源在 \`scripts/lib/params-doc.mjs\`,生成器 \`scripts/build-params-doc.mjs\`。两者是否一致由 \`scripts/check-params.mjs\` 对着上游源码验证(第七节)。`,
 ]
 
@@ -108,11 +109,12 @@ const MECHANISM = [
     '当前值来自上游(预设、Game ID、旧存档),可能在表外(比如 Game ID 里输入过 200×200,或 full=false 才放行的 2×2 Range)。面板先照实显示,滑块停在最近的一档;用户第一次动任何控件时才会被 settle 夹进表。',
   ]],
   ['1.3 控件', [
-    '**整数与浮点**:一个滑块,按表的**下标**走(表不连续也每一档都合法),两侧各一个 −/+ 步进按钮做精确微调,旁边显示当前值;表只有一个值时禁用。松手(change)才提交,拖动中只更新读数——和今天 checkbox / select 的「每次 change 即落定」一致。',
+    '**整数与浮点**:一个滑块,按表的**下标**走(表不连续也每一档都合法),两侧各一个 −/+ 步进按钮做精确微调,旁边显示当前值;表只有一个值时禁用。松手(change)才提交,拖动中只更新读数——和 checkbox / 分段按钮的「每次 change 即落定」一致。',
     '**区间「a-b」**(只有 Black Box 的球数):同一个 label 下两行滑块,最少 / 最多;两者相等时写回单个数,和上游回显格式一致。',
     '**附注**:两种。短的跟在读数后面(Mines 的雷数旁边显示占比,顶替下线的「20%」写法);'
       + '长的在轨道下面单独一行(Rectangles 那一档由枚举算出来的 e)。读数列的宽度按当前这张表最宽的一条现算——'
       + '宽度跟着值变的话,拖到一半轨道就缩水,滑块会从手指底下跑掉。',
+    '**choices 与 boolean**:choices 画成分段按钮(外观同首页的语言切换,会换行),选项全部可见、一点即换,写回的仍是选项下标;申报了 `ordinal` 的 choices(Bridges 的桥数、岛占比、扩展因子,上游用下拉装的数值阶梯)画成滑块,一档一个选项。boolean 是勾选框。两类的取值就是上游给的,不进范围模型。',
     '**兜底**:没申报的 string 控件(比如模态对话框那条路)仍画成文本框;label 对不上上游时申报被忽略,同样回落到文本框。',
     '**上游那条「自定义」不画**:参数列表常驻之后它没有动作可做。参数不落在任何预设上时一条都不选中,那就是自定义。',
   ]],
@@ -143,7 +145,7 @@ const KNOWN = [
 
 const NEXT = [
   '`src/pages/puzzle/ParamField.tsx`:范围模型驱动的数字行。滑块按表的下标走,两侧 −/+ 单步,读数在行尾;区间型两行(最少 / 最多)。拖动只改读数,原生 change 才落定,方向键每按一下落定一次。',
-  '`src/pages/puzzle/ConfigFields.tsx`:拿到范围模型后,有申报且表非空的 string 控件交给 ParamField;每次落定(滑块、步进、checkbox、select、回落的文本框)先 `settle` 再提交。没给模型的调用方(偏好面板、模态对话框)行为不变。',
+  '`src/pages/puzzle/ConfigFields.tsx`:拿到范围模型后,有申报且表非空的 string 控件交给 ParamField;choices 控件画成分段按钮、申报了 ordinal 的画成滑块;每次落定(滑块、步进、checkbox、分段按钮、回落的文本框)先 `settle` 再提交。没给模型的调用方(偏好面板、模态对话框)行为不变,仍是下拉。',
   '`src/pages/puzzle/PuzzleTypes.tsx` / `PuzzleHost.tsx`:把当前游戏的 `types.params` 传进面板;参数列表常驻,选中态只认引擎报的那条预设(不命中就一条都不选),点预设走「让位、换参数、再要一份」三步。',
   '`src/ui/Dock.tsx` / `useMedia.ts`:够宽的桌面上类型面板停靠成右侧栏(360px),棋盘让出宽度而不是被盖住;非模态,面板开着照样能走子。',
   '`src/index.css`:`.sheet-custom .dialog-param*`,颜色全部走 tokens,两种主题同一套规则。',

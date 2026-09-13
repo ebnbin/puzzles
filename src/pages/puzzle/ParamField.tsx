@@ -10,9 +10,12 @@ import { useStrings } from '../../i18n'
 import Icon from '../../ui/Icon'
 
 export type StringControl = Extract<DialogControl, { kind: 'string' }>
+export type ChoicesControl = Extract<DialogControl, { kind: 'choices' }>
+// 有表的那几种申报;ordinal 是 choices 控件的画法,不进这里。
+export type RangeParam = Exclude<Param, { kind: 'ordinal' }>
 
 // 这一行能不能画成滑块:表空(别的控件的值认不出)就回落到文本框。
-export const tableOf = (param: Param, r: Read): readonly number[] =>
+export const tableOf = (param: RangeParam, r: Read): readonly number[] =>
   param.kind === 'span' ? param.lo(r) : param.allowed(r)
 
 function Slider({
@@ -144,6 +147,35 @@ function Slider({
   )
 }
 
+// 上游用下拉装的数值阶梯(申报了 ordinal 的 choices 控件):一档一个选项,读数是选项
+// 文字,写回的仍是选项下标——和下拉交回去的值完全一样。
+export function OrdinalField({
+  control,
+  onCommit,
+}: {
+  control: ChoicesControl
+  onCommit: () => void
+}) {
+  const list = control.choices.map((_, i) => i)
+  const name = (i: number) => control.choices[i] ?? ''
+  return (
+    <div className="dialog-param">
+      <label className="dialog-param-head">{control.label}</label>
+      <Slider
+        name={control.label}
+        list={list}
+        value={control.value}
+        text={name(control.value)}
+        format={name}
+        onPick={(v) => {
+          control.value = v
+          onCommit()
+        }}
+      />
+    </div>
+  )
+}
+
 export default function ParamField({
   control,
   param,
@@ -151,7 +183,7 @@ export default function ParamField({
   onCommit,
 }: {
   control: StringControl
-  param: Param
+  param: RangeParam
   read: Read
   onCommit: () => void
 }) {

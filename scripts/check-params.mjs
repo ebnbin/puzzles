@@ -6,7 +6,8 @@
 // 要 gcc(lib/params-oracle.mjs 把 vendor/ 的 C 源码编进 .build/params-oracle/,不动 vendor
 // 一行),每个游戏一个 oracle,直接调 custom_params + validate_params(full)。
 // 对账三件事,任一条不成立就 FAIL:
-//   1. 覆盖:每个 string 控件都有申报,每条申报都能按 label 认到控件。
+//   1. 覆盖:每个 string 控件都有申报,每条申报都能按 label 认到控件(ordinal 申报认的是
+//      choices 控件,只查这一条,不走表)。
 //   2. 健全:按申报顺序把每张表走一遍(大表抽样),走出来的每个组合上游都放行;
 //      走的路上没有空表;settle 对这些组合是 no-op;从乱值出发 settle 之后上游放行。
 //   3. 紧:表外一格(下界减一、上界加一、表中间的洞)按界面的做法钉住再落定后面的,
@@ -199,7 +200,8 @@ const bins = buildOracles(names)
 let failed = 0
 for (const name of names) {
   const bin = bins[name]
-  const params = GAMES[name].types.params
+  const declared = GAMES[name].types.params
+  const params = declared.filter((p) => p.kind !== 'ordinal')
   const shape = describe(bin).controls
   const combos = fixedCombos(shape)
   const problems = []
@@ -210,10 +212,11 @@ for (const name of names) {
   const strings = shape.filter((c) => c.kind === 'string')
   for (const c of strings)
     if (!params.some((p) => p.label === c.label)) fail(`string 控件「${c.label}」没有申报`)
-  for (const p of params) {
+  for (const p of declared) {
     const c = shape.find((c) => c.label === p.label)
+    const want = p.kind === 'ordinal' ? 'choices' : 'string'
     if (!c) fail(`申报「${p.label}」认不到控件`)
-    else if (c.kind !== 'string') fail(`申报「${p.label}」认到的不是 string 控件`)
+    else if (c.kind !== want) fail(`申报「${p.label}」认到的不是 ${want} 控件`)
   }
   if (problems.length) {
     failed++

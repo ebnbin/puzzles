@@ -825,7 +825,7 @@ export const GAMES = [
       { label: 'Width', kind: 'int', sem: '棋盘宽', u: ['宽高都 ≥ 3(813)'], f: '3..100', d: '—', c: 'cap' },
       { label: 'Height', kind: 'int', sem: '棋盘高', u: ['同上'], f: '3..100', d: '—', c: 'cap' },
     ],
-    notes: ['难度、桥数上限、岛屿占比、扩展因子在上游本来就是下拉,不在本次范围内。'],
+    notes: ['难度是 choices,画成分段按钮。桥数上限、岛屿占比、扩展因子在上游是下拉装的数值阶梯,申报成 ordinal 画成滑块,一档一个选项,取值就是上游那几档,不进范围模型。'],
   },
   {
     id: 'unequal', title: 'Unequal', file: 'unequal.c',

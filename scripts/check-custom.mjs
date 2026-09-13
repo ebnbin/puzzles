@@ -5,8 +5,9 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守七条:
-//   一、四十个游戏的自定义面板里没有文本框:每个 string 控件都画成了滑块。
+// 守九条:
+//   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
+//       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
 //   三、派生参数被夹:Mines 宽高缩到最小时雷数跟着降;Twiddle 宽降到 2 时旋转块降到 2;
 //       Black Box「最少」拉过「最多」时「最多」跟上。
@@ -16,6 +17,9 @@
 //       身上选中态就跳回那个预设,滑开就一条都不选中(= 自定义)。
 //   七、够宽的桌面上面板停靠在右侧栏:没有 scrim、不盖棋盘、开着也照样能走子;
 //       面板开着时「类型」键当开关用,再点一次收起、又点一次参数列表还在。
+//   八、分段按钮一点即落定:Map 点「Hard」,参数串以 dh 结尾、按钮带选中态。
+//   九、下拉装的数值阶梯是滑块:Bridges「Max. bridges per direction」右一档,桥数加一,
+//       读数是选项文字。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -60,6 +64,7 @@ const chosen = () =>
   )
 
 const textboxes = () => page.locator('.sheet-params input[type=text]').count()
+const dropdowns = () => page.locator('.sheet-params select').count()
 const notices = () => page.locator('.sheet-params .notice').count()
 
 // 按 label 找滑块;区间型带 ": Min" / ": Max" 后缀。
@@ -91,6 +96,8 @@ for (const game of walk) {
   await openTypes()
   const boxes = await textboxes()
   if (boxes) fail(game, `自定义面板还有 ${boxes} 个文本框`)
+  const drops = await dropdowns()
+  if (drops) fail(game, `自定义面板还有 ${drops} 个下拉框`)
   const first = page.locator('.sheet-params input[type=range]').first()
   const label = await first.getAttribute('aria-label')
   const before = await paramsNow()
@@ -226,6 +233,7 @@ await openTypes()
     fail('停靠', `棋盘右边 ${Math.round(canvas.x + canvas.width)} 越过了面板左边 ${dock.x}`)
   else console.log(`  ok   停靠 面板 ${dock.width} 宽,棋盘右边 ${Math.round(canvas.x + canvas.width)}`)
   if (await textboxes()) fail('停靠', '面板里还有文本框')
+  if (await dropdowns()) fail('停靠', '面板里还有下拉框')
 
   // 滑块照旧落定
   const was = await paramsNow()
@@ -265,6 +273,39 @@ await page.waitForTimeout(300)
   if (await page.locator('.dock').count()) fail('停靠', '收起后面板还在')
   if (await page.locator('.puzzle[data-dock]').count()) fail('停靠', '收起后棋盘没拿回宽度')
   else console.log('  ok   停靠 收起后棋盘拿回宽度')
+}
+
+// 八:分段按钮一点即落定。Map 的难度 dn → dh,点过的按钮带选中态,不出 Notice。
+await page.setViewportSize({ width: 390, height: 844 })
+await open(page, 'Map', { settle: 200 })
+await openTypes()
+{
+  const chip = (text) => page.locator('.sheet-params .dialog-choice .segmented label', { hasText: text }).first()
+  await chip('Hard').click()
+  await page.waitForTimeout(500)
+  const p = await paramsNow()
+  if (!/dh$/.test(p ?? '')) fail('Map', `点「Hard」后参数串应以 dh 结尾:${p}`)
+  else if ((await chip('Hard').getAttribute('data-selected')) !== 'true') fail('Map', '点过的按钮没有选中态')
+  else console.log(`  ok   Map 点「Hard」→ ${p}`)
+  if (await notices()) fail('Map', '点难度后冒出了错误 Notice')
+}
+
+// 九:下拉装的数值阶梯是滑块。Bridges 的桥数右一档 m2 → m3,读数是选项文字。
+await open(page, 'Bridges', { settle: 200 })
+await openTypes()
+{
+  const label = 'Max. bridges per direction'
+  if (!(await slider(label).count())) fail('Bridges', `「${label}」应是滑块`)
+  else {
+    const before = await paramsNow()
+    await press(label, 'ArrowRight')
+    const after = await paramsNow()
+    const m = (s) => Number(/m(\d+)/.exec(s ?? '')?.[1])
+    if (m(after) !== m(before) + 1) fail('Bridges', `桥数右一档应加一:${before} → ${after}`)
+    else if ((await valueOf(label)) !== String(m(after))) fail('Bridges', `读数应是选项文字:${await valueOf(label)}`)
+    else console.log(`  ok   Bridges 桥数滑块 ${before} → ${after}`)
+    if (await notices()) fail('Bridges', '冒出了错误 Notice')
+  }
 }
 
 await browser.close()

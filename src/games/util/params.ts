@@ -44,6 +44,9 @@ export type Param =
       lo(r: Read): readonly number[]
       hi(r: Read, lo: number): readonly number[]
     }
+  // 上游用下拉装的数值阶梯(Bridges 的桥数、岛占比、扩展因子):画成滑块,一档一个选项,
+  // 写回的仍是选项下标。没有表,settle 不碰它。
+  | { kind: 'ordinal'; label: string }
 
 export const int = (
   label: string,
@@ -67,6 +70,8 @@ export const span = (
   lo: (r: Read) => readonly number[],
   hi: (r: Read, lo: number) => readonly number[],
 ): Param => ({ kind: 'span', label, lo, hi })
+
+export const ordinal = (label: string): Param => ({ kind: 'ordinal', label })
 
 // ---------------------------------------------------------------- 表的词汇
 
@@ -159,6 +164,7 @@ export function settle(params: readonly Param[], controls: DialogControl[]): str
   const changed: string[] = []
   const r = reader(controls)
   for (const p of params) {
+    if (p.kind === 'ordinal') continue
     const c = control(controls, p.label)
     if (c?.kind !== 'string') continue
     let next: string | null = null

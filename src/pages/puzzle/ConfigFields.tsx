@@ -1,8 +1,39 @@
-import { useReducer } from 'react'
-import ParamField, { tableOf } from './ParamField'
+import { useId, useReducer } from 'react'
+import ParamField, { OrdinalField, tableOf } from './ParamField'
+import type { ChoicesControl, RangeParam } from './ParamField'
 import type { DialogControl } from '../../engine/types'
 import type { Param } from '../../games/util/params'
 import { reader, settle } from '../../games/util/params'
+
+// 自定义面板里的 choices 控件:下拉换成分段按钮,选项全部可见、一点即换。写回的仍是
+// 选项下标,和 select 交回去的一样;radio 的键盘方向键也是一按一落定,和 select 一致。
+function ChoiceGroup({ control, onCommit }: { control: ChoicesControl; onCommit: () => void }) {
+  const id = useId()
+  return (
+    <div className="dialog-choice">
+      <label className="dialog-param-head" id={id}>
+        {control.label}
+      </label>
+      <div className="segmented" role="radiogroup" aria-labelledby={id}>
+        {control.choices.map((choice, index) => (
+          <label key={index} data-selected={control.value === index}>
+            <input
+              type="radio"
+              name={id}
+              value={index}
+              checked={control.value === index}
+              onChange={() => {
+                control.value = index
+                onCommit()
+              }}
+            />
+            {choice}
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function ConfigFields({
   controls,
@@ -45,7 +76,16 @@ export default function ConfigFields({
               {control.label}
             </label>
           )
-        if (control.kind === 'choices')
+        if (control.kind === 'choices') {
+          // 给了范围模型(自定义参数那条路)才换画法;偏好面板与模态对话框仍是下拉。
+          if (params) {
+            const slide = params.some((p) => p.kind === 'ordinal' && p.label === control.label)
+            return slide ? (
+              <OrdinalField key={i} control={control} onCommit={commit} />
+            ) : (
+              <ChoiceGroup key={i} control={control} onCommit={commit} />
+            )
+          }
           return (
             <label key={i} className="dialog-choices">
               {control.label}
@@ -64,7 +104,10 @@ export default function ConfigFields({
               </select>
             </label>
           )
-        const param = params?.find((p) => p.label === control.label)
+        }
+        const param = params?.find(
+          (p): p is RangeParam => p.kind !== 'ordinal' && p.label === control.label,
+        )
         if (param && read && tableOf(param, read).length > 0)
           return <ParamField key={i} control={control} param={param} read={read} onCommit={commit} />
         return (
