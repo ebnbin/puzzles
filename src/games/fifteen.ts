@@ -6,7 +6,16 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { cross } from './util/pad'
-import { int, range } from './util/params'
+import { int } from './util/params'
+
+const SIDES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+// 宽高互推:两根滑块的档位都是全表,动了一根另一根若配不上就被推到最近的合法档;对方在
+// 表外(Game ID 带进来的)时给全表,好把它拉回来。
+const fits = (a: number, b: number) => a <= 2 * b && b <= 2 * a && a * b >= 6
+const beside = (other: number) => {
+  const list = SIDES.filter((s) => fits(s, other))
+  return list.length ? list : SIDES
+}
 
 const fifteen: Game = {
   id: 'fifteen',
@@ -16,9 +25,13 @@ const fifteen: Game = {
   pages: samePages('fifteen'),
   types: {
     menu: verbatim,
-    // 上限 50:格子里要写编号,字号是格边的 1/3(fifteen.c:946),50×50 在 2560×1440
-    // 上是每格 25 px、字号 8 px,四位数刚好读得出来,再大就认不出了。
-    params: [int('Width', () => range(2, 50)), int('Height', () => range(2, 50))],
+    // 可选值全部列出,不是规则。上游只要求宽高 ≥ 2;16 是设计定的上限:16×16 有 255 块,上游
+    // 自带的提示解法一局近万步,再大没有新内容只有更长。配对:长边 ≤ 短边 2 倍,面积 ≥ 6
+    // (2×2 三块只能绕圈转,没有可玩性)。
+    params: [
+      int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
+      int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
+    ],
   },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
