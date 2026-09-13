@@ -1435,12 +1435,6 @@ p.notice-intro button:active {
   font-size: var(--t-xs);
 }
 
-/* 门关着时被它管的那一行整体变淡:轨道和按钮自己 disabled,标题和读数跟着淡。 */
-.sheet-params .dialog-param[data-off] .dialog-param-head,
-.sheet-params .dialog-param[data-off] .dialog-param-value {
-  opacity: 0.4;
-}
-
 /* 轨道下面单独一行的附注(Rectangles 由枚举算出来的 e):跟着滑块实时变,
    放这儿是因为它和读数连起来太长,挤在一行会把轨道吃掉一截。 */
 .sheet-params .dialog-param-foot {
