@@ -150,7 +150,8 @@ export default function PuzzleHost({
   const preferring = usePrefer()
 
   const [menuOpen, setMenuOpen] = useState(false)
-  const [typesOpen, setTypesOpen] = useState(false)
+  // 够宽的桌面上类型面板默认展开:停靠成侧栏不盖棋盘,开着也不算覆盖层。
+  const [typesOpen, setTypesOpen] = useState(() => window.matchMedia(DOCK).matches)
   const [helpOpen, setHelpOpen] = useState(false)
   const [intro, setIntro] = useState(false)
 
@@ -278,6 +279,14 @@ export default function PuzzleHost({
   // usePuzzleKeys 自己会让开)。
   const wide = useMedia(DOCK)
   const docked = typesOpen && wide
+
+  // 窗口从够宽收窄到不够宽(开发者工具一停靠就会),开着的侧栏别变成盖住棋盘的 sheet:
+  // 只在这一步转换时收起,窄屏上用户自己拉起的 sheet 不受影响。
+  const wasWide = useRef(wide)
+  useEffect(() => {
+    if (wasWide.current && !wide && typesOpen) closeTypes()
+    wasWide.current = wide
+  }, [wide, typesOpen, closeTypes])
 
   // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。手册也是
   // 覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必再报一位进来。

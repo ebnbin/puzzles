@@ -50,9 +50,10 @@ const paramsNow = () =>
     return m ? m[1] : null
   })
 
-// 参数列表不用再选「自定义」才出来:面板一开就在。
+// 参数列表不用再选「自定义」才出来:面板一开就在。桌面停靠时默认已经展开,那就不点
+// (点了是收起)。
 async function openTypes() {
-  await named('Type').click()
+  if (!(await page.locator('.sheet-params').count())) await named('Type').click()
   await page.locator('.sheet-params').waitFor({ timeout: 5000 })
   await page.waitForTimeout(150)
 }
