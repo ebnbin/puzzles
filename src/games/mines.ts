@@ -5,8 +5,12 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import type { Read } from './util/params'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
+
+const area = (r: Read) => r.int('Width') * r.int('Height')
 
 const mines: Game = {
   id: 'mines',
@@ -14,7 +18,18 @@ const mines: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[16, 17]] },
   pages: samePages('mines'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 宽高从 4 起。上游只在勾了「Ensure solubility」时要求两维 > 2(mines.c:290),
+      // 但 3×3 的面积 9 连一颗雷都放不下(雷数 ≤ 面积 − 9,309),而 3×n 一到高密度,
+      // 唯一解那条路修不出来(3×100 撒 30% 的雷跑五分钟也不出)。4 起面积恒 ≥ 16,
+      // 两条都不再是问题,高也不用再看宽。
+      int('Width', () => range(4, CAP)),
+      int('Height', () => range(4, CAP)),
+      int('Mines', (r) => range(1, area(r) - 9), { note: (n, r) => `${Math.round((100 * n) / area(r))}%` }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

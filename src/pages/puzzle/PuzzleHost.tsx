@@ -33,12 +33,17 @@ import { START_FAILED, useEngine } from './useEngine'
 import { useHelp } from './useHelp'
 import { useOutcome } from './useOutcome'
 import HoldTip, { useHoldTip } from '../../ui/HoldTip'
+import { useMedia } from '../../ui/useMedia'
 import { useResolvedTheme } from '../../useTheme'
 import { usePuzzleFit } from './usePuzzleFit'
 import { usePuzzleKeys, type Shortcut } from './usePuzzleKeys'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
+
+// 够宽的屏幕上类型面板停靠成右侧栏:棋盘让出这条宽度,不被盖住。只看宽度,横屏平板
+// 也停靠。和 index.css 里 .puzzle[data-dock] 的那条查询必须同值,两处一起改。
+const DOCK = '(min-width: 64em)'
 
 export default function PuzzleHost({
   name,
@@ -136,7 +141,6 @@ export default function PuzzleHost({
     closeInline,
     commitInline,
     readPrefs,
-    abandonInline,
   } = config
 
   const shortcuts = useShortcuts()
@@ -146,7 +150,8 @@ export default function PuzzleHost({
   const preferring = usePrefer()
 
   const [menuOpen, setMenuOpen] = useState(false)
-  const [typesOpen, setTypesOpen] = useState(false)
+  // 够宽的桌面上类型面板默认展开:停靠成侧栏不盖棋盘,开着也不算覆盖层。
+  const [typesOpen, setTypesOpen] = useState(() => window.matchMedia(DOCK).matches)
   const [helpOpen, setHelpOpen] = useState(false)
   const [intro, setIntro] = useState(false)
 
@@ -236,10 +241,10 @@ export default function PuzzleHost({
   // act 的发牌版:同样的守卫和 acted(),只是动手的是镜像。direct 是没有镜像时
   // (起不了模块 worker)在主线程上直接做的那件事——会卡,但不会没得玩。
   const deal = useCallback(
-    (action: DealAction, direct: (api: PuzzleApi) => void) => {
-      if (!apiRef.current || dialog) return
+    (action: DealAction, direct: (api: PuzzleApi) => void): Promise<void> => {
+      if (!apiRef.current || dialog) return Promise.resolve()
       acted()
-      void runDeal(action, direct)
+      return runDeal(action, direct)
     },
     [dialog, acted, runDeal],
   )
@@ -257,22 +262,35 @@ export default function PuzzleHost({
   }, [ready, game, readPrefs])
 
   const closeTypes = useCallback(() => {
-    abandonInline()
+    closeInline()
     setTypesOpen(false)
-  }, [abandonInline])
+  }, [closeInline])
 
   const closeMenu = useCallback(() => {
-    abandonInline()
+    closeInline()
     setMenuOpen(false)
-  }, [abandonInline])
+  }, [closeInline])
 
   const closeHelp = useCallback(() => setHelpOpen(false), [])
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
+  // 停靠的类型面板不是覆盖层:棋盘整个露着,键盘照旧归谜题(焦点在滑块上时
+  // usePuzzleKeys 自己会让开)。
+  const wide = useMedia(DOCK)
+  const docked = typesOpen && wide
+
+  // 窗口从够宽收窄到不够宽(开发者工具一停靠就会),开着的侧栏别变成盖住棋盘的 sheet:
+  // 只在这一步转换时收起,窄屏上用户自己拉起的 sheet 不受影响。
+  const wasWide = useRef(wide)
+  useEffect(() => {
+    if (wasWide.current && !wide && typesOpen) closeTypes()
+    wasWide.current = wide
+  }, [wide, typesOpen, closeTypes])
+
   // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。手册也是
   // 覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必再报一位进来。
-  const covered = !!dialog || helpOpen || typesOpen || menuOpen
+  const covered = !!dialog || helpOpen || (typesOpen && !docked) || menuOpen
   // 上游那三个裸字母快捷键由我们补发,理由和判据都在 useShortcuts.SHORTCUTS_OFF。
   // n 走镜像,u / r 本来就不发牌,照旧同步。
   const onShortcut = useCallback(
@@ -357,6 +375,7 @@ export default function PuzzleHost({
     <div
       className="puzzle"
       data-ready={ready}
+      data-dock={docked || undefined}
       data-arrows={arrows ? 'true' : undefined}
     >
       <header className="puzzle-bar">
@@ -451,12 +470,19 @@ export default function PuzzleHost({
         typesShown={!ready || !!engine.presets}
         typesEnabled={!!engine.presets}
         typesOpen={typesOpen}
+        typesDocked={docked}
         menuOpen={menuOpen}
         holdToAsk={holdToAsk}
         wasHeld={wasHeld}
         onUndo={() => act((a) => a.undo())}
         onRedo={() => act((a) => a.redo())}
         onTypes={() => {
+          // 停靠成侧栏时这个键在面板开着的时候仍然点得到,所以它是开关:
+          // 再点一次收起,不是「关掉再开一次」。
+          if (typesOpen) {
+            closeTypes()
+            return
+          }
           closeMenu()
           setTypesOpen(true)
         }}
@@ -513,17 +539,24 @@ export default function PuzzleHost({
           presets={engine.presets}
           selected={engine.selected}
           standard={engine.standard}
-          custom={inline?.kind === 'custom' ? inline.spec : null}
-          customError={inlineError}
-          // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
-          // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
-          // select_appropriate_preset,选中项由引擎自己报回来。
-          onSelectPreset={(value) =>
-            deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value))
-          }
-          onOpenCustom={() => openInline('custom')}
-          onCloseCustom={closeInline}
-          onCommitCustom={commitInline}
+          spec={inline?.kind === 'custom' ? inline.spec : null}
+          error={inlineError}
+          params={game.types.params}
+          dock={docked}
+          onOpen={() => openInline('custom')}
+          onSelectPreset={(value) => {
+            // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
+            // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
+            // select_appropriate_preset,选中项由引擎自己报回来。
+            // 那份按旧参数建的 cfg 要等发完牌再丢:抢在发牌前丢,PuzzleTypes 里
+            // 「没有 spec 就再要一份」的常驻 effect 会立刻照旧参数补一份回来,
+            // 新参数反倒没人去问。
+            void deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value)).then(() => {
+              closeInline()
+              openInline('custom')
+            })
+          }}
+          onCommit={commitInline}
           onClose={closeTypes}
         />
       )}
@@ -537,7 +570,7 @@ export default function PuzzleHost({
           onOpenPrefs={() => openInline('prefs')}
           onCommitPrefs={commitInline}
           onAction={(action) => {
-            abandonInline()
+            closeInline()
             // 三个动作里只有 newGame 会走到 midend_new_game;restart/solve 不发牌。
             if (action === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
             else act((a) => a[action]())

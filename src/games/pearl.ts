@@ -9,6 +9,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { hintKey, preferKeys } from './util/keys'
 import { act, arm, cross, layerByWords, wordOf } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 type Facts = { walked: boolean }
 
@@ -28,7 +29,16 @@ const pearl: Game<Facts> = {
   touch: { hold: 'right' },
   dark: { keep: [3, 4], frame: { 3: 4 } },
   pages: samePages('pearl'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(5, CAP)),
+      // Tricky(难度下标 1)要宽 + 高 ≥ 11(pearl.c:294)。
+      int('Height', (r) =>
+        range(Math.max(5, r.pick('Difficulty') >= 1 ? 11 - r.int('Width') : 5), CAP),
+      ),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => [hintKey(), ...preferKeys<Facts>(prefs, [LOOK])],
   arrows: {

@@ -6,6 +6,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import { CAP, float, int, range, steps } from './util/params'
 
 const netslide: Game = {
   id: 'netslide',
@@ -13,7 +14,17 @@ const netslide: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('netslide'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => range(2, CAP)),
+      int('Height', () => range(2, CAP)),
+      float('Barrier probability', 2, () => steps(0, 1, 0.01, 2)),
+      // 打乱步数封到 100,同 Sixteen / Twiddle:0(默认值和全部九条预设)才是打乱,
+      // N > 0 是「数得出来、能倒着走回去」那一档。上游只要求非负(netslide.c:321)。
+      int('Number of shuffling moves', () => range(0, 100)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

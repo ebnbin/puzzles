@@ -9,6 +9,23 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { jumbleKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+import { float, int } from './util/params'
+
+// 可选值全部列出,不是规则:奇数边电源才在正中(上游十条预设全是奇数);上限 49 是
+// 可读性定的(笔记本上 15 px 一格),生成本身对尺寸是线性的。3 起:1×1 上游不收,
+// 环绕 + 唯一解时 2 不收(net.c:324、376),都在表外。
+const SIDES = [
+  3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49,
+]
+const BARRIERS = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+
+// 长边不超过短边的两倍:表里和对方当前值搭得上的档就是窗口;对方在表外(Game ID 带
+// 进来的)时给全表,好把它拉回来。
+const fits = (a: number, b: number) => a <= 2 * b && b <= 2 * a
+const beside = (other: number) => {
+  const list = SIDES.filter((s) => fits(s, other))
+  return list.length ? list : SIDES
+}
 
 const LOOPS: Prefer = {
   kind: 'flag',
@@ -29,7 +46,18 @@ const net: Game = {
   touch: { hold: 'middle' },
   dark: {},
   pages: samePages('net'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 宽高互推:两根滑块的档位都是全表;用户动了一根,另一根若出了 2:1 就被推到最近的
+      // 合法档。没有主动方时(Game ID)先按高夹宽、再按新宽夹高,一趟落在合法组合上。
+      int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
+      int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
+      float('Barrier probability', 1, () => BARRIERS, {
+        show: (p) => `${Math.round(p * 100)}%`,
+      }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   // J 重排没有鼠标入口(net.c:2331),是这里唯一够不着的键。
   keypad: ({ prefs }) => [jumbleKey(), ...preferKeys(prefs, [LOOPS])],

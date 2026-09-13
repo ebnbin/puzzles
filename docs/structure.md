@@ -90,6 +90,7 @@ ground truth。
 | `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
+| `params.ts` | 自定义参数的范围模型:`Param` 申报词汇(表 = 升序允许值)、`reader`、`settle`(按申报序逐个夹进表,刚动的那个不夹、对等参数按窗口互推);范围本身在各游戏文件的 `types.params`,索引与理由在 `docs/params.md` |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
 | `verify.ts` | 构建期不变量:注册表与 games.json 双向对账、深色申报检查 |
 
@@ -111,14 +112,15 @@ ground truth。
 | `PuzzleHost.tsx` | 装配处:把四个域接起来再画出来 |
 | `useEngine.ts` | 引擎生命周期:起 wasm、绑回调、存档持久化、把引擎事件泵进旁边三个域 |
 | `useBoard.ts` | 棋盘通道:五项每游戏状态(标签/事实/光标镜像/粘滞键/上膛)与观察器;存档门重入计数私有在这里 |
-| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在 sheet 里)/ modal(兜底);偏好的读与写都从 borrowed 那条走 |
+| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在面板里)/ modal(兜底);偏好的读与写都从 borrowed 那条走,借之前给常驻的 inline 让位、借完要回来 |
 | `useOutcome.ts` | 完成判定:status 只认沿、收尾浮层、记完成(求解器解出的不记) |
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
-| `PuzzleTypes.tsx` | 类型 sheet:预设列表 + 自定义参数 |
+| `PuzzleTypes.tsx` | 类型面板:预设列表 + 常驻的参数列表,两者互相跟随(选中态认引擎报的 `midend_which_preset`,不命中就一条都不选);上游那条「自定义」不画;上游唯一的子菜单(Loopy 的 `More...`)在 `puzzle-lib.js` 里就铺平了,这里只画一层 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
-| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象,text 只在落定时提交) |
+| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象);给了范围模型时 string 控件交给 ParamField、choices 画成分段按钮(申报了 ordinal 的交给 OrdinalField 当滑块),每次落定先 settle 再提交;没申报的仍是文本框,没给模型的调用方仍是下拉 |
+| `ParamField.tsx` | 范围模型驱动的数字行:滑块按表的下标走 + −/+ 步进 + 读数,区间型两行;拖动只改读数,原生 change 才落定。OrdinalField 把下拉装的数值阶梯画成同样的滑块 |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
 | `usePuzzleKeys.ts` | 物理键盘唯一通路:判据是「这一按该不该归谜题」,不认焦点 |
 | `usePuzzlePointer.ts` | 指针 → 上游鼠标语义(长按 = 右键或中键,由游戏申报) |
@@ -153,12 +155,14 @@ ground truth。
 | --- | --- |
 | `Dialog.tsx` | 模态对话框壳:标题、关闭、滚动锁 |
 | `Sheet.tsx` | 底部弹层壳:scrim、把手、拖拽关闭 |
+| `Dock.tsx` | 停靠在右侧的面板壳:非模态,没有 scrim、不锁滚动、不收焦点;让出宽度的是外面那层 |
 | `Notice.tsx` | 通知条:error / info 两种,可浮动可关闭 |
 | `Swatch.tsx` | 色块钉(键面上的颜色圆点) |
 | `Icon.tsx` | 全部图标字形与三张怪物图片的名字表 |
 | `ThemeToggle.tsx` | 主题切换按钮 |
 | `HoldTip.tsx` | 长按提示:`useHoldTip` 发 handlers,组件负责画 |
 | `useScrollLock.ts` | 弹层期间锁背景滚动 |
+| `useMedia.ts` | 一条媒体查询的当下答案:给排版之外行为也要跟着改的地方(类型面板停不停靠) |
 
 ## public/ —— 静态资源与生成物
 
@@ -180,7 +184,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 
 ## scripts/ —— 生成与契约测试
 
-两类:`build-*` 重画生成物,平时不跑(生成物已全部提交);`check-*` 是手动契约测试
+两类:`build-*` 重出生成物,平时不跑(生成物已全部提交);`check-*` 是手动契约测试
 (要 vite preview + 临时装 playwright),**何时跑钉在被测文件的头部注释里**。
 
 | 文件 | 作用 |
@@ -194,16 +198,22 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `build-art.mjs` | undead 怪物图 |
 | `build-shot.mjs` | README 首图 `docs/gallery.png` 与分享卡 `og.png` |
 | `build-appicon.mjs` | 四个应用图标(maskable 留白规矩在注释里) |
+| `build-params-doc.mjs` | 出 `docs/params.md`:手写源 + oracle 控件表 + 模型现算的默认表 + 当场跑 check-params 的结果;`--html` 另出 Artifact 用的单页(要 gcc) |
 | `check-keys.mjs` | 六游戏键面与上游 `midend_request_keys` 对账,五个自造键盘断言上游为空 |
-| `check-cube.mjs` | cube 滚动置灰模型对引擎逐格验证(升级上游后必跑) |
+| `check-cube.mjs` | cube 滚动置灰模型对引擎逐格验证(改走位模型或它的上限、升级上游后必跑;整轮几分钟) |
 | `check-map.mjs` | map 调色板走存档门涂色:涂的区域 = 光标站的区域 |
 | `check-clues.mjs` | map 线索格判定与引擎逐格对账 |
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
+| `check-params.mjs` | 自定义参数范围模型对着上游源码逐值对账(要 gcc,不要浏览器):覆盖、表内组合全放行、表外一格全被拒,登记过的几处故意收窄除外 |
+| `check-custom.mjs` | 自定义参数面板:四十个游戏没有文本框、滑块落定即开新局、派生参数被夹、翻开关时数字跟着让、−/+ 步进真落定一档,全程不出错误 Notice |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
+| `lib/params-oracle.c` | oracle 的 C 侧:链接一个上游游戏,直接调 configure / custom_params / validate_params(full);`--gen` 才真的生成一局(查不终止的组合用) |
+| `lib/params-oracle.mjs` | check-params 与 build-params-doc 共用:gcc 编 oracle 到 `.build/params-oracle/`、rolldown 打包注册表给 node、读控件表 |
+| `lib/params-doc.mjs` | `docs/params.md` 的手写源:逐参数的语义、上游规则(带行号)、本仓库的表与理由、与上游的出入 |
 
 ## docs/ 与 doc-zh/ —— 文档
 
@@ -211,6 +221,8 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | --- | --- |
 | `docs/keys.md` | 按键适配:判据、六类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
 | `docs/inputs.md` | 上游 40 游戏的全部输入参考,带源码行号,钉着上游 commit |
+| `docs/params-plan.md` | 自定义参数第二阶段(把参数设计成菜单)的工作文档:目标、七条约束、预设与生成耗时地形、做法、待 owner 定的事;手写,做完并入 `params.md` 后删除 |
+| `docs/params.md` | 生成物(`build-params-doc.mjs`):自定义参数 91 个 string 控件的取值范围——上游规则带行号、本仓库的表、依赖、上限来源、与上游的出入、契约测试结果;手写源在 `scripts/lib/params-doc.mjs` |
 | `docs/structure.md` | 本清单 |
 | `docs/gallery.png` | README 首图(`build-shot.mjs` 生成) |
 | `doc-zh/` | 手册中文翻译源(手写,40 个游戏页与公共章节共 45 页);`build-doc.mjs` 出 `public/doc/zh/`,改动后跑 `npm run verify-doc` |

@@ -6,6 +6,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+import { int, range } from './util/params'
 
 const WORDS = ['Black', 'Circle', 'Restore', 'Remove']
 
@@ -23,7 +24,10 @@ const singles: Game = {
   touch: { hold: 'right' },
   dark: { keep: [3, 4, 5, 6], paper: true },
   pages: samePages('singles'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(2, 62)), int('Height', () => range(2, 62))],
+  },
   prefs: { panel: verbatim, volatile: true },
   keypad: ({ prefs }) => preferKeys(prefs, [BLACK_NUMS]),
   arrows: {

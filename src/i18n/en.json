@@ -228,7 +228,11 @@
 
   "types": {
     "title": "Type",
-    "standard": "Default"
+    "standard": "Default",
+    "min": "Min",
+    "max": "Max",
+    "decrease": "One step down",
+    "increase": "One step up"
   },
 
   "deal": {

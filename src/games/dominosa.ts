@@ -8,8 +8,13 @@ import { fill } from '../i18n/fill'
 import { samePages, verbatim } from './util/declare'
 import { charButton, leadingNumber, tap } from './util/keys'
 import { act, cross } from './util/pad'
+import { int, range } from './util/params'
 
 const WORDS = ['Place', 'Remove', 'Line']
+
+// 每个难度的 n 上限(Trivial / Basic / Hard / Extreme / Ambiguous)。owner 定的,
+// 明知代价:这几档的生成分别是十几秒到几分钟量级,实测在 docs/params.md。
+const TOP = [25, 30, 15, 10, 50]
 
 const dominosa: Game = {
   id: 'dominosa',
@@ -23,7 +28,16 @@ const dominosa: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('dominosa'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 棋盘是 (n+2)×(n+1) 格。上限随难度走:上游要求局面「恰好需要这个难度」——
+      // 这个难度解不出来不行、更低的难度就能解出来也不行(2337-2345),没有次数上限。
+      // 于是中间的 Basic 最便宜、两头都贵(Trivial 要「只用最傻的推理就能解完」,
+      // Hard 以上要「基本推理做不出来」),而 Ambiguous 根本不跑求解器(2289),免费。
+      int('Maximum number on dominoes', (r) => range(1, TOP[r.pick('Difficulty')] ?? 25)),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ params }) => {
     const n = leadingNumber(params)

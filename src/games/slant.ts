@@ -7,6 +7,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const FADE: Prefer = { kind: 'flag', label: 'Fade grounded components', glyph: 'fadeSlant' }
 
@@ -16,7 +17,10 @@ const slant: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('slant'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(2, CAP)), int('Height', () => range(2, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys(prefs, [FADE]),
   arrows: {

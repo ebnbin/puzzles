@@ -8,6 +8,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PAINT, act, arrowFace, labelsSilent, walk } from './util/pad'
+import { int, range } from './util/params'
 
 const WORDS = ['Black', 'White', 'Grey']
 
@@ -61,13 +62,26 @@ const brushKey = (
     held: (view) => painting(view) && brushOf(view).id === id,
   })
 
+// 宽高只给 5 的倍数 5..50。上游只查 > 0 和面积 ≥ 2,但生成是拒绝采样,两头都会塌:
+// 短边小时「不许整行纯色」那条几乎必然触发(一行 3 格纯色的概率 0.60、4 格 0.42、
+// 5 格 0.30),3×30 跑满 300 秒也出不来;面积大时「只靠单行单列推理就能唯一确定」
+// 那条通不过,面积每多约 100 格耗时翻倍。上限 50 另有可读性一条(线索是文字,同
+// Fifteen / Sixteen)。逐档实测见 docs/params.md。
+const SIDES = range(1, 10).map((n) => n * 5)
+
 const pattern: Game = {
   id: 'pattern',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: { keep: [1, 2, 4, 5] },
   pages: samePages('pattern'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => SIDES),
+      int('Height', () => SIDES),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
