@@ -228,7 +228,7 @@ export default function ParamField({
   // write 是写进控件的那一份(必须是上游认的量);show / foot 只管显示。
   const write = param.kind === 'int' ? String : (v: number) => formatFloat(v, param.digits)
   const show = param.kind === 'float' && param.show ? (v: number) => param.show!(v, read) : write
-  const note = param.note ? (v: number) => param.note!(v, read) : undefined
+  const note = param.kind === 'int' && param.note ? (v: number) => param.note!(v, read) : undefined
   const foot = param.kind === 'float' && param.foot ? (v: number) => param.foot!(v, read) : undefined
   return (
     <div className="dialog-param">

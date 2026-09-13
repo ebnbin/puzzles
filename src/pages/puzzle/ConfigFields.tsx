@@ -52,8 +52,9 @@ export default function ConfigFields({
   // 编辑必须原地赋值 + 手动 redraw,拷进 React state 会让对话框永远提交初始值。
   const [, redraw] = useReducer((n: number) => n + 1, 0)
 
-  const commit = () => {
-    if (params) settle(params, controls)
+  // moved 是刚被用户动的控件:settle 不夹它,让其余的参数按窗口让。
+  const commit = (moved: string) => {
+    if (params) settle(params, controls, moved)
     redraw()
     onCommit?.()
   }
@@ -70,7 +71,7 @@ export default function ConfigFields({
                 checked={control.value}
                 onChange={(e) => {
                   control.value = e.target.checked
-                  commit()
+                  commit(control.label)
                 }}
               />
               {control.label}
@@ -80,10 +81,11 @@ export default function ConfigFields({
           // 给了范围模型(自定义参数那条路)才换画法;偏好面板与模态对话框仍是下拉。
           if (params) {
             const slide = params.some((p) => p.kind === 'ordinal' && p.label === control.label)
+            const done = () => commit(control.label)
             return slide ? (
-              <OrdinalField key={i} control={control} onCommit={commit} />
+              <OrdinalField key={i} control={control} onCommit={done} />
             ) : (
-              <ChoiceGroup key={i} control={control} onCommit={commit} />
+              <ChoiceGroup key={i} control={control} onCommit={done} />
             )
           }
           return (
@@ -93,7 +95,7 @@ export default function ConfigFields({
                 value={control.value}
                 onChange={(e) => {
                   control.value = Number(e.target.value)
-                  commit()
+                  commit(control.label)
                 }}
               >
                 {control.choices.map((choice, index) => (
@@ -109,7 +111,15 @@ export default function ConfigFields({
           (p): p is RangeParam => p.kind !== 'ordinal' && p.label === control.label,
         )
         if (param && read && tableOf(param, read).length > 0)
-          return <ParamField key={i} control={control} param={param} read={read} onCommit={commit} />
+          return (
+            <ParamField
+              key={i}
+              control={control}
+              param={param}
+              read={read}
+              onCommit={() => commit(control.label)}
+            />
+          )
         return (
           <label key={i} className="dialog-string">
             {control.label}
@@ -123,11 +133,11 @@ export default function ConfigFields({
                 control.value = e.target.value
                 redraw()
               }}
-              onBlur={commit}
+              onBlur={() => commit(control.label)}
               onKeyDown={(e) => {
                 if (e.key !== 'Enter') return
                 e.preventDefault()
-                commit()
+                commit(control.label)
               }}
             />
           </label>

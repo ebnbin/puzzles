@@ -90,7 +90,7 @@ ground truth。
 | `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
-| `params.ts` | 自定义参数的范围模型:`Param` 申报词汇(表 = 升序允许值)、`reader`、`settle`(按申报序逐个夹进表);范围本身在各游戏文件的 `types.params`,索引与理由在 `docs/params.md` |
+| `params.ts` | 自定义参数的范围模型:`Param` 申报词汇(表 = 升序允许值)、`reader`、`settle`(按申报序逐个夹进表,刚动的那个不夹、对等参数按窗口互推);范围本身在各游戏文件的 `types.params`,索引与理由在 `docs/params.md` |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
 | `verify.ts` | 构建期不变量:注册表与 games.json 双向对账、深色申报检查 |
 

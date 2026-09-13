@@ -8,8 +8,9 @@
 // 对账三件事,任一条不成立就 FAIL:
 //   1. 覆盖:每个 string 控件都有申报,每条申报都能按 label 认到控件(ordinal 申报认的是
 //      choices 控件,只查这一条,不走表)。
-//   2. 健全:按申报顺序把每张表走一遍(大表抽样),走出来的每个组合上游都放行;
-//      走的路上没有空表;settle 对这些组合是 no-op;从乱值出发 settle 之后上游放行。
+//   2. 健全:按申报顺序把每张表走一遍(大表抽样),每选定一档就像界面那样把其余参数推进
+//      各自的窗口,走出来的每个组合上游都放行;走的路上没有空表;settle 对这些组合是
+//      no-op;从乱值出发 settle 之后上游放行。
 //   3. 紧:表外一格(下界减一、上界加一、表中间的洞)按界面的做法钉住再落定后面的,
 //      上游若放行就说明表比上游窄——除了文档里写明的几处故意收窄。
 import { spawnSync } from 'node:child_process'
@@ -277,9 +278,9 @@ for (const name of names) {
           if (v < 0 || v > CAP) continue
           const forced = controls.map((c) => ({ ...c }))
           write(model, byLabel(forced, p.label), p, v)
-          // 后面的参数照界面的做法落定;有空表 = 界面本来就到不了这里
+          // 其余参数照界面的做法让路;有空表 = 界面本来就到不了这里
           if (params.slice(depth + 1).some((q) => table(model, q, forced).length === 0)) continue
-          model.settle(params.slice(depth + 1), forced)
+          model.settle(params.filter((q) => q !== p), forced, p.label)
           probes++
           queries.push({
             line: line(forced),
@@ -322,12 +323,14 @@ for (const name of names) {
           for (const hi of sample(p.hi(r, lo), rng)) {
             const next = controls.map((c) => ({ ...c }))
             write(model, byLabel(next, p.label), p, [lo, hi])
+            model.settle(params, next, p.label)
             walk(depth + 1, next)
           }
       } else {
         for (const v of sample(list, rng)) {
           const next = controls.map((c) => ({ ...c }))
           write(model, byLabel(next, p.label), p, v)
+          model.settle(params, next, p.label)
           walk(depth + 1, next)
         }
       }

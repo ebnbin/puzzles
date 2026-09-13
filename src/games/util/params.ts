@@ -1,10 +1,10 @@
 // 自定义参数的范围模型。C 侧只把 label 和字符串值交过来(emcc.c:625),范围知识
-// 全在这一侧:每个 string 控件按 label 申报一张「允许值表」,表由其它控件的当前值
-// 算出。申报顺序即落定顺序:一张表通常只看排在它前面的数字参数,以及任意 choices /
-// boolean 控件;两个对等的参数(宽和高)也可以互相看,前提是无论前一个落在哪一档,
-// 后一个的表都不为空。settle 按同一顺序单趟走完,值不在表内就吸到最近的一个(等距
-// 取大),走完必是上游 validate_params(full=true) 放行的组合——这条不变量由
-// scripts/check-params.mjs 对着链接了上游源码的 oracle 逐值验证。
+// 全在这一侧:每个 string 控件按 label 申报一张「允许值表」(滑块的档位),表由其它
+// 控件的当前值算出。申报顺序即落定顺序:一张表只看排在它前面的数字参数,以及任意
+// choices / boolean 控件;排在后面的一律当作可以随之调整。对等的两个参数(宽和高)
+// 另申报一张「窗口」:档位是全表,落定时刚被用户动的那个不夹,另一个若出了窗口就被
+// 推到最近的合法档。settle 单趟走完必是上游 validate_params(full=true) 放行的组合
+// ——这条不变量由 scripts/check-params.mjs 对着链接了上游源码的 oracle 逐值验证。
 // 表里的值在游戏文件里逐个列出,是枚举不是规则;下面 range / evens / steps 这些算表的
 // 词汇只服务于还没按这个规矩重定的游戏。
 import type { DialogControl } from '../../engine/types'
@@ -26,6 +26,8 @@ export type Param =
       allowed(r: Read): readonly number[]
       // 值旁边附的说明(比如雷数换算成占比),只是给人看。
       note?(v: number, r: Read): string
+      // 落定时必须落在的窗口,allowed 的子集,给互推的对等参数用;不申报就是 allowed。
+      within?(r: Read): readonly number[]
     }
   | {
       kind: 'float'
@@ -34,8 +36,6 @@ export type Param =
       allowed(r: Read): readonly number[]
       // 读数换成别的量(Rectangles 的粒度 t):只管显示,写进控件的仍是 digits 位的原值。
       show?(v: number, r: Read): string
-      // 值旁边附的说明(Net 的概率换算成墙数),只是给人看。
-      note?(v: number, r: Read): string
       // 轨道下面单独一行的附注(Rectangles 由枚举算出来的 e),也只是给人看。
       foot?(v: number, r: Read): string
       // 值不在表里时回到第一档,不吸到最近的一档:Rectangles 换了棋盘整套枚举就换了,
@@ -56,8 +56,11 @@ export type Param =
 export const int = (
   label: string,
   allowed: (r: Read) => readonly number[],
-  note?: (v: number, r: Read) => string,
-): Param => ({ kind: 'int', label, allowed, note })
+  extra?: {
+    note?(v: number, r: Read): string
+    within?(r: Read): readonly number[]
+  },
+): Param => ({ kind: 'int', label, allowed, ...extra })
 
 export const float = (
   label: string,
@@ -65,7 +68,6 @@ export const float = (
   allowed: (r: Read) => readonly number[],
   extra?: {
     show?(v: number, r: Read): string
-    note?(v: number, r: Read): string
     foot?(v: number, r: Read): string
     reset?: boolean
   },
@@ -165,17 +167,24 @@ export const formatSpan = (lo: number, hi: number): string =>
 // 表里的浮点是按位数取整过的,C 用 %g 回显再 parseFloat 得到同一个 double,精确比较就够。
 const has = (list: readonly number[], v: number): boolean => list.includes(v)
 
-// 就地把每个申报了的 string 控件夹进它此刻的表。返回改了哪些 label。
-export function settle(params: readonly Param[], controls: DialogControl[]): string[] {
+// 就地把每个申报了的 string 控件夹进它此刻的表。moved 是用户刚动的那个控件的 label,
+// 它是主动方,自己不夹,其余的按窗口让;没有主动方(Game ID、旧存档)就全部夹。返回改了哪些 label。
+export function settle(
+  params: readonly Param[],
+  controls: DialogControl[],
+  moved?: string,
+): string[] {
   const changed: string[] = []
   const r = reader(controls)
   for (const p of params) {
     if (p.kind === 'ordinal') continue
+    // 区间型的两个数共用一个控件:动了「最少」也要让「最多」跟上,所以主动方只跳过单值参数。
+    if (p.label === moved && p.kind !== 'span') continue
     const c = control(controls, p.label)
     if (c?.kind !== 'string') continue
     let next: string | null = null
     if (p.kind === 'int') {
-      const list = p.allowed(r)
+      const list = (p.within ?? p.allowed)(r)
       const v = parseInt(c.value, 10)
       if (list.length > 0 && !has(list, v)) next = String(snap(list, v))
     } else if (p.kind === 'float') {

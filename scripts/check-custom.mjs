@@ -5,7 +5,7 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守九条:
+// 守十条:
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -20,6 +20,7 @@
 //   八、分段按钮一点即落定:Map 点「Hard」,参数串以 dh 结尾、按钮带选中态。
 //   九、下拉装的数值阶梯是滑块:Bridges「Max. bridges per direction」右一档,桥数加一,
 //       读数是选项文字。
+//   十、对等参数互推:Net 宽拉到头 49,高被推到 2:1 内最近的 25;高拉到最小 3,宽被推到 5。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -307,6 +308,21 @@ await openTypes()
     else console.log(`  ok   Bridges 桥数滑块 ${before} → ${after}`)
     if (await notices()) fail('Bridges', '冒出了错误 Notice')
   }
+}
+
+// 十:对等参数互推。Net 的宽高档位都是全表,动一根另一根被推到 2:1 内最近的合法档。
+await open(page, 'Net', { settle: 200 })
+await openTypes()
+{
+  await press('Width', 'End')
+  let p = await paramsNow()
+  if (!/^49x25\b/.test(p ?? '')) fail('Net', `宽拉到头后高应被推到 25:${p}`)
+  else console.log(`  ok   Net 宽 49 → ${p}`)
+  await press('Height', 'Home')
+  p = await paramsNow()
+  if (!/^5x3\b/.test(p ?? '')) fail('Net', `高拉到最小后宽应被推到 5:${p}`)
+  else console.log(`  ok   Net 高 3 → ${p}`)
+  if (await notices()) fail('Net', '互推后冒出了错误 Notice')
 }
 
 await browser.close()

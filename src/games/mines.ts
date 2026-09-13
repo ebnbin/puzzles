@@ -27,7 +27,7 @@ const mines: Game = {
       // 两条都不再是问题,高也不用再看宽。
       int('Width', () => range(4, CAP)),
       int('Height', () => range(4, CAP)),
-      int('Mines', (r) => range(1, area(r) - 9), (n, r) => `${Math.round((100 * n) / area(r))}%`),
+      int('Mines', (r) => range(1, area(r) - 9), { note: (n, r) => `${Math.round((100 * n) / area(r))}%` }),
     ],
   },
   prefs: { panel: verbatim, volatile: false },
