@@ -9,7 +9,7 @@ import { samePages, verbatim } from './util/declare'
 import { done, fields, find } from './util/save'
 import type { Way } from './util/pad'
 import { DIRS, arrowFace, walk } from './util/pad'
-import { int, range } from './util/params'
+import { int } from './util/params'
 
 // ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);
 // MOVES 的字母和每个 Square.dirs 的下标都按同一套编号,不可为可读性重排——
@@ -26,9 +26,8 @@ type Square = { pts: [number, number][]; dirs: (readonly [number, number] | unde
 
 type Params = { solid: string; d1: number; d2: number }
 
-// 上限逐网格不同:方格网 100、三角网 50。六边形跨 d1+d2 行,三角网 50×50 的铺展
-// 和方格网 100×100 相当。走位模型的定义域(parseParams)跟着同一对数走——越界就不
-// 建网格、方向键全亮,面板给得出来的每一局都得建得出来。
+// 走位模型的定义域:方格 ≤ 100、三角 ≤ 50 才建网格,再大就不建、方向键全亮。菜单给得
+// 出的盘(方格单边 ≤ 16、三角 ≤ 14)都在里面:面板给得出来的每一局都得建得出来。
 const SQUARE_CAP = 100
 const TRI_CAP = 50
 // 上游 choices 的下标:0 四面体、1 立方体、2 八面体、3 二十面体;只有立方体是方格网。
@@ -175,41 +174,50 @@ const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
   press: (board) => walk(board, dir),
 })
 
-// 上游 cube.c:541-602 的逐格分类计数(enum_grid_squares + count_grid_square_callback):
-// 每一类格子都要放得下均分给它的蓝面,总面积还要多出一格给立体落脚。
-// solid 下标:0 四面体、1 立方体、2 八面体、3 二十面体;order 4 = 方格,其余三角格。
-function roomFor(solid: number, d1: number, d2: number): boolean {
-  if (!(solid >= 0 && solid <= 3) || d1 < 0 || d2 < 0) return false
-  const order = solid === 1 ? 4 : 3
-  const faces = [4, 6, 8, 20][solid]
-  const kinds = solid === 0 ? 4 : solid === 2 ? 2 : 1
-  const count = [0, 0, 0, 0]
-  if (order === 4) {
-    if (d1 <= 1 || d2 <= 1) return false
-    count[0] = d1 * d2
-  } else {
-    if (d1 <= 0 && d2 <= 0) return false
-    let firstix = -1
-    for (let row = 0; row < d1 + d2; row++) {
-      const other = row < d2 ? 1 : -1
-      const rowlen = row < d2 ? row + d1 : 2 * d2 + d1 - row
-      for (let i = 0; i < rowlen; i++) {
-        let ix = 2 * i - (rowlen - 1)
-        if (firstix < 0) firstix = ix & 3
-        ix -= firstix
-        count[kinds === 4 ? ((row + (ix & 1)) & 2) ^ (ix & 3) : kinds === 2 ? 1 : 0]++
-      }
-      for (let i = 0; i < rowlen + other; i++) {
-        let ix = 2 * i - (rowlen + other - 1)
-        if (firstix < 0) firstix = (ix - 1) & 3
-        ix -= firstix
-        count[kinds === 4 ? ((row + (ix & 1)) & 2) ^ (ix & 3) : 0]++
-      }
-    }
-  }
-  for (let k = 0; k < kinds; k++) if (count[k] < Math.floor(faces / kinds)) return false
-  const area = order === 4 ? d1 * d2 : d1 * d1 + d2 * d2 + 4 * d1 * d2
-  return area >= faces + 1
+type Pair = readonly [number, number]
+
+// 四种立体各一张成对表:上游放得下、面积 ≤ 预设的 4 倍、方格另限单边 ≤ 16 的全部宽高组合;
+// 只写 宽 ≤ 高 的一半、按面积排序,镜像在 pairsOf 里补。表是拿上游 validate_params 逐对
+// 裁定出来的,不是规则算的(docs/params.md);改表要过 scripts/check-params.mjs。
+const TETRA: Pair[] = [
+  [0, 3], [1, 2], [0, 4], [1, 3], [2, 2], [0, 5], [1, 4], [0, 6],
+  [2, 3], [1, 5], [0, 7], [2, 4],
+]
+const SQUARE: Pair[] = [
+  [2, 4], [3, 3], [2, 5], [2, 6], [3, 4], [2, 7], [3, 5], [2, 8],
+  [4, 4], [2, 9], [3, 6], [2, 10], [4, 5], [3, 7], [2, 11], [2, 12],
+  [3, 8], [4, 6], [5, 5], [2, 13], [3, 9], [2, 14], [4, 7], [2, 15],
+  [3, 10], [5, 6], [2, 16], [4, 8], [3, 11], [5, 7], [3, 12], [4, 9],
+  [6, 6], [3, 13], [4, 10], [5, 8], [3, 14], [6, 7], [4, 11], [3, 15],
+  [5, 9], [3, 16], [4, 12], [6, 8], [7, 7], [5, 10], [4, 13], [6, 9],
+  [5, 11], [4, 14], [7, 8], [4, 15], [5, 12], [6, 10], [7, 9], [4, 16],
+  [8, 8],
+]
+const OCTA: Pair[] = [
+  [1, 2], [0, 4], [1, 3], [2, 2], [0, 5], [1, 4], [0, 6], [2, 3],
+  [1, 5], [0, 7], [2, 4], [3, 3], [1, 6], [0, 8], [2, 5], [3, 4],
+  [1, 7], [0, 9], [2, 6], [3, 5], [4, 4],
+]
+const ICOSA: Pair[] = [
+  [1, 3], [2, 2], [0, 5], [1, 4], [0, 6], [2, 3], [1, 5], [0, 7],
+  [2, 4], [3, 3], [1, 6], [0, 8], [2, 5], [3, 4], [1, 7], [0, 9],
+  [2, 6], [3, 5], [4, 4], [1, 8], [0, 10], [2, 7], [3, 6], [1, 9],
+  [0, 11], [4, 5], [2, 8], [1, 10], [3, 7], [0, 12], [4, 6], [5, 5],
+  [2, 9], [1, 11], [0, 13], [3, 8], [4, 7], [5, 6], [2, 10], [1, 12],
+  [0, 14], [3, 9], [4, 8], [2, 11], [5, 7], [6, 6],
+]
+// 下标就是上游 choices 的下标:0 四面体、1 立方体、2 八面体、3 二十面体。
+const TABLES = [TETRA, SQUARE, OCTA, ICOSA]
+
+const pairsOf = (solid: number): Pair[] =>
+  (TABLES[solid] ?? []).flatMap(([a, b]): Pair[] => (a === b ? [[a, b]] : [[a, b], [b, a]]))
+const ascending = (list: number[]) => [...new Set(list)].sort((x, y) => x - y)
+// 一根滑块的档位:表里出现过的值;宽高对称,两根同一张。
+const stops = (solid: number) => ascending(pairsOf(solid).map(([a]) => a))
+// 和对方当前值配得上的档;对方在表外(Game ID 带进来的)时给全表,好把它拉回来。
+const beside = (solid: number, other: number) => {
+  const list = pairsOf(solid).filter(([, b]) => b === other).map(([a]) => a)
+  return list.length ? ascending(list) : stops(solid)
 }
 
 const cube: Game<Facts> = {
@@ -221,17 +229,14 @@ const cube: Game<Facts> = {
   types: {
     menu: verbatim,
     params: [
-      // 宽的表取「高放到最大时放得下」:面积与各类计数都随高单调不减。
-      int('Width / top', (r) => {
-        const solid = r.pick('Type of solid')
-        const cap = capOf(solid)
-        return range(0, cap).filter((d1) => roomFor(solid, d1, cap))
+      // 宽高互推:两根滑块的档位都是该立体的全表;动了一根,另一根若和它配不成表内组合
+      // 就被推到配得上的最近一档。没有主动方时(Game ID、换立体)先按高夹宽、再按新宽
+      // 夹高,一趟落在表内组合上。
+      int('Width / top', (r) => stops(r.pick('Type of solid')), {
+        within: (r) => beside(r.pick('Type of solid'), r.int('Height / bottom')),
       }),
-      int('Height / bottom', (r) => {
-        const solid = r.pick('Type of solid')
-        return range(0, capOf(solid)).filter((d2) =>
-          roomFor(solid, r.int('Width / top'), d2),
-        )
+      int('Height / bottom', (r) => stops(r.pick('Type of solid')), {
+        within: (r) => beside(r.pick('Type of solid'), r.int('Width / top')),
       }),
     ],
   },

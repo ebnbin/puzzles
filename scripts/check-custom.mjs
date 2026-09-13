@@ -5,7 +5,7 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守十条:
+// 守十一条:
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -21,6 +21,7 @@
 //   九、下拉装的数值阶梯是滑块:Bridges「Max. bridges per direction」右一档,桥数加一,
 //       读数是选项文字。
 //   十、对等参数互推:Net 宽拉到头 49,高被推到 2:1 内最近的 25;高拉到最小 3,宽被推到 5。
+//   十一、成对表互推:Cube 从预设 4×4 把宽拉到头 16,高 4 配得上不动;再把高拉到头 16,宽被推到 4。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -323,6 +324,24 @@ await openTypes()
   if (!/^5x3\b/.test(p ?? '')) fail('Net', `高拉到最小后宽应被推到 5:${p}`)
   else console.log(`  ok   Net 高 3 → ${p}`)
   if (await notices()) fail('Net', '互推后冒出了错误 Notice')
+}
+
+// 十一:成对表互推。Cube 的宽高档位是该立体的全表,动一根另一根被推到配得上的最近一档。
+// 先点回预设 Cube:前面逐游戏那轮把宽动过一档。
+await open(page, 'Cube', { settle: 200 })
+await openTypes()
+{
+  await page.locator('.sheet-presets label', { hasText: 'Cube' }).first().click()
+  await page.waitForTimeout(500)
+  await press('Width / top', 'End')
+  let p = await paramsNow()
+  if (p !== 'c16x4') fail('Cube', `宽拉到头后应是 16×4:${p}`)
+  else console.log(`  ok   Cube 宽 16 → ${p}`)
+  await press('Height / bottom', 'End')
+  p = await paramsNow()
+  if (p !== 'c4x16') fail('Cube', `高拉到头后宽应被推到 4:${p}`)
+  else console.log(`  ok   Cube 高 16 → ${p}`)
+  if (await notices()) fail('Cube', '互推后冒出了错误 Notice')
 }
 
 await browser.close()

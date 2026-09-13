@@ -100,9 +100,8 @@ function table(M, param, controls) {
 const EXPECTED_NARROWER = {
   // 宽高只给 3..49 的奇数且互锁在 2:1 内,表外的一律是设计使然(docs/params.md)。
   net: (label) => label === 'Width' || label === 'Height',
-  // 三角网(除立方体外的三个)封到 50:六边形跨 d1+d2 行,50×50 的铺展和方格网
-  // 100×100 相当。立方体那张表到 100,和 CAP 同高,探针够不着。
-  cube: (label, v, side, forced) => forced[0].value !== 1 && v > 50,
+  // 四张成对表(面积 ≤ 预设 × 4、方格单边 ≤ 16)之外的一律是设计使然,见 docs/params.md。
+  cube: () => true,
   // 封到 50:格子里要写编号,再大字号就认不出了(见 docs/params.md 第四节)。
   fifteen: (label, v) => v > 50,
   // 同上,只有宽高;打乱步数封到 100,探针试的 101 超过 CAP,够不着。
