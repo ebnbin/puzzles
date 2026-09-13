@@ -221,6 +221,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | --- | --- |
 | `docs/keys.md` | 按键适配:判据、六类按钮、全表、遗留问题、机制、坑(手写,同步维护) |
 | `docs/inputs.md` | 上游 40 游戏的全部输入参考,带源码行号,钉着上游 commit |
+| `docs/params-plan.md` | 自定义参数第二阶段(把参数设计成菜单)的工作文档:目标、七条约束、预设与生成耗时地形、做法、待 owner 定的事;手写,做完并入 `params.md` 后删除 |
 | `docs/params.md` | 生成物(`build-params-doc.mjs`):自定义参数 91 个 string 控件的取值范围——上游规则带行号、本仓库的表、依赖、上限来源、与上游的出入、契约测试结果;手写源在 `scripts/lib/params-doc.mjs` |
 | `docs/structure.md` | 本清单 |
 | `docs/gallery.png` | README 首图(`build-shot.mjs` 生成) |
