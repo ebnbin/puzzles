@@ -85,6 +85,13 @@ Magnets、Pearl 是 Easy 比 Hard 更难生成。
   Unequal、Untangle、Dominosa、Guess);特殊几何的(Cube、Loopy、Pegs、Unruly、Pattern)。先用
   Tents(成本封顶)、Mines(密度阶梯)、Palisade(约数型派生参数)三个把词汇和工具走通。
 
+## 进度
+
+- **Net(已定)**:宽高只给 3..49 的奇数,两根滑块双向互锁在 2:1 内(方案乙:各自只列和对方
+  搭得上的档,谁都不自己动);Barrier probability 0、0.1 … 1 共 11 档,读数百分比 + 墙数;
+  两个开关不动。代码规矩从这里起:可选值在游戏文件里逐个列出,是枚举不是规则。
+  owner 留了一个问号:互锁这种 UI 以后要不要换,先看效果。
+
 ## 待 owner 定(开始做具体游戏时再定)
 
 1. 生成预算。建议本机中位 ≤ 1 秒、十个种子最坏 ≤ 3 秒。

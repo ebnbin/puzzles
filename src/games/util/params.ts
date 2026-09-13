@@ -1,9 +1,12 @@
 // 自定义参数的范围模型。C 侧只把 label 和字符串值交过来(emcc.c:625),范围知识
 // 全在这一侧:每个 string 控件按 label 申报一张「允许值表」,表由其它控件的当前值
-// 算出。申报顺序即依赖顺序:一张表只许看排在它前面的数字参数,以及任意 choices /
-// boolean 控件;排在后面的一律当作可以随之调整。settle 按同一顺序单趟走完,值不在
-// 表内就吸到最近的一个(等距取大),走完必是上游 validate_params(full=true) 放行的
-// 组合——这条不变量由 scripts/check-params.mjs 对着链接了上游源码的 oracle 逐值验证。
+// 算出。申报顺序即落定顺序:一张表通常只看排在它前面的数字参数,以及任意 choices /
+// boolean 控件;两个对等的参数(宽和高)也可以互相看,前提是无论前一个落在哪一档,
+// 后一个的表都不为空。settle 按同一顺序单趟走完,值不在表内就吸到最近的一个(等距
+// 取大),走完必是上游 validate_params(full=true) 放行的组合——这条不变量由
+// scripts/check-params.mjs 对着链接了上游源码的 oracle 逐值验证。
+// 表里的值在游戏文件里逐个列出,是枚举不是规则;下面 range / evens / steps 这些算表的
+// 词汇只服务于还没按这个规矩重定的游戏。
 import type { DialogControl } from '../../engine/types'
 
 // 上游没给上限时的封顶:网格维度 100 = 棋盘最多 100×100 格。计数类参数先同用这
@@ -31,6 +34,8 @@ export type Param =
       allowed(r: Read): readonly number[]
       // 读数换成别的量(Rectangles 的粒度 t):只管显示,写进控件的仍是 digits 位的原值。
       show?(v: number, r: Read): string
+      // 值旁边附的说明(Net 的概率换算成墙数),只是给人看。
+      note?(v: number, r: Read): string
       // 轨道下面单独一行的附注(Rectangles 由枚举算出来的 e),也只是给人看。
       foot?(v: number, r: Read): string
       // 值不在表里时回到第一档,不吸到最近的一档:Rectangles 换了棋盘整套枚举就换了,
@@ -60,6 +65,7 @@ export const float = (
   allowed: (r: Read) => readonly number[],
   extra?: {
     show?(v: number, r: Read): string
+    note?(v: number, r: Read): string
     foot?(v: number, r: Read): string
     reset?: boolean
   },

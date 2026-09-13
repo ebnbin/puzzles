@@ -97,9 +97,8 @@ function table(M, param, controls) {
 // 故意比上游窄的几处,文档 docs/params.md「与上游的出入」一节逐条对应。span 的探针
 // 带 side:只有「最多」那头的封顶是登记过的。
 const EXPECTED_NARROWER = {
-  // 本仓库定的下限:1×n 是一条直管,不成谜题。抬到 3 之后上游那两条(1×1、
-  // wrap+unique 下的 2)永远触发不了。
-  net: (label, v) => (label === 'Width' || label === 'Height') && v === 2,
+  // 宽高只给 3..49 的奇数且互锁在 2:1 内,表外的一律是设计使然(docs/params.md)。
+  net: (label) => label === 'Width' || label === 'Height',
   // 三角网(除立方体外的三个)封到 50:六边形跨 d1+d2 行,50×50 的铺展和方格网
   // 100×100 相当。立方体那张表到 100,和 CAP 同高,探针够不着。
   cube: (label, v, side, forced) => forced[0].value !== 1 && v > 50,
