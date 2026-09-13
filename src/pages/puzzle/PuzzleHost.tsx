@@ -41,9 +41,9 @@ import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
 
-// 够宽的桌面上类型面板停靠成右侧栏:棋盘让出这条宽度,不被盖住。和 index.css 里
-// .puzzle[data-dock] 的那条查询必须同值,两处一起改。
-const DOCK = '(min-width: 64em) and (hover: hover)'
+// 够宽的屏幕上类型面板停靠成右侧栏:棋盘让出这条宽度,不被盖住。只看宽度,横屏平板
+// 也停靠。和 index.css 里 .puzzle[data-dock] 的那条查询必须同值,两处一起改。
+const DOCK = '(min-width: 64em)'
 
 export default function PuzzleHost({
   name,

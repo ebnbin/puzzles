@@ -1529,7 +1529,7 @@ p.notice-intro button:active {
 /* 停靠在右侧的类型面板。棋盘不是被盖住而是让出宽度:.puzzle 加一条右内边距,
    棋盘照旧量自己的可用空间(usePuzzleFit 的 ResizeObserver),不用另算尺寸。
    查询和 PuzzleHost 的 DOCK 必须同值,两处一起改。 */
-@media (min-width: 64em) and (hover: hover) {
+@media (min-width: 64em) {
   .puzzle[data-dock] {
     padding-right: calc(var(--dock-w) + env(safe-area-inset-right));
   }
