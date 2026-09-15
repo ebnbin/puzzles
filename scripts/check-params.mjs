@@ -109,9 +109,15 @@ const EXPECTED_NARROWER = {
     label === 'Number of shuffling moves'
       ? v > Number(forced[0].value) + Number(forced[1].value)
       : v > 16,
-  // 同上;块边长只跟上游的 n ≤ min(宽, 高),不额外收。
-  twiddle: (label, v) =>
-    label === 'Width' || label === 'Height' ? v > 50 : false,
+  // 宽高 2..16、4:1 且面积 ≥ 6;块边长 2..min(宽, 高) 只去掉 n = 宽 = 高;打乱步数 0..w+h
+  // (0 由「门」切换)。表外一律是设计使然。
+  twiddle: (label, v, side, forced) => {
+    const w = Number(forced[0].value)
+    const h = Number(forced[1].value)
+    if (label === 'Rotating block size') return w === h && v === w
+    if (label === 'Number of shuffling moves') return v > w + h
+    return v > 16
+  },
   // 宽高只给 5 的倍数 5..50:表外的一律是预期收窄(下界减一、上界加一、中间的洞)。
   // 上游只查 > 0 和面积 ≥ 2,窄盘与大盘各自卡在生成的两条判据上,见 docs/params.md。
   pattern: (label, v) => v < 5 || v > 50 || v % 5 !== 0,
