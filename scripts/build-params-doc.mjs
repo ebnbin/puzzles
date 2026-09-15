@@ -150,7 +150,7 @@ const NEXT = [
   '`src/ui/Dock.tsx` / `useMedia.ts`:够宽的桌面上类型面板停靠成右侧栏(360px),棋盘让出宽度而不是被盖住;非模态,面板开着照样能走子。',
   '`src/index.css`:`.sheet-custom .dialog-param*`,颜色全部走 tokens,两种主题同一套规则。',
   '`src/i18n/en.json` / `zh.json`:`types.min` / `max` / `decrease` / `increase` 四个键(区间小标与步进按钮的读法)。',
-  '`scripts/check-custom.mjs`:playwright 走真实链路——四十个游戏的自定义面板没有文本框、动一档即开新局、Mines 缩到最小雷数被夹、Twiddle 宽高缩小时旋转块跟着降、Black Box 最少拉过最多时最多跟上、Mines 翻 Ensure solubility 时宽从 1 回到 3、步进按钮加一,全程不出错误 Notice。',
+  '`scripts/check-custom.mjs`:playwright 走真实链路——四十个游戏的自定义面板没有文本框、动一档即开新局、Mines 缩到最小雷数被夹、Twiddle 短边缩小时旋转块跟着降、Black Box 最少拉过最多时最多跟上、Mines 翻 Ensure solubility 时宽从 1 回到 3、步进按钮加一,全程不出错误 Notice。',
   '`scripts/build-params-doc.mjs`:本文档的生成器,手写源在 `scripts/lib/params-doc.mjs`;第七节的结果表每次生成时当场跑 check-params 得到。',
 ]
 

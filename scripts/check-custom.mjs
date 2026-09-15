@@ -9,7 +9,7 @@
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
-//   三、派生参数被夹:Mines 宽高缩到最小时雷数跟着降;Twiddle 宽高缩小时旋转块跟着降(3×3 不给块 3);
+//   三、派生参数被夹:Mines 宽高缩到最小时雷数跟着降;Twiddle 短边缩小时旋转块跟着降(7×5 上块 4 被推到 3);
 //       Black Box「最少」拉过「最多」时「最多」跟上。
 //   四、翻开关时数字跟着让:Solo 勾上 Killer,阶数被夹到 ≤ 9。
 //   五、−/+ 步进真的落定一档(Fifteen 宽 +1)。
@@ -156,24 +156,24 @@ await press('Rows of sub-blocks', 'End')
   if (await notices()) fail('Solo', '勾上 Killer 后冒出了错误 Notice')
 }
 
-// 三 b:Twiddle 从预设 4x4n3 起:高降到 3 块留在 3(4×3 放得下);宽再降到 3 成了 3×3,块被推到 2
-// (n = 宽 = 高 不给);宽降到 2 块仍是 2。
+// 三 b:Twiddle 从预设 6x6n4 起:宽加到 7 短边没变,块留在 4;高降到 5,块被推到 ⌊5/2⌋+1 = 3;
+// 宽降到 2,块降到 2。
 await open(page, 'Twiddle', { settle: 200 })
 await openTypes()
-await page.locator('.sheet-presets label', { hasText: '4x4, rotating' }).first().click()
+await page.locator('.sheet-presets label', { hasText: '6x6, rotating' }).first().click()
 await page.waitForTimeout(500)
 {
-  await press('Height', 'ArrowLeft')
+  await press('Width', 'ArrowRight')
   let p = await paramsNow()
-  if (p !== '4x3n3') fail('Twiddle', `高降到 3 时块应留在 3:${p}`)
-  else console.log(`  ok   Twiddle 高降到 3 → ${p}`)
-  await press('Width', 'ArrowLeft')
+  if (p !== '7x6n4') fail('Twiddle', `宽加到 7 时块应留在 4:${p}`)
+  else console.log(`  ok   Twiddle 宽加到 7 → ${p}`)
+  await press('Height', 'ArrowLeft')
   p = await paramsNow()
-  if (p !== '3x3n2') fail('Twiddle', `3×3 上块应被推到 2:${p}`)
-  else console.log(`  ok   Twiddle 宽降到 3 → ${p}`)
+  if (p !== '7x5n3') fail('Twiddle', `短边降到 5 时块应被推到 3:${p}`)
+  else console.log(`  ok   Twiddle 高降到 5 → ${p}`)
   await press('Width', 'Home')
   p = await paramsNow()
-  if (p !== '2x3n2') fail('Twiddle', `宽降到 2 时块应仍是 2:${p}`)
+  if (p !== '2x5n2') fail('Twiddle', `宽降到 2 时块应降到 2:${p}`)
   else console.log(`  ok   Twiddle 宽降到 2 → ${p}`)
   if (await notices()) fail('Twiddle', '冒出了错误 Notice')
 }

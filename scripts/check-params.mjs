@@ -109,12 +109,12 @@ const EXPECTED_NARROWER = {
     label === 'Number of shuffling moves'
       ? v > Number(forced[0].value) + Number(forced[1].value)
       : v > 16,
-  // 宽高 2..16、4:1 且面积 ≥ 6;块边长 2..min(宽, 高) 只去掉 n = 宽 = 高;打乱步数 0..w+h
-  // (0 由「门」切换)。表外一律是设计使然。
+  // 宽高 2..16、4:1 且面积 ≥ 6;块边长 2..⌊min(宽, 高)/2⌋+1;打乱步数 0..w+h(0 由「门」切换)。
+  // 表外一律是设计使然。
   twiddle: (label, v, side, forced) => {
     const w = Number(forced[0].value)
     const h = Number(forced[1].value)
-    if (label === 'Rotating block size') return w === h && v === w
+    if (label === 'Rotating block size') return v > Math.floor(Math.min(w, h) / 2) + 1
     if (label === 'Number of shuffling moves') return v > w + h
     return v > 16
   },

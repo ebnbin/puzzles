@@ -7,7 +7,7 @@ import { act, cross } from './util/pad'
 import { gate, int } from './util/params'
 
 const SIDES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-const BLOCKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+const BLOCKS = [2, 3, 4, 5, 6, 7, 8, 9]
 const MOVES = [
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -19,9 +19,10 @@ const beside = (other: number) => {
   const list = SIDES.filter((s) => fits(s, other))
   return list.length ? list : SIDES
 }
-// 块边长 2..min(宽, 高),只去掉 n = 宽 = 高:整盘一个旋转位置、四种局面,两步内必解,不成题。
+// 块边长 2..⌊min(宽, 高)/2⌋+1:离得最远的两个块最多被迫重叠两行两列,和上游最难的预设(4x4n3、
+// 6x6n4)同一档;再大人就造不出局部换位子(docs/params.md)。
 const blocks = (w: number, h: number) =>
-  BLOCKS.filter((n) => n <= Math.min(w, h) && !(w === h && n === w))
+  BLOCKS.filter((n) => n <= Math.floor(Math.min(w, h) / 2) + 1)
 
 const twiddle: Game = {
   id: 'twiddle',
@@ -36,8 +37,7 @@ const twiddle: Game = {
       // 配对:长边 ≤ 短边 4 倍,面积 ≥ 6。
       int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
       int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
-      // 上游只要求 2 ≤ n ≤ min(宽, 高)。不另设上限:16×15 配 15 只剩两个位置,可达局面仍是
-      // 10^397 量级(docs/params.md)。
+      // 上游只要求 2 ≤ n ≤ min(宽, 高),上限见 blocks。
       int('Rotating block size', (r) => blocks(r.int('Width'), r.int('Height'))),
       // 打乱步数同 Sixteen:0 是完全随机(默认、全部预设);N > 0 只从已解状态转 N 下,玩法是倒推
       // 回去。上限 w+h;0 与非 0 用「限定打乱步数」这扇门切换,打开时写 1。
