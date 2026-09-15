@@ -19,10 +19,13 @@ const beside = (other: number) => {
   const list = SIDES.filter((s) => fits(s, other))
   return list.length ? list : SIDES
 }
-// 块边长 2..⌊min(宽, 高)/2⌋+1:离得最远的两个块最多被迫重叠两行两列,和上游最难的预设(4x4n3、
-// 6x6n4)同一档;再大人就造不出局部换位子(docs/params.md)。
-const blocks = (w: number, h: number) =>
-  BLOCKS.filter((n) => n <= Math.floor(Math.min(w, h) / 2) + 1)
+// 块边长:2·长边 + 短边 ≥ 6(n−1),即长边算两份、短边算一份的加权边长要放得下两个只重叠 2×2 角
+// 的块;这是人能背的「只动三格」步法存在的边界(docs/params.md),正方形上就是 ⌊边长/2⌋+1。
+const blocks = (w: number, h: number) => {
+  const long = Math.max(w, h)
+  const short = Math.min(w, h)
+  return BLOCKS.filter((n) => n <= short && 2 * long + short >= 6 * (n - 1))
+}
 
 const twiddle: Game = {
   id: 'twiddle',
