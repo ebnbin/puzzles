@@ -119,6 +119,12 @@ const EXPECTED_NARROWER = {
     if (label === 'Number of shuffling moves') return v > w + h
     return v > 16
   },
+  // 宽高 2..16、4:1 且面积 ≥ 6;打乱步数 0..w+h−2(能滑的行列数,0 由「门」切换):表外一律是
+  // 设计使然。墙的比例 0.1 一档,两端探针 −0.1 / 1.1 上游自己就拒,不用申报。
+  netslide: (label, v, side, forced) =>
+    label === 'Number of shuffling moves'
+      ? v > Number(forced[0].value) + Number(forced[1].value) - 2
+      : v > 16,
   // 宽高只给 5 的倍数 5..50:表外的一律是预期收窄(下界减一、上界加一、中间的洞)。
   // 上游只查 > 0 和面积 ≥ 2,窄盘与大盘各自卡在生成的两条判据上,见 docs/params.md。
   pattern: (label, v) => v < 5 || v > 50 || v % 5 !== 0,
