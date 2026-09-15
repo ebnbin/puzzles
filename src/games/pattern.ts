@@ -8,7 +8,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PAINT, act, arrowFace, labelsSilent, walk } from './util/pad'
-import { int, range } from './util/params'
+import { int } from './util/params'
 
 const WORDS = ['Black', 'White', 'Grey']
 
@@ -62,12 +62,18 @@ const brushKey = (
     held: (view) => painting(view) && brushOf(view).id === id,
   })
 
-// 宽高只给 5 的倍数 5..50。上游只查 > 0 和面积 ≥ 2,但生成是拒绝采样,两头都会塌:
-// 短边小时「不许整行纯色」那条几乎必然触发(一行 3 格纯色的概率 0.60、4 格 0.42、
-// 5 格 0.30),3×30 跑满 300 秒也出不来;面积大时「只靠单行单列推理就能唯一确定」
-// 那条通不过,面积每多约 100 格耗时翻倍。上限 50 另有可读性一条(线索是文字,同
-// Fifteen / Sixteen)。逐档实测见 docs/params.md。
-const SIDES = range(1, 10).map((n) => n * 5)
+// 宽高只给 5 的倍数 5..45,4:1 互推。上游只查 > 0 和面积 ≥ 2,但生成是拒绝采样、两头都是悬崖:
+// 面积大时「只靠单行单列推理就能唯一确定」的通过率随面积指数衰减(每多约 115 格减半),
+// 45×45 均值 3.8 秒、最坏 10 秒,50×50 要一分半;短边小时「不许整行纯色」几乎必然触发
+// (3×30 跑不出来)。数据见 docs/params.md。
+const SIDES = [5, 10, 15, 20, 25, 30, 35, 40, 45]
+// 宽高互推:两根滑块的档位都是全表,动了一根另一根若出了 4:1 就被推到最近的合法档;对方在
+// 表外(Game ID 带进来的)时给全表,好把它拉回来。
+const fits = (a: number, b: number) => a <= 4 * b && b <= 4 * a
+const beside = (other: number) => {
+  const list = SIDES.filter((s) => fits(s, other))
+  return list.length ? list : SIDES
+}
 
 const pattern: Game = {
   id: 'pattern',
@@ -78,8 +84,8 @@ const pattern: Game = {
   types: {
     menu: verbatim,
     params: [
-      int('Width', () => SIDES),
-      int('Height', () => SIDES),
+      int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
+      int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
     ],
   },
   prefs: { panel: verbatim, volatile: false },
