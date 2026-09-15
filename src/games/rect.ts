@@ -9,13 +9,25 @@ import { samePages, verbatim } from './util/declare'
 import type { ActSpec, FaceSpec } from './util/pad'
 import { act, cross, wordOf } from './util/pad'
 import type { Read } from './util/params'
-import { CAP, float, formatFloat, int, range } from './util/params'
+import { float, formatFloat, int } from './util/params'
 
 // 面板上那一档枚举的是 base 棋盘:上游只通过 (base_w, base_h) 这一对整数看见扩展
 // 因子(rect.c:1165-1168),同一对 base 配同一种子的局面逐字节相同,所以一对一档才
 // 是有意义的刻度——档数因此随棋盘变(7×7 六档,100×99 一百九十五档)。写进控件的
 // 仍是上游要的 e,取每一对 base 那段区间里最小的一个可表示值。
 const DIGITS = 6
+
+const SIDES = [
+  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+  27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+]
+// 宽高互推同 Fifteen:两根滑块的档位都是全表,动了一根另一根若配不上就被推到最近的合法档;对方在
+// 表外(Game ID 带进来的)时给全表,好把它拉回来。
+const fits = (a: number, b: number) => a <= 4 * b && b <= 4 * a && a * b >= 6
+const beside = (other: number) => {
+  const list = SIDES.filter((s) => fits(s, other))
+  return list.length ? list : SIDES
+}
 
 // 上游拿到 e 之后每一维各算一次:单精度、截尾、不足 2 钉 2(rect.c:1165-1168)。
 // 照着算一遍才知道这个 e 真正会生成哪一对 base——连 float 也要学像。
@@ -47,6 +59,8 @@ const build = (w: number, h: number): number[] => {
   const out: number[] = []
   const seen = new Set<string>()
   for (const e of [...cand].sort((a, b) => a - b)) {
+    // 一局的题目就是 base 那块板的题,棋盘的最小面积 6 也管 base:2×2 只会切成两半,不成题。
+    if (baseOf(w, e) * baseOf(h, e) < 6) continue
     const key = pairOf(w, h, e)
     if (seen.has(key)) continue
     seen.add(key)
@@ -121,11 +135,11 @@ const rect: Game<Facts> = {
   types: {
     menu: verbatim,
     params: [
-      // 宽高从 2 起:上游允许 1×n(只查 w·h ≥ 2),但生成时 base 边长 = ⌊1/(1+e)⌋ = 0
-      // ——钳位那句写的是 w >= 2,救不了它——扩展因子一动就把引擎打死
-      // (random.c:275 断言)。两维都 ≥ 2 时 base 必 ≥ 2×2。
-      int('Width', () => range(2, CAP)),
-      int('Height', () => range(2, CAP)),
+      // 可选值全部列出,不是规则。下限 2:上游允许 1×n,但生成时 base 边长 = ⌊1/(1+e)⌋ = 0
+      // ——钳位那句写的是 w >= 2,救不了它——扩展因子一动就把引擎打死(random.c:275 断言)。
+      // 上限 50 是设计定的(docs/params.md);配对:长边 ≤ 短边 4 倍,面积 ≥ 6。
+      int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
+      int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
       // 上游只要求非负(rect.c:229)。读数就是这一档的 base 对,轨道下面那行是算出来
       // 的 e。换了棋盘整套枚举都换了,旧的 e 落在新表哪一档都没有意义,所以表外的值
       // 一律回到第一档(e = 0,base 就是棋盘本身)。

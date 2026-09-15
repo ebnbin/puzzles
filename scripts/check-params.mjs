@@ -172,12 +172,9 @@ const EXPECTED_NARROWER = {
   // 宽高从 3 起(上游放行 2:两行的盘用不到第四种颜色,不成四色谜题);区域数封到
   // 1000,探针试的 1001 超过 CAP、够不着,不用申报。见 docs/params.md。
   map: (label, v) => label !== 'Regions' && v < 3,
-  // 宽高从 2 起(上游放行 1×n,生成时崩,见 docs/params.md 第四节);扩展因子的表是
-  // 粒度 t = 0..1 换算出来的,顶到 base 缩成 2 那一点(e = 长边/2 − 1),再往上是同一局。
-  rect: (label, v, side, forced) =>
-    label === 'Expansion factor'
-      ? v > Math.max(Number(forced[0].value), Number(forced[1].value)) / 2 - 1
-      : v < 2,
+  // 宽高 2..50、4:1 且面积 ≥ 6(1×n 上游放行但生成时崩,见 docs/params.md);扩展因子一对
+  // base 一档、只留 base 面积 ≥ 6 的,表外的 e 一律是设计使然(上游收任意非负小数)。
+  rect: (label, v) => (label === 'Expansion factor' ? true : v < 2 || v > 50),
   loopy: (label, v, side, forced) => {
     const w = Number(forced[0].value)
     const h = Number(forced[1].value)
