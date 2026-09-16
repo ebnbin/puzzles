@@ -5,7 +5,7 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守十三条:
+// 守十四条:
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -25,6 +25,8 @@
 //   十二、面积下限也走互推:Fifteen 高拉到最小 2,再把宽拉到最小 2,高被推到 3(2×2 不到面积 6)。
 //   十三、门:Sixteen 的打乱步数默认关着、滑块不画;打开写 1;步数拉到头等于 w+h,宽缩到 2 后
 //       被推到新的 w+h;关掉后参数串里没有 m。
+//   十四、整行不画:Solo 勾上 Jigsaw 后行数滑块不画、值钉在 1(列数不动);勾掉后滑块回来、
+//       行数落到最小的 2。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -398,6 +400,37 @@ await openTypes()
   if (p !== '2x4') fail('Sixteen', `关门后参数串不该带 m:${p}`)
   else console.log(`  ok   Sixteen 关门 → ${p}`)
   if (await notices()) fail('Sixteen', '开关门后冒出了错误 Notice')
+}
+
+// 十四:整行不画。Solo 的行数由上游自己的 Jigsaw 勾选框管(r = 1 与 Jigsaw 是同一件事):
+// 勾着时钉在 1、整行不画,勾掉时从 2 起;两边都不动列数。
+await open(page, 'Solo', { settle: 200 })
+await openTypes()
+{
+  const rows = 'Rows of sub-blocks'
+  const box = page
+    .locator('.sheet-params label.dialog-boolean', { hasText: /Jigsaw/ })
+    .locator('input[type=checkbox]')
+  await page.locator('.sheet-presets label', { hasText: '3x3 Basic' }).first().click()
+  await page.waitForTimeout(500)
+  if (await box.isChecked()) fail('Solo', '预设 3x3 Basic 下 Jigsaw 不该是勾着的')
+  await press(rows, 'Home')
+  let p = await paramsNow()
+  if (p !== '3x2db') fail('Solo', `行数拉到最小应是 2:${p}`)
+  else console.log(`  ok   Solo 行数最小 → ${p}`)
+  await box.click()
+  await page.waitForTimeout(500)
+  if (await slider(rows).count()) fail('Solo', '勾上 Jigsaw 后不该画行数滑块')
+  p = await paramsNow()
+  if (p !== '3jdb') fail('Solo', `勾上 Jigsaw 后列数不动、行数钉 1:${p}`)
+  else console.log(`  ok   Solo 勾 Jigsaw → ${p}`)
+  await box.click()
+  await page.waitForTimeout(500)
+  if (!(await slider(rows).count())) fail('Solo', '勾掉 Jigsaw 后行数滑块该回来')
+  p = await paramsNow()
+  if (p !== '3x2db') fail('Solo', `勾掉 Jigsaw 后行数应回到 2:${p}`)
+  else console.log(`  ok   Solo 取消 Jigsaw → ${p}`)
+  if (await notices()) fail('Solo', '开关 Jigsaw 后冒出了错误 Notice')
 }
 
 await browser.close()

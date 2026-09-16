@@ -152,9 +152,9 @@ const EXPECTED_NARROWER = {
     const r = Number(forced[1].value)
     const jigsaw = forced[3].value
     const symm = Number(forced[5].value)
-    if (label === 'Rows of sub-blocks' && v < 1) return true
-    // 不勾 Jigsaw 时行数从 2 起(上游 r=1 即 Jigsaw,勾不掉)
-    if (label === 'Rows of sub-blocks' && !jigsaw && v === 1) return true
+    // 行数不给 1:r = 1 在上游就是 Jigsaw(勾选框只是它的显示)。勾着时钉死 1、整行不画,
+    // 勾掉时从 2 起,所以两边的表外值都是设计使然。
+    if (label === 'Rows of sub-blocks' && (jigsaw ? v !== 1 : v <= 1)) return true
     if (label === 'Columns of sub-blocks' && !jigsaw && c * 2 > (forced[4].value ? 9 : 31)) return true
     // 二阶(2j 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像,或二阶 Killer:生成不终止
     const order2 = jigsaw ? c * r === 2 : c === 2 && r === 2

@@ -7,7 +7,8 @@
 // ——这条不变量由 scripts/check-params.mjs 对着链接了上游源码的 oracle 逐值验证。
 // 表里的值在游戏文件里逐个列出,是枚举不是规则;下面 range / evens / steps 这些算表的
 // 词汇只服务于还没按这个规矩重定的游戏。「门」是下游自己加的开关,没有上游控件:它读写
-// 某个数字控件,关 = 写 off 值,开 = 写 on 值;关着时那根滑块不画。
+// 某个数字控件,关 = 写 off 值,开 = 写 on 值;关着时那根滑块不画。申报了 hide 的参数则
+// 是上游已经拿别的控件表达了这个值(Solo 勾了 Jigsaw 就等于行数 = 1),整行不画,值照旧由表钉住。
 import type { DialogControl } from '../../engine/types'
 
 // 上游没给上限时的封顶:网格维度 100 = 棋盘最多 100×100 格。计数类参数先同用这
@@ -29,6 +30,9 @@ export type Param =
       note?(v: number, r: Read): string
       // 落定时必须落在的窗口,allowed 的子集,给互推的对等参数用;不申报就是 allowed。
       within?(r: Read): readonly number[]
+      // 为真时这一行整行不画:上游用别的控件表达了同一件事,留着滑块等于给它两个入口。
+      // 隐藏时表通常只剩一档,settle 照旧把值钉在上面——不能靠空表隐藏,空表会退回文本框。
+      hide?(r: Read): boolean
     }
   | {
       kind: 'float'
@@ -65,6 +69,7 @@ export const int = (
   extra?: {
     note?(v: number, r: Read): string
     within?(r: Read): readonly number[]
+    hide?(r: Read): boolean
   },
 ): Param => ({ kind: 'int', label, allowed, ...extra })
 

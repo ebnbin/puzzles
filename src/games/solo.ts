@@ -51,14 +51,16 @@ function params(text: string): { c: number; r: number } | null {
   return { c, r }
 }
 
-// 上游 solo.c:514-527:阶数 c·r ≤ 31,Killer 时 ≤ 9,X 时 ≥ 4,列数 ≥ 2。勾了 Jigsaw
-// 时 C 侧先把两数相乘再把行数归 1(solo.c:502),「≥ 2」落在乘积上,列数本身可以是 1。
-// 行数 = 1 在上游就是 Jigsaw 布局(solo.c:471),没勾 Jigsaw 时行数从 2 起——否则
-// 勾掉 Jigsaw 提交回去的还是 r = 1,勾不掉;列数相应封到 order/2。
+// 上游 solo.c:514-527:阶数 c·r ≤ 31,Killer 时 ≤ 9,X 时 ≥ 4,列数 ≥ 2。
+// 行数 = 1 与 Jigsaw 是同一件事:勾选框只是 r == 1 的显示(solo.c:471),生成器也只认
+// r == 1(solo.c:3698)。所以行数不给 1 这一档——勾着 Jigsaw 时钉死 1、整行不画(这时
+// 列数就是阶数),勾掉时从 2 起。勾选与取消都不动列数,只在它落到新表外时才被吸走。
 // 二阶(2j 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像,以及二阶 Killer,上游生成不终止。
 const order = (r: Read) => (r.flag('Killer (digit sums)') ? 9 : 31)
 const jigsaw = (r: Read) => r.flag('Jigsaw (irregularly shaped sub-blocks)')
+const xtype = (r: Read) => r.flag('"X" (require every number in each main diagonal)')
 const NO_ORDER2 = [2, 5, 7]
+const stuck = (r: Read) => NO_ORDER2.includes(r.pick('Symmetry')) || r.flag('Killer (digit sums)')
 
 const solo: Game = {
   id: 'solo',
@@ -69,19 +71,24 @@ const solo: Game = {
   types: {
     menu: verbatim,
     params: [
+      // 勾着 Jigsaw 时这根滑块就是阶数(行数钉在 1),下限直接是上游对阶数的要求;
+      // 勾掉时它是子块列数,上限留一半给行数(行数至少 2)。
       int('Columns of sub-blocks', (r) =>
-        jigsaw(r) ? range(1, order(r)) : range(2, Math.floor(order(r) / 2)),
+        jigsaw(r)
+          ? range(xtype(r) ? 4 : 2, order(r)).filter((c) => !(stuck(r) && c === 2))
+          : range(2, Math.floor(order(r) / 2)),
       ),
-      int('Rows of sub-blocks', (r) => {
-        const c = r.int('Columns of sub-blocks')
-        const x = r.flag('"X" (require every number in each main diagonal)')
-        const j = jigsaw(r)
-        const least = Math.max(j ? Math.ceil(2 / c) : 2, x ? Math.ceil(4 / c) : 1)
-        const stuck = NO_ORDER2.includes(r.pick('Symmetry')) || r.flag('Killer (digit sums)')
-        return range(least, Math.floor(order(r) / c)).filter(
-          (rows) => !(stuck && (j ? c * rows === 2 : c === 2 && rows === 2)),
-        )
-      }),
+      int(
+        'Rows of sub-blocks',
+        (r) => {
+          if (jigsaw(r)) return [1]
+          const c = r.int('Columns of sub-blocks')
+          return range(2, Math.floor(order(r) / c)).filter(
+            (rows) => !(stuck(r) && c === 2 && rows === 2),
+          )
+        },
+        { hide: jigsaw },
+      ),
     ],
   },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },

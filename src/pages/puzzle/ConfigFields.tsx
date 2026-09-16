@@ -114,6 +114,9 @@ export default function ConfigFields({
         const gate = params?.find(
           (p): p is GateParam => p.kind === 'gate' && p.label === control.label,
         )
+        // 申报了 hide 的整行不画(Solo 勾了 Jigsaw 的行数):值由 settle 钉住,面板上不再给
+        // 第二个入口。不能靠空表来隐藏——空表会退回文本框。
+        if (param?.kind === 'int' && read && param.hide?.(read)) return null
         if (param && read && tableOf(param, read).length > 0)
           return (
             <ParamField
