@@ -542,6 +542,7 @@ export default function PuzzleHost({
           spec={inline?.kind === 'custom' ? inline.spec : null}
           error={inlineError}
           params={game.types.params}
+          order={game.types.order}
           dock={docked}
           onOpen={() => openInline('custom')}
           onSelectPreset={(value) => {

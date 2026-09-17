@@ -14,6 +14,7 @@ export default function PuzzleTypes({
   spec,
   error,
   params,
+  order,
   dock,
   onOpen,
   onSelectPreset,
@@ -28,6 +29,7 @@ export default function PuzzleTypes({
   spec: DialogSpec | null
   error: string | null
   params: readonly Param[]
+  order?: readonly string[]
   // 停靠成右侧栏(桌面够宽)还是从下面拉起来。两种壳只差外框:里面的类名一样,
   // 内容的样式两边通用。
   dock: boolean
@@ -62,7 +64,12 @@ export default function PuzzleTypes({
 
         {spec && (
           <div className="sheet-params">
-            <ConfigFields controls={spec.controls} params={params} onCommit={onCommit} />
+            <ConfigFields
+              controls={spec.controls}
+              params={params}
+              order={order}
+              onCommit={onCommit}
+            />
             {error && <Notice text={error} />}
           </div>
         )}

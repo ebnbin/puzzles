@@ -5,7 +5,7 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守十四条:
+// 守十五条:
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -27,6 +27,7 @@
 //       被推到新的 w+h;关掉后参数串里没有 m。
 //   十四、整行不画:Solo 勾上 Jigsaw 后行数滑块不画、值钉在 1(列数不动);勾掉后滑块回来、
 //       行数落到最小的 2。
+//   十五、面板顺序:Solo 申报了 types.order,Jigsaw 画在列数上面,其余照上游。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -431,6 +432,30 @@ await openTypes()
   if (p !== '3x2db') fail('Solo', `勾掉 Jigsaw 后行数应回到 2:${p}`)
   else console.log(`  ok   Solo 取消 Jigsaw → ${p}`)
   if (await notices()) fail('Solo', '开关 Jigsaw 后冒出了错误 Notice')
+}
+
+// 十五:面板顺序。Solo 申报了 types.order,把 Jigsaw 提到列数上面(它决定行数画不画),
+// 其余四个照上游。只换画的顺序,提交仍按 C 给的下标回填。
+{
+  const rows = await page.evaluate(() => {
+    const box = document.querySelector('.sheet-params')
+    if (!box) return []
+    return [...box.children]
+      .filter((el) => !el.classList.contains('notice'))
+      .map((el) => (el.querySelector('.dialog-param-head') ?? el).textContent.trim())
+  })
+  const want = [
+    'Jigsaw (irregularly shaped sub-blocks)',
+    'Columns of sub-blocks',
+    'Rows of sub-blocks',
+    '"X" (require every number in each main diagonal)',
+    'Killer (digit sums)',
+    'Symmetry',
+    'Difficulty',
+  ]
+  if (rows.join(' | ') !== want.join(' | '))
+    fail('Solo', `面板顺序不对:${rows.join(' | ')}`)
+  else console.log('  ok   Solo 面板顺序 Jigsaw 在最上')
 }
 
 await browser.close()

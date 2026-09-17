@@ -70,6 +70,17 @@ const solo: Game = {
   pages: samePages('solo'),
   types: {
     menu: verbatim,
+    // 只把 Jigsaw 提到列数上面:它决定行数那一行画不画,开关得在它管的东西前面。
+    // 其余四个照上游的顺序。
+    order: [
+      'Jigsaw (irregularly shaped sub-blocks)',
+      'Columns of sub-blocks',
+      'Rows of sub-blocks',
+      '"X" (require every number in each main diagonal)',
+      'Killer (digit sums)',
+      'Symmetry',
+      'Difficulty',
+    ],
     params: [
       // 勾着 Jigsaw 时这根滑块就是阶数(行数钉在 1),下限直接是上游对阶数的要求;
       // 勾掉时它是子块列数,上限留一半给行数(行数至少 2)。

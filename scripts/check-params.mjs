@@ -213,6 +213,7 @@ let failed = 0
 for (const name of names) {
   const bin = bins[name]
   const declared = GAMES[name].types.params
+  const order = GAMES[name].types.order
   const params = declared.filter((p) => p.kind !== 'ordinal' && p.kind !== 'gate')
   const shape = describe(bin).controls
   const combos = fixedCombos(shape)
@@ -230,6 +231,14 @@ for (const name of names) {
     if (!c) fail(`申报「${p.label}」认不到控件`)
     else if (c.kind !== want) fail(`申报「${p.label}」认到的不是 ${want} 控件`)
   }
+  // 面板顺序申报(types.order):label 必须都认得到、不许重复,也不许漏掉控件——
+  // 漏掉的会被排到最后,那是给上游新增控件留的后路,不是让这里写一半。
+  for (const label of order ?? []) {
+    if (!shape.some((c) => c.label === label)) fail(`order 里的「${label}」认不到控件`)
+    if (order.indexOf(label) !== order.lastIndexOf(label)) fail(`order 里「${label}」重复了`)
+  }
+  if (order) for (const c of shape)
+    if (!order.includes(c.label)) fail(`order 漏了控件「${c.label}」`)
   if (problems.length) {
     failed++
     console.log(`  FAIL ${name}`)

@@ -38,6 +38,7 @@ function ChoiceGroup({ control, onCommit }: { control: ChoicesControl; onCommit:
 export default function ConfigFields({
   controls,
   params,
+  order,
   autoFocus = false,
   onCommit,
 }: {
@@ -45,6 +46,9 @@ export default function ConfigFields({
   // 给了范围模型(自定义参数那条路)的 string 控件画成滑块;每次落定先把所有
   // 数字参数夹进各自的表再提交,提交出去的组合必是上游放行的。
   params?: readonly Param[]
+  // 申报了就按它的 label 顺序画,没列到的排在最后。只换画的顺序:controls 是与 C 共享的
+  // 活对象,提交按下标回填(engine/deal.worker.ts:93),数组本身换位会让值整体串位。
+  order?: readonly string[]
   autoFocus?: boolean
   onCommit?: () => void
 }) {
@@ -59,13 +63,24 @@ export default function ConfigFields({
     onCommit?.()
   }
   const read = params ? reader(controls) : null
+  // 排序只在这份拷贝上做;key 也跟着从下标换成 label,不然重排会把输入状态串到别的控件上。
+  const rank = (control: DialogControl) => {
+    const at = order?.indexOf(control.label) ?? -1
+    return at < 0 ? Number.MAX_SAFE_INTEGER : at
+  }
+  const shown = order
+    ? controls
+        .map((control, at) => ({ control, at }))
+        .sort((a, b) => rank(a.control) - rank(b.control) || a.at - b.at)
+        .map(({ control }) => control)
+    : controls
 
   return (
     <>
-      {controls.map((control, i) => {
+      {shown.map((control, i) => {
         if (control.kind === 'boolean')
           return (
-            <label key={i} className="dialog-boolean">
+            <label key={control.label} className="dialog-boolean">
               <input
                 type="checkbox"
                 checked={control.value}
@@ -83,13 +98,13 @@ export default function ConfigFields({
             const slide = params.some((p) => p.kind === 'ordinal' && p.label === control.label)
             const done = () => commit(control.label)
             return slide ? (
-              <OrdinalField key={i} control={control} onCommit={done} />
+              <OrdinalField key={control.label} control={control} onCommit={done} />
             ) : (
-              <ChoiceGroup key={i} control={control} onCommit={done} />
+              <ChoiceGroup key={control.label} control={control} onCommit={done} />
             )
           }
           return (
-            <label key={i} className="dialog-choices">
+            <label key={control.label} className="dialog-choices">
               {control.label}
               <select
                 value={control.value}
@@ -120,7 +135,7 @@ export default function ConfigFields({
         if (param && read && tableOf(param, read).length > 0)
           return (
             <ParamField
-              key={i}
+              key={control.label}
               control={control}
               param={param}
               gate={gate}
@@ -129,7 +144,7 @@ export default function ConfigFields({
             />
           )
         return (
-          <label key={i} className="dialog-string">
+          <label key={control.label} className="dialog-string">
             {control.label}
             {/* text 只在落定时(blur/Enter)commit,不在 onChange:宽度从 5 改到
                 12 的路上会经过 1,没人想要 1;checkbox/select 每次 change 即落定。 */}
