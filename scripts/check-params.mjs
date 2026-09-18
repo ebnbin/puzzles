@@ -147,6 +147,9 @@ const EXPECTED_NARROWER = {
   // 但它要求局面「恰好需要这个难度」,两头都贵——Hard 从 n=11、Extreme 从 n=9 起就是
   // 几十秒,Ambiguous 不跑求解器所以免费。见 docs/params.md。
   dominosa: (label, v, side, forced) => v > [25, 30, 15, 10, 50][Number(forced[1].value)],
+  // 阶数上限:非 Jigsaw 按难度分档(Trivial..Unreasonable),Jigsaw 统一 12,Killer 取小的 9;
+  // 非 Jigsaw 的下限是 2×2,而 2×2 只在无对称 / 2 向旋转下给。表外一律是设计使然,
+  // 见 docs/params.md。
   solo: (label, v, side, forced) => {
     const c = Number(forced[0].value)
     const r = Number(forced[1].value)
@@ -155,11 +158,12 @@ const EXPECTED_NARROWER = {
     // 行数不给 1:r = 1 在上游就是 Jigsaw(勾选框只是它的显示)。勾着时钉死 1、整行不画,
     // 勾掉时从 2 起,所以两边的表外值都是设计使然。
     if (label === 'Rows of sub-blocks' && (jigsaw ? v !== 1 : v <= 1)) return true
-    if (label === 'Columns of sub-blocks' && !jigsaw && c * 2 > (forced[4].value ? 9 : 31)) return true
-    // 只去掉两种「任何种子都开不出局」的组合(见 docs/params.md):2 阶 Jigsaw 配 4 向旋转 /
-    // 4 向镜像 / 8 向镜像(提示恒是满盘,题面必然超出 encode_puzzle_desc 的预算),以及
-    // 2 阶 Killer(笼子和零信息或笼内必重复,必然多解或无解)。
-    return jigsaw && c * r === 2 && ([2, 5, 7].includes(symm) || forced[4].value)
+    const top = Math.min(
+      jigsaw ? 12 : [30, 30, 25, 25, 16, 16][Number(forced[6].value)],
+      forced[4].value ? 9 : 31,
+    )
+    if (jigsaw) return v < 4 || v > top
+    return c * r > top || (c === 2 && r === 2 && symm !== 0 && symm !== 1)
   },
   // 钉数和次数都封到 50:上游两个都没有上限(219、225)。50 钉平均要 36 次才
   // 猜得出来,50 次给到 1.4 倍富余;再往上提示点数不清(见 docs/params.md)。

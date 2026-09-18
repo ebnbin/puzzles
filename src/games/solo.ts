@@ -55,35 +55,43 @@ function params(text: string): { c: number; r: number } | null {
 // 行数 = 1 与 Jigsaw 是同一件事:勾选框只是 r == 1 的显示(solo.c:471),生成器也只认
 // r == 1(solo.c:3698)。所以行数不给 1 这一档——勾着 Jigsaw 时钉死 1、整行不画(这时
 // 列数就是阶数),勾掉时从 2 起。勾选与取消都不动列数,只在它落到新表外时才被吸走。
-// 除上游校验外只去掉两种「任何种子都开不出局」的组合,依据是代码推导,不是实测:
-// ① 2 阶 Jigsaw 配 4 向旋转 / 4 向镜像 / 8 向镜像:这三种对称把四个格并成一个轨道,删提示
-//    只有「不删」或「删成空盘」两种结果,而空盘的 2 阶题有两个解(1、2 对调)、求解器不收,
-//    所以提示恒是满盘四格;满盘的题面要写 11 个字符(网格 7 + 逗号 + 块结构 3),而
-//    encode_puzzle_desc 的预算只有 10(solo.c:3370、3414),断言必停。
-// ② 2 阶 Killer:两格的笼子恒是 {1,2}、和恒为 3,零信息,题目必然两解;三格以上的笼子必有
-//    重复数字,而上游按「笼内不重复」推(solo.c:1888),必判无解。两条路都回不来。
-// 其余一律放行。2×2 配那几种对称只是一部分种子撞上同一个断言,换个种子就能开出来,不属于
-// 「必定开不出」,所以不拦。
 const killer = (r: Read) => r.flag('Killer (digit sums)')
-const order = (r: Read) => (killer(r) ? 9 : 31)
 const jigsaw = (r: Read) => r.flag('Jigsaw (irregularly shaped sub-blocks)')
-const xtype = (r: Read) => r.flag('"X" (require every number in each main diagonal)')
-const NO_ORDER2 = [2, 5, 7]
+
+// 阶数上限。非 Jigsaw 按难度分档:验收要求难度「恰好等于」所选档(solo.c:3864 的
+// dlev.diff == dlev.maxdiff),档越高每次试解越贵、验收越容易不过;Advanced 加的集合消元
+// 要枚举一个区域里数字的全部子集,阶数每加一翻一倍。Jigsaw 不分难度,统一 12:它的耗时由
+// 「切法重试」主导(一次填盘失败烧掉 n⁴ 步、约等于同阶删提示全过程的十二倍),难度只作用在
+// 删提示那一小部分,13 阶起无论哪一档都是分钟级。31 只是上游的天花板,Killer 之外不另加限制。
 const SYMM_NONE = 0
-const crashes = (r: Read) => NO_ORDER2.includes(r.pick('Symmetry'))
+const BY_DIFF = [30, 30, 25, 25, 16, 16]
+const JIGSAW_TOP = 12
+const top = (r: Read) =>
+  Math.min(jigsaw(r) ? JIGSAW_TOP : (BY_DIFF[r.pick('Difficulty')] ?? 30), killer(r) ? 9 : 31)
+const half = (r: Read) => Math.floor(top(r) / 2)
+
+// 2×2(非 Jigsaw 唯一的 4 阶形态)只在无对称和 2 向旋转下给。删提示是按对称轨道整组删的:
+// 轨道 4 格或 8 格时一刀太大,轨道 2 格但两格同行(左右镜像)时那一行的排除力一下子掉两成、
+// 块内消元推不动,两种都很早就删不动,终局留着八格以上提示,题面写出来 17 个字符起,而
+// encode_puzzle_desc 的预算正好 17(solo.c:3370、3414),断言会停。轨道 1 格或两格不共行不共列的
+// 那三档(无对称、2 向旋转、2 向对角镜像)能删到四到六格、13 个字符,穷举验过是安全的;
+// 2 向对角镜像一并去掉是从简——上游预设清一色 2 向旋转。
+const SAFE_TINY = [0, 1]
+const tiny = (r: Read) => SAFE_TINY.includes(r.pick('Symmetry'))
 
 // 列数与行数是对等的两个数(对调只是把棋盘转置),约束是乘积,所以走互推:两根滑块的档位
 // 都是「配得上某个合法对手」的全表,动一根另一根被推到最近的合法档。勾了 Jigsaw 时行数
-// 另有一条限制——钉死 1(见上),于是列数的全表就是阶数本身。
-const sides = (r: Read) => range(2, Math.floor(order(r) / 2))
-const orders = (r: Read) =>
-  range(xtype(r) ? 4 : 2, order(r)).filter((n) => !(n === 2 && (crashes(r) || killer(r))))
-const cols = (r: Read) => (jigsaw(r) ? orders(r) : sides(r))
-const rows = (r: Read) => (jigsaw(r) ? [1] : sides(r))
+// 另有一条限制——钉死 1(见上),于是列数的全表就是阶数本身。X 要求的阶数 ≥ 4 两边都已经
+// 满足(非 Jigsaw 最小是 2×2 = 4 阶,Jigsaw 下限就是 4),不再单列。
+const cols = (r: Read) => (jigsaw(r) ? range(4, top(r)) : range(2, half(r)))
+// 2×2 被对称排除时躲开的是行数这一根:列数是主动方(勾 Jigsaw 那条也是优先不动列数),
+// 所以落到的是 2×3 而不是 3×2。
+const rows = (r: Read) =>
+  jigsaw(r) ? [1] : range(r.int('Columns of sub-blocks') === 2 && !tiny(r) ? 3 : 2, half(r))
 // 窗口:乘积不超上限的那些档。对方在表外(Game ID 带进来的)时窗口会空,给全表把它拉回来
 // ——两边都空着的话谁也推不动,会留下一个上游不收的组合。
-const beside = (list: readonly number[], other: number, top: number) => {
-  const fits = list.filter((v) => v * other <= top)
+const beside = (list: readonly number[], other: number, cap: number) => {
+  const fits = list.filter((v) => v * other <= cap)
   return fits.length ? fits : list
 }
 
@@ -107,17 +115,17 @@ const solo: Game = {
       'Difficulty',
     ],
     params: [
-      // 勾着 Jigsaw 时这根滑块就是阶数(行数钉在 1),下限直接是上游对阶数的要求;
-      // 勾掉时它是子块列数,全表到 ⌊上限/2⌋——再大就配不上任何合法的行数。
+      // 勾着 Jigsaw 时这根滑块就是阶数(行数钉在 1),不必给谁让路;勾掉时它是子块列数,
+      // 全表到 ⌊上限/2⌋——再大就配不上任何合法的行数。
       int('Columns of sub-blocks', cols, {
-        within: (r) => beside(cols(r), r.int('Rows of sub-blocks'), order(r)),
+        within: (r) => (jigsaw(r) ? cols(r) : beside(cols(r), r.int('Rows of sub-blocks'), top(r))),
       }),
       // 勾了 Killer 时对称整行不画,并钉成「无对称」:Killer 分支在对称那一段之前就退出了
       // (solo.c:3743 与 3823),生成根本不读它;留着只会让参数串和上游的 Killer 预设
       // (solo.c:324,SYMM_NONE)对不上,同一批题却显示成「自定义」。
       choice('Symmetry', { pin: (r) => (killer(r) ? SYMM_NONE : null) }),
       int('Rows of sub-blocks', rows, {
-        within: (r) => beside(rows(r), r.int('Columns of sub-blocks'), order(r)),
+        within: (r) => beside(rows(r), r.int('Columns of sub-blocks'), top(r)),
         hide: jigsaw,
       }),
     ],

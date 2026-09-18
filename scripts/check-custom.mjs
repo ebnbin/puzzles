@@ -25,8 +25,8 @@
 //   十二、面积下限也走互推:Fifteen 高拉到最小 2,再把宽拉到最小 2,高被推到 3(2×2 不到面积 6)。
 //   十三、门:Sixteen 的打乱步数默认关着、滑块不画;打开写 1;步数拉到头等于 w+h,宽缩到 2 后
 //       被推到新的 w+h;关掉后参数串里没有 m。
-//   十四、整行不画:Solo 勾上 Jigsaw 后行数滑块不画、值钉在 1(列数不动);勾掉后滑块回来、
-//       行数落到最小的 2。
+//   十四、整行不画:Solo 勾上 Jigsaw 后行数滑块不画、值钉在 1(列数在 Jigsaw 的范围内就不动,
+//       在范围外才被吸进去);勾掉后滑块回来、行数落到最小的 2。
 //   十五、面板顺序:Solo 申报了 types.order,Jigsaw 画在列数上面,其余照上游。
 //   十六、choices 钉值:Solo 勾上 Killer 后对称那一行不画、值钉成「无对称」(参数串带 a)。
 import { boot, open } from './lib/boot.mjs'
@@ -405,7 +405,8 @@ await openTypes()
 }
 
 // 十四:整行不画。Solo 的行数由上游自己的 Jigsaw 勾选框管(r = 1 与 Jigsaw 是同一件事):
-// 勾着时钉在 1、整行不画,勾掉时从 2 起;两边都不动列数。
+// 勾着时钉在 1、整行不画,勾掉时从 2 起;两边都优先不动列数,只有列数落在新表外才被吸走
+// ——3 在 Jigsaw 的 4..12 之外,所以第一次勾上会被吸到 4,之后再怎么开关都停在 4。
 await open(page, 'Solo', { settle: 200 })
 await openTypes()
 {
@@ -424,14 +425,22 @@ await openTypes()
   await page.waitForTimeout(500)
   if (await slider(rows).count()) fail('Solo', '勾上 Jigsaw 后不该画行数滑块')
   p = await paramsNow()
-  if (p !== '3jdb') fail('Solo', `勾上 Jigsaw 后列数不动、行数钉 1:${p}`)
+  if (p !== '4jdb') fail('Solo', `勾上 Jigsaw 后列数 3 该被吸到下限 4、行数钉 1:${p}`)
   else console.log(`  ok   Solo 勾 Jigsaw → ${p}`)
   await box.click()
   await page.waitForTimeout(500)
   if (!(await slider(rows).count())) fail('Solo', '勾掉 Jigsaw 后行数滑块该回来')
   p = await paramsNow()
-  if (p !== '3x2db') fail('Solo', `勾掉 Jigsaw 后行数应回到 2:${p}`)
+  if (p !== '4x2db') fail('Solo', `勾掉 Jigsaw 后行数应回到 2、列数不动:${p}`)
   else console.log(`  ok   Solo 取消 Jigsaw → ${p}`)
+  await box.click()
+  await page.waitForTimeout(500)
+  p = await paramsNow()
+  if (p !== '4jdb') fail('Solo', `列数 4 在 Jigsaw 范围内,再勾上不该动:${p}`)
+  else console.log(`  ok   Solo 再勾 Jigsaw 列数不动 → ${p}`)
+  // 勾掉收尾:下一条要数面板上的行,行数那一行得在。
+  await box.click()
+  await page.waitForTimeout(500)
   if (await notices()) fail('Solo', '开关 Jigsaw 后冒出了错误 Notice')
 }
 
