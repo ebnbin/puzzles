@@ -55,12 +55,16 @@ function params(text: string): { c: number; r: number } | null {
 // 行数 = 1 与 Jigsaw 是同一件事:勾选框只是 r == 1 的显示(solo.c:471),生成器也只认
 // r == 1(solo.c:3698)。所以行数不给 1 这一档——勾着 Jigsaw 时钉死 1、整行不画(这时
 // 列数就是阶数),勾掉时从 2 起。勾选与取消都不动列数,只在它落到新表外时才被吸走。
-// 二阶(2j 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像,以及二阶 Killer,上游生成不终止。
-const order = (r: Read) => (r.flag('Killer (digit sums)') ? 9 : 31)
+// 二阶有两处上游毛病:2 阶 Jigsaw 与 2×2 配 4 向旋转 / 4 向镜像 / 8 向镜像时,题面几乎每格
+// 都是提示,而 encode_puzzle_desc 估的缓冲区只有 area + 1 字节(solo.c:3370),分隔符一加就
+// 越界、断言当场停(solo.c:3414);2 阶 Jigsaw 配 Killer 则是生成不终止。Killer 局没有数字
+// 提示,撑不爆缓冲区,所以 2×2 + Killer 照常放行。
+const killer = (r: Read) => r.flag('Killer (digit sums)')
+const order = (r: Read) => (killer(r) ? 9 : 31)
 const jigsaw = (r: Read) => r.flag('Jigsaw (irregularly shaped sub-blocks)')
 const xtype = (r: Read) => r.flag('"X" (require every number in each main diagonal)')
 const NO_ORDER2 = [2, 5, 7]
-const stuck = (r: Read) => NO_ORDER2.includes(r.pick('Symmetry')) || r.flag('Killer (digit sums)')
+const crashes = (r: Read) => NO_ORDER2.includes(r.pick('Symmetry'))
 
 const solo: Game = {
   id: 'solo',
@@ -86,7 +90,9 @@ const solo: Game = {
       // 勾掉时它是子块列数,上限留一半给行数(行数至少 2)。
       int('Columns of sub-blocks', (r) =>
         jigsaw(r)
-          ? range(xtype(r) ? 4 : 2, order(r)).filter((c) => !(stuck(r) && c === 2))
+          ? range(xtype(r) ? 4 : 2, order(r)).filter(
+              (c) => !(c === 2 && (crashes(r) || killer(r))),
+            )
           : range(2, Math.floor(order(r) / 2)),
       ),
       int(
@@ -95,7 +101,7 @@ const solo: Game = {
           if (jigsaw(r)) return [1]
           const c = r.int('Columns of sub-blocks')
           return range(2, Math.floor(order(r) / c)).filter(
-            (rows) => !(stuck(r) && c === 2 && rows === 2),
+            (rows) => !(crashes(r) && !killer(r) && c === 2 && rows === 2),
           )
         },
         { hide: jigsaw },

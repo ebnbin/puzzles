@@ -156,9 +156,11 @@ const EXPECTED_NARROWER = {
     // 勾掉时从 2 起,所以两边的表外值都是设计使然。
     if (label === 'Rows of sub-blocks' && (jigsaw ? v !== 1 : v <= 1)) return true
     if (label === 'Columns of sub-blocks' && !jigsaw && c * 2 > (forced[4].value ? 9 : 31)) return true
-    // 二阶(2j 或 2×2)配 4 向旋转 / 4 向镜像 / 8 向镜像,或二阶 Killer:生成不终止
+    // 二阶的两处上游毛病:2j / 2×2 配 4 向旋转 / 4 向镜像 / 8 向镜像时 encode_puzzle_desc
+    // 的断言当场崩;2 阶 Jigsaw 配 Killer 生成不终止。Killer 局没有数字提示,2×2 + Killer 放行。
     const order2 = jigsaw ? c * r === 2 : c === 2 && r === 2
-    return order2 && ([2, 5, 7].includes(symm) || forced[4].value)
+    const bad = [2, 5, 7].includes(symm)
+    return order2 && (jigsaw ? bad || forced[4].value : bad && !forced[4].value)
   },
   // 钉数和次数都封到 50:上游两个都没有上限(219、225)。50 钉平均要 36 次才
   // 猜得出来,50 次给到 1.4 倍富余;再往上提示点数不清(见 docs/params.md)。
