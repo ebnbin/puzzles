@@ -72,6 +72,21 @@ const NO_ORDER2 = [2, 5, 7]
 const SYMM_NONE = 0
 const crashes = (r: Read) => NO_ORDER2.includes(r.pick('Symmetry'))
 
+// 列数与行数是对等的两个数(对调只是把棋盘转置),约束是乘积,所以走互推:两根滑块的档位
+// 都是「配得上某个合法对手」的全表,动一根另一根被推到最近的合法档。勾了 Jigsaw 时行数
+// 另有一条限制——钉死 1(见上),于是列数的全表就是阶数本身。
+const sides = (r: Read) => range(2, Math.floor(order(r) / 2))
+const orders = (r: Read) =>
+  range(xtype(r) ? 4 : 2, order(r)).filter((n) => !(n === 2 && (crashes(r) || killer(r))))
+const cols = (r: Read) => (jigsaw(r) ? orders(r) : sides(r))
+const rows = (r: Read) => (jigsaw(r) ? [1] : sides(r))
+// 窗口:乘积不超上限的那些档。对方在表外(Game ID 带进来的)时窗口会空,给全表把它拉回来
+// ——两边都空着的话谁也推不动,会留下一个上游不收的组合。
+const beside = (list: readonly number[], other: number, top: number) => {
+  const fits = list.filter((v) => v * other <= top)
+  return fits.length ? fits : list
+}
+
 const solo: Game = {
   id: 'solo',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
@@ -93,27 +108,18 @@ const solo: Game = {
     ],
     params: [
       // 勾着 Jigsaw 时这根滑块就是阶数(行数钉在 1),下限直接是上游对阶数的要求;
-      // 勾掉时它是子块列数,上限留一半给行数(行数至少 2)。
-      int('Columns of sub-blocks', (r) =>
-        jigsaw(r)
-          ? range(xtype(r) ? 4 : 2, order(r)).filter(
-              (c) => !(c === 2 && (crashes(r) || killer(r))),
-            )
-          : range(2, Math.floor(order(r) / 2)),
-      ),
+      // 勾掉时它是子块列数,全表到 ⌊上限/2⌋——再大就配不上任何合法的行数。
+      int('Columns of sub-blocks', cols, {
+        within: (r) => beside(cols(r), r.int('Rows of sub-blocks'), order(r)),
+      }),
       // 勾了 Killer 时对称整行不画,并钉成「无对称」:Killer 分支在对称那一段之前就退出了
       // (solo.c:3743 与 3823),生成根本不读它;留着只会让参数串和上游的 Killer 预设
       // (solo.c:324,SYMM_NONE)对不上,同一批题却显示成「自定义」。
       choice('Symmetry', { pin: (r) => (killer(r) ? SYMM_NONE : null) }),
-      int(
-        'Rows of sub-blocks',
-        (r) => {
-          if (jigsaw(r)) return [1]
-          const c = r.int('Columns of sub-blocks')
-          return range(2, Math.floor(order(r) / c))
-        },
-        { hide: jigsaw },
-      ),
+      int('Rows of sub-blocks', rows, {
+        within: (r) => beside(rows(r), r.int('Columns of sub-blocks'), order(r)),
+        hide: jigsaw,
+      }),
     ],
   },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
