@@ -215,9 +215,24 @@ for (const name of names) {
   const bin = bins[name]
   const declared = GAMES[name].types.params
   const order = GAMES[name].types.order
-  const params = declared.filter((p) => p.kind !== 'ordinal' && p.kind !== 'gate')
+  const params = declared.filter(
+    (p) => p.kind !== 'ordinal' && p.kind !== 'gate' && p.kind !== 'choice',
+  )
   const shape = describe(bin).controls
-  const combos = fixedCombos(shape)
+  // 申报了 pin 的 choices 控件此刻钉在哪个值上,枚举就只取那个值:settle 会把别的值改掉,
+  // 而「表内的组合 settle 不该动」是这份检查的不变量。
+  const pins = declared.filter((p) => p.kind === 'choice')
+  const combos = fixedCombos(shape).filter((combo) => {
+    if (!pins.length) return true
+    const controls = shape.map((c) => ({ kind: c.kind, label: c.label, value: c.initial }))
+    for (const [index, value] of combo) controls[index].value = value
+    const r = model.reader(controls)
+    return pins.every((p) => {
+      const want = p.pin(r)
+      const c = controls.find((c) => c.label === p.label)
+      return want === null || c?.value === want
+    })
+  })
   const problems = []
   const fail = (...m) => problems.push(m.join(' '))
   const rng = mulberry32(7)
@@ -228,7 +243,7 @@ for (const name of names) {
     if (!params.some((p) => p.label === c.label)) fail(`string 控件「${c.label}」没有申报`)
   for (const p of declared) {
     const c = shape.find((c) => c.label === p.label)
-    const want = p.kind === 'ordinal' ? 'choices' : 'string'
+    const want = p.kind === 'ordinal' || p.kind === 'choice' ? 'choices' : 'string'
     if (!c) fail(`申报「${p.label}」认不到控件`)
     else if (c.kind !== want) fail(`申报「${p.label}」认到的不是 ${want} 控件`)
   }

@@ -5,7 +5,7 @@
 // 之后跑全量。只改了某一个游戏的 types.params,跑 `node scripts/check-custom.mjs 'Light Up'`
 // 就够——只走那个游戏的一、二条,后面五条守的是面板机制、和单个游戏的表无关。
 // 表本身对不对由 check-params.mjs 对着上游源码守(它也认游戏名,而且是秒级)。
-// 守十五条:
+// 守十六条:
 //   一、四十个游戏的自定义面板里没有文本框、没有下拉框:string 控件都画成了滑块,choices
 //       都画成了分段按钮(申报了 ordinal 的画成滑块)。
 //   二、滑块落定就开新局,存档里的 PARAMS 跟着变;全程不出错误 Notice。
@@ -28,6 +28,7 @@
 //   十四、整行不画:Solo 勾上 Jigsaw 后行数滑块不画、值钉在 1(列数不动);勾掉后滑块回来、
 //       行数落到最小的 2。
 //   十五、面板顺序:Solo 申报了 types.order,Jigsaw 画在列数上面,其余照上游。
+//   十六、choices 钉值:Solo 勾上 Killer 后对称那一行不画、值钉成「无对称」(参数串带 a)。
 import { boot, open } from './lib/boot.mjs'
 
 const GAMES = [
@@ -456,6 +457,27 @@ await openTypes()
   if (rows.join(' | ') !== want.join(' | '))
     fail('Solo', `面板顺序不对:${rows.join(' | ')}`)
   else console.log('  ok   Solo 面板顺序 Jigsaw 在最上')
+}
+
+// 十六:choices 钉值。Solo 勾上 Killer 后对称整行不画,值被钉成「无对称」:上游的 Killer 分支
+// 在对称那一段之前就退出了,根本不读它,留着只会让参数串和上游的 Killer 预设对不上。
+await open(page, 'Solo', { settle: 200 })
+await openTypes()
+{
+  const symm = page.locator('.sheet-params .dialog-choice', { hasText: 'Symmetry' })
+  const killer = page
+    .locator('.sheet-params label.dialog-boolean', { hasText: /Killer/ })
+    .locator('input')
+  await page.locator('.sheet-presets label', { hasText: '3x3 Basic' }).first().click()
+  await page.waitForTimeout(500)
+  if (!(await symm.count())) fail('Solo', '没勾 Killer 时该画对称那一行')
+  await killer.check()
+  await page.waitForTimeout(800)
+  if (await symm.count()) fail('Solo', '勾上 Killer 后不该画对称那一行')
+  const p = await paramsNow()
+  if (p !== '3x3kadb') fail('Solo', `勾 Killer 后对称应被钉成无对称:${p}`)
+  else console.log(`  ok   Solo Killer 钉对称 → ${p}`)
+  if (await notices()) fail('Solo', '勾 Killer 后冒出了错误 Notice')
 }
 
 await browser.close()

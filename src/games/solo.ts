@@ -7,7 +7,7 @@ import { keepPencil, samePages, verbatim } from './util/declare'
 import { PENCIL_HIGHLIGHT, clearKey, digitKeys, marksKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 import type { Read } from './util/params'
-import { int, range } from './util/params'
+import { choice, int, range } from './util/params'
 
 function params(text: string): { c: number; r: number } | null {
   const first = /^(\d+)/.exec(text)
@@ -69,6 +69,7 @@ const order = (r: Read) => (killer(r) ? 9 : 31)
 const jigsaw = (r: Read) => r.flag('Jigsaw (irregularly shaped sub-blocks)')
 const xtype = (r: Read) => r.flag('"X" (require every number in each main diagonal)')
 const NO_ORDER2 = [2, 5, 7]
+const SYMM_NONE = 0
 const crashes = (r: Read) => NO_ORDER2.includes(r.pick('Symmetry'))
 
 const solo: Game = {
@@ -100,6 +101,10 @@ const solo: Game = {
             )
           : range(2, Math.floor(order(r) / 2)),
       ),
+      // 勾了 Killer 时对称整行不画,并钉成「无对称」:Killer 分支在对称那一段之前就退出了
+      // (solo.c:3743 与 3823),生成根本不读它;留着只会让参数串和上游的 Killer 预设
+      // (solo.c:324,SYMM_NONE)对不上,同一批题却显示成「自定义」。
+      choice('Symmetry', { pin: (r) => (killer(r) ? SYMM_NONE : null) }),
       int(
         'Rows of sub-blocks',
         (r) => {

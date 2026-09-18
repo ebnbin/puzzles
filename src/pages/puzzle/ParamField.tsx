@@ -12,8 +12,9 @@ import Icon from '../../ui/Icon'
 export type StringControl = Extract<DialogControl, { kind: 'string' }>
 export type ChoicesControl = Extract<DialogControl, { kind: 'choices' }>
 // 有表的那几种申报;ordinal 是 choices 控件的画法,gate 是挂在 int 上的开关,都不进这里。
-export type RangeParam = Exclude<Param, { kind: 'ordinal' } | { kind: 'gate' }>
+export type RangeParam = Exclude<Param, { kind: 'ordinal' } | { kind: 'gate' } | { kind: 'choice' }>
 export type GateParam = Extract<Param, { kind: 'gate' }>
+export type ChoiceParam = Extract<Param, { kind: 'choice' }>
 
 // 这一行能不能画成滑块:表空(别的控件的值认不出)就回落到文本框。
 export const tableOf = (param: RangeParam, r: Read): readonly number[] =>

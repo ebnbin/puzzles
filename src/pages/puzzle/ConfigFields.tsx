@@ -1,6 +1,6 @@
 import { useId, useReducer } from 'react'
 import ParamField, { OrdinalField, tableOf } from './ParamField'
-import type { ChoicesControl, GateParam, RangeParam } from './ParamField'
+import type { ChoicesControl, ChoiceParam, GateParam, RangeParam } from './ParamField'
 import type { DialogControl } from '../../engine/types'
 import type { Param } from '../../games/util/params'
 import { reader, settle } from '../../games/util/params'
@@ -93,6 +93,11 @@ export default function ConfigFields({
             </label>
           )
         if (control.kind === 'choices') {
+          // 申报了 pin 且此刻钉着的整行不画:上游那条路不读它,值由 settle 写死。
+          const pinned = params?.find(
+            (p): p is ChoiceParam => p.kind === 'choice' && p.label === control.label,
+          )
+          if (pinned && read && pinned.pin(read) !== null) return null
           // 给了范围模型(自定义参数那条路)才换画法;偏好面板与模态对话框仍是下拉。
           if (params) {
             const slide = params.some((p) => p.kind === 'ordinal' && p.label === control.label)
@@ -124,7 +129,10 @@ export default function ConfigFields({
         }
         const param = params?.find(
           (p): p is RangeParam =>
-            p.kind !== 'ordinal' && p.kind !== 'gate' && p.label === control.label,
+            p.kind !== 'ordinal' &&
+            p.kind !== 'gate' &&
+            p.kind !== 'choice' &&
+            p.label === control.label,
         )
         const gate = params?.find(
           (p): p is GateParam => p.kind === 'gate' && p.label === control.label,

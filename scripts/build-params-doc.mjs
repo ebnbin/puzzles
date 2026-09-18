@@ -46,7 +46,7 @@ function defaultTables(game, controls) {
   const r = model.reader(live)
   const out = []
   for (const p of model.GAMES[game.id].types.params) {
-    if (p.kind === 'ordinal' || p.kind === 'gate') continue
+    if (p.kind === 'ordinal' || p.kind === 'gate' || p.kind === 'choice') continue
     if (p.kind === 'span') {
       const los = p.lo(r)
       out.push({ label: p.label, text: `最少 ${compact(los)};最多(最少取 ${los[0]} 时)${compact(p.hi(r, los[0]))}` })

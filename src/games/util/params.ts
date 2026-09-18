@@ -60,6 +60,9 @@ export type Param =
   // 门:管 label 那个 int 控件的开关。关 = 控件值为 off(表里仍有它,check-params 照旧覆盖),
   // 开 = 非 off,打开时写 on;开着时滑块的档位是表里去掉 off 的部分。word 是开关文案的键。
   | { kind: 'gate'; label: string; off: number; on: number; word: GateWord }
+  // choices 控件的钉值:pin 给出数字时,这一行整行不画、值被写成那个数(上游那条路根本不读
+  // 它,留着只会让参数串和上游预设对不上);给 null 就是普通的分段按钮,settle 不碰。
+  | { kind: 'choice'; label: string; pin(r: Read): number | null }
 
 export type GateWord = 'limitShuffle'
 
@@ -91,6 +94,12 @@ export const span = (
 ): Param => ({ kind: 'span', label, lo, hi })
 
 export const ordinal = (label: string): Param => ({ kind: 'ordinal', label })
+
+export const choice = (label: string, extra: { pin(r: Read): number | null }): Param => ({
+  kind: 'choice',
+  label,
+  ...extra,
+})
 
 export const gate = (label: string, extra: { off: number; on: number; word: GateWord }): Param => ({
   kind: 'gate',
@@ -197,6 +206,14 @@ export function settle(
     if (p.kind === 'ordinal' || p.kind === 'gate') continue
     // 区间型的两个数共用一个控件:动了「最少」也要让「最多」跟上,所以主动方只跳过单值参数。
     if (p.label === moved && p.kind !== 'span') continue
+    if (p.kind === 'choice') {
+      const c = control(controls, p.label)
+      const want = p.pin(r)
+      if (c?.kind !== 'choices' || want === null || c.value === want) continue
+      c.value = want
+      changed.push(p.label)
+      continue
+    }
     const c = control(controls, p.label)
     if (c?.kind !== 'string') continue
     let next: string | null = null
