@@ -55,10 +55,15 @@ function params(text: string): { c: number; r: number } | null {
 // 行数 = 1 与 Jigsaw 是同一件事:勾选框只是 r == 1 的显示(solo.c:471),生成器也只认
 // r == 1(solo.c:3698)。所以行数不给 1 这一档——勾着 Jigsaw 时钉死 1、整行不画(这时
 // 列数就是阶数),勾掉时从 2 起。勾选与取消都不动列数,只在它落到新表外时才被吸走。
-// 二阶有两处上游毛病:2 阶 Jigsaw 与 2×2 配 4 向旋转 / 4 向镜像 / 8 向镜像时,题面几乎每格
-// 都是提示,而 encode_puzzle_desc 估的缓冲区只有 area + 1 字节(solo.c:3370),分隔符一加就
-// 越界、断言当场停(solo.c:3414);2 阶 Jigsaw 配 Killer 则是生成不终止。Killer 局没有数字
-// 提示,撑不爆缓冲区,所以 2×2 + Killer 照常放行。
+// 除上游校验外只去掉两种「任何种子都开不出局」的组合,依据是代码推导,不是实测:
+// ① 2 阶 Jigsaw 配 4 向旋转 / 4 向镜像 / 8 向镜像:这三种对称把四个格并成一个轨道,删提示
+//    只有「不删」或「删成空盘」两种结果,而空盘的 2 阶题有两个解(1、2 对调)、求解器不收,
+//    所以提示恒是满盘四格;满盘的题面要写 11 个字符(网格 7 + 逗号 + 块结构 3),而
+//    encode_puzzle_desc 的预算只有 10(solo.c:3370、3414),断言必停。
+// ② 2 阶 Killer:两格的笼子恒是 {1,2}、和恒为 3,零信息,题目必然两解;三格以上的笼子必有
+//    重复数字,而上游按「笼内不重复」推(solo.c:1888),必判无解。两条路都回不来。
+// 其余一律放行。2×2 配那几种对称只是一部分种子撞上同一个断言,换个种子就能开出来,不属于
+// 「必定开不出」,所以不拦。
 const killer = (r: Read) => r.flag('Killer (digit sums)')
 const order = (r: Read) => (killer(r) ? 9 : 31)
 const jigsaw = (r: Read) => r.flag('Jigsaw (irregularly shaped sub-blocks)')
@@ -100,9 +105,7 @@ const solo: Game = {
         (r) => {
           if (jigsaw(r)) return [1]
           const c = r.int('Columns of sub-blocks')
-          return range(2, Math.floor(order(r) / c)).filter(
-            (rows) => !(crashes(r) && !killer(r) && c === 2 && rows === 2),
-          )
+          return range(2, Math.floor(order(r) / c))
         },
         { hide: jigsaw },
       ),
