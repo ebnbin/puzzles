@@ -36,7 +36,11 @@ const mines: Game = {
     params: [
       int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
       int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
-      int('Mines', (r) => range(1, area(r) - 9), { note: (n, r) => `${Math.round((100 * n) / area(r))}%` }),
+      // 雷数按密度 10%–50% 换算,两头向内取整(下限进一、上限舍去),实际密度恒在区间内;
+      // 面积 18 以下上游的「≤ 面积 − 9」(mines.c:309)比 50% 更紧,取小的那个。
+      int('Mines', (r) => range(Math.ceil(area(r) / 10), Math.min(Math.floor(area(r) / 2), area(r) - 9)), {
+        note: (n, r) => `${Math.round((100 * n) / area(r))}%`,
+      }),
     ],
   },
   prefs: { panel: verbatim, volatile: false },
