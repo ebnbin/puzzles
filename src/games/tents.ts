@@ -8,6 +8,7 @@ import { fields, find } from './util/save'
 import type { Spot } from './util/mirror'
 import { stepCursor } from './util/mirror'
 import { act, cross } from './util/pad'
+import { int, range } from './util/params'
 
 export type Square = 'T' | 'N' | 'B'
 
@@ -70,7 +71,13 @@ const tents: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('tents'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    // 上限 25 不是安全线:生成要求「低一档解不出来 + 本档唯一解」,而循环里没有任何
+    // 逃生门。方盘从 22 起就变慢,25×25 的 Easy 十个种子全超时(Easy 比 Tricky 更难
+    // 生成——它要弱求解器就能唯一解)。逐档实测在 docs/params.md。
+    params: [int('Width', () => range(4, 25)), int('Height', () => range(4, 25))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

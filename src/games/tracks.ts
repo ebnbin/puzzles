@@ -7,6 +7,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Track', 'X', 'Clear']
 
@@ -16,7 +17,10 @@ const tracks: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('tracks'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(4, CAP)), int('Height', () => range(4, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

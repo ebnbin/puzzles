@@ -5,5 +5,5 @@ dist
 .DS_Store
 .vercel
 
-# scripts/build-games.sh 的 emsdk 和 CMake 输出
+# scripts/build-games.sh 的 emsdk 和 CMake 输出;scripts/check-params.mjs 的 oracle 编译产物
 .build

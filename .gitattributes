@@ -16,6 +16,11 @@ public/icon-192.png linguist-generated
 public/apple-touch-icon.png linguist-generated
 public/favicon-32.png linguist-generated
 docs/gallery.png linguist-generated
+docs/params.md linguist-generated
 src/games.json linguist-generated
 
 public/engine/*.wasm binary
+
+# Solo 参数普查的产物(scripts/solo-sweep/):数据不手改,报告由 report.mjs 生成
+docs/solo-sweep/round1.md linguist-generated
+docs/solo-sweep/*.tsv linguist-generated

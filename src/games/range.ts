@@ -5,6 +5,8 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
+// 游戏本身就叫 range,区间词汇改名进来。
+import { CAP, int, range as between, without } from './util/params'
 
 const WORDS = ['Fill', 'Dot', 'Empty']
 
@@ -14,7 +16,18 @@ const range: Game = {
   touch: { hold: 'right' },
   dark: { keep: [1], paper: true },
   pages: samePages('range'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      int('Width', () => between(1, CAP)),
+      // 宽 + 高 ≤ 128(range.c:923,格数类型是 signed char);2×2 以内的四种生成不了。
+      int('Height', (r) => {
+        const w = r.int('Width')
+        const list = between(1, Math.min(CAP, 128 - w))
+        return w <= 2 ? without(list, 1, 2) : list
+      }),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
   arrows: {

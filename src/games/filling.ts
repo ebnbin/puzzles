@@ -6,6 +6,7 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { clearKey, digitKeys } from './util/keys'
 import { cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const filling: Game = {
   id: 'filling',
@@ -13,7 +14,10 @@ const filling: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('filling'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Width', () => range(1, CAP)), int('Height', () => range(1, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [...digitKeys(9), clearKey()],
   arrows: { keys: cross() },

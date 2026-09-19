@@ -1,3 +1,11 @@
+// cube 方向键置灰模型的契约测试:逐格问引擎「这四个方向真的走得动吗」,和界面上
+// 的置灰逐条对账。何时跑:改了 src/games/cube.ts 的走位模型或它的定义域、动了
+// types.params 的上限、或升级 vendor/ 之后。
+//
+//   npm run build && npm exec -- vite preview --port 4173 --strictPort &
+//   npm i --no-save playwright && node scripts/check-cube.mjs
+//
+// 最后那条 t33x0 要走一千多格,整轮几分钟。
 import { boot, open } from './lib/boot.mjs'
 
 const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
@@ -56,6 +64,25 @@ const load = (s) => page.evaluate((v) => window.__puzzle.loadGame(v), s)
 const send = (k) => page.evaluate((key) => window.__puzzle.key(0, key, '', 0, 0, 0), k)
 const field = (s, k) => s.split('\n').find((l) => l.startsWith(k))?.split(':').slice(2).join(':')
 
+// 自定义参数没有直接入口(面板上只有滑块),借上游的「随机种子」对话框:
+// midend_set_config(CFG_SEED) 收 "<params>#<seed>",直接按这组参数开一局。
+async function useParams(text) {
+  const box = page.locator('.dialog input[type=text]')
+  await page.evaluate(() => window.__puzzle.enterSeed())
+  await box.waitFor({ timeout: 5000 })
+  await box.fill(`${text}#1`)
+  await page.evaluate(() => window.__puzzle.dialogOk())
+  await page.waitForTimeout(600)
+}
+
+// 四条预设,加阶段二放开之后新到得了的几处角落:三角形(d2 = 0 或 d1 = 0)一直
+// 没测过;超过 32 的盘以前被 parseParams 直接挡掉,置灰根本没开过。
+const SETUPS = [
+  { preset: 0 }, { preset: 1 }, { preset: 2 }, { preset: 3 },
+  { params: 't5x0' }, { params: 'o4x0' }, { params: 'i0x5' },
+  { params: 'c40x2' }, { params: 't33x0' },
+]
+
 const claimed = async () => {
   await page.waitForTimeout(60)
   const out = []
@@ -67,11 +94,18 @@ const claimed = async () => {
 let checked = 0
 let bad = 0
 
-for (const preset of [0, 1, 2, 3]) {
-  await page.evaluate((i) => window.__puzzle.selectPreset(i), preset)
-  await page.waitForTimeout(600)
+for (const setup of SETUPS) {
+  if (setup.preset !== undefined) {
+    await page.evaluate((i) => window.__puzzle.selectPreset(i), setup.preset)
+    await page.waitForTimeout(600)
+  } else {
+    await useParams(setup.params)
+  }
   const s0 = await save()
   const params = field(s0, 'CPARAMS')
+  if (setup.params && params !== setup.params) {
+    console.log(`FAIL wanted ${setup.params}, got ${params}`); bad++; continue
+  }
   const m = /^([tcoi])(\d+)x(\d+)$/.exec(params)
   if (!m) { console.log(`FAIL ${params}: unreadable parameters`); bad++; continue }
   const sqs = squares(m[1], Number(m[2]), Number(m[3]))
@@ -81,7 +115,7 @@ for (const preset of [0, 1, 2, 3]) {
   const trail = []
   let at = start
   let wrong = 0
-  for (let guard = 0; guard < 8000; guard++) {
+  for (let guard = 0; guard < 4 * sqs.length + 100; guard++) {
     if (!seen.has(at)) {
       seen.add(at)
       checked++

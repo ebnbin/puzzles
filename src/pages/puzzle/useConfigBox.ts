@@ -85,8 +85,10 @@ export function useConfigBox(
     [apiRef, dialog],
   )
 
+  // 没开着就不许发 cancel:C 侧 command(4) 不查 cfg 是不是 NULL,free_cfg 直接
+  // 解引用 0 地址,wasm 当场 trap(memory access out of bounds),引擎就死了。
   const closeInline = useCallback(() => {
-    apiRef.current?.dialogCancel()
+    if (inlineRef.current) apiRef.current?.dialogCancel()
   }, [apiRef])
 
   // 提交完 box 要是关上了就再开一次:面板一直挂在 Types/Menu 里,得有活的控件。
@@ -100,9 +102,10 @@ export function useConfigBox(
     const api = apiRef.current
     const open = inlineRef.current
     if (!api || !open) return
+    // 改回基线值也算一次「再试」:上一次被拒的错误串不该留着。
+    setInlineError(null)
     if (values(open.spec.controls) === inlineBaseline.current) return
     acted()
-    setInlineError(null)
 
     if (open.kind === 'custom') {
       // 主线程这只 box 一直开着、一直没提交,所以参数非法时它原地等玩家改,
@@ -134,10 +137,14 @@ export function useConfigBox(
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
   // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
+  // C 侧只有一个 config box:嵌着的那个(类型面板的参数列表常驻)先让位,借完再
+  // 要回来——不让位这一借会被静默丢掉,键区的偏好键就成了哑巴。
   const borrowPrefs = useCallback(
     (use: (controls: DialogControl[]) => boolean) => {
       const api = apiRef.current
-      if (!api || dialog || inlineRef.current) return
+      if (!api || dialog) return
+      const held = inlineRef.current?.kind
+      if (held) api.dialogCancel()
       borrowed.current = { spec: null, error: null }
       api.preferences()
       const { spec } = borrowed.current
@@ -151,6 +158,10 @@ export function useConfigBox(
         }
       }
       borrowed.current = null
+      if (held) {
+        inlinePending.current = held
+        ask(api, held)
+      }
       if (spec)
         setPrefs((was) => (values(was) === values(spec.controls) ? was : spec.controls))
     },
@@ -169,11 +180,6 @@ export function useConfigBox(
     [acted, borrowPrefs],
   )
 
-  // Types/Menu 收起时把挂着的 inline 一并退掉。
-  const abandonInline = useCallback(() => {
-    if (inlineRef.current) apiRef.current?.dialogCancel()
-  }, [apiRef])
-
   return {
     dialog,
     inline,
@@ -185,6 +191,5 @@ export function useConfigBox(
     commitInline,
     readPrefs,
     writePrefs,
-    abandonInline,
   }
 }

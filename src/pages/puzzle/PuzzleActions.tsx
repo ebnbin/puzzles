@@ -14,6 +14,7 @@ export default function PuzzleActions({
   typesShown,
   typesEnabled,
   typesOpen,
+  typesDocked,
   menuOpen,
   holdToAsk,
   wasHeld,
@@ -29,6 +30,8 @@ export default function PuzzleActions({
   typesShown: boolean
   typesEnabled: boolean
   typesOpen: boolean
+  // 类型面板这一刻是停靠的侧栏,不是弹出的对话框。
+  typesDocked: boolean
   menuOpen: boolean
   holdToAsk: Hold['holdToAsk']
   wasHeld: Hold['wasHeld']
@@ -97,7 +100,7 @@ export default function PuzzleActions({
         <button
           type="button"
           aria-label={t.types.title}
-          aria-haspopup="dialog"
+          aria-haspopup={typesDocked ? undefined : 'dialog'}
           aria-expanded={typesOpen}
           disabled={!typesEnabled}
           {...holdToAsk(t.types.title)}

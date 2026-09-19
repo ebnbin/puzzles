@@ -7,6 +7,7 @@ import { keepPencil, samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { PENCIL_HIGHLIGHT, clearKey, marksKey, preference, preferKeys, tap } from './util/keys'
 import { act, cross } from './util/pad'
+import { int, range } from './util/params'
 
 const PICTURES = ['Pictures', 'Letters']
 
@@ -34,7 +35,14 @@ const undead: Game = {
   touch: { hold: 'right' },
   dark: { strokes: [0, 2] },
   pages: samePages('undead'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 面积最多 54 格(undead.c:218)。
+      int('Width', () => range(3, 18)),
+      int('Height', (r) => range(3, Math.floor(54 / r.int('Width')))),
+    ],
+  },
   prefs: { panel: verbatim, volatile: true, defaults: keepPencil },
   keypad: ({ prefs }) => {
     const letters = preference(prefs, PICTURES) === PICTURES.indexOf('Letters')

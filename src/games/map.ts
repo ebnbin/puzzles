@@ -18,6 +18,7 @@ import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { done, extend, fields, find, line, loadExtended } from './util/save'
 import { cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 export const COLOURS = 4
 
@@ -276,7 +277,19 @@ const map: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('map'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // 宽高从 3 起:两行的盘永远用不到第四种颜色(实测 2400 张地图零例),不成四色
+      // 谜题。3 起之后面积恒 ≥ 9,上游那条「n ≥ 5 且 n ≤ 面积」再也卡不到宽高,宽和
+      // 高之间不再互相依赖。
+      int('Width', () => range(3, CAP)),
+      int('Height', () => range(3, CAP)),
+      // 上游给到面积。1000 是暂定的档,不是安全线:区域数过百挂率就开始爬,根子是
+      // fourcolour 的回溯偶尔炸掉一轮;逐档实测在 docs/params.md。
+      int('Regions', (r) => range(5, Math.min(1000, r.int('Width') * r.int('Height')))),
+    ],
+  },
   prefs: { panel: verbatim, volatile: true },
   keypad: ({ prefs }) => [
     ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),

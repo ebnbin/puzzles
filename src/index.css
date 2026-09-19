@@ -467,6 +467,8 @@ footer p {
   /* 键盘总宽 = 3×tap-w + 2×act-w + 5×gap + 2×rim = 6×tap-w + 7×gap = 268。
      五道缝:两块之间两道(acts 内部一道 + 那条 margin),四列网格之间三道。 */
   --keys-w: calc(6 * var(--tap-w) + 7 * var(--key-gap));
+  /* 停靠的类型面板占这么宽(360px)。 */
+  --dock-w: 22.5rem;
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -1192,11 +1194,13 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
-.sheet section {
+.sheet section,
+.dock section {
   margin-top: 1.4rem;
 }
 
-.sheet-handle + section {
+.sheet-handle + section,
+.dock-head + section {
   margin-top: 0;
 }
 
@@ -1211,26 +1215,20 @@ p.notice-intro button:active {
   text-transform: uppercase;
 }
 
-.sheet p:not(.notice-error) {
+.sheet p:not(.notice-error),
+.dock p:not(.notice-error) {
   margin: 0;
   color: var(--text-2);
   font-size: var(--t-sm);
 }
 
-.sheet-presets,
-.sheet-presets ul {
+.sheet-presets {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.sheet-presets ul {
-  width: 100%;
-  margin-top: 0.4rem;
-  padding-left: 0.75rem;
 }
 
 .sheet-presets label {
@@ -1281,27 +1279,13 @@ p.notice-intro button:active {
   );
 }
 
-.sheet-custom {
+.sheet-params {
   margin-top: 1rem;
-  animation: custom-in var(--dur) var(--ease);
 }
 
-@keyframes custom-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.3rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet-custom {
-    animation: none;
-  }
-}
-
-.sheet-custom .dialog-string,
-.sheet-custom .dialog-choices,
-.sheet-custom .dialog-boolean,
+.sheet-params .dialog-string,
+.sheet-params .dialog-choices,
+.sheet-params .dialog-boolean,
 .sheet-prefs .dialog-string,
 .sheet-prefs .dialog-choices,
 .sheet-prefs .dialog-boolean {
@@ -1317,13 +1301,13 @@ p.notice-intro button:active {
   font-size: var(--t-sm);
 }
 
-.sheet-custom .dialog-boolean,
+.sheet-params .dialog-boolean,
 .sheet-prefs .dialog-boolean {
   flex-direction: row-reverse;
 }
 
-.sheet-custom .dialog-string input,
-.sheet-custom .dialog-choices select,
+.sheet-params .dialog-string input,
+.sheet-params .dialog-choices select,
 .sheet-prefs .dialog-string input,
 .sheet-prefs .dialog-choices select {
   flex: none;
@@ -1339,20 +1323,20 @@ p.notice-intro button:active {
   font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
 }
 
-.sheet-custom .dialog-string input,
+.sheet-params .dialog-string input,
 .sheet-prefs .dialog-string input {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.sheet-custom .dialog-choices select,
+.sheet-params .dialog-choices select,
 .sheet-prefs .dialog-choices select {
   width: auto;
   max-width: 62%;
   padding-right: 0.25rem;
 }
 
-.sheet-custom .dialog-boolean input,
+.sheet-params .dialog-boolean input,
 .sheet-prefs .dialog-boolean input {
   flex: none;
   width: 1.15rem;
@@ -1361,14 +1345,129 @@ p.notice-intro button:active {
   accent-color: var(--accent);
 }
 
+/* 范围模型驱动的数字行(ParamField):标签一行,滑块一行;区间型两行滑块带小标。 */
+.sheet-params .dialog-param {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0 0.45rem;
+  border-top: 1px solid var(--edge);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
 
-.sheet-preset-group {
-  width: 100%;
+.sheet-params .dialog-param-head {
+  display: block;
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+}
+
+.sheet-params .dialog-param-track {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--tap-h);
+}
+
+.sheet-params .dialog-param-tag {
+  flex: none;
+  width: 2.6rem;
   color: var(--text-3);
-  font-size: var(--t-2xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--t-xs);
+}
+
+.sheet-params .dialog-param-track input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  height: var(--tap-h);
+  margin: 0;
+  background: none;
+  accent-color: var(--accent);
+}
+
+.sheet-params .dialog-param-track input[type='range']:disabled {
+  opacity: 0.4;
+}
+
+.sheet-params .dialog-param-track button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-h);
+  height: var(--tap-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .sheet-params .dialog-param-track button:not(:disabled):hover {
+    background: var(--surface-3);
+  }
+}
+
+.sheet-params .dialog-param-track button:not(:disabled):active {
+  background: var(--surface-3);
+  transform: scale(0.96);
+}
+
+.sheet-params .dialog-param-track button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* 3.2rem 是底,真正的宽度由 ParamField 按这张表最宽的一条读数算出来写在行内:
+   宽度跟着值变的话,拖到一半轨道就缩水,滑块会从手指底下跑掉。 */
+.sheet-params .dialog-param-value {
+  flex: none;
+  min-width: 3.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-params .dialog-param-value small {
+  margin-left: 0.3em;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+}
+
+/* 轨道下面单独一行的附注(Rectangles 由枚举算出来的 e):跟着滑块实时变,
+   放这儿是因为它和读数连起来太长,挤在一行会把轨道吃掉一截。 */
+.sheet-params .dialog-param-foot {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 自定义面板里的 choices:下拉换成分段按钮。外观沿用 segmented.css(那份要进手册,不动),
+   这里只改布局——会换行,窄了折行、宽了并排;label 一行、按钮一行,和滑块同一种节奏;
+   按钮尺寸、字号对齐上面的预设 chip。 */
+.sheet-params .dialog-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0 0.45rem;
+  border-top: 1px solid var(--edge);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.sheet-params .dialog-choice .segmented {
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: var(--r);
+}
+
+.sheet-params .dialog-choice .segmented > label {
+  flex: 1 1 auto;
+  min-height: var(--tap-h);
+  padding: 0 0.75rem;
+  font-size: var(--t-sm);
 }
 
 
@@ -1425,6 +1524,59 @@ p.notice-intro button:active {
 .sheet-id-value button:active {
   background: var(--surface-3);
   transform: scale(0.96);
+}
+
+/* 停靠在右侧的类型面板。棋盘不是被盖住而是让出宽度:.puzzle 加一条右内边距,
+   棋盘照旧量自己的可用空间(usePuzzleFit 的 ResizeObserver),不用另算尺寸。
+   查询和 PuzzleHost 的 DOCK 必须同值,两处一起改。 */
+@media (min-width: 64em) {
+  .puzzle[data-dock] {
+    padding-right: calc(var(--dock-w) + env(safe-area-inset-right));
+  }
+}
+
+.dock {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: calc(var(--dock-w) + env(safe-area-inset-right));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(0.9rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right))
+    calc(1rem + env(safe-area-inset-bottom)) 1rem;
+  border-left: 1px solid var(--edge);
+  background: var(--surface);
+  animation: dock-in var(--dur) var(--ease);
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+}
+
+.dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dock-head h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .dialog-dimmer {
@@ -1601,7 +1753,8 @@ p.notice-intro button:active {
   margin: 0;
 }
 
-.dialog-close {
+.dialog-close,
+.dock-close {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -1618,13 +1771,15 @@ p.notice-intro button:active {
 }
 
 @media (hover: hover) {
-  .dialog-close:hover {
+  .dialog-close:hover,
+  .dock-close:hover {
     background: var(--surface-2);
     color: var(--text);
   }
 }
 
-.dialog-close:active {
+.dialog-close:active,
+.dock-close:active {
   background: var(--surface-3);
   color: var(--text);
 }

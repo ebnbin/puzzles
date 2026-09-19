@@ -12,6 +12,7 @@ import {
   preferKeys,
 } from './util/keys'
 import { act, cross } from './util/pad'
+import { int, range } from './util/params'
 
 const unequal: Game = {
   id: 'unequal',
@@ -19,7 +20,15 @@ const unequal: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('unequal'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [
+      // Adjacent 模式从 Tricky(难度下标 2)起至少 5 阶(unequal.c:273)。
+      int('Size (s*s)', (r) =>
+        range(r.pick('Mode') === 1 && r.pick('Difficulty') >= 2 ? 5 : 3, 32),
+      ),
+    ],
+  },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
   keypad: ({ params, prefs }) => {
     const order = leadingNumber(params)

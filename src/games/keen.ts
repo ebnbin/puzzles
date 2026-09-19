@@ -11,6 +11,7 @@ import {
   preferKeys,
 } from './util/keys'
 import { act, cross } from './util/pad'
+import { int, range } from './util/params'
 
 const keen: Game = {
   id: 'keen',
@@ -18,7 +19,10 @@ const keen: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('keen'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Grid size', () => range(3, 9))],
+  },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
   keypad: ({ params, prefs }) => {
     const size = leadingNumber(params)

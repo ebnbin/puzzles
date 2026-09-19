@@ -4,6 +4,7 @@ import type { Game } from './game'
 import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+import { CAP, int, range } from './util/params'
 
 const WORDS = ['Black', 'White', 'Empty']
 
@@ -13,7 +14,10 @@ const mosaic: Game = {
   touch: { hold: 'right' },
   dark: { keep: [3, 4, 5] },
   pages: samePages('mosaic'),
-  types: { menu: verbatim },
+  types: {
+    menu: verbatim,
+    params: [int('Height', () => range(3, CAP)), int('Width', () => range(3, CAP))],
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
