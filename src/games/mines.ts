@@ -6,11 +6,24 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 import type { Read } from './util/params'
-import { CAP, int, range } from './util/params'
+import { int, range } from './util/params'
 
 const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
 
 const area = (r: Read) => r.int('Width') * r.int('Height')
+
+// 宽高 3..50 逐整数,长边 ≤ 短边 × 4,面积 ≥ 12。下限是上游自己夹出来的:勾着「Ensure
+// solubility」时两维都要 > 2(mines.c:290),而雷数 ≤ 面积 − 9(309)又要求面积 ≥ 10,
+// 于是最小的合法盘只有 3×4——面积那条在这里只去掉 3×3 一格。不勾时上游放到 2×5,但按它
+// 自己的注释 2×n 造不出唯一解,不值得让下限跟着勾选框变。
+const SIDES = range(3, 50)
+const fits = (a: number, b: number) => a <= 4 * b && b <= 4 * a && a * b >= 12
+// 宽高互推:两根滑块的档位都是全表,动了一根另一根若配不上就被推到最近的合法档;对方在
+// 表外(Game ID 带进来的)时给全表,好把它拉回来。
+const beside = (other: number) => {
+  const list = SIDES.filter((s) => fits(s, other))
+  return list.length ? list : SIDES
+}
 
 const mines: Game = {
   id: 'mines',
@@ -21,12 +34,8 @@ const mines: Game = {
   types: {
     menu: verbatim,
     params: [
-      // 宽高从 4 起。上游只在勾了「Ensure solubility」时要求两维 > 2(mines.c:290),
-      // 但 3×3 的面积 9 连一颗雷都放不下(雷数 ≤ 面积 − 9,309),而 3×n 一到高密度,
-      // 唯一解那条路修不出来(3×100 撒 30% 的雷跑五分钟也不出)。4 起面积恒 ≥ 16,
-      // 两条都不再是问题,高也不用再看宽。
-      int('Width', () => range(4, CAP)),
-      int('Height', () => range(4, CAP)),
+      int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
+      int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
       int('Mines', (r) => range(1, area(r) - 9), { note: (n, r) => `${Math.round((100 * n) / area(r))}%` }),
     ],
   },

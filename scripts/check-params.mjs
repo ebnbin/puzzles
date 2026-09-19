@@ -128,9 +128,14 @@ const EXPECTED_NARROWER = {
   // 宽高只给 5 的倍数 5..45、4:1 互推:表外的一律是预期收窄(下界减一、上界加一、中间的洞)。
   // 上游只查 > 0 和面积 ≥ 2,窄盘与大盘各自卡在生成的两条判据上,见 docs/params.md。
   pattern: (label, v) => v < 5 || v > 45 || v % 5 !== 0,
-  // 宽高从 4 起:上游放行 3×4(勾了唯一解时两维 > 2 即可),但 3×3 面积不够放雷、
-  // 3×n 高密度时唯一解生成不收敛(见 docs/params.md 第四节)。
-  mines: (label, v) => (label === 'Width' || label === 'Height') && v < 4,
+  // 宽高 3..50、4:1 且面积 ≥ 12(= 上游勾着唯一解时的最小盘 3×4);雷数仍是上游自己的
+  // 1..面积−9,没有收窄。表外一律是设计使然,见 docs/params.md。
+  mines: (label, v, side, forced) => {
+    if (label !== 'Width' && label !== 'Height') return false
+    const w = Number(forced[0].value)
+    const h = Number(forced[1].value)
+    return v < 3 || v > 50 || Math.max(w, h) > 4 * Math.min(w, h) || w * h < 12
+  },
   // 宽高从 2 起(1×n 退化成一维消除);色数上限统一封到 ⌊面积/2⌋(勾着时上游不查,
   // 但块数就这么多,多出来的档拖了也一格不变),勾着且宽 > 20 时下限抬到 4。
   samegame: (label, v, side, forced) => {
