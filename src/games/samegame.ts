@@ -7,11 +7,20 @@ import { still } from './game'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWordsAwake } from './util/pad'
 import type { Read } from './util/params'
-import { CAP, int, range } from './util/params'
+import { int, range } from './util/params'
 
 const WORDS = ['Select', 'Remove', 'Unselect']
 
 const soluble = (r: Read) => r.flag('Ensure solubility')
+
+// 宽高互推:两根滑块的档位都是全表,动了一根另一根若配不上就被推到最近的合法档;对方在
+// 表外(Game ID 带进来的)时给全表,好把它拉回来。
+const SIDES = range(2, 50)
+const fits = (a: number, b: number) => a <= 4 * b && b <= 4 * a && a * b >= 6
+const beside = (other: number) => {
+  const list = SIDES.filter((s) => fits(s, other))
+  return list.length ? list : SIDES
+}
 
 // 色数上限:保证可解时每次插两格(奇数面积开头有一次三格,samegame.c:24-26),块数
 // 就是 ⌊面积/2⌋,能出现的颜色不可能比块多——2×2 只出得来 2 色、3×3 只出得来 4 色,
@@ -35,9 +44,8 @@ const samegame: Game = {
     params: [
       // 宽高从 2 起:上游只查面积(302/309),1×n 能生成也不崩,但消完的复位是「各列
       // 下落 + 空列左移」(1214),宽 1 没有列可移、高 1 没有格可落,都退化成一维消除。
-      // 两维都 ≥ 2 后面积恒 ≥ 4,不勾时那条「面积 ≥ 2×色数 ⇒ ≥ 4」自动满足,高不用再看宽。
-      int('Width', () => range(2, CAP)),
-      int('Height', () => range(2, CAP)),
+      int('Width', () => SIDES, { within: (r) => beside(r.int('Height')) }),
+      int('Height', () => SIDES, { within: (r) => beside(r.int('Width')) }),
       // 下限:上游勾着要 ≥ 3(300)、不勾要 ≥ 2(305);勾着且宽 > 20 时再抬到 4——三色
       // 保证可解是拒绝采样,重来次数对宽是指数的(每加一列 ×1.7),而四色起整个 100×100
       // 最坏 0.21 秒(五色起一格最多四个邻居,鸽笼保证永不堵色,528)。

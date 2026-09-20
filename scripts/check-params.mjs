@@ -140,9 +140,10 @@ const EXPECTED_NARROWER = {
   // 宽高从 2 起(1×n 退化成一维消除);色数上限统一封到 ⌊面积/2⌋(勾着时上游不查,
   // 但块数就这么多,多出来的档拖了也一格不变),勾着且宽 > 20 时下限抬到 4。
   samegame: (label, v, side, forced) => {
-    if (label === 'Width' || label === 'Height') return v < 2
     const w = Number(forced[0].value)
     const h = Number(forced[1].value)
+    if (label === 'Width' || label === 'Height')
+      return v < 2 || v > 50 || Math.max(w, h) > 4 * Math.min(w, h) || w * h < 6
     return v > Math.floor((w * h) / 2) || (forced[4].value && w > 20 && v < 4)
   },
   // 宽高 2..50 且面积 ≤ 1000。上游只查 > 0(191)和面积² ≤ INT_MAX−3(195):
