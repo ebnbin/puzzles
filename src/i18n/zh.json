@@ -337,7 +337,12 @@
     "allowLoops": "允许环路",
     "maxBridges": "每个方向的最大桥数",
     "islandPc": "岛屿方格的百分比",
-    "expansionPc": "扩展因子(百分比)"
+    "expansionPc": "扩展因子(百分比)",
+    "mode": "模式",
+    "unequalMode": "不等",
+    "adjacent": "相邻",
+    "order": "大小 (s*s)",
+    "recursive": "递归"
   },
 
   "notFound": {
