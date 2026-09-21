@@ -5,10 +5,24 @@
 // #if 0 里,死代码,别照着加。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Track', 'X', 'Clear']
+
+// validate_params tracks.c:190-200:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 的
+// Easy 以上上游自己降成 Easy(tracks.c:735),是降级不是失败;其余是 goto 重来的概率重试。
+const custom: Custom = {
+  fields: [
+    width(4),
+    height(4),
+    difficulty(['easy', 'tricky', 'hard']),
+    { kind: 'flag', key: 'ones', label: 'Disallow consecutive 1 clues', word: 'noOnes' },
+  ],
+  rules: [],
+}
 
 const tracks: Game = {
   id: 'tracks',
@@ -16,7 +30,7 @@ const tracks: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('tracks'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
