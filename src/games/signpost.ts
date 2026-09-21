@@ -5,6 +5,8 @@
 // 另一键要么 Cancel(能取消)要么陪跑置灰。
 import type { Game, Labels, View } from './game'
 import { keyOf, plain } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { FaceSpec } from './util/pad'
 import { act, cross, wordOf } from './util/pad'
@@ -62,6 +64,17 @@ const linkKey = (
     },
   })
 
+// validate_params signpost.c:430-440:宽高各 ≥ 1,full 下不能都是 1(界面没法把它从未解
+// 走到已解);INT_MAX 那条在 100 以内碰不到。生成是填不满就重来的概率重试。
+const custom: Custom = {
+  fields: [
+    width(1),
+    height(1),
+    { kind: 'flag', key: 'corners', label: 'Start and end in corners', word: 'corners' },
+  ],
+  rules: [rule('signpost.c:436', ['w', 'h'], (v) => v.w === 1 && v.h === 1)],
+}
+
 const signpost: Game<Facts> = {
   id: 'signpost',
   // 拖拽中两键同词(signpost.c:1483-1491 不分 which),三个词都可能成对出现。
@@ -73,7 +86,7 @@ const signpost: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('signpost'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

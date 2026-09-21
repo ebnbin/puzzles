@@ -345,7 +345,8 @@
     "recursive": "Recursive",
     "gridSize": "Grid size",
     "multiplyOnly": "Multiplication only",
-    "stripClues": "Strip clues"
+    "stripClues": "Strip clues",
+    "corners": "Start and end in corners"
   },
 
   "notFound": {
