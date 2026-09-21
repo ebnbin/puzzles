@@ -11,7 +11,7 @@ import type { Board, Game, Gate, Key, View } from './game'
 import { keyOf, plain } from './game'
 import { fill } from '../i18n/fill'
 import type { Custom } from './util/custom'
-import { BOARD_MAX, difficulty, height, rule, width } from './util/custom'
+import { AREA_MAX, difficulty, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Spot } from './util/mirror'
@@ -272,7 +272,7 @@ const custom: Custom = {
   fields: [
     width(2),
     height(2),
-    { kind: 'int', key: 'n', label: 'Regions', word: 'regions', min: 5, max: BOARD_MAX * BOARD_MAX, role: 'count' },
+    { kind: 'int', key: 'n', label: 'Regions', word: 'regions', min: 5, max: AREA_MAX, role: 'count' },
     difficulty(['easy', 'normal', 'hard', 'unreasonable']),
   ],
   rules: [rule('map.c:267', ['n', 'w', 'h'], (v) => v.n > v.w * v.h)],

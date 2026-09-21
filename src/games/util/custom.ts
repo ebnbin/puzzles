@@ -71,6 +71,7 @@ export const rule = (at: string, on: readonly string[], bad: (v: Values) => bool
 })
 
 export const BOARD_MAX = 100
+export const AREA_MAX = BOARD_MAX * BOARD_MAX
 export const ASPECT_MAX = 4
 
 const keysOf = (field: Field): readonly string[] =>

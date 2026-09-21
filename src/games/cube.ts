@@ -191,6 +191,25 @@ function shortOfClass(solid: number, d1: number, d2: number): boolean {
 const area = (solid: number, d1: number, d2: number) =>
   solid === CUBE ? d1 * d2 : d1 * d1 + d2 * d2 + 4 * d1 * d2
 
+type Facts = { rolls: Set<string> | null }
+
+// 置灰的分界:棋盘自己会说的(顶到边界),我们不说;棋盘盖住了的(三角朝向被
+// 多面体压住),我们说。模型读不懂时 rolls 为 null,四个键全亮——错亮好过错灰。
+const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
+  id: dir,
+  slot,
+  moves: true,
+  face: (view) => ({
+    ...arrowFace(view, dir),
+    dead:
+      !!view.facts.rolls &&
+      !view.facts.rolls.has(
+        typeof DIRS[dir].stroke === 'string' ? (DIRS[dir].stroke as string) : '',
+      ),
+  }),
+  press: (board) => walk(board, dir),
+})
+
 // validate_params cube.c:541-602,不看 full。两维在立方体下是矩形宽高(≥ 2,
 // cube.c:553),三角网格下是六边形的两组边长(可以为 0 但不能都为 0,cube.c:558),
 // 所以两条自家规则在这里按多面体分开写:宽高比只管立方体;三角网格的行数和最宽行
@@ -218,25 +237,6 @@ const custom: Custom = {
     rule('house', ['d1', 'd2', 'solid'], (v) => v.solid !== CUBE && v.d1 + v.d2 > BOARD_MAX),
   ],
 }
-
-type Facts = { rolls: Set<string> | null }
-
-// 置灰的分界:棋盘自己会说的(顶到边界),我们不说;棋盘盖住了的(三角朝向被
-// 多面体压住),我们说。模型读不懂时 rolls 为 null,四个键全亮——错亮好过错灰。
-const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
-  id: dir,
-  slot,
-  moves: true,
-  face: (view) => ({
-    ...arrowFace(view, dir),
-    dead:
-      !!view.facts.rolls &&
-      !view.facts.rolls.has(
-        typeof DIRS[dir].stroke === 'string' ? (DIRS[dir].stroke as string) : '',
-      ),
-  }),
-  press: (board) => walk(board, dir),
-})
 
 const cube: Game<Facts> = {
   id: 'cube',
