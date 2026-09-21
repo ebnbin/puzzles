@@ -350,7 +350,8 @@
     "allowUnsoluble": "Allow unsoluble",
     "uniqueRows": "Unique rows and columns",
     "extraMoves": "Extra moves permitted",
-    "noOnes": "Disallow consecutive 1 clues"
+    "noOnes": "Disallow consecutive 1 clues",
+    "regionSize": "Region size"
   },
 
   "notFound": {
