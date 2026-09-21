@@ -3,11 +3,20 @@
 // 第一按之后棋盘不再动。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear']
+
+// validate_params galaxies.c:328-341:宽高各 ≥ 3;INT_MAX 那条在 100 以内碰不到。生成是
+// 难度不符就 goto 重来的概率重试。
+const custom: Custom = {
+  fields: [width(3), height(3), difficulty(['normal', 'unreasonable'])],
+  rules: [],
+}
 
 const galaxies: Game = {
   id: 'galaxies',
@@ -15,7 +24,7 @@ const galaxies: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('galaxies'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
   arrows: {
