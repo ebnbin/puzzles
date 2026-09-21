@@ -257,7 +257,9 @@
     "octahedron": "八面体",
     "icosahedron": "二十面体",
     "widthTop": "宽度 / 顶行",
-    "heightBottom": "高度 / 底行"
+    "heightBottom": "高度 / 底行",
+    "shuffles": "打乱步数",
+    "random": "随机"
   },
 
   "notFound": {
