@@ -3,6 +3,8 @@
 // 而 'a' 键就能改这个偏好——所以偏好是 volatile 的,按键后要重读。
 import type { Game, Key } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, rule, width } from './util/custom'
 import { keepPencil, samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { PENCIL_HIGHLIGHT, clearKey, marksKey, preference, preferKeys, tap } from './util/keys'
@@ -28,13 +30,20 @@ const FACES = [
   { letter: 'Z', image: 'zombie' },
 ] as const
 
+// validate_params undead.c:219-225:宽高各 ≥ 3,宽不超过 54 整除高(面积最多 54)。生成
+// 是路径铺不出来就重来的概率重试。
+const custom: Custom = {
+  fields: [width(3), height(3), difficulty(['easy', 'normal', 'tricky'])],
+  rules: [rule('undead.c:222', ['w', 'h'], (v) => v.w > Math.floor(54 / v.h))],
+}
+
 const undead: Game = {
   id: 'undead',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: { strokes: [0, 2] },
   pages: samePages('undead'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true, defaults: keepPencil },
   keypad: ({ prefs }) => {
     const letters = preference(prefs, PICTURES) === PICTURES.indexOf('Letters')
