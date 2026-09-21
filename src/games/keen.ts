@@ -14,7 +14,7 @@ import {
 } from './util/keys'
 import { act, cross } from './util/pad'
 
-// validate_params keen.c:226-233:网格 3..9。3×3 的 Hard 以上上游自己压到 Normal
+// validate_params keen.c:225-232:网格 3..9。3×3 的 Hard 以上上游自己压到 Normal
 // (keen.c:936),是降级不是失败;其余是概率重试。
 const custom: Custom = {
   fields: [

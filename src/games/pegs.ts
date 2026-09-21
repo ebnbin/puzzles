@@ -9,13 +9,14 @@ import { act, cross } from './util/pad'
 
 const WORDS = ['Select', 'Cancel']
 
-// validate_params pegs.c:190-227,full 下宽高都 ≥ 4(192);十字只支持上游列出的八对
-// 尺寸(206-216),八边形只有 7×7(222-224),随机形状任意。INT_MAX 那条(196)在 100
-// 以内碰不到。随机棋盘是反向走子长出来的,长不到四条边就重来(pegs_generate),4×4 起
-// 都够得着,只是概率重试。
+// validate_params pegs.c:190-229,full 下宽高都 ≥ 4(192);十字只支持上游列出的八对
+// 尺寸(206-217):宽高都在 {5,7,9} 里、且不是 5×5——按机器的规则契约拆成三条,每条改
+// 一个字段就能满足;八边形只有 7×7(225-227),同样拆成宽、高两条;随机形状任意。
+// INT_MAX 那条(196)在 100 以内碰不到。随机棋盘是反向走子长出来的,长不到四条边就重来
+// (pegs_generate),4×4 起都够得着,只是概率重试。
 const CROSS = 0
 const OCTAGON = 1
-const CROSSES = [[9, 5], [5, 9], [9, 9], [7, 5], [5, 7], [9, 7], [7, 9], [7, 7]]
+const CROSS_SIDES = [5, 7, 9]
 const custom: Custom = {
   fields: [
     width(4),
@@ -23,9 +24,11 @@ const custom: Custom = {
     { kind: 'pick', key: 'type', label: 'Board type', word: 'boardType', options: ['cross', 'octagon', 'random'] },
   ],
   rules: [
-    rule('pegs.c:206', ['w', 'h', 'type'], (v) =>
-      v.type === CROSS && !CROSSES.some(([w, h]) => v.w === w && v.h === h)),
-    rule('pegs.c:222', ['w', 'h', 'type'], (v) => v.type === OCTAGON && (v.w !== 7 || v.h !== 7)),
+    rule('pegs.c:207', ['w', 'type'], (v) => v.type === CROSS && !CROSS_SIDES.includes(v.w)),
+    rule('pegs.c:207', ['h', 'type'], (v) => v.type === CROSS && !CROSS_SIDES.includes(v.h)),
+    rule('pegs.c:207', ['w', 'h', 'type'], (v) => v.type === CROSS && v.w === 5 && v.h === 5),
+    rule('pegs.c:226', ['w', 'type'], (v) => v.type === OCTAGON && v.w !== 7),
+    rule('pegs.c:226', ['h', 'type'], (v) => v.type === OCTAGON && v.h !== 7),
   ],
 }
 

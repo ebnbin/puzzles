@@ -10,7 +10,7 @@ import { act, layerByWords, step } from './util/pad'
 
 const WORDS = ['Advance']
 
-// validate_params inertia.c:206-221:宽高各 ≥ 2,面积 ≥ 6(宝石数是面积的五分之一,至少
+// validate_params inertia.c:208-219:宽高各 ≥ 2,面积 ≥ 6(宝石数是面积的五分之一,至少
 // 得有一颗);INT_MAX 那条在 100 以内碰不到。
 const custom: Custom = {
   fields: [width(2), height(2)],

@@ -10,7 +10,7 @@ import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
 // validate_params netslide.c:311-324,不看 full:宽高各 ≥ 2,概率 0..1(%g 显示,0.05
-// 步进往返无损),打乱步数 ≥ 0(0 = 随机,netslide.c:575)。没有唯一解开关,所以也没有
+// 步进往返无损),打乱步数 ≥ 0(0 = 默认打乱量 2(w−1)(h−1) 步,netslide.c:575)。没有唯一解开关,所以也没有
 // net 那条「回绕时不能是 2」;打乱只避开正中的行列,2×N 也总有可走的一步。INT_MAX
 // 那条(315)在 100 以内碰不到。
 const custom: Custom = {

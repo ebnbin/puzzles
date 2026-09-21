@@ -12,7 +12,7 @@ import { act, cross } from './util/pad'
 
 const WORDS = ['Track', 'X', 'Clear']
 
-// validate_params tracks.c:190-200:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 的
+// validate_params tracks.c:196-207:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 的
 // Easy 以上上游自己降成 Easy(tracks.c:735),是降级不是失败;其余是 goto 重来的概率重试。
 const custom: Custom = {
   fields: [

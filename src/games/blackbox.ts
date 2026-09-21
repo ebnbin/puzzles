@@ -12,9 +12,9 @@ import { act, cross } from './util/pad'
 const WORDS = ['Fire', 'Ball', 'Clear', 'Check', 'Lock', 'Unlock']
 
 // validate_params blackbox.c:191-208,不看 full:宽高 2..255(自家封 100);球数 ≥ 1,下限
-// 不超过上限,下限少于格数(204-206)。球数一格文本装的是 "a-b" 区间,画成两个 slider。
+// 不超过上限,下限少于格数(201-206)。球数一格文本装的是 "a-b" 区间,画成两个 slider。
 // 上游没查上限和格数的关系:上限超过格数时,抽到超额球数的种子会在放球循环里永远转
-// (blackbox.c:1136-1140),这不是慢而是永不结束,所以上限也封在格数。
+// (blackbox.c:239-242),这不是慢而是永不结束,所以上限也封在格数。
 const custom: Custom = {
   fields: [
     width(2),
@@ -29,9 +29,9 @@ const custom: Custom = {
     },
   ],
   rules: [
-    rule('blackbox.c:204', ['bmin', 'bmax'], (v) => v.bmin > v.bmax),
-    rule('blackbox.c:206', ['bmin', 'w', 'h'], (v) => v.bmin >= v.w * v.h),
-    rule('blackbox.c:1136', ['bmax', 'w', 'h'], (v) => v.bmax > v.w * v.h),
+    rule('blackbox.c:203', ['bmin', 'bmax'], (v) => v.bmin > v.bmax),
+    rule('blackbox.c:205', ['bmin', 'w', 'h'], (v) => v.bmin >= v.w * v.h),
+    rule('blackbox.c:239', ['bmax', 'w', 'h'], (v) => v.bmax > v.w * v.h),
   ],
 }
 

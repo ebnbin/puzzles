@@ -10,10 +10,11 @@ import { act, cross } from './util/pad'
 
 const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
 
-// validate_params mines.c:274-320:宽高 ≥ 1(292),确保有解时都 > 2(290,full);雷数
+// validate_params mines.c:274-323:宽高 ≥ 1(292),确保有解时都 > 2(290,full);雷数
 // 1 到 面积 − 9(308-310),留出首次点开的 3×3。SHRT_MAX 和 2^28 那两条在 100 以内碰
 // 不到;上游文本框接受的 "n%" 写法 slider 不会产生。布局在首次点击时才生成,有解模式是
-// 无限重试(mines.c:1866-1971),最高密度反而平凡可解,没有必然失败的组合。
+// 无限重试(mines.c:1865-1971),101 次起开放整片搬雷(1432-1440、1946),角/边首点的最高
+// 密度也靠它收敛;内部首点则 3×3 之外全是雷,一步解完。没有必然失败的组合。
 const custom: Custom = {
   fields: [
     width(1),
