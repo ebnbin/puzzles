@@ -286,7 +286,13 @@
     "extreme": "极难",
     "unreasonable": "不合理",
     "mines": "地雷数",
-    "soluble": "确保有解"
+    "soluble": "确保有解",
+    "colours": "颜色数量",
+    "scoring": "计分方式",
+    "scoreN1": "(n-1)^2",
+    "scoreN2": "(n-2)^2",
+    "shape": "形状类型",
+    "crosses": "十字"
   },
 
   "notFound": {
