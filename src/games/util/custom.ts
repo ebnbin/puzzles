@@ -20,7 +20,8 @@ export type Values = Readonly<Record<string, number>>
 export type Role = 'width' | 'height' | 'dim' | 'count'
 
 export type Field =
-  // zero:0 有特殊含义时(打乱步数 0 = 随机)显示成这个词而不是数字。
+  // zero:0 有特殊含义时(打乱步数 0 = 随机)显示成这个词而不是数字。suffix 跟在数字后面
+  // 显示(百分比的 %),不进 C 的值。
   | {
       kind: 'int'
       key: string
@@ -30,6 +31,7 @@ export type Field =
       max: number
       role: Role
       zero?: Word
+      suffix?: string
     }
   | {
       kind: 'float'
