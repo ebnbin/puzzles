@@ -337,7 +337,12 @@
     "allowLoops": "Allow loops",
     "maxBridges": "Max. bridges per direction",
     "islandPc": "%age of island squares",
-    "expansionPc": "Expansion factor (%age)"
+    "expansionPc": "Expansion factor (%age)",
+    "mode": "Mode",
+    "unequalMode": "Unequal",
+    "adjacent": "Adjacent",
+    "order": "Size (s*s)",
+    "recursive": "Recursive"
   },
 
   "notFound": {
