@@ -259,7 +259,10 @@
     "widthTop": "宽度 / 顶行",
     "heightBottom": "高度 / 底行",
     "shuffles": "打乱步数",
-    "random": "随机"
+    "random": "随机",
+    "block": "旋转区块大小",
+    "rowsOnly": "每行一个数字",
+    "orientable": "考虑朝向"
   },
 
   "notFound": {

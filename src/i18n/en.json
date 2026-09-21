@@ -259,7 +259,10 @@
     "widthTop": "Width / top",
     "heightBottom": "Height / bottom",
     "shuffles": "Number of shuffling moves",
-    "random": "Random"
+    "random": "Random",
+    "block": "Rotating block size",
+    "rowsOnly": "One number per row",
+    "orientable": "Orientation matters"
   },
 
   "notFound": {
