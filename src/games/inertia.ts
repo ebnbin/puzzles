@@ -3,10 +3,19 @@
 // 求解器下一步」,按过求解才出现(第二层)。没有键盘光标,方向键即走子。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, layerByWords, step } from './util/pad'
 
 const WORDS = ['Advance']
+
+// validate_params inertia.c:206-221:宽高各 ≥ 2,面积 ≥ 6(宝石数是面积的五分之一,至少
+// 得有一颗);INT_MAX 那条在 100 以内碰不到。
+const custom: Custom = {
+  fields: [width(2), height(2)],
+  rules: [rule('inertia.c:219', ['w', 'h'], (v) => v.w * v.h < 6)],
+}
 
 const inertia: Game = {
   id: 'inertia',
@@ -14,7 +23,7 @@ const inertia: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('inertia'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
