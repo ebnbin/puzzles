@@ -31,10 +31,10 @@ const custom: Custom = {
   fields: [
     width(5),
     height(5),
-    difficulty(['easy', 'tricky']),
-    { kind: 'flag', key: 'unsoluble', label: 'Allow unsoluble', word: 'allowUnsoluble' },
+    difficulty(['easy', 'tricky'], 'difficulty'),
+    { kind: 'flag', key: 'nosolve', label: 'Allow unsoluble', word: 'allowUnsoluble' },
   ],
-  rules: [rule('pearl.c:294', ['w', 'h', 'diff'], (v) => v.diff >= TRICKY && v.w + v.h < 11)],
+  rules: [rule('pearl.c:294', ['w', 'h', 'difficulty'], (v) => v.difficulty >= TRICKY && v.w + v.h < 11)],
 }
 
 const pearl: Game<Facts> = {

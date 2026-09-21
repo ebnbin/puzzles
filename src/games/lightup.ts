@@ -28,7 +28,7 @@ const custom: Custom = {
   fields: [
     width(2),
     height(2),
-    { kind: 'int', key: 'black', label: '%age of black squares', word: 'blackPc', min: 5, max: 100, role: 'count', suffix: '%' },
+    { kind: 'int', key: 'blackpc', label: '%age of black squares', word: 'blackPc', min: 5, max: 100, role: 'count', suffix: '%' },
     {
       kind: 'pick',
       key: 'symm',
@@ -36,7 +36,7 @@ const custom: Custom = {
       word: 'symmetry',
       options: ['none', 'mirror2', 'rotational2', 'mirror4', 'rotational4'],
     },
-    difficulty(['easy', 'tricky', 'hard']),
+    difficulty(['easy', 'tricky', 'hard'], 'difficulty'),
   ],
   rules: [
     rule('lightup.c:365', ['w', 'h', 'symm'], (v) => v.symm === ROT4 && v.w !== v.h),

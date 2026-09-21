@@ -19,7 +19,7 @@ const custom: Custom = {
     width(4),
     height(4),
     difficulty(['easy', 'tricky', 'hard']),
-    { kind: 'flag', key: 'ones', label: 'Disallow consecutive 1 clues', word: 'noOnes' },
+    { kind: 'flag', key: 'single_ones', label: 'Disallow consecutive 1 clues', word: 'noOnes' },
   ],
   rules: [],
 }

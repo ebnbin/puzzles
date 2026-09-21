@@ -22,12 +22,12 @@ const LOOPS: Prefer = {
 // 上游用 %g 显示,0.05 步进往返无损;INT_MAX 那条(326)在 100 以内碰不到。
 const custom: Custom = {
   fields: [
-    width(1),
-    height(1),
-    { kind: 'flag', key: 'wrap', label: 'Walls wrap around', word: 'wrap' },
+    width(1, 'width'),
+    height(1, 'height'),
+    { kind: 'flag', key: 'wrapping', label: 'Walls wrap around', word: 'wrap' },
     {
       kind: 'float',
-      key: 'barrier',
+      key: 'barrier_probability',
       label: 'Barrier probability',
       word: 'barrier',
       min: 0,
@@ -38,10 +38,10 @@ const custom: Custom = {
     { kind: 'flag', key: 'unique', label: 'Ensure unique solution', word: 'unique' },
   ],
   rules: [
-    rule('net.c:324', ['w', 'h'], (v) => v.w <= 1 && v.h <= 1),
+    rule('net.c:324', ['width', 'height'], (v) => v.width <= 1 && v.height <= 1),
     // 回绕且要唯一解时宽或高不能恰好是 2(证明在 net.c:333-375);1 可以。
-    rule('net.c:376', ['w', 'wrap', 'unique'], (v) => !!v.unique && !!v.wrap && v.w === 2),
-    rule('net.c:376', ['h', 'wrap', 'unique'], (v) => !!v.unique && !!v.wrap && v.h === 2),
+    rule('net.c:376', ['width', 'wrapping', 'unique'], (v) => !!v.unique && !!v.wrapping && v.width === 2),
+    rule('net.c:376', ['height', 'wrapping', 'unique'], (v) => !!v.unique && !!v.wrapping && v.height === 2),
   ],
 }
 

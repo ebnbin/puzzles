@@ -287,11 +287,12 @@ export function neighbour(
 
 // ---------------------------------------------------------------- 常用字段
 
-// 多数游戏的棋盘宽高就叫 "Width" / "Height",键固定 w / h;上限由自家规则封在 100,
-// 这里只填上游的下限(来源行号写在各游戏的申报旁)。
-export const width = (min: number): Field => ({
+// 多数游戏的棋盘宽高就叫 "Width" / "Height";键是上游 game_params 里的变量名,多数叫
+// w / h,叫别的(width、w2)由游戏传进来。上限由自家规则封在 100,这里只填上游的下限
+// (来源行号写在各游戏的申报旁)。
+export const width = (min: number, key = 'w'): Field => ({
   kind: 'int',
-  key: 'w',
+  key,
   label: 'Width',
   word: 'width',
   min,
@@ -299,9 +300,9 @@ export const width = (min: number): Field => ({
   role: 'width',
 })
 
-export const height = (min: number): Field => ({
+export const height = (min: number, key = 'h'): Field => ({
   kind: 'int',
-  key: 'h',
+  key,
   label: 'Height',
   word: 'height',
   min,
@@ -309,10 +310,11 @@ export const height = (min: number): Field => ({
   role: 'height',
 })
 
-// 难度:多数游戏的 DIFFCONFIG 都叫 "Difficulty",键固定 diff,选项逐游戏给词。
-export const difficulty = (options: readonly Word[]): Field => ({
+// 难度:多数游戏的 DIFFCONFIG 都叫 "Difficulty",上游变量多数叫 diff,叫 difficulty 的
+// 由游戏传进来;选项逐游戏给词。
+export const difficulty = (options: readonly Word[], key = 'diff'): Field => ({
   kind: 'pick',
-  key: 'diff',
+  key,
   label: 'Difficulty',
   word: 'difficulty',
   options,
@@ -322,7 +324,7 @@ export const difficulty = (options: readonly Word[]): Field => ({
 // 上限是自家取的实用值:步数过了行列数的量级就和随机打乱分不出来了。
 export const shuffles = (): Field => ({
   kind: 'int',
-  key: 'moves',
+  key: 'movetarget',
   label: 'Number of shuffling moves',
   word: 'shuffles',
   min: 0,

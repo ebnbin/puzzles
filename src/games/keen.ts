@@ -20,7 +20,7 @@ const custom: Custom = {
   fields: [
     { kind: 'int', key: 'w', label: 'Grid size', word: 'gridSize', min: 3, max: 9, role: 'dim' },
     difficulty(['easy', 'normal', 'hard', 'extreme', 'unreasonable']),
-    { kind: 'flag', key: 'mult', label: 'Multiplication only', word: 'multiplyOnly' },
+    { kind: 'flag', key: 'multiplication_only', label: 'Multiplication only', word: 'multiplyOnly' },
   ],
   rules: [],
 }

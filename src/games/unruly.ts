@@ -17,18 +17,18 @@ const A177790 = [1, 2, 6, 14, 34, 84, 208, 518, 1296, 3254, 8196, 20700, 52404, 
   337878, 860142, 2192902, 5598144, 14308378, 36610970, 93770358, 240390602, 616787116, 1583765724]
 const custom: Custom = {
   fields: [
-    width(6),
-    height(6),
+    width(6, 'w2'),
+    height(6, 'h2'),
     { kind: 'flag', key: 'unique', label: 'Unique rows and columns', word: 'uniqueRows' },
     difficulty(['trivial', 'easy', 'normal']),
   ],
   rules: [
-    rule('unruly.c:289', ['w'], (v) => v.w % 2 !== 0),
-    rule('unruly.c:289', ['h'], (v) => v.h % 2 !== 0),
-    rule('unruly.c:316', ['h', 'w', 'unique'], (v) =>
-      !!v.unique && v.w < 2 * A177790.length && v.h > A177790[v.w / 2]),
-    rule('unruly.c:320', ['w', 'h', 'unique'], (v) =>
-      !!v.unique && v.h < 2 * A177790.length && v.w > A177790[v.h / 2]),
+    rule('unruly.c:289', ['w2'], (v) => v.w2 % 2 !== 0),
+    rule('unruly.c:289', ['h2'], (v) => v.h2 % 2 !== 0),
+    rule('unruly.c:316', ['h2', 'w2', 'unique'], (v) =>
+      !!v.unique && v.w2 < 2 * A177790.length && v.h2 > A177790[v.w2 / 2]),
+    rule('unruly.c:320', ['w2', 'h2', 'unique'], (v) =>
+      !!v.unique && v.h2 < 2 * A177790.length && v.w2 > A177790[v.h2 / 2]),
   ],
 }
 
