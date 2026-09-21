@@ -262,7 +262,8 @@
     "random": "Random",
     "block": "Rotating block size",
     "rowsOnly": "One number per row",
-    "orientable": "Orientation matters"
+    "orientable": "Orientation matters",
+    "expand": "Expansion factor"
   },
 
   "notFound": {
