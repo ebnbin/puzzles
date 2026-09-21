@@ -7,6 +7,8 @@
 // 键,把 Ctrl/Shift 交给下一次方向键——所以键面要读偏好。但不 volatile:它的两条
 // 偏好没有任何棋盘输入能翻,只有偏好面板能改,而那条路提交完自己会 setPrefs。
 import type { ArrowKey, Game, Mods, Slot, View } from './game'
+import type { Custom } from './util/custom'
+import { BOARD_MAX, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Prefer } from './util/keys'
@@ -121,13 +123,29 @@ const TIDY: Prefer = {
   glyph: 'clearRegion',
 }
 
+// validate_params palisade.c:164-185:宽高、区域大小各 ≥ 1;区域大小整除面积;full 下不能
+// 等于面积(界面没法赢),等于 2 时要有一维为 1。区域大小在计数层:改棋盘时它吸附到
+// 最近的约数,自己只能在约数之间跳。INT_MAX 那条在 100 以内碰不到。
+const custom: Custom = {
+  fields: [
+    width(1),
+    height(1),
+    { kind: 'int', key: 'k', label: 'Region size', word: 'regionSize', min: 1, max: BOARD_MAX * BOARD_MAX, role: 'count' },
+  ],
+  rules: [
+    rule('palisade.c:174', ['k', 'w', 'h'], (v) => (v.w * v.h) % v.k !== 0),
+    rule('palisade.c:178', ['k', 'w', 'h'], (v) => v.k === v.w * v.h),
+    rule('palisade.c:181', ['k', 'w', 'h'], (v) => v.k === 2 && v.w !== 1 && v.h !== 1),
+  ],
+}
+
 const palisade: Game<Facts> = {
   id: 'palisade',
   upstream: { labels: 'none', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('palisade'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys<Facts>(prefs, [TIDY]),
   arrows: {
