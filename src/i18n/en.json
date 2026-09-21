@@ -342,7 +342,9 @@
     "unequalMode": "Unequal",
     "adjacent": "Adjacent",
     "order": "Size (s*s)",
-    "recursive": "Recursive"
+    "recursive": "Recursive",
+    "gridSize": "Grid size",
+    "multiplyOnly": "Multiplication only"
   },
 
   "notFound": {
