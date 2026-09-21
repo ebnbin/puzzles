@@ -5,10 +5,14 @@ export default function ConfigFields({
   controls,
   autoFocus = false,
   onCommit,
+  onSettle,
 }: {
   controls: DialogControl[]
   autoFocus?: boolean
   onCommit?: () => void
+  // 一次输入收尾了(勾选、选定、文本框按了 Enter):停靠面板拿它把焦点还给棋盘。
+  // done = 这个控件的输入已经结束,不管是指针还是键盘都该离开它;缺省只在指针操作后还。
+  onSettle?: (done?: boolean) => void
 }) {
   // controls 是与 C 共享的活对象,后端 accept 时直接从这些对象上读 value:
   // 编辑必须原地赋值 + 手动 redraw,拷进 React state 会让对话框永远提交初始值。
@@ -27,6 +31,7 @@ export default function ConfigFields({
                   control.value = e.target.checked
                   redraw()
                   onCommit?.()
+                  onSettle?.()
                 }}
               />
               {control.label}
@@ -40,6 +45,7 @@ export default function ConfigFields({
                   control.value = Number(e.target.value)
                   redraw()
                   onCommit?.()
+                  onSettle?.()
                 }}
               >
                 {control.choices.map((choice, index) => (
@@ -67,6 +73,7 @@ export default function ConfigFields({
                   if (e.key !== 'Enter') return
                   e.preventDefault()
                   onCommit?.()
+                  onSettle?.(true)
                 }}
               />
             </>

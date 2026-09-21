@@ -467,6 +467,8 @@ footer p {
   /* 键盘总宽 = 3×tap-w + 2×act-w + 5×gap + 2×rim = 6×tap-w + 7×gap = 268。
      五道缝:两块之间两道(acts 内部一道 + 那条 margin),四列网格之间三道。 */
   --keys-w: calc(6 * var(--tap-w) + 7 * var(--key-gap));
+  /* 停靠面板的宽度(360px)。 */
+  --dock-w: 22.5rem;
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -483,6 +485,13 @@ footer p {
 
 .puzzle[data-ready='false'] .puzzle-canvas {
   visibility: hidden;
+}
+
+/* 面板停靠时棋盘不是被盖住,而是让出宽度:这一条内边距就是全部的让位,里面的
+   .puzzle-board 照旧量自己的可用空间(usePuzzleFit 的 ResizeObserver 会接到)。
+   停不停靠由 PuzzleHost 的媒体查询定,这里只认它写上来的属性。 */
+.puzzle[data-dock='true'] {
+  padding-right: calc(var(--dock-w) + env(safe-area-inset-right));
 }
 
 .puzzle-bar,
@@ -510,7 +519,8 @@ footer p {
   border-bottom: 1px solid var(--edge);
 }
 
-.puzzle-bar .puzzle-icon {
+.puzzle-bar .puzzle-icon,
+.dock-close {
   display: grid;
   flex: none;
   place-items: center;
@@ -526,17 +536,20 @@ footer p {
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
-.puzzle-bar .puzzle-icon {
+.puzzle-bar .puzzle-icon,
+.dock-close {
   color: var(--text-2);
 }
 
 @media (hover: hover) {
-  .puzzle-bar .puzzle-icon:hover {
+  .puzzle-bar .puzzle-icon:hover,
+  .dock-close:hover {
     background: var(--surface-2);
   }
 }
 
-.puzzle-bar .puzzle-icon:active {
+.puzzle-bar .puzzle-icon:active,
+.dock-close:active {
   background: var(--surface-3);
   transform: scale(0.92);
 }
@@ -1159,7 +1172,7 @@ p.notice-intro button:active {
 }
 
 @media (min-width: 48em) {
-  .sheet-actions button {
+  .sheet .sheet-actions button {
     padding: 0 0.9rem;
   }
 }
@@ -1192,15 +1205,18 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
-.sheet section {
+.sheet section,
+.dock-body section {
   margin-top: 1.4rem;
 }
 
-.sheet-handle + section {
+.sheet-handle + section,
+.dock-body > section:first-child {
   margin-top: 0;
 }
 
 .sheet h2,
+.dock-body h2,
 .sheet-id-label {
   display: block;
   margin: 0 0 0.5rem;
@@ -1211,7 +1227,8 @@ p.notice-intro button:active {
   text-transform: uppercase;
 }
 
-.sheet p:not(.notice-error) {
+.sheet p:not(.notice-error),
+.dock-body p:not(.notice-error) {
   margin: 0;
   color: var(--text-2);
   font-size: var(--t-sm);
@@ -1425,6 +1442,67 @@ p.notice-intro button:active {
 .sheet-id-value button:active {
   background: var(--surface-3);
   transform: scale(0.96);
+}
+
+/* 停靠在右缘的面板:占满整个高度,头部和顶栏同高、共用一条底线。非模态,z-index 只
+   压过对局页自己的几层(1),在所有覆盖层(sheet 20 起)之下。宽度和 .puzzle 让出的
+   那条内边距同一个变量。 */
+.dock {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: calc(var(--dock-w) + env(safe-area-inset-right));
+  border-left: 1px solid var(--edge);
+  background: var(--surface);
+  animation: dock-in var(--dur) var(--ease) backwards;
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    animation: none;
+  }
+}
+
+.dock-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: calc(3rem + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 0.3rem 0 1rem;
+  border-bottom: 1px solid var(--edge);
+}
+
+.dock-head h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dock-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem calc(1rem + env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom))
+    1rem;
 }
 
 .dialog-dimmer {

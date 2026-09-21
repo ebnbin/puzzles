@@ -108,15 +108,15 @@ ground truth。
 | 文件 | 作用 |
 | --- | --- |
 | `Puzzle.tsx` | 页面入口:查文案,按 name 给 PuzzleHost 挂 key(换游戏必然重挂载) |
-| `PuzzleHost.tsx` | 装配处:把四个域接起来再画出来 |
+| `PuzzleHost.tsx` | 装配处:把四个域接起来再画出来;类型 / 菜单面板的壳按宽度选(64em 起停靠成右侧栏,否则 sheet),停靠时的焦点归还也在这里 |
 | `useEngine.ts` | 引擎生命周期:起 wasm、绑回调、存档持久化、把引擎事件泵进旁边三个域 |
 | `useBoard.ts` | 棋盘通道:五项每游戏状态(标签/事实/光标镜像/粘滞键/上膛)与观察器;存档门重入计数私有在这里 |
-| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在 sheet 里)/ modal(兜底);偏好的读与写都从 borrowed 那条走 |
+| `useConfigBox.ts` | 后端单对话框协议三条路:borrowed(借用截答案)/ inline(嵌在类型 / 菜单面板里)/ modal(兜底);偏好的读与写都从 borrowed 那条走,借之前给挂着的 inline 让位、借完要回来 |
 | `useOutcome.ts` | 完成判定:status 只认沿、收尾浮层、记完成(求解器解出的不记) |
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
-| `PuzzleMenu.tsx` | 菜单 sheet:新局、重开、求解、偏好、game ID、seed |
-| `PuzzleTypes.tsx` | 类型 sheet:预设列表 + 自定义参数 |
+| `PuzzleMenu.tsx` | 菜单面板的内容:新局、重开、求解、偏好、game ID、seed;壳由 PuzzleHost 套 |
+| `PuzzleTypes.tsx` | 类型面板的内容:预设列表 + 自定义参数;壳由 PuzzleHost 套 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象,text 只在落定时提交) |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
@@ -127,6 +127,7 @@ ground truth。
 | `useAssist.ts` | assist 键总开关(键名 `puzzles.aid` 已发布,只改了代码名) |
 | `usePrefer.ts` | prefer 键总开关(`puzzles.prefer`) |
 | `useShortcuts.ts` | 裸字母快捷键总开关(`puzzles.shortcuts`,默认开);上游那两个字面也在这儿 |
+| `usePanel.ts` | 停靠面板的记忆(`puzzles.panel`,makeStore):宽屏上最后一次由用户置成的面板,进任何游戏都按它复原;不进首页设置 |
 
 `pages/manual/`(手册):
 
@@ -153,12 +154,14 @@ ground truth。
 | --- | --- |
 | `Dialog.tsx` | 模态对话框壳:标题、关闭、滚动锁 |
 | `Sheet.tsx` | 底部弹层壳:scrim、把手、拖拽关闭 |
+| `Dock.tsx` | 停靠在右缘的面板壳:非模态,没有 scrim、不锁滚动、不收焦点;让出宽度的是外面那层 |
 | `Notice.tsx` | 通知条:error / info 两种,可浮动可关闭 |
 | `Swatch.tsx` | 色块钉(键面上的颜色圆点) |
 | `Icon.tsx` | 全部图标字形与三张怪物图片的名字表 |
 | `ThemeToggle.tsx` | 主题切换按钮 |
 | `HoldTip.tsx` | 长按提示:`useHoldTip` 发 handlers,组件负责画 |
 | `useScrollLock.ts` | 弹层期间锁背景滚动 |
+| `useMedia.ts` | 一条媒体查询的当下答案,给排版之外的行为也要跟着变的地方(面板停不停靠) |
 
 ## public/ —— 静态资源与生成物
 
@@ -202,6 +205,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
+| `check-dock.mjs` | 停靠面板:让位不盖住、非模态下键盘与焦点、记忆的读写与复原、宽窄切换、挂着的 box 给键区让位 |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 

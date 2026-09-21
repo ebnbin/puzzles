@@ -1,5 +1,5 @@
-// 底部拉起的 sheet 壳:scrim、把手、往下甩关闭。真 dialog(居中卡片)是
-// Dialog,不进这里;sheet 叠层时 Escape 关哪层由调用方排。
+// 底部拉起的 sheet 壳:scrim、把手、往下甩关闭。真 dialog(居中卡片)是 Dialog,
+// 停靠在右缘的是 Dock,都不进这里;sheet 叠层时 Escape 关哪层由调用方排。
 import { useCallback, useRef } from 'react'
 
 const SLOP = 6

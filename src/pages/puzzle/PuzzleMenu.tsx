@@ -1,3 +1,5 @@
+// 菜单面板的内容:新局 / 重开 / 求解、game ID 与 seed、偏好。壳(底部 sheet 还是
+// 停靠栏)由 PuzzleHost 按屏幕宽度套。
 import { useEffect, useRef, useState } from 'react'
 import ConfigFields from './ConfigFields'
 import type { DialogSpec } from '../../engine/types'
@@ -5,7 +7,6 @@ import { useStrings } from '../../i18n'
 import Icon from '../../ui/Icon'
 import type { IconName } from '../../ui/Icon'
 import Notice from '../../ui/Notice'
-import Sheet from '../../ui/Sheet'
 
 type Action = 'newGame' | 'restart' | 'solve'
 
@@ -33,7 +34,8 @@ export default function PuzzleMenu({
   onOpenPrefs,
   onCommitPrefs,
   onAction,
-  onClose,
+  onAbandon,
+  onSettle,
 }: {
   canSolve: boolean
   permalink?: { desc: string; seed: string | null }
@@ -42,57 +44,71 @@ export default function PuzzleMenu({
   onOpenPrefs: () => void
   onCommitPrefs: () => void
   onAction: (action: Action) => void
-  onClose: () => void
+  onAbandon: () => void
+  onSettle: (done?: boolean) => void
 }) {
   const t = useStrings()
 
+  // 面板挂着,偏好 box 就归它:进门要一份,卸载时把还开着的退掉。退掉这一步不能交给
+  // 壳的 close 回调:换壳(宽窄切换)和换面板都是卸载,不都经过 close。
   const open = useRef(onOpenPrefs)
   open.current = onOpenPrefs
+  const abandon = useRef(onAbandon)
+  abandon.current = onAbandon
   useEffect(() => {
     open.current()
+    return () => abandon.current()
   }, [])
 
   return (
-    <Sheet label={t.menu.title} onClose={onClose}>
-        <div className="sheet-actions">
-          {ACTIONS.filter((a) => a.action !== 'solve' || canSolve).map((a) => (
-            <button
-              key={a.action}
-              type="button"
-              className={a.action === 'newGame' ? 'is-primary' : undefined}
-              onClick={() => onAction(a.action)}
-            >
-              <Icon name={a.icon} />
-              {t.menu[a.action]}
-            </button>
-          ))}
-        </div>
+    <>
+      <div className="sheet-actions">
+        {ACTIONS.filter((a) => a.action !== 'solve' || canSolve).map((a) => (
+          <button
+            key={a.action}
+            type="button"
+            className={a.action === 'newGame' ? 'is-primary' : undefined}
+            onClick={() => onAction(a.action)}
+          >
+            <Icon name={a.icon} />
+            {t.menu[a.action]}
+          </button>
+        ))}
+      </div>
 
-        {permalink && (
-          <section className="sheet-ids">
-            <IdRow label={t.menu.gameId} value={plain(permalink.desc)} />
-            {permalink.seed !== null && (
-              <IdRow label={t.menu.seed} value={plain(permalink.seed)} />
-            )}
-          </section>
-        )}
+      {permalink && (
+        <section className="sheet-ids">
+          <IdRow label={t.menu.gameId} value={plain(permalink.desc)} onSettle={onSettle} />
+          {permalink.seed !== null && (
+            <IdRow label={t.menu.seed} value={plain(permalink.seed)} onSettle={onSettle} />
+          )}
+        </section>
+      )}
 
-        {prefs && prefs.controls.length > 0 && (
-          <section>
-            <h2>{t.menu.preferences}</h2>
-            <div className="sheet-prefs">
-              <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} />
-              {prefsError && <Notice text={prefsError} />}
-            </div>
-          </section>
-        )}
-    </Sheet>
+      {prefs && prefs.controls.length > 0 && (
+        <section>
+          <h2>{t.menu.preferences}</h2>
+          <div className="sheet-prefs">
+            <ConfigFields controls={prefs.controls} onCommit={onCommitPrefs} onSettle={onSettle} />
+            {prefsError && <Notice text={prefsError} />}
+          </div>
+        </section>
+      )}
+    </>
   )
 }
 
 const COPIED_MS = 1500
 
-function IdRow({ label, value }: { label: string; value: string }) {
+function IdRow({
+  label,
+  value,
+  onSettle,
+}: {
+  label: string
+  value: string
+  onSettle: () => void
+}) {
   const t = useStrings()
   const [copied, setCopied] = useState(false)
   const valueRef = useRef<HTMLElement>(null)
@@ -133,7 +149,10 @@ function IdRow({ label, value }: { label: string; value: string }) {
           aria-label={copied ? t.menu.copied : t.menu.copy}
           aria-live="polite"
           title={t.menu.copy}
-          onClick={copy}
+          onClick={() => {
+            void copy()
+            onSettle()
+          }}
         >
           <Icon name={copied ? 'done' : 'copy'} size={18} />
         </button>

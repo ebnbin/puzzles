@@ -8,9 +8,12 @@ import PuzzleKeypad from './PuzzleKeypad'
 import PuzzleMenu from './PuzzleMenu'
 import PuzzleTypes from './PuzzleTypes'
 import Dialog from '../../ui/Dialog'
+import Dock from '../../ui/Dock'
 import Icon from '../../ui/Icon'
 import Notice from '../../ui/Notice'
+import Sheet from '../../ui/Sheet'
 import ThemeToggle from '../../ui/ThemeToggle'
+import { useMedia } from '../../ui/useMedia'
 // 写全 index:裸的 ../games 会被解析成 games.json。
 import { gameOf } from '../../games/index'
 import type { Key } from '../../games/game'
@@ -24,6 +27,7 @@ import { manualHref, fill, useLang, useStrings } from '../../i18n'
 import { showGallery } from '../../view'
 import { useAssist } from './useAssist'
 import { useArrows } from './useArrows'
+import { setPanel, usePanel, type Panel } from './usePanel'
 import { usePrefer } from './usePrefer'
 import { SHORTCUTS_LABEL, useShortcuts } from './useShortcuts'
 import { useBoard } from './useBoard'
@@ -39,6 +43,10 @@ import { usePuzzleKeys, type Shortcut } from './usePuzzleKeys'
 import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
+
+// 够宽的屏幕上,类型 / 菜单面板停靠成右侧栏:棋盘让出宽度,不被盖住。只看宽度,
+// 横屏平板也停靠;窄一档(48em 起)sheet 仍是居中卡片,再窄从底部拉起。
+const DOCK = '(min-width: 64em)'
 
 export default function PuzzleHost({
   name,
@@ -145,10 +153,26 @@ export default function PuzzleHost({
   const helping = useAssist()
   const preferring = usePrefer()
 
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [typesOpen, setTypesOpen] = useState(false)
+  const wide = useMedia(DOCK)
+  // 开着的是哪个面板。宽屏上这就是那份全局记忆:开、关、切换都是用户在改它,进任何
+  // 游戏都按它复原。窄屏上是页面自己的临时状态,不读不写记忆。
+  const remembered = usePanel()
+  const [sheet, setSheet] = useState<Panel>(null)
   const [helpOpen, setHelpOpen] = useState(false)
   const [intro, setIntro] = useState(false)
+
+  // 窄屏拉起的 sheet 不跟到宽屏去;反过来,停靠的面板被窗口挤掉不算用户操作,
+  // 记忆不动,再拉宽照旧复原。
+  useEffect(() => {
+    if (wide) setSheet(null)
+  }, [wide])
+
+  const panel: Panel = wide ? remembered : sheet
+  // 类型面板要有预设才画得出内容。引擎起来之前壳先摆上:棋盘从第一帧就按让出的宽度
+  // 量尺寸,不会先铺满再跳一下;真没有预设的游戏(今天一个都没有)才不画。
+  const shown: Panel = panel === 'types' && ready && !engine.presets ? null : panel
+  const docked = wide && shown !== null
+  const sheetOpen = !wide && shown !== null
 
   useEffect(() => {
     if (ready && owesIntroduction(name)) setIntro(true)
@@ -256,23 +280,59 @@ export default function PuzzleHost({
     if (ready) readPrefs()
   }, [ready, game, readPrefs])
 
-  const closeTypes = useCallback(() => {
-    abandonInline()
-    setTypesOpen(false)
-  }, [abandonInline])
-
-  const closeMenu = useCallback(() => {
-    abandonInline()
-    setMenuOpen(false)
-  }, [abandonInline])
-
   const closeHelp = useCallback(() => setHelpOpen(false), [])
 
   const { tip, holdToAsk, wasHeld } = useHoldTip()
 
-  // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。手册也是
-  // 覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必再报一位进来。
-  const covered = !!dialog || helpOpen || typesOpen || menuOpen
+  // ------------------------------------------------------------ 面板
+
+  // 最近一次输入来自指针还是键盘。停靠面板是非模态的:指针在里面点完一样东西,焦点
+  // 就还给棋盘(正在打字除外);用键盘走进面板的人不受这条打扰,焦点留在他走到的地方。
+  const byPointer = useRef(false)
+  useEffect(() => {
+    const pointer = () => {
+      byPointer.current = true
+    }
+    const key = () => {
+      byPointer.current = false
+    }
+    window.addEventListener('pointerdown', pointer, true)
+    window.addEventListener('keydown', key, true)
+    return () => {
+      window.removeEventListener('pointerdown', pointer, true)
+      window.removeEventListener('keydown', key, true)
+    }
+  }, [])
+
+  // done = 这一处的输入已经结束(文本框按了 Enter、面板关掉),不看指针还是键盘。
+  // sheet 是模态的,焦点归它自己管,这里只管停靠的面板。
+  const settle = useCallback(
+    (done = false) => {
+      if (wide && (done || byPointer.current)) canvasRef.current?.focus()
+    },
+    [wide],
+  )
+
+  // 开、关、切换面板。宽屏写进记忆,窄屏改临时状态;同一个键再按一次是收起。
+  const showPanel = useCallback(
+    (next: Panel) => {
+      if (!wide) return setSheet(next)
+      setPanel(next)
+      settle()
+    },
+    [wide, settle],
+  )
+
+  const closePanel = useCallback(() => {
+    if (!wide) return setSheet(null)
+    setPanel(null)
+    settle(true)
+  }, [wide, settle])
+
+  // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。停靠的面板
+  // 不是覆盖层。手册也是覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必
+  // 再报一位进来。
+  const covered = !!dialog || helpOpen || sheetOpen
   // 上游那三个裸字母快捷键由我们补发,理由和判据都在 useShortcuts.SHORTCUTS_OFF。
   // n 走镜像,u / r 本来就不发牌,照旧同步。
   const onShortcut = useCallback(
@@ -312,14 +372,14 @@ export default function PuzzleHost({
       // 发牌期间 Escape 什么都不关:拦截层挡得住指针,挡不住键盘,而关掉底下那张
       // sheet 会把还开着的参数 box 一起退掉,发牌回来就没地方落。
       if (dealer.dealing) return
-      if (typesOpen) closeTypes()
-      else if (menuOpen) closeMenu()
-      else return
+      // 停靠的面板不归 Escape 管:它是布局的一部分,不是盖在棋盘上的东西。
+      if (!sheetOpen) return
+      setSheet(null)
       e.preventDefault()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [ready, menuOpen, typesOpen, closeTypes, closeMenu, dealer.dealing])
+  }, [ready, sheetOpen, dealer.dealing])
 
   const pressKey = useCallback(
     (key: Key<unknown>) => {
@@ -353,10 +413,54 @@ export default function PuzzleHost({
       : { ...inline.spec, controls: [...controls] }
   }, [inline, keys, game])
 
+  // 面板的内容和壳分开:内容只有一份,壳按宽度选。换壳(宽窄切换)内容会跟着重挂,
+  // 各面板自己在挂载时要一份 config box、卸载时把挂着的退掉。
+  const content =
+    shown === 'types' && engine.presets ? (
+      <PuzzleTypes
+        presets={engine.presets}
+        selected={engine.selected}
+        standard={engine.standard}
+        custom={inline?.kind === 'custom' ? inline.spec : null}
+        customError={inlineError}
+        docked={docked}
+        // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
+        // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
+        // select_appropriate_preset,选中项由引擎自己报回来。
+        onSelectPreset={(value) =>
+          deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value))
+        }
+        onOpenCustom={() => openInline('custom')}
+        onCloseCustom={closeInline}
+        onCommitCustom={commitInline}
+        onAbandon={abandonInline}
+        onSettle={settle}
+      />
+    ) : shown === 'menu' ? (
+      <PuzzleMenu
+        canSolve={engine.canSolve}
+        permalink={permalink}
+        prefs={panelled}
+        prefsError={inlineError}
+        onOpenPrefs={() => openInline('prefs')}
+        onCommitPrefs={commitInline}
+        onAction={(action) => {
+          // 三个动作里只有 newGame 会走到 midend_new_game;restart/solve 不发牌。
+          if (action === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
+          else act((a) => a[action]())
+          // sheet 点完就收;停靠的面板是常驻的,留着。
+          if (!wide) setSheet(null)
+        }}
+        onAbandon={abandonInline}
+        onSettle={settle}
+      />
+    ) : null
+
   return (
     <div
       className="puzzle"
       data-ready={ready}
+      data-dock={docked || undefined}
       data-arrows={arrows ? 'true' : undefined}
     >
       <header className="puzzle-bar">
@@ -450,20 +554,15 @@ export default function PuzzleHost({
         redo={engine.undoRedo.redo}
         typesShown={!ready || !!engine.presets}
         typesEnabled={!!engine.presets}
-        typesOpen={typesOpen}
-        menuOpen={menuOpen}
+        typesOpen={shown === 'types'}
+        menuOpen={shown === 'menu'}
+        dock={wide}
         holdToAsk={holdToAsk}
         wasHeld={wasHeld}
         onUndo={() => act((a) => a.undo())}
         onRedo={() => act((a) => a.redo())}
-        onTypes={() => {
-          closeMenu()
-          setTypesOpen(true)
-        }}
-        onMenu={() => {
-          closeTypes()
-          setMenuOpen(true)
-        }}
+        onTypes={() => showPanel(shown === 'types' ? null : 'types')}
+        onMenu={() => showPanel(shown === 'menu' ? null : 'menu')}
         onPress={(key) => {
           acted()
           key.press()
@@ -508,44 +607,18 @@ export default function PuzzleHost({
         </Dialog>
       )}
 
-      {typesOpen && engine.presets && (
-        <PuzzleTypes
-          presets={engine.presets}
-          selected={engine.selected}
-          standard={engine.standard}
-          custom={inline?.kind === 'custom' ? inline.spec : null}
-          customError={inlineError}
-          // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
-          // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
-          // select_appropriate_preset,选中项由引擎自己报回来。
-          onSelectPreset={(value) =>
-            deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value))
-          }
-          onOpenCustom={() => openInline('custom')}
-          onCloseCustom={closeInline}
-          onCommitCustom={commitInline}
-          onClose={closeTypes}
-        />
-      )}
-
-      {menuOpen && (
-        <PuzzleMenu
-          canSolve={engine.canSolve}
-          permalink={permalink}
-          prefs={panelled}
-          prefsError={inlineError}
-          onOpenPrefs={() => openInline('prefs')}
-          onCommitPrefs={commitInline}
-          onAction={(action) => {
-            abandonInline()
-            // 三个动作里只有 newGame 会走到 midend_new_game;restart/solve 不发牌。
-            if (action === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
-            else act((a) => a[action]())
-            setMenuOpen(false)
-          }}
-          onClose={closeMenu}
-        />
-      )}
+      {/* 内容等引擎活了再挂:面板一挂上就要 config box,引擎没起来那一次会落空,
+          而且不会有第二次。停靠的壳不等——它撑着那 360 宽,棋盘要按它量尺寸。 */}
+      {shown &&
+        (wide ? (
+          <Dock title={shown === 'types' ? t.types.title : t.puzzle.menu} onClose={closePanel}>
+            {ready && content}
+          </Dock>
+        ) : (
+          <Sheet label={shown === 'types' ? t.types.title : t.menu.title} onClose={closePanel}>
+            {ready && content}
+          </Sheet>
+        ))}
 
       {dialog && apiRef.current && (
         <PuzzleDialog

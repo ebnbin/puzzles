@@ -1,6 +1,6 @@
 // config box 协议:后端只有一个对话框(参数、偏好共用),打开了就必须有人
 // 回答,答案归谁按打开的人算。三条路,onDialog 按这个顺序路由:borrowed(借用
-// 不显示,答案在路过时被截下)、inline(嵌在 Types/Menu 里的自定义参数和偏好)、
+// 不显示,答案在路过时被截下)、inline(嵌在类型 / 菜单面板里的自定义参数和偏好)、
 // dialog(真正的模态,兜底)。
 import { useCallback, useRef, useState } from 'react'
 import type { DialogControl, DialogSpec, PuzzleApi } from '../../engine/types'
@@ -114,16 +114,21 @@ export function useConfigBox(
         if (outcome.status === 'failed') return setInlineError(outcome.error)
         // busy 说明还有一次发牌在路上,由它去收尾,这里动手会把它的现场掀了。
         if (outcome.status === 'busy') return
+        // 发牌途中面板可能已经卸载(窗口跨过停靠断点会换壳),box 随之退掉了:对着
+        // 空 box 发 cancel / ok,上游 cfg_end 不查空指针,wasm 当场 trap。没了就只接手
+        // 那一局,不碰对话框。
+        const held = inlineRef.current?.kind === 'custom'
         if (outcome.status === 'unavailable') {
+          if (!held) return
           live.dialogOk()
           return reopen(live, 'custom')
         }
         // done 和 cancelled 都要把玩家改过的那份 cfg 丢掉——它从没提交过。不丢的话
         // 取消之后框里留着一个改了却没生效的值,和引擎里的参数对不上,是会撒谎的界面。
         // 重开一份是问引擎现在的参数要的,两种情况显示的都是真话。
-        live.dialogCancel()
+        if (held) live.dialogCancel()
         if (outcome.status === 'done') live.loadGame(outcome.save)
-        reopen(live, 'custom')
+        if (held) reopen(live, 'custom')
       })
       return
     }
@@ -134,10 +139,15 @@ export function useConfigBox(
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
   // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
+  // 面板里挂着的 inline box 占着 C 侧唯一的那个位置,而停靠时键区和面板同时可用:
+  // 借之前先让它退掉,借完再要一份回来。重开的那份是问引擎现在的值要的,面板于是
+  // 跟着键区一起变。
   const borrowPrefs = useCallback(
     (use: (controls: DialogControl[]) => boolean) => {
       const api = apiRef.current
-      if (!api || dialog || inlineRef.current) return
+      if (!api || dialog) return
+      const parked = inlineRef.current?.kind ?? null
+      if (parked) api.dialogCancel()
       borrowed.current = { spec: null, error: null }
       api.preferences()
       const { spec } = borrowed.current
@@ -151,10 +161,11 @@ export function useConfigBox(
         }
       }
       borrowed.current = null
+      if (parked) reopen(api, parked)
       if (spec)
         setPrefs((was) => (values(was) === values(spec.controls) ? was : spec.controls))
     },
-    [apiRef, dialog, setPrefs],
+    [apiRef, dialog, reopen, setPrefs],
   )
 
   const readPrefs = useCallback(() => borrowPrefs(() => false), [borrowPrefs])
@@ -169,7 +180,7 @@ export function useConfigBox(
     [acted, borrowPrefs],
   )
 
-  // Types/Menu 收起时把挂着的 inline 一并退掉。
+  // 面板卸载时把挂着的 inline 一并退掉。
   const abandonInline = useCallback(() => {
     if (inlineRef.current) apiRef.current?.dialogCancel()
   }, [apiRef])

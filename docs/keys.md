@@ -524,7 +524,11 @@ palisade 的 `cursor-mode`)。于是面板读起来是「键区放不下的那�
   `onKeyDown`**:焦点一旦承重,每加一个会抢焦点的部件就得记得把焦点还回来,漏了不报错、
   build 照样绿,而症状是「玩着玩着键盘就没反应了」。屏幕上的键区和方向键块走的是
   `board.send`,从头到尾不经过焦点,所以这条只坑用物理键盘的人——桌面上试,手机上试不出来。
+- **停靠的面板不是覆盖层**:够宽的屏幕(64em 起)上类型 / 菜单停靠成右侧栏,键盘照旧归谜题;
+  指针在面板里点完非文字控件,焦点立刻还给棋盘(`PuzzleHost` 的 settle),用键盘走进面板的人
+  不受打扰。面板挂着的 config box 占着 C 侧唯一的位置,键区借偏好时它先让位、借完要回来
+  (`useConfigBox.borrowPrefs`)。守在 `scripts/check-dock.mjs`。
 
-八个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade` /
-`check-keys` / `check-solved` / `check-focus` / `check-prefer`)何时跑、守什么,见各脚本和
-被测文件的头部注释。
+九个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade` /
+`check-keys` / `check-solved` / `check-focus` / `check-prefer` / `check-dock`)何时跑、守什么,
+见各脚本和被测文件的头部注释。
