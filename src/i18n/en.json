@@ -257,7 +257,9 @@
     "octahedron": "Octahedron",
     "icosahedron": "Icosahedron",
     "widthTop": "Width / top",
-    "heightBottom": "Height / bottom"
+    "heightBottom": "Height / bottom",
+    "shuffles": "Number of shuffling moves",
+    "random": "Random"
   },
 
   "notFound": {

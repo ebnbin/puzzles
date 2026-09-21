@@ -20,7 +20,17 @@ export type Values = Readonly<Record<string, number>>
 export type Role = 'width' | 'height' | 'dim' | 'count'
 
 export type Field =
-  | { kind: 'int'; key: string; label: string; word: Word; min: number; max: number; role: Role }
+  // zero:0 有特殊含义时(打乱步数 0 = 随机)显示成这个词而不是数字。
+  | {
+      kind: 'int'
+      key: string
+      label: string
+      word: Word
+      min: number
+      max: number
+      role: Role
+      zero?: Word
+    }
   | {
       kind: 'float'
       key: string
@@ -283,6 +293,19 @@ export const height = (min: number): Field => ({
   min,
   max: BOARD_MAX,
   role: 'height',
+})
+
+// 打乱步数(sixteen / twiddle / netslide 同名同义):上游只要求非负,0 = 随机打乱。
+// 上限是自家取的实用值:步数过了行列数的量级就和随机打乱分不出来了。
+export const shuffles = (): Field => ({
+  kind: 'int',
+  key: 'moves',
+  label: 'Number of shuffling moves',
+  word: 'shuffles',
+  min: 0,
+  max: 1000,
+  role: 'count',
+  zero: 'random',
 })
 
 // ---------------------------------------------------------------- 与 C 控件的绑定

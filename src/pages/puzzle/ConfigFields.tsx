@@ -97,7 +97,9 @@ export default function ConfigFields({
       const display = (unit: number) =>
         field.kind === 'scale' && control.kind === 'choices'
           ? control.choices[unit]
-          : String(valueOf(declared, key, unit))
+          : field.kind === 'int' && field.zero !== undefined && unit === 0
+            ? word(t, field.zero)
+            : String(valueOf(declared, key, unit))
       return (
         <Slider
           key={`${i}:${key}`}

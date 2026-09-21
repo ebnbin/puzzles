@@ -4,6 +4,7 @@
 // ——从标签里的 Unlock 读出「锁着」,不自己记模式。
 import type { ArrowKey, Game, Slot } from './game'
 import { still } from './game'
+import { height, shuffles, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PUSH, act, arrowFace, walk } from './util/pad'
@@ -27,7 +28,12 @@ const sixteen: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('sixteen'),
-  types: { menu: verbatim },
+  // validate_params sixteen.c:177-186,不看 full:宽高各 ≥ 2,打乱步数 ≥ 0(0 = 随机
+  // 打乱,sixteen.c:216);INT_MAX 那条在 100 以内碰不到。三者之间没有联动。
+  types: {
+    menu: verbatim,
+    custom: { fields: [width(2), height(2), shuffles()], rules: [] },
+  },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
