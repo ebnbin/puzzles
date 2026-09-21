@@ -287,12 +287,17 @@
     "unreasonable": "Unreasonable",
     "mines": "Mines",
     "soluble": "Ensure solubility",
-    "colours": "No. of colours",
+    "coloursNo": "No. of colours",
     "scoring": "Scoring system",
     "scoreN1": "(n-1)^2",
     "scoreN2": "(n-2)^2",
     "shape": "Shape type",
-    "crosses": "Crosses"
+    "crosses": "Crosses",
+    "colours": "Colours",
+    "pegs": "Pegs per guess",
+    "guesses": "Guesses",
+    "allowBlank": "Allow blanks",
+    "allowDup": "Allow duplicates"
   },
 
   "notFound": {
