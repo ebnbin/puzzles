@@ -3,6 +3,8 @@
 // (标签两词俱空)。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
@@ -10,13 +12,21 @@ import { act, cross } from './util/pad'
 
 const FADE: Prefer = { kind: 'flag', label: 'Fade grounded components', glyph: 'fadeSlant' }
 
+// validate_params slant.c:229-244,不看 full:宽高各 ≥ 2,上游自己说明 1 的一维做不出
+// 困难题所以干脆禁掉;INT_MAX 那条在 100 以内碰不到。困难题是等到简单解法解不动为止
+// 的概率重试。
+const custom: Custom = {
+  fields: [width(2), height(2), difficulty(['easy', 'hard'])],
+  rules: [],
+}
+
 const slant: Game = {
   id: 'slant',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('slant'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => preferKeys(prefs, [FADE]),
   arrows: {
