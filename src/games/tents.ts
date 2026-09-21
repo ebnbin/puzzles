@@ -3,6 +3,8 @@
 // 半边:game_ui 不重建、光标不丢、照闪)。树上两个键一起灰(标签两词俱空)。
 import type { Game } from './game'
 import { keyOf, plain } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { fields, find } from './util/save'
 import type { Spot } from './util/mirror'
@@ -64,13 +66,20 @@ type Facts = {
   under: Square | null
 }
 
+// validate_params tents.c:412-419:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 及以下
+// 的 Tricky 上游自己降成 Easy(tents.c:978),是降级不是失败;其余是概率重试。
+const custom: Custom = {
+  fields: [width(4), height(4), difficulty(['easy', 'tricky'])],
+  rules: [],
+}
+
 const tents: Game<Facts> = {
   id: 'tents',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('tents'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
