@@ -59,7 +59,7 @@ export const rule = (at: string, on: readonly string[], bad: (v: Values) => bool
 })
 
 export const BOARD_MAX = 100
-const ASPECT_MAX = 4
+export const ASPECT_MAX = 4
 
 const keysOf = (field: Field): readonly string[] =>
   field.kind === 'span' ? field.keys : [field.key]
