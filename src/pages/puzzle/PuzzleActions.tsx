@@ -15,6 +15,7 @@ export default function PuzzleActions({
   typesEnabled,
   typesOpen,
   menuOpen,
+  dock,
   holdToAsk,
   wasHeld,
   onUndo,
@@ -30,6 +31,8 @@ export default function PuzzleActions({
   typesEnabled: boolean
   typesOpen: boolean
   menuOpen: boolean
+  // 宽屏:面板停靠成侧栏,这两个键开的不是对话框,再按一次是收起。
+  dock: boolean
   holdToAsk: Hold['holdToAsk']
   wasHeld: Hold['wasHeld']
   onUndo(): void
@@ -97,7 +100,7 @@ export default function PuzzleActions({
         <button
           type="button"
           aria-label={t.types.title}
-          aria-haspopup="dialog"
+          aria-haspopup={dock ? undefined : 'dialog'}
           aria-expanded={typesOpen}
           disabled={!typesEnabled}
           {...holdToAsk(t.types.title)}
@@ -113,7 +116,7 @@ export default function PuzzleActions({
         type="button"
         className="is-menu"
         aria-label={t.puzzle.menu}
-        aria-haspopup="dialog"
+        aria-haspopup={dock ? undefined : 'dialog'}
         aria-expanded={menuOpen}
         {...holdToAsk(t.puzzle.menu)}
         onClick={() => {

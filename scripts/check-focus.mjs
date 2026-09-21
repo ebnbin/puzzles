@@ -77,7 +77,9 @@ async function playOneMove(page) {
   throw new Error('走不出一步棋,撤销键始终是灰的')
 }
 
-const { browser, page } = await boot({ viewport: { width: 1100, height: 900 } })
+// 宽度要落在 48em 到 64em 之间:sheet 变成居中卡片、仍是模态,这里测的「盖住就让路」
+// 才成立;再宽面板就停靠、不再盖住,那一套归 check-dock。
+const { browser, page } = await boot({ viewport: { width: 1000, height: 900 } })
 await open(page, GAME)
 await countKeys(page)
 
