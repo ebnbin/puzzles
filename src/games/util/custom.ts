@@ -187,14 +187,16 @@ function nearest(model: Model, values: Values, key: string): number | null {
 
 const REPAIR_STEPS = 32
 
-// 以 changed 为准修出一组合法的值;修不好答 null。
+// 以 changed 为准修出一组合法的值;修不好答 null。只许动同层或更低层的字段:计数顶
+// 不动尺寸,尺寸顶不动模式——顶不动就是这一步不允许。
 function repair(model: Model, start: Values, changed: string): Values | null {
   let values = start
+  const floor = model.tier.get(changed) ?? 2
   for (let i = 0; i < REPAIR_STEPS; i++) {
     const broken = model.rules.find((r) => r.bad(values))
     if (!broken) return values
     const targets = broken.on
-      .filter((k) => k !== changed && (model.tier.get(k) ?? 2) > 0)
+      .filter((k) => k !== changed && (model.tier.get(k) ?? 2) >= Math.max(1, floor))
       .sort((a, b) => (model.tier.get(b) ?? 2) - (model.tier.get(a) ?? 2))
     let moved = false
     for (const key of targets) {
