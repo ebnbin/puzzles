@@ -284,7 +284,9 @@
     "intermediate": "Intermediate",
     "advanced": "Advanced",
     "extreme": "Extreme",
-    "unreasonable": "Unreasonable"
+    "unreasonable": "Unreasonable",
+    "mines": "Mines",
+    "soluble": "Ensure solubility"
   },
 
   "notFound": {

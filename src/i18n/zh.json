@@ -284,7 +284,9 @@
     "intermediate": "中级",
     "advanced": "高级",
     "extreme": "极难",
-    "unreasonable": "不合理"
+    "unreasonable": "不合理",
+    "mines": "地雷数",
+    "soluble": "确保有解"
   },
 
   "notFound": {
