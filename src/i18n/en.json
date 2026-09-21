@@ -303,7 +303,8 @@
     "octagon": "Octagon",
     "dominoMax": "Maximum number on dominoes",
     "hard": "Hard",
-    "ambiguous": "Ambiguous"
+    "ambiguous": "Ambiguous",
+    "points": "Number of points"
   },
 
   "notFound": {
