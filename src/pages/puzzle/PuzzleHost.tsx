@@ -21,6 +21,7 @@ import { padButtons } from '../../games/util/pad'
 import { markIntroduced, owesIntroduction } from '../../engine/saves'
 import type { CanvasRenderer } from '../../engine/renderer'
 import type { DealAction } from '../../engine/deal'
+import type { DealResult } from './useDeal'
 import type { DialogControl, PuzzleApi } from '../../engine/types'
 import { openManual } from '../manual/Manual'
 import { manualHref, fill, useLang, useStrings } from '../../i18n'
@@ -97,16 +98,19 @@ export default function PuzzleHost({
   // 发牌:镜像算完才让主线程 loadGame 接手。失败弹提示,取消什么都不做——主线程
   // 那一局从头到尾没被碰过,回滚就是原地不动。load_game 不像 command(2)/(5) 那样
   // 自己收焦点(emcc.c),这里补上,不然发完牌键盘玩法要等玩家先点一下棋盘。
+  // 返回结局,给要在发完之后收尾的调用方(类型面板刷新参数表)。
   const runDeal = useCallback(
     async (action: DealAction, direct: (api: PuzzleApi) => void) => {
       const outcome = await dealer.deal(action)
       const api = apiRef.current
-      if (!api) return
-      if (outcome.status === 'unavailable') direct(api)
-      else if (outcome.status === 'done') api.loadGame(outcome.save)
-      else if (outcome.status === 'failed') setError(outcome.error)
-      else return
-      canvasRef.current?.focus()
+      if (api) {
+        if (outcome.status === 'unavailable') direct(api)
+        else if (outcome.status === 'done') api.loadGame(outcome.save)
+        else if (outcome.status === 'failed') setError(outcome.error)
+        if (outcome.status !== 'cancelled' && outcome.status !== 'busy')
+          canvasRef.current?.focus()
+      }
+      return outcome.status
     },
     [dealer.deal],
   )
@@ -141,7 +145,7 @@ export default function PuzzleHost({
     inline,
     inlineError,
     openInline,
-    closeInline,
+    refreshInline,
     commitInline,
     readPrefs,
     abandonInline,
@@ -259,11 +263,15 @@ export default function PuzzleHost({
 
   // act 的发牌版:同样的守卫和 acted(),只是动手的是镜像。direct 是没有镜像时
   // (起不了模块 worker)在主线程上直接做的那件事——会卡,但不会没得玩。
+  // 守卫挡下的答 null,发了的答结局。
   const deal = useCallback(
-    (action: DealAction, direct: (api: PuzzleApi) => void) => {
-      if (!apiRef.current || dialog) return
+    (
+      action: DealAction,
+      direct: (api: PuzzleApi) => void,
+    ): Promise<DealResult['status'] | null> => {
+      if (!apiRef.current || dialog) return Promise.resolve(null)
       acted()
-      void runDeal(action, direct)
+      return runDeal(action, direct)
     },
     [dialog, acted, runDeal],
   )
@@ -427,11 +435,17 @@ export default function PuzzleHost({
         // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
         // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
         // select_appropriate_preset,选中项由引擎自己报回来。
-        onSelectPreset={(value) =>
-          deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value))
-        }
+        // 参数表常驻,发牌全程开着的那份 box 装的是旧参数:发完再要一份,表里才是
+        // 引擎此刻的参数(取消、失败也一样,要回来的就是原值)。busy 是别人的发牌
+        // 在路上,由它收尾。
+        onSelectPreset={(value) => {
+          void deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value)).then(
+            (status) => {
+              if (status !== null && status !== 'busy') refreshInline('custom')
+            },
+          )
+        }}
         onOpenCustom={() => openInline('custom')}
-        onCloseCustom={closeInline}
         onCommitCustom={commitInline}
         onAbandon={abandonInline}
         onSettle={settle}

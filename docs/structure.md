@@ -116,7 +116,7 @@ ground truth。
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单面板的内容:新局、重开、求解、偏好、game ID、seed;壳由 PuzzleHost 套 |
-| `PuzzleTypes.tsx` | 类型面板的内容:预设列表 + 自定义参数;壳由 PuzzleHost 套 |
+| `PuzzleTypes.tsx` | 类型面板的内容:预设列表 + 常驻的自定义参数表(选中态由引擎判,命不中就一条不亮);壳由 PuzzleHost 套 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象,text 只在落定时提交) |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
