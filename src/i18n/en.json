@@ -297,7 +297,10 @@
     "pegs": "Pegs per guess",
     "guesses": "Guesses",
     "allowBlank": "Allow blanks",
-    "allowDup": "Allow duplicates"
+    "allowDup": "Allow duplicates",
+    "boardType": "Board type",
+    "cross": "Cross",
+    "octagon": "Octagon"
   },
 
   "notFound": {

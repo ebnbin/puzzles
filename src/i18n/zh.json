@@ -297,7 +297,10 @@
     "pegs": "每行棋子数",
     "guesses": "猜测次数",
     "allowBlank": "允许空位",
-    "allowDup": "允许重复"
+    "allowDup": "允许重复",
+    "boardType": "棋盘类型",
+    "cross": "十字",
+    "octagon": "八边形"
   },
 
   "notFound": {
