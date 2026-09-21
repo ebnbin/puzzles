@@ -21,9 +21,7 @@ const LIT_BLOBS: Prefer = {
 // validate_params lightup.c:355-376:宽高 ≥ 2;full 下黑格百分比 5..100(362),4 重旋转
 // 只许正方形(365-367),4 重对称宽高至少一维 ≥ 3(368)。INT_MAX 那条在 100 以内碰不到。
 // 百分比只是提示,生成器造不出来会每 20 次加 5,加到 90 为止(lightup.c:1609);难度是
-// 等到低一档解法解不动为止的重试(1595-1601)。黑格 100% 时 set_blacks 把区域抽满、按对称
-// 复制后整盘全黑(621-668),这样的盘任何解法都秒解,「低一档解不动」永远不成立,配
-// Tricky/Hard 是死循环不是慢。
+// 等到低一档解法解不动为止的重试(1595-1601)。
 const ROT4 = 4
 const REF4 = 3
 const custom: Custom = {
@@ -43,7 +41,6 @@ const custom: Custom = {
   rules: [
     rule('lightup.c:365', ['w', 'h', 'symm'], (v) => v.symm === ROT4 && v.w !== v.h),
     rule('lightup.c:368', ['w', 'h', 'symm'], (v) => (v.symm === ROT4 || v.symm === REF4) && v.w < 3 && v.h < 3),
-    rule('lightup.c:1609', ['black', 'diff'], (v) => v.black === 100 && v.diff > 0),
   ],
 }
 
