@@ -342,7 +342,9 @@
     "unequalMode": "不等",
     "adjacent": "相邻",
     "order": "大小 (s*s)",
-    "recursive": "递归"
+    "recursive": "递归",
+    "gridSize": "网格大小",
+    "multiplyOnly": "仅乘法"
   },
 
   "notFound": {
