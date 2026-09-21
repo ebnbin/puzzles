@@ -297,6 +297,15 @@ export const height = (min: number): Field => ({
   role: 'height',
 })
 
+// 难度:多数游戏的 DIFFCONFIG 都叫 "Difficulty",键固定 diff,选项逐游戏给词。
+export const difficulty = (options: readonly Word[]): Field => ({
+  kind: 'pick',
+  key: 'diff',
+  label: 'Difficulty',
+  word: 'difficulty',
+  options,
+})
+
 // 打乱步数(sixteen / twiddle / netslide 同名同义):上游只要求非负,0 = 随机打乱。
 // 上限是自家取的实用值:步数过了行列数的量级就和随机打乱分不出来了。
 export const shuffles = (): Field => ({
