@@ -300,7 +300,10 @@
     "allowDup": "允许重复",
     "boardType": "棋盘类型",
     "cross": "十字",
-    "octagon": "八边形"
+    "octagon": "八边形",
+    "dominoMax": "骨牌上的最大数字",
+    "hard": "困难",
+    "ambiguous": "有歧义"
   },
 
   "notFound": {
