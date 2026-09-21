@@ -332,7 +332,12 @@
     "kagome": "Kagome",
     "compassDodecagonal": "Compass-Dodecagonal",
     "hats": "Hats",
-    "spectres": "Spectres"
+    "spectres": "Spectres",
+    "medium": "Medium",
+    "allowLoops": "Allow loops",
+    "maxBridges": "Max. bridges per direction",
+    "islandPc": "%age of island squares",
+    "expansionPc": "Expansion factor (%age)"
   },
 
   "notFound": {
