@@ -3,6 +3,7 @@
 // H 提示只有键盘入口(fifteen.c:776)。
 import type { Game } from './game'
 import { still } from './game'
+import { height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { cross } from './util/pad'
@@ -13,7 +14,9 @@ const fifteen: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('fifteen'),
-  types: { menu: verbatim },
+  // validate_params fifteen.c:147-155:宽高各 ≥ 2,不看 full;INT_MAX 那条在 100 以内
+  // 碰不到。没有别的参数,也没有联动。
+  types: { menu: verbatim, custom: { fields: [width(2), height(2)], rules: [] } },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
   arrows: { keys: cross() },
