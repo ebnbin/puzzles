@@ -287,12 +287,17 @@
     "unreasonable": "不合理",
     "mines": "地雷数",
     "soluble": "确保有解",
-    "colours": "颜色数量",
+    "coloursNo": "颜色数量",
     "scoring": "计分方式",
     "scoreN1": "(n-1)^2",
     "scoreN2": "(n-2)^2",
     "shape": "形状类型",
-    "crosses": "十字"
+    "crosses": "十字",
+    "colours": "颜色数",
+    "pegs": "每行棋子数",
+    "guesses": "猜测次数",
+    "allowBlank": "允许空位",
+    "allowDup": "允许重复"
   },
 
   "notFound": {
