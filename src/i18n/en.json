@@ -245,7 +245,13 @@
     "increase": "Increase"
   },
 
-  "config": {},
+  "config": {
+    "width": "Width",
+    "height": "Height",
+    "wrap": "Walls wrap around",
+    "barrier": "Barrier probability",
+    "unique": "Ensure unique solution"
+  },
 
   "notFound": {
     "title": "Not found",
