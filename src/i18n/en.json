@@ -286,7 +286,13 @@
     "extreme": "Extreme",
     "unreasonable": "Unreasonable",
     "mines": "Mines",
-    "soluble": "Ensure solubility"
+    "soluble": "Ensure solubility",
+    "colours": "No. of colours",
+    "scoring": "Scoring system",
+    "scoreN1": "(n-1)^2",
+    "scoreN2": "(n-2)^2",
+    "shape": "Shape type",
+    "crosses": "Crosses"
   },
 
   "notFound": {
