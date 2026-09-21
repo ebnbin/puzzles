@@ -54,13 +54,9 @@ function params(text: string): { c: number; r: number } | null {
 // 自定义参数:validate_params solo.c:514-527(不看 full)加 custom_params solo.c:502-505
 // 的转换——勾了 Jigsaw 提交时列数变成列×行、行数变成 1,行数 1 本身就是拼图模式
 // (solo.c:3698)。于是规则全按乘积(阶数)写,两种模式一样:阶数 ≤ 31(520);Killer
-// 阶数 3..9,上限是 522,下限是生成期必死循环(下面);X 阶数 ≥ 4(524);255 那条(518)
-// 被 31 盖住。校验只查了列数 ≥ 2(516),行数 1 在拼图模式下合法;0 校验里漏了,但 0×0
-// 的盘生不出来,下限取 1。2×2 和阶数小于 4 的拼图上游会把难度压到 Trivial(solo.c:3672),
-// 是降级不是失败。
-// Killer 阶数 2:笼子只能是相邻两格(和永远是 3)或整盘,求解器一格都放不下就报无解;
-// 生成器只在 kdiff 恰好等于 KINTERSECT 时收货(3755),而 intersect 要某个区域恰剩一格
-// 才触发,2×2 只要放下一格其余就被 BLOCK 级消元填满,永远轮不到它——while(1) 退不出。
+// 阶数 ≤ 9(522);X 阶数 ≥ 4(524);255 那条(518)被 31 盖住。校验只查了列数 ≥ 2
+// (516),行数 1 在拼图模式下合法;0 校验里漏了,但 0×0 的盘生不出来,下限取 1。2×2 和
+// 阶数小于 4 的拼图上游会把难度压到 Trivial(solo.c:3672),是降级不是失败。
 const custom: Custom = {
   fields: [
     { kind: 'int', key: 'c', label: 'Columns of sub-blocks', word: 'blockCols', min: 2, max: 31, role: 'dim' },
@@ -81,7 +77,6 @@ const custom: Custom = {
     rule('solo.c:520', ['c', 'r'], (v) => v.c * v.r > 31),
     rule('solo.c:522', ['c', 'r', 'killer'], (v) => !!v.killer && v.c * v.r > 9),
     rule('solo.c:524', ['c', 'r', 'x'], (v) => !!v.x && v.c * v.r < 4),
-    rule('solo.c:3755', ['c', 'r', 'killer'], (v) => !!v.killer && v.c * v.r < 3),
   ],
 }
 
