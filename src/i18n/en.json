@@ -348,7 +348,8 @@
     "stripClues": "Strip clues",
     "corners": "Start and end in corners",
     "allowUnsoluble": "Allow unsoluble",
-    "uniqueRows": "Unique rows and columns"
+    "uniqueRows": "Unique rows and columns",
+    "extraMoves": "Extra moves permitted"
   },
 
   "notFound": {

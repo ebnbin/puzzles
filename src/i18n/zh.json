@@ -348,7 +348,8 @@
     "stripClues": "去除线索",
     "corners": "起点和终点放在角落",
     "allowUnsoluble": "允许不可解",
-    "uniqueRows": "行列不重复"
+    "uniqueRows": "行列不重复",
+    "extraMoves": "额外允许的步数"
   },
 
   "notFound": {
