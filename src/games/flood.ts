@@ -3,10 +3,24 @@
 // 它不在光标那儿干活(offCursor),镜像光标睡着也不灭,判层也不看光标。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWords } from './util/pad'
 
 const WORDS = ['Fill', 'Advance']
+
+// validate_params flood.c:218-231:面积 ≥ 2,宽高各 ≥ 1,颜色 3..10,额外步数 ≥ 0。额外步数
+// 上游没有上限,它只是加在求解器步数上的宽限,几十以上就没有区别,上限取 100。
+const custom: Custom = {
+  fields: [
+    width(1),
+    height(1),
+    { kind: 'int', key: 'colours', label: 'Colours', word: 'colours', min: 3, max: 10, role: 'count' },
+    { kind: 'int', key: 'extra', label: 'Extra moves permitted', word: 'extraMoves', min: 0, max: 100, role: 'count' },
+  ],
+  rules: [rule('flood.c:220', ['w', 'h'], (v) => v.w * v.h < 2)],
+}
 
 const flood: Game = {
   id: 'flood',
@@ -20,7 +34,7 @@ const flood: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[12, 13]] },
   pages: samePages('flood'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
