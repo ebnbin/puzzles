@@ -5,6 +5,8 @@
 // face 活着。Ctrl 画线不给:拖拽到得了,按压更少。
 import type { Game, View } from './game'
 import { keyOf, plain } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { hintKey, preferKeys } from './util/keys'
@@ -22,13 +24,26 @@ const LOOK: Prefer = {
   glyphs: ['masyuStyle', 'loopyStyle'],
 }
 
+// validate_params pearl.c:286-297:宽高各 ≥ 5;Tricky 要宽加高至少 11(即一维 ≥ 6);
+// INT_MAX 那条在 100 以内碰不到。
+const TRICKY = 1
+const custom: Custom = {
+  fields: [
+    width(5),
+    height(5),
+    difficulty(['easy', 'tricky']),
+    { kind: 'flag', key: 'unsoluble', label: 'Allow unsoluble', word: 'allowUnsoluble' },
+  ],
+  rules: [rule('pearl.c:294', ['w', 'h', 'diff'], (v) => v.diff >= TRICKY && v.w + v.h < 11)],
+}
+
 const pearl: Game<Facts> = {
   id: 'pearl',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: { keep: [3, 4], frame: { 3: 4 } },
   pages: samePages('pearl'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ prefs }) => [hintKey(), ...preferKeys<Facts>(prefs, [LOOK])],
   arrows: {

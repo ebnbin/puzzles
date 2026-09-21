@@ -346,7 +346,8 @@
     "gridSize": "Grid size",
     "multiplyOnly": "Multiplication only",
     "stripClues": "Strip clues",
-    "corners": "Start and end in corners"
+    "corners": "Start and end in corners",
+    "allowUnsoluble": "Allow unsoluble"
   },
 
   "notFound": {
