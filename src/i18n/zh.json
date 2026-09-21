@@ -245,7 +245,13 @@
     "increase": "增加"
   },
 
-  "config": {},
+  "config": {
+    "width": "宽度",
+    "height": "高度",
+    "wrap": "墙壁回绕",
+    "barrier": "屏障概率",
+    "unique": "确保唯一解"
+  },
 
   "notFound": {
     "title": "未找到",

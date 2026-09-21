@@ -261,6 +261,30 @@ export function neighbour(
   return null
 }
 
+// ---------------------------------------------------------------- 常用字段
+
+// 多数游戏的棋盘宽高就叫 "Width" / "Height",键固定 w / h;上限由自家规则封在 100,
+// 这里只填上游的下限(来源行号写在各游戏的申报旁)。
+export const width = (min: number): Field => ({
+  kind: 'int',
+  key: 'w',
+  label: 'Width',
+  word: 'width',
+  min,
+  max: BOARD_MAX,
+  role: 'width',
+})
+
+export const height = (min: number): Field => ({
+  kind: 'int',
+  key: 'h',
+  label: 'Height',
+  word: 'height',
+  min,
+  max: BOARD_MAX,
+  role: 'height',
+})
+
 // ---------------------------------------------------------------- 与 C 控件的绑定
 
 export type Bound = ReadonlyMap<number, Field>
