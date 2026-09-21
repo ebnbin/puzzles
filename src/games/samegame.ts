@@ -9,6 +9,8 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWordsAwake } from './util/pad'
 
+const WORDS = ['Select', 'Remove', 'Unselect']
+
 // validate_params samegame.c:289-315,不看 full:宽高 ≥ 1;颜色最多 9(297);确保有解时
 // 颜色 ≥ 3 且面积 > 1(300-303),不要求时颜色 ≥ 2 且面积至少是颜色数的两倍(305-310,
 // 每种颜色得凑够两格)。INT_MAX 那条(293)在 100 以内碰不到。有解生成器是概率重试:
@@ -27,8 +29,6 @@ const custom: Custom = {
     rule('samegame.c:309', ['colours', 'w', 'h', 'soluble'], (v) => !v.soluble && v.w * v.h < v.colours * 2),
   ],
 }
-
-const WORDS = ['Select', 'Remove', 'Unselect']
 
 const samegame: Game = {
   id: 'samegame',

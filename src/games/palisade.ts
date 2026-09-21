@@ -8,7 +8,7 @@
 // 偏好没有任何棋盘输入能翻,只有偏好面板能改,而那条路提交完自己会 setPrefs。
 import type { ArrowKey, Game, Mods, Slot, View } from './game'
 import type { Custom } from './util/custom'
-import { BOARD_MAX, height, rule, width } from './util/custom'
+import { AREA_MAX, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Prefer } from './util/keys'
@@ -130,7 +130,7 @@ const custom: Custom = {
   fields: [
     width(1),
     height(1),
-    { kind: 'int', key: 'k', label: 'Region size', word: 'regionSize', min: 1, max: BOARD_MAX * BOARD_MAX, role: 'count' },
+    { kind: 'int', key: 'k', label: 'Region size', word: 'regionSize', min: 1, max: AREA_MAX, role: 'count' },
   ],
   rules: [
     rule('palisade.c:174', ['k', 'w', 'h'], (v) => (v.w * v.h) % v.k !== 0),

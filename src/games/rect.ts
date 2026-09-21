@@ -13,26 +13,6 @@ import { act, cross, wordOf } from './util/pad'
 
 type Facts = { opened: string | null }
 
-// validate_params rect.c:221-232,不看 full:宽高 > 0 且面积 ≥ 2;扩展因子 ≥ 0,上游用
-// %g 显示。INT_MAX 那条(225)在 100 以内碰不到。扩展因子没有上限,手册说 0.5 上下就
-// 明显变味、再高就生不出几个矩形,量程取 0..3、步长 0.1。
-// 生成期多一条:宽或高为 1 时扩展因子必须是 0——基础网格按 w/(1+e) 取整会变成 0,
-// 只有 ≥ 2 的那一维才被托底(rect.c:1165-1168),随后 snewn(params2->h - 1) 是负数,
-// smalloc 报 fatal 后返回空指针,必然炸(rect.c:1461、malloc.c:19)。
-const custom: Custom = {
-  fields: [
-    width(1),
-    height(1),
-    { kind: 'float', key: 'e', label: 'Expansion factor', word: 'expand', min: 0, max: 3, step: 0.1, digits: 1 },
-    { kind: 'flag', key: 'unique', label: 'Ensure unique solution', word: 'unique' },
-  ],
-  rules: [
-    rule('rect.c:227', ['w', 'h'], (v) => v.w * v.h < 2),
-    rule('rect.c:1165', ['w', 'e'], (v) => v.w === 1 && v.e > 0),
-    rule('rect.c:1167', ['h', 'e'], (v) => v.h === 1 && v.e > 0),
-  ],
-}
-
 const WORDS = ['Mark', 'Erase', 'Done', 'Cancel']
 
 // 拖拽中还没动过(两键同报 Cancel)时,开拖的那一侧亮的是灰勾:承诺的是
@@ -74,6 +54,26 @@ const duo = (spec: Pick<ActSpec<Facts>, 'id' | 'slot' | 'key' | 'idle'>) =>
       [PENDING]: { glyph: 'done', word: 'done', idle: true },
     } as Record<string, FaceSpec>,
   })
+
+// validate_params rect.c:221-232,不看 full:宽高 > 0 且面积 ≥ 2;扩展因子 ≥ 0,上游用
+// %g 显示。INT_MAX 那条(225)在 100 以内碰不到。扩展因子没有上限,手册说 0.5 上下就
+// 明显变味、再高就生不出几个矩形,量程取 0..3、步长 0.1。
+// 生成期多一条:宽或高为 1 时扩展因子必须是 0——基础网格按 w/(1+e) 取整会变成 0,
+// 只有 ≥ 2 的那一维才被托底(rect.c:1165-1168),随后 snewn(params2->h - 1) 是负数,
+// smalloc 报 fatal 后返回空指针,必然炸(rect.c:1461、malloc.c:19)。
+const custom: Custom = {
+  fields: [
+    width(1),
+    height(1),
+    { kind: 'float', key: 'e', label: 'Expansion factor', word: 'expand', min: 0, max: 3, step: 0.1, digits: 1 },
+    { kind: 'flag', key: 'unique', label: 'Ensure unique solution', word: 'unique' },
+  ],
+  rules: [
+    rule('rect.c:227', ['w', 'h'], (v) => v.w * v.h < 2),
+    rule('rect.c:1165', ['w', 'e'], (v) => v.w === 1 && v.e > 0),
+    rule('rect.c:1167', ['h', 'e'], (v) => v.h === 1 && v.e > 0),
+  ],
+}
 
 const rect: Game<Facts> = {
   id: 'rect',

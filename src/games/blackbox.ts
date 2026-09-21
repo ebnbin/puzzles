@@ -5,7 +5,7 @@
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
-import { BOARD_MAX, height, rule, width } from './util/custom'
+import { AREA_MAX, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
@@ -25,7 +25,7 @@ const custom: Custom = {
       label: 'No. of balls',
       words: ['ballsMin', 'ballsMax'],
       min: 1,
-      max: BOARD_MAX * BOARD_MAX,
+      max: AREA_MAX,
     },
   ],
   rules: [

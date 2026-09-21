@@ -4,9 +4,11 @@
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
-import { BOARD_MAX, height, rule, width } from './util/custom'
+import { AREA_MAX, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
+
+const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
 
 // validate_params mines.c:274-320:宽高 ≥ 1(292),确保有解时都 > 2(290,full);雷数
 // 1 到 面积 − 9(308-310),留出首次点开的 3×3。SHRT_MAX 和 2^28 那两条在 100 以内碰
@@ -16,7 +18,7 @@ const custom: Custom = {
   fields: [
     width(1),
     height(1),
-    { kind: 'int', key: 'n', label: 'Mines', word: 'mines', min: 1, max: BOARD_MAX * BOARD_MAX - 9, role: 'count' },
+    { kind: 'int', key: 'n', label: 'Mines', word: 'mines', min: 1, max: AREA_MAX - 9, role: 'count' },
     { kind: 'flag', key: 'unique', label: 'Ensure solubility', word: 'soluble' },
   ],
   rules: [
@@ -25,8 +27,6 @@ const custom: Custom = {
     rule('mines.c:309', ['n', 'w', 'h'], (v) => v.n > v.w * v.h - 9),
   ],
 }
-
-const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
 
 const mines: Game = {
   id: 'mines',

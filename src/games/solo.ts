@@ -9,35 +9,6 @@ import { keepPencil, samePages, verbatim } from './util/declare'
 import { PENCIL_HIGHLIGHT, clearKey, digitKeys, marksKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
-// 自定义参数:validate_params solo.c:514-527(不看 full)加 custom_params solo.c:501-505
-// 的转换——勾了 Jigsaw 提交时列数变成列×行、行数变成 1,行数 1 本身就是拼图模式
-// (solo.c:3698)。于是规则全按乘积(阶数)写,两种模式一样:阶数 ≤ 31(520);Killer
-// 阶数 ≤ 9(522);X 阶数 ≥ 4(524);255 那条(518)被 31 盖住。校验只查了列数 ≥ 2
-// (516),行数 1 在拼图模式下合法;0 校验里漏了,但 0×0 的盘生不出来,下限取 1。2×2 和
-// 阶数小于 4 的拼图上游会把难度压到 Trivial(solo.c:3672),是降级不是失败。
-const custom: Custom = {
-  fields: [
-    { kind: 'int', key: 'c', label: 'Columns of sub-blocks', word: 'blockCols', min: 2, max: 31, role: 'dim' },
-    { kind: 'int', key: 'r', label: 'Rows of sub-blocks', word: 'blockRows', min: 1, max: 15, role: 'dim' },
-    { kind: 'flag', key: 'x', label: '"X" (require every number in each main diagonal)', word: 'xtype' },
-    { kind: 'flag', key: 'jigsaw', label: 'Jigsaw (irregularly shaped sub-blocks)', word: 'jigsaw' },
-    { kind: 'flag', key: 'killer', label: 'Killer (digit sums)', word: 'killer' },
-    {
-      kind: 'pick',
-      key: 'symm',
-      label: 'Symmetry',
-      word: 'symmetry',
-      options: ['none', 'rot2', 'rot4', 'mirror2', 'diag2', 'mirror4', 'diag4', 'mirror8'],
-    },
-    difficulty(['trivial', 'basic', 'intermediate', 'advanced', 'extreme', 'unreasonable']),
-  ],
-  rules: [
-    rule('solo.c:520', ['c', 'r'], (v) => v.c * v.r > 31),
-    rule('solo.c:522', ['c', 'r', 'killer'], (v) => !!v.killer && v.c * v.r > 9),
-    rule('solo.c:524', ['c', 'r', 'x'], (v) => !!v.x && v.c * v.r < 4),
-  ],
-}
-
 function params(text: string): { c: number; r: number } | null {
   const first = /^(\d+)/.exec(text)
   if (!first) return null
@@ -78,6 +49,35 @@ function params(text: string): { c: number; r: number } | null {
   const cr = c * r
   if (!Number.isInteger(cr) || cr < 1 || cr > 36) return null
   return { c, r }
+}
+
+// 自定义参数:validate_params solo.c:514-527(不看 full)加 custom_params solo.c:501-505
+// 的转换——勾了 Jigsaw 提交时列数变成列×行、行数变成 1,行数 1 本身就是拼图模式
+// (solo.c:3698)。于是规则全按乘积(阶数)写,两种模式一样:阶数 ≤ 31(520);Killer
+// 阶数 ≤ 9(522);X 阶数 ≥ 4(524);255 那条(518)被 31 盖住。校验只查了列数 ≥ 2
+// (516),行数 1 在拼图模式下合法;0 校验里漏了,但 0×0 的盘生不出来,下限取 1。2×2 和
+// 阶数小于 4 的拼图上游会把难度压到 Trivial(solo.c:3672),是降级不是失败。
+const custom: Custom = {
+  fields: [
+    { kind: 'int', key: 'c', label: 'Columns of sub-blocks', word: 'blockCols', min: 2, max: 31, role: 'dim' },
+    { kind: 'int', key: 'r', label: 'Rows of sub-blocks', word: 'blockRows', min: 1, max: 15, role: 'dim' },
+    { kind: 'flag', key: 'x', label: '"X" (require every number in each main diagonal)', word: 'xtype' },
+    { kind: 'flag', key: 'jigsaw', label: 'Jigsaw (irregularly shaped sub-blocks)', word: 'jigsaw' },
+    { kind: 'flag', key: 'killer', label: 'Killer (digit sums)', word: 'killer' },
+    {
+      kind: 'pick',
+      key: 'symm',
+      label: 'Symmetry',
+      word: 'symmetry',
+      options: ['none', 'rot2', 'rot4', 'mirror2', 'diag2', 'mirror4', 'diag4', 'mirror8'],
+    },
+    difficulty(['trivial', 'basic', 'intermediate', 'advanced', 'extreme', 'unreasonable']),
+  ],
+  rules: [
+    rule('solo.c:520', ['c', 'r'], (v) => v.c * v.r > 31),
+    rule('solo.c:522', ['c', 'r', 'killer'], (v) => !!v.killer && v.c * v.r > 9),
+    rule('solo.c:524', ['c', 'r', 'x'], (v) => !!v.x && v.c * v.r < 4),
+  ],
 }
 
 const solo: Game = {
