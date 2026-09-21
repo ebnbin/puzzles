@@ -99,7 +99,7 @@ export default function ConfigFields({
           ? control.choices[unit]
           : field.kind === 'int' && field.zero !== undefined && unit === 0
             ? word(t, field.zero)
-            : String(valueOf(declared, key, unit))
+            : String(valueOf(declared, key, unit)) + (field.kind === 'int' ? (field.suffix ?? '') : '')
       return (
         <Slider
           key={`${i}:${key}`}

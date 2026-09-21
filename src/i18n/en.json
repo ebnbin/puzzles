@@ -307,7 +307,11 @@
     "points": "Number of points",
     "ballsMin": "Min. balls",
     "ballsMax": "Max. balls",
-    "easy": "Easy"
+    "easy": "Easy",
+    "blackPc": "%age of black squares",
+    "rotational2": "2-way rotational",
+    "rotational4": "4-way rotational",
+    "tricky": "Tricky"
   },
 
   "notFound": {
