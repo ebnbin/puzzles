@@ -347,7 +347,8 @@
     "multiplyOnly": "仅乘法",
     "stripClues": "去除线索",
     "corners": "起点和终点放在角落",
-    "allowUnsoluble": "允许不可解"
+    "allowUnsoluble": "允许不可解",
+    "uniqueRows": "行列不重复"
   },
 
   "notFound": {

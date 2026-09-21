@@ -347,7 +347,8 @@
     "multiplyOnly": "Multiplication only",
     "stripClues": "Strip clues",
     "corners": "Start and end in corners",
-    "allowUnsoluble": "Allow unsoluble"
+    "allowUnsoluble": "Allow unsoluble",
+    "uniqueRows": "Unique rows and columns"
   },
 
   "notFound": {
