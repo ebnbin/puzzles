@@ -5,6 +5,9 @@
   会把**早已合并**的提交报成未合并的——实际踩过:据此说「领先 main 五十个提交、没有
   PR」,取回完整历史后 `main` 正是那五十个的顶端。此后一切与主干的比较都对
   `origin/main`,不对本地 `main`。
+- **不主动读别的分支和 PR。** 每个 session 的需求是独立的:动手前只看 `origin/main` 和
+  自己的分支;别的分支、别的 PR 的提交、diff 和讨论一律不读,不拿它们校准方案,也不为
+  和它们冲突操心。只有 owner 点名要求(「参考某分支」「看看某个 PR」)才去看。
 - **提交的 author 是 owner(`ebnbin <ebnbin@gmail.com>`),committer 保持 Claude。**
   `.claude/hooks/session-start.sh` 每次会话开始设仓库级 `author.*`;不要改成 `user.*`——
   committer 一变,Claude 钥匙的签名在 GitHub 上就成了 Invalid。不要改回去,也不要在
