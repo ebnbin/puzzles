@@ -345,7 +345,8 @@
     "recursive": "递归",
     "gridSize": "网格大小",
     "multiplyOnly": "仅乘法",
-    "stripClues": "去除线索"
+    "stripClues": "去除线索",
+    "corners": "起点和终点放在角落"
   },
 
   "notFound": {
