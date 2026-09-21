@@ -171,11 +171,11 @@ const relevant = (model: Model, key: string): readonly Rule[] => {
 
 const satisfied = (rules: readonly Rule[], values: Values) => rules.every((r) => !r.bad(values))
 
-// 离当前值最近、能满足自身规则的刻度;等距时先看更大的那边。
-function nearest(model: Model, values: Values, key: string): number | null {
+// 离当前值最近、能满足自身规则的刻度;等距时先看更大的那边。给了 only 就只求满足这一条。
+function nearest(model: Model, values: Values, key: string, only: Rule | null = null): number | null {
   const s = model.scale.get(key)
   if (!s) return null
-  const rules = relevant(model, key)
+  const rules = only ? [only] : relevant(model, key)
   const from = s.unit(values[key])
   const reach = Math.max(from - s.lo, s.hi - from)
   for (let d = 0; d <= reach; d++) {
@@ -201,13 +201,18 @@ function repair(model: Model, start: Values, changed: string): Values | null {
     const targets = broken.on
       .filter((k) => k !== changed && (model.tier.get(k) ?? 2) >= Math.max(1, floor))
       .sort((a, b) => (model.tier.get(b) ?? 2) - (model.tier.get(a) ?? 2))
+    // 先找一步就把自身规则全满足的字段;都没有再退一步:只把这条坏规则修好,连带弄坏的
+    // 留给下一轮换个字段修——「必须正方形」加上尺寸下限这种要两个字段一起动的,靠这一手。
     let moved = false
-    for (const key of targets) {
-      const v = nearest(model, values, key)
-      if (v === null || v === values[key]) continue
-      values = { ...values, [key]: v }
-      moved = true
-      break
+    for (const strict of [true, false]) {
+      for (const key of targets) {
+        const v = nearest(model, values, key, strict ? null : broken)
+        if (v === null || v === values[key]) continue
+        values = { ...values, [key]: v }
+        moved = true
+        break
+      }
+      if (moved) break
     }
     if (!moved) return null
   }
