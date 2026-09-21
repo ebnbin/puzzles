@@ -10,8 +10,8 @@
 //       的偏好段和自定义参数段都还在。
 //   七、参数表常驻:列表里没有 Custom,点预设后表里变成它的参数、那条亮起来;参数
 //       命不中任何预设时一条都不亮。
-// 改了 PuzzleHost 的面板状态、PuzzleTypes、ui/Dock、ui/useMedia、usePanel、useConfigBox
-// 的 borrowPrefs / refreshInline,或 index.css 里 .dock / .puzzle[data-dock] 之后跑。
+// 改了 PuzzleHost 的面板状态、PuzzleTypes、ConfigFields、ui/Dock、ui/useMedia、usePanel、
+// useConfigBox 的 borrowPrefs / refreshInline,或 index.css 里 .dock / .puzzle[data-dock] 之后跑。
 //
 //   npm run build && npm exec -- vite preview --port 4173 --strictPort &
 //   npm i --no-save playwright && node scripts/check-dock.mjs
@@ -98,10 +98,10 @@ console.log('\n三、焦点归棋盘')
   say((await focusAt()) === 'puzzle-canvas', '选预设后焦点回棋盘', await focusAt())
   const got = (await page.locator('.sheet-presets label[data-selected="true"]').first().textContent()).trim()
   say(got === want, '选中项跟着引擎走', `想要 ${want},得到 ${got}`)
-  // Solo 的预设名以「列x行」开头,表的第一格是列数。
-  const cols = page.locator('.dock .sheet-custom input[type=text]').first()
+  // Solo 的预设名以「列x行」开头,表的第一条 slider 是列数。
+  const cols = page.locator('.dock .sheet-custom .slider-value').first()
   const wantCols = want.replace(/Default$/, '').trim().split('x')[0]
-  say((await cols.inputValue()) === wantCols, '表里变成预设的参数', await cols.inputValue())
+  say((await cols.textContent()) === wantCols, '表里变成预设的参数', await cols.textContent())
 }
 await named('Menu').click()
 await wait(400)
@@ -161,16 +161,16 @@ say((await rows()) > 0, 'Map 的面板留着 flash-type')
   await wait(300)
   say((await page.locator('.dock .sheet-custom').count()) === 1, '按完 prefer 键自定义参数段还在')
   say((await lit()) !== before, 'prefer 键照样管用')
-  // 文本框按 Enter:参数提交、发牌、面板还在、焦点回棋盘(键盘操作也回,输入已经结束)。
-  const width = page.locator('.dock .sheet-custom input[type=text]').first()
+  // slider 松手:参数提交、发牌、面板还在、焦点回棋盘。fill 走的是原生 change,即松手。
+  const width = page.locator('.dock .sheet-custom input[type=range]').first()
+  const shown = page.locator('.dock .sheet-custom .slider-value').first()
   await width.fill('10')
-  await page.keyboard.press('Enter')
   await wait(1500)
   say((await page.locator('.dock .sheet-custom').count()) === 1, '提交自定义参数后面板还在')
-  say((await focusAt()) === 'puzzle-canvas', '按 Enter 提交后焦点回棋盘', await focusAt())
+  say((await focusAt()) === 'puzzle-canvas', 'slider 松手提交后焦点回棋盘', await focusAt())
   const params = await page.evaluate(() => window.__puzzle.saveGame().match(/PARAMS\s*:\d+:(\S+)/)?.[1])
   say(params?.startsWith('10x'), '新参数生效', `${params}`)
-  say((await width.inputValue()) === '10', '框里是引擎现在的参数')
+  say((await shown.textContent()) === '10', 'slider 上是引擎现在的参数')
   say(
     (await page.locator('.dock .sheet-presets label[data-selected="true"]').count()) === 0,
     '命不中任何预设,一条都不亮',
@@ -181,7 +181,7 @@ say((await rows()) > 0, 'Map 的面板留着 flash-type')
   await preset.click()
   await wait(1500)
   say(await preset.evaluate((el) => el.dataset.selected === 'true'), '点了预设,它亮了')
-  say((await width.inputValue()) === presetName.split('x')[0], '表里变成预设的参数', await width.inputValue())
+  say((await shown.textContent()) === presetName.split('x')[0], '表里变成预设的参数', await shown.textContent())
   say((await focusAt()) === 'puzzle-canvas', '点预设后焦点回棋盘', await focusAt())
 }
 

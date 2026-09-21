@@ -88,6 +88,7 @@ ground truth。
 | --- | --- |
 | `custom.ts` | 自定义参数的申报类型与联动机器:字段按上游 label 认,规则是各游戏 `validate_params(full)` 的逐条移植;改一个值时按「模式 > 尺寸 > 计数」的层级把其余字段修到最近合法值,尺寸之间对等让位;两条自家规则(宽高 ≤ 100、宽高比 ≤ 4:1)也住这里 |
 | `declare.ts` | `verbatim` / `samePages` / `keepPencil` 申报速记 |
+| `prefs.ts` | 偏好面板的文案表:上游 get_prefs 的 label 和选项原文 → 词条;认不出的原样显示英文 |
 | `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
