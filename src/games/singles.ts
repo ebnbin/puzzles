@@ -2,6 +2,8 @@
 // 圈 ↔ 黑一按到位:对方词在场时先按对方语义顶掉再落自己(twice),撤销要两次。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { difficulty } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
@@ -17,13 +19,26 @@ const BLACK_NUMS: Prefer = {
   glyph: 'numberBlack',
 }
 
+// validate_params singles.c:264-274:宽高 2..62(数字只有 0-9、a-z、A-Z 六十二个可写,
+// singles.c:267),比自家的 100 小,照上游。宽或高不足 4 的 Tricky 上游自己降成 Easy
+// (singles.c:1331),是降级不是失败;其余是 goto 重来的概率重试。
+const SINGLES_MAX = 10 + 26 + 26
+const custom: Custom = {
+  fields: [
+    { kind: 'int', key: 'w', label: 'Width', word: 'width', min: 2, max: SINGLES_MAX, role: 'width' },
+    { kind: 'int', key: 'h', label: 'Height', word: 'height', min: 2, max: SINGLES_MAX, role: 'height' },
+    difficulty(['easy', 'tricky']),
+  ],
+  rules: [],
+}
+
 const singles: Game = {
   id: 'singles',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: { keep: [3, 4, 5, 6], paper: true },
   pages: samePages('singles'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true },
   keypad: ({ prefs }) => preferKeys(prefs, [BLACK_NUMS]),
   arrows: {
