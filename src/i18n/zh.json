@@ -250,7 +250,14 @@
     "height": "高度",
     "wrap": "墙壁回绕",
     "barrier": "屏障概率",
-    "unique": "确保唯一解"
+    "unique": "确保唯一解",
+    "solid": "多面体类型",
+    "tetrahedron": "四面体",
+    "cube": "立方体",
+    "octahedron": "八面体",
+    "icosahedron": "二十面体",
+    "widthTop": "宽度 / 顶行",
+    "heightBottom": "高度 / 底行"
   },
 
   "notFound": {

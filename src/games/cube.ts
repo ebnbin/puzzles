@@ -5,6 +5,8 @@
 // 该灰长得一模一样,读者报不上来:升级 vendor/sgtpuzzles 后必须跑
 // scripts/check-cube.mjs。
 import type { ArrowKey, Game } from './game'
+import type { Custom } from './util/custom'
+import { ASPECT_MAX, BOARD_MAX, rule } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { done, fields, find } from './util/save'
 import type { Way } from './util/pad'
@@ -25,11 +27,12 @@ type Square = { pts: [number, number][]; dirs: (readonly [number, number] | unde
 
 type Params = { solid: string; d1: number; d2: number }
 
+// 守卫和参数表放行的范围一致:三角网格允许一维为 0,两维都不超过 100。
 export function parseParams(text: string): Params | null {
   const m = /^([tcoi])(\d+)x(\d+)$/.exec(text.trim())
   if (!m) return null
   const [d1, d2] = [Number(m[2]), Number(m[3])]
-  if (d1 < 1 || d2 < 1 || d1 > 32 || d2 > 32) return null
+  if (d1 + d2 < 1 || d1 > BOARD_MAX || d2 > BOARD_MAX) return null
   return { solid: m[1], d1, d2 }
 }
 
@@ -145,6 +148,77 @@ export function rolls(save: string): Set<string> | null {
   return new Set(ARROWS.filter((_, dir) => neighbour(grid, at, dir) >= 0))
 }
 
+// ---------------------------------------------------------------- 自定义参数
+
+// 选项序同 cube.c:496;每种多面体的面数与等价类数(cube.c:32-151、583-590)。
+const CUBE = 1
+const FACES = [4, 6, 8, 20]
+const CLASSES = [4, 1, 2, 1]
+
+// validate_params cube.c:593-595 的移植:按 enum_grid_squares(cube.c:325-467)给每格
+// 分类,某一类的格数不够放它那份蓝面就不行。四面体按 tetra_class 分四类,八面体按
+// 朝向分两类,其余一类;分类公式和 firstix 的取法逐字照抄,& 对负数两边都是补码。
+function shortOfClass(solid: number, d1: number, d2: number): boolean {
+  const nclasses = CLASSES[solid]
+  const need = Math.floor(FACES[solid] / nclasses)
+  const counts = [0, 0, 0, 0]
+  const classOf = (row: number, ix: number, flip: boolean) =>
+    nclasses === 4 ? ((row + (ix & 1)) & 2) ^ (ix & 3) : nclasses === 2 ? (flip ? 1 : 0) : 0
+  if (solid === CUBE) counts[0] = d1 * d2
+  else {
+    let firstix = -1
+    for (let row = 0; row < d1 + d2; row++) {
+      const other = row < d2 ? 1 : -1
+      const rowlen = row < d2 ? row + d1 : 2 * d2 + d1 - row
+      for (let i = 0; i < rowlen; i++) {
+        let ix = 2 * i - (rowlen - 1)
+        if (firstix < 0) firstix = ix & 3
+        ix -= firstix
+        counts[classOf(row, ix, true)]++
+      }
+      for (let i = 0; i < rowlen + other; i++) {
+        let ix = 2 * i - (rowlen + other - 1)
+        if (firstix < 0) firstix = (ix - 1) & 3
+        ix -= firstix
+        counts[classOf(row, ix, false)]++
+      }
+    }
+  }
+  return counts.slice(0, nclasses).some((n) => n < need)
+}
+
+// grid_area cube.c:471-487。
+const area = (solid: number, d1: number, d2: number) =>
+  solid === CUBE ? d1 * d2 : d1 * d1 + d2 * d2 + 4 * d1 * d2
+
+// validate_params cube.c:541-602,不看 full。两维在立方体下是矩形宽高(≥ 2,
+// cube.c:553),三角网格下是六边形的两组边长(可以为 0 但不能都为 0,cube.c:558),
+// 所以两条自家规则在这里按多面体分开写:宽高比只管立方体;三角网格的行数和最宽行
+// 都是 d1+d2,「不超过 100」按它算。INT_MAX 那两条(555、574)在 100 以内碰不到。
+const custom: Custom = {
+  fields: [
+    {
+      kind: 'pick',
+      key: 'solid',
+      label: 'Type of solid',
+      word: 'solid',
+      options: ['tetrahedron', 'cube', 'octahedron', 'icosahedron'],
+    },
+    { kind: 'int', key: 'd1', label: 'Width / top', word: 'widthTop', min: 0, max: BOARD_MAX, role: 'dim' },
+    { kind: 'int', key: 'd2', label: 'Height / bottom', word: 'heightBottom', min: 0, max: BOARD_MAX, role: 'dim' },
+  ],
+  rules: [
+    rule('cube.c:553', ['d1', 'solid'], (v) => v.solid === CUBE && v.d1 <= 1),
+    rule('cube.c:553', ['d2', 'solid'], (v) => v.solid === CUBE && v.d2 <= 1),
+    rule('cube.c:558', ['d1', 'd2', 'solid'], (v) => v.solid !== CUBE && v.d1 <= 0 && v.d2 <= 0),
+    rule('cube.c:593', ['d1', 'd2', 'solid'], (v) => shortOfClass(v.solid, v.d1, v.d2)),
+    rule('cube.c:597', ['d1', 'd2', 'solid'], (v) => area(v.solid, v.d1, v.d2) < FACES[v.solid] + 1),
+    rule('house', ['d1', 'd2', 'solid'], (v) =>
+      v.solid === CUBE && (v.d1 > ASPECT_MAX * v.d2 || v.d2 > ASPECT_MAX * v.d1)),
+    rule('house', ['d1', 'd2', 'solid'], (v) => v.solid !== CUBE && v.d1 + v.d2 > BOARD_MAX),
+  ],
+}
+
 type Facts = { rolls: Set<string> | null }
 
 // 置灰的分界:棋盘自己会说的(顶到边界),我们不说;棋盘盖住了的(三角朝向被
@@ -170,7 +244,7 @@ const cube: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('cube'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {

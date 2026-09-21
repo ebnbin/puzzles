@@ -250,7 +250,14 @@
     "height": "Height",
     "wrap": "Walls wrap around",
     "barrier": "Barrier probability",
-    "unique": "Ensure unique solution"
+    "unique": "Ensure unique solution",
+    "solid": "Type of solid",
+    "tetrahedron": "Tetrahedron",
+    "cube": "Cube",
+    "octahedron": "Octahedron",
+    "icosahedron": "Icosahedron",
+    "widthTop": "Width / top",
+    "heightBottom": "Height / bottom"
   },
 
   "notFound": {
