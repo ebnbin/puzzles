@@ -3,6 +3,8 @@
 // 所以走成才卸膛——由 walk 里的存档对比判定)。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { difficulty, height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { hintKey, preferKeys } from './util/keys'
@@ -20,13 +22,29 @@ const HINTS: Prefer = {
 // 这一局所有合法桥位。手指要在岛之间拖,先看得见能拖到哪。
 const SHOW_LANES = { 'show-hints': 'true' } as const
 
+// validate_params bridges.c:811-826:宽高各 ≥ 3;最大桥数、岛屿占比、扩展因子都是下拉框,
+// 取值就是选项本身(1..4、5%..30%、0%..100%),校验永远过;INT_MAX 那条在 100 以内碰不到。
+// 三个数值型枚举画成 slider,当前值显示选项原文。生成是 goto 重来的概率重试。
+const custom: Custom = {
+  fields: [
+    width(3),
+    height(3),
+    difficulty(['easy', 'medium', 'hard']),
+    { kind: 'flag', key: 'loops', label: 'Allow loops', word: 'allowLoops' },
+    { kind: 'scale', key: 'maxb', label: 'Max. bridges per direction', word: 'maxBridges' },
+    { kind: 'scale', key: 'islands', label: '%age of island squares', word: 'islandPc' },
+    { kind: 'scale', key: 'expansion', label: 'Expansion factor (%age)', word: 'expansionPc' },
+  ],
+  rules: [],
+}
+
 const bridges: Game = {
   id: 'bridges',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('bridges'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true, defaults: SHOW_LANES },
   keypad: ({ prefs }) => [hintKey(), ...preferKeys(prefs, [HINTS])],
   arrows: {

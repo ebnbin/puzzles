@@ -332,7 +332,12 @@
     "kagome": "笼目",
     "compassDodecagonal": "罗盘十二边形",
     "hats": "帽子",
-    "spectres": "幽灵"
+    "spectres": "幽灵",
+    "medium": "中等",
+    "allowLoops": "允许环路",
+    "maxBridges": "每个方向的最大桥数",
+    "islandPc": "岛屿方格的百分比",
+    "expansionPc": "扩展因子(百分比)"
   },
 
   "notFound": {
