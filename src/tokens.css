@@ -6,6 +6,8 @@
   --surface-2: #f0f0ef;
   --surface-3: #e4e4e2;
   --raised: #ffffff;
+  /* slider 把手:两个主题都是浅色珠;深色下不能借 --raised,它和轨道 --surface-3 同色。 */
+  --knob: #ffffff;
   --edge: #e4e4e2;
   --edge-key: #c2c2be;
   --edge-strong: #8a8a90;
@@ -39,6 +41,7 @@
   --shadow-3: 0 4px 8px rgb(20 20 30 / 0.08), 0 24px 48px -12px rgb(20 20 30 / 0.22);
   --shadow-board: 0 0 0 1px rgb(20 20 30 / 0.1), 0 2px 4px rgb(20 20 30 / 0.08),
     0 14px 32px -10px rgb(20 20 30 / 0.22);
+  --shadow-knob: 0 0 0 1px rgb(20 20 30 / 0.08), 0 1px 3px rgb(20 20 30 / 0.24);
   --scrim: rgb(20 20 26 / 0.4);
 
   --r-sm: 8px;
@@ -77,6 +80,7 @@
   --surface-2: #212128;
   --surface-3: #2c2c34;
   --raised: #2c2c34;
+  --knob: #e8e8ee;
   --edge: #26262d;
   --edge-key: #43434f;
   --edge-strong: #6b6b7d;
@@ -106,6 +110,7 @@
   --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -12px rgb(0 0 0 / 0.8);
   --shadow-board: 0 0 0 1px rgb(255 255 255 / 0.14),
     0 10px 28px -8px rgb(0 0 0 / 0.8);
+  --shadow-knob: 0 0 0 1px rgb(0 0 0 / 0.55), 0 1px 3px rgb(0 0 0 / 0.65);
   --scrim: rgb(0 0 0 / 0.6);
 
   --board: #1f1f1f;
