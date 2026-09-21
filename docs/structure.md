@@ -187,9 +187,8 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 
 ## scripts/ —— 生成与契约测试
 
-三类:`build-*` 重画生成物,平时不跑(生成物已全部提交);`check-*` 是手动契约测试
-(要 vite preview + 临时装 playwright),**何时跑钉在被测文件的头部注释里**;
-`upstream-probe/` 本机编上游 C 源当探针,改自定义参数的 rules 时手动跑。
+两类:`build-*` 重画生成物,平时不跑(生成物已全部提交);`check-*` 是手动契约测试
+(要 vite preview + 临时装 playwright),**何时跑钉在被测文件的头部注释里**。
 
 | 文件 | 作用 |
 | --- | --- |
@@ -211,7 +210,6 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
 | `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
 | `check-dock.mjs` | 停靠面板:让位不盖住、非模态下键盘与焦点、记忆的读写与复原、宽窄切换、挂着的 box 给键区让位 |
-| `upstream-probe/` | 上游生成器探针(要 gcc):`mkgen.sh` 按参数串跑 `new_game_desc` 看生不生得出;`lu_enum.c`、`br_enum.c` 穷举 Light Up / Bridges 小盘的全部谜面,某档为 0 = 该组合必死,见其 README |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
 
