@@ -311,7 +311,9 @@
     "blackPc": "%age of black squares",
     "rotational2": "2-way rotational",
     "rotational4": "4-way rotational",
-    "tricky": "Tricky"
+    "tricky": "Tricky",
+    "regions": "Regions",
+    "normal": "Normal"
   },
 
   "notFound": {

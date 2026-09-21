@@ -311,7 +311,9 @@
     "blackPc": "黑格百分比",
     "rotational2": "2 重旋转",
     "rotational4": "4 重旋转",
-    "tricky": "棘手"
+    "tricky": "棘手",
+    "regions": "区域数",
+    "normal": "普通"
   },
 
   "notFound": {
