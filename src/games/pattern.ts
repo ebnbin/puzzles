@@ -5,9 +5,19 @@
 // 方向键带上当前笔刷的修饰键,一路涂过去。
 import type { ArrowKey, Board, Game, Mods, Slot, View } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PAINT, act, arrowFace, labelsSilent, walk } from './util/pad'
+
+// validate_params pattern.c:183-192,不看 full:宽高 > 0 且面积 ≥ 2;INT_MAX 那条(186)
+// 在 100 以内碰不到。生成器对每种尺寸都是概率终止:不足 3 格的行列免掉「必须两色都有」
+// (pattern.c:686-706),2×N 关掉了平滑(pattern.c:290),没有必然失败的组合。
+const custom: Custom = {
+  fields: [width(1), height(1)],
+  rules: [rule('pattern.c:189', ['w', 'h'], (v) => v.w * v.h < 2)],
+}
 
 const WORDS = ['Black', 'White', 'Grey']
 
@@ -67,7 +77,7 @@ const pattern: Game = {
   touch: { hold: 'right' },
   dark: { keep: [1, 2, 4, 5] },
   pages: samePages('pattern'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
