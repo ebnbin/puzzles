@@ -78,7 +78,7 @@ ground truth。
 
 | 文件 | 作用 |
 | --- | --- |
-| `game.ts` | 契约:`Game<F>` 十个必填成员(upstream / touch / dark / pages / types / prefs / keypad / arrows / observe)与 View / Board / Gate / Saw 类型;类型里不出现任何游戏名 |
+| `game.ts` | 契约:`Game<F>` 十个必填成员(upstream / touch / dark / pages / types / prefs / keypad / arrows / observe)与 View / Board / Gate / Saw 类型;类型里不出现任何游戏名。`types.custom` 是自定义参数的申报 |
 | `index.ts` | 注册表——全项目唯一的「游戏名 → 行为」映射 |
 | `net.ts` … `mosaic.ts` × 40 | 每个游戏的完整自述:上游事实、触摸映射、深色申报、键区、方向键块、观察器 |
 
@@ -86,6 +86,7 @@ ground truth。
 
 | 文件 | 作用 |
 | --- | --- |
+| `custom.ts` | 自定义参数的申报类型与联动机器:字段按上游 label 认,规则是各游戏 `validate_params(full)` 的逐条移植;改一个值时按「模式 > 尺寸 > 计数」的层级把其余字段修到最近合法值,尺寸之间对等让位;两条自家规则(宽高 ≤ 100、宽高比 ≤ 4:1)也住这里 |
 | `declare.ts` | `verbatim` / `samePages` / `keepPencil` 申报速记 |
 | `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
@@ -118,7 +119,7 @@ ground truth。
 | `PuzzleMenu.tsx` | 菜单面板的内容:新局、重开、求解、偏好、game ID、seed;壳由 PuzzleHost 套 |
 | `PuzzleTypes.tsx` | 类型面板的内容:预设列表 + 常驻的自定义参数表(选中态由引擎判,命不中就一条不亮);壳由 PuzzleHost 套 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
-| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象,text 只在落定时提交) |
+| `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象):有申报的参数表按申报画 slider / 分段按钮并经联动机器修值;没申报的按控件种类画,布尔勾选、枚举分段、文本框只在落定时提交 |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |
 | `usePuzzleKeys.ts` | 物理键盘唯一通路:判据是「这一按该不该归谜题」,不认焦点 |
 | `usePuzzlePointer.ts` | 指针 → 上游鼠标语义(长按 = 右键或中键,由游戏申报) |
@@ -158,6 +159,8 @@ ground truth。
 | `Notice.tsx` | 通知条:error / info 两种,可浮动可关闭 |
 | `Swatch.tsx` | 色块钉(键面上的颜色圆点) |
 | `Icon.tsx` | 全部图标字形与三张怪物图片的名字表 |
+| `Slider.tsx` | 带微调键的 slider:label 一行,减号键、滑杆、加号键、当前值一行;刻度是整数,显示由调用方给;拖动只更新显示,松手才提交 |
+| `Picker.tsx` | 多选一,全部选项摊开成一条分段轨道,放不下就换行 |
 | `ThemeToggle.tsx` | 主题切换按钮 |
 | `HoldTip.tsx` | 长按提示:`useHoldTip` 发 handlers,组件负责画 |
 | `useScrollLock.ts` | 弹层期间锁背景滚动 |

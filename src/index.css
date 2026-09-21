@@ -1303,10 +1303,8 @@ p.notice-intro button:active {
 }
 
 .sheet-custom .dialog-string,
-.sheet-custom .dialog-choices,
 .sheet-custom .dialog-boolean,
 .sheet-prefs .dialog-string,
-.sheet-prefs .dialog-choices,
 .sheet-prefs .dialog-boolean {
   display: flex;
   align-items: center;
@@ -1326,9 +1324,7 @@ p.notice-intro button:active {
 }
 
 .sheet-custom .dialog-string input,
-.sheet-custom .dialog-choices select,
-.sheet-prefs .dialog-string input,
-.sheet-prefs .dialog-choices select {
+.sheet-prefs .dialog-string input {
   flex: none;
   width: 7rem;
   min-height: 2.25rem;
@@ -1348,13 +1344,6 @@ p.notice-intro button:active {
   font-variant-numeric: tabular-nums;
 }
 
-.sheet-custom .dialog-choices select,
-.sheet-prefs .dialog-choices select {
-  width: auto;
-  max-width: 62%;
-  padding-right: 0.25rem;
-}
-
 .sheet-custom .dialog-boolean input,
 .sheet-prefs .dialog-boolean input {
   flex: none;
@@ -1362,6 +1351,198 @@ p.notice-intro button:active {
   height: 1.15rem;
   margin: 0;
   accent-color: var(--accent);
+}
+
+/* 参数表的两种新控件,行式:第一行 label,第二行控件。分隔线画在行上,和勾选行同
+   一条线;Notice 不是行。 */
+.sheet-custom > .slider,
+.sheet-custom > .picker,
+.sheet-prefs > .slider,
+.sheet-prefs > .picker {
+  padding: 0.55rem 0 0.65rem;
+  border-top: 1px solid var(--edge);
+}
+
+.slider-label,
+.picker-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.slider-step {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: var(--tap-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .slider-step:hover:not(:disabled) {
+    background: var(--surface-3);
+    color: var(--text);
+  }
+}
+
+.slider-step:active:not(:disabled) {
+  background: var(--surface-3);
+  transform: scale(0.92);
+}
+
+.slider-step:disabled {
+  color: var(--text-3);
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 原生 range 自己画:轨道 4px,已过部分用 --fill(组件按当前值写成百分比)染成
+   accent;把手实心 accent,外面一圈底色把它和轨道隔开。 */
+.slider input[type='range'] {
+  --fill: 0%;
+  flex: 1;
+  min-width: 0;
+  height: var(--tap-h);
+  margin: 0;
+  padding: 0;
+  background: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider input[type='range']:focus-visible {
+  outline: none;
+}
+
+.slider input[type='range']::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  border-radius: var(--r-full);
+  background: linear-gradient(to right, var(--accent) var(--fill), var(--surface-3) var(--fill));
+}
+
+.slider input[type='range']::-webkit-slider-thumb {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: -0.4375rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface);
+  appearance: none;
+  transition: transform var(--dur) var(--ease);
+}
+
+.slider input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.slider input[type='range']:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.slider input[type='range']::-moz-range-track {
+  height: 0.25rem;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+}
+
+.slider input[type='range']::-moz-range-progress {
+  height: 0.25rem;
+  border-radius: var(--r-full);
+  background: var(--accent);
+}
+
+.slider input[type='range']::-moz-range-thumb {
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.slider input[type='range']:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.slider-value {
+  flex: none;
+  min-width: 2.75rem;
+  margin-left: 0.25rem;
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 一条分段轨道,选项摊开、放不下就换行;选中的那格浮起来。 */
+.picker-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  border-radius: var(--r);
+  background: var(--surface-2);
+}
+
+.picker-options > label {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.875rem;
+  padding: 0 0.6rem;
+  border-radius: calc(var(--r) - 0.1875rem);
+  color: var(--text-2);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.picker-options > [data-selected='true'] {
+  background: var(--raised);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .picker-options > label:not([data-selected='true']):hover {
+    color: var(--text);
+  }
+}
+
+.picker-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.picker-options label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 
@@ -1528,7 +1709,6 @@ p.notice-intro button:active {
 }
 
 .dialog-string,
-.dialog-choices,
 .dialog-boolean {
   display: block;
   margin-bottom: 0.75rem;
@@ -1536,8 +1716,7 @@ p.notice-intro button:active {
   font-size: var(--t-sm);
 }
 
-.dialog-string input,
-.dialog-choices select {
+.dialog-string input {
   display: block;
   width: 100%;
   min-height: 2.75rem;
@@ -1551,8 +1730,7 @@ p.notice-intro button:active {
   font-size: 1rem; /* ≥16px:再小 iOS 聚焦输入框时会缩放整页 */
 }
 
-.dialog-string input:focus-visible,
-.dialog-choices select:focus-visible {
+.dialog-string input:focus-visible {
   border-color: var(--accent);
   outline: 1px solid var(--accent);
   outline-offset: -2px;

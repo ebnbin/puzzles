@@ -13,6 +13,7 @@ export type IconName =
   | 'redo'
   | 'menu'
   | 'add'
+  | 'minus'
   | 'restart'
   | 'solve'
   | 'type'
@@ -167,6 +168,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5 12h14" />
     </>
   ),
+  minus: <path d="M5 12h14" />,
   restart: (
     <>
       <path d="M4.5 12a7.5 7.5 0 1 0 7.5-7.5H7" />

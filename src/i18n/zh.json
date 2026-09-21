@@ -2,7 +2,6 @@
   "brand": "Puzzles",
   "tagline": "Think between vibes.",
   "close": "关闭",
-
   "gallery": {
     "settings": "设置",
     "hide": "隐藏{game}",
@@ -240,6 +239,13 @@
     "cancel": "取消",
     "ok": "确定"
   },
+
+  "slider": {
+    "decrease": "减少",
+    "increase": "增加"
+  },
+
+  "config": {},
 
   "notFound": {
     "title": "未找到",

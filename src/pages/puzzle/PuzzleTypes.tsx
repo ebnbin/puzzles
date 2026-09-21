@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
 import type { DialogSpec, Preset } from '../../engine/types'
+import type { Custom } from '../../games/util/custom'
 import { useStrings } from '../../i18n'
 import Notice from '../../ui/Notice'
 
@@ -15,6 +16,7 @@ export default function PuzzleTypes({
   selected,
   standard,
   custom,
+  declared,
   customError,
   docked,
   onSelectPreset,
@@ -29,6 +31,8 @@ export default function PuzzleTypes({
   selected: number
   standard: number | null
   custom: DialogSpec | null
+  // 这个游戏对参数表的申报(范围、联动、词);没申报的游戏画文本框。
+  declared: Custom | undefined
   customError: string | null
   docked: boolean
   onSelectPreset: (value: number) => void
@@ -68,7 +72,12 @@ export default function PuzzleTypes({
 
       {custom && (
         <div className="sheet-custom">
-          <ConfigFields controls={custom.controls} onCommit={onCommitCustom} onSettle={onSettle} />
+          <ConfigFields
+            controls={custom.controls}
+            declared={declared}
+            onCommit={onCommitCustom}
+            onSettle={onSettle}
+          />
           {customError && <Notice text={customError} />}
         </div>
       )}
