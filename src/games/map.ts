@@ -10,6 +10,8 @@
 import type { Board, Game, Gate, Key, View } from './game'
 import { keyOf, plain } from './game'
 import { fill } from '../i18n/fill'
+import type { Custom } from './util/custom'
+import { BOARD_MAX, difficulty, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Spot } from './util/mirror'
@@ -264,6 +266,18 @@ const STIPPLES: Prefer = {
   glyphs: ['stipple', 'stippleBig'],
 }
 
+// validate_params map.c:259-270:宽高 ≥ 2,区域 ≥ 5 且不超过格数;INT_MAX 那条在 100 以内
+// 碰不到。区域太少或太多时上游会把难度降到 Easy(map.c:1589-1593),是降级不是失败。
+const custom: Custom = {
+  fields: [
+    width(2),
+    height(2),
+    { kind: 'int', key: 'n', label: 'Regions', word: 'regions', min: 5, max: BOARD_MAX * BOARD_MAX, role: 'count' },
+    difficulty(['easy', 'normal', 'hard', 'unreasonable']),
+  ],
+  rules: [rule('map.c:267', ['n', 'w', 'h'], (v) => v.n > v.w * v.h)],
+}
+
 const map: Game<Facts> = {
   id: 'map',
   upstream: {
@@ -276,7 +290,7 @@ const map: Game<Facts> = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('map'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true },
   keypad: ({ prefs }) => [
     ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),
