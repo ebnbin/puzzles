@@ -16,8 +16,8 @@ const custom: Custom = {
     width(2),
     height(2),
     { kind: 'int', key: 'n', label: 'Rotating block size', word: 'block', min: 2, max: BOARD_MAX, role: 'count' },
-    { kind: 'flag', key: 'rows', label: 'One number per row', word: 'rowsOnly' },
-    { kind: 'flag', key: 'orient', label: 'Orientation matters', word: 'orientable' },
+    { kind: 'flag', key: 'rowsonly', label: 'One number per row', word: 'rowsOnly' },
+    { kind: 'flag', key: 'orientable', label: 'Orientation matters', word: 'orientable' },
     shuffles(),
   ],
   rules: [

@@ -30,8 +30,8 @@ const custom: Custom = {
   fields: [
     width(3),
     height(3),
-    difficulty(['easy', 'medium', 'hard']),
-    { kind: 'flag', key: 'loops', label: 'Allow loops', word: 'allowLoops' },
+    difficulty(['easy', 'medium', 'hard'], 'difficulty'),
+    { kind: 'flag', key: 'allowloops', label: 'Allow loops', word: 'allowLoops' },
     { kind: 'scale', key: 'maxb', label: 'Max. bridges per direction', word: 'maxBridges' },
     { kind: 'scale', key: 'islands', label: '%age of island squares', word: 'islandPc' },
     { kind: 'scale', key: 'expansion', label: 'Expansion factor (%age)', word: 'expansionPc' },

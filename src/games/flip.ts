@@ -13,7 +13,7 @@ const custom: Custom = {
   fields: [
     width(1),
     height(1),
-    { kind: 'pick', key: 'shape', label: 'Shape type', word: 'shape', options: ['crosses', 'random'] },
+    { kind: 'pick', key: 'matrix_type', label: 'Shape type', word: 'shape', options: ['crosses', 'random'] },
   ],
   rules: [],
 }

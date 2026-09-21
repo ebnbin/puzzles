@@ -17,7 +17,7 @@ const custom: Custom = {
     width(1),
     height(1),
     { kind: 'int', key: 'colours', label: 'Colours', word: 'colours', min: 3, max: 10, role: 'count' },
-    { kind: 'int', key: 'extra', label: 'Extra moves permitted', word: 'extraMoves', min: 0, max: 100, role: 'count' },
+    { kind: 'int', key: 'leniency', label: 'Extra moves permitted', word: 'extraMoves', min: 0, max: 100, role: 'count' },
   ],
   rules: [rule('flood.c:220', ['w', 'h'], (v) => v.w * v.h < 2)],
 }

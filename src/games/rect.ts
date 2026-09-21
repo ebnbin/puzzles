@@ -65,13 +65,13 @@ const custom: Custom = {
   fields: [
     width(1),
     height(1),
-    { kind: 'float', key: 'e', label: 'Expansion factor', word: 'expand', min: 0, max: 100, step: 0.1, digits: 1 },
+    { kind: 'float', key: 'expandfactor', label: 'Expansion factor', word: 'expand', min: 0, max: 100, step: 0.1, digits: 1 },
     { kind: 'flag', key: 'unique', label: 'Ensure unique solution', word: 'unique' },
   ],
   rules: [
     rule('rect.c:227', ['w', 'h'], (v) => v.w * v.h < 2),
-    rule('rect.c:1165', ['w', 'e'], (v) => v.w === 1 && v.e > 0),
-    rule('rect.c:1167', ['h', 'e'], (v) => v.h === 1 && v.e > 0),
+    rule('rect.c:1165', ['w', 'expandfactor'], (v) => v.w === 1 && v.expandfactor > 0),
+    rule('rect.c:1167', ['h', 'expandfactor'], (v) => v.h === 1 && v.expandfactor > 0),
   ],
 }
 

@@ -61,7 +61,7 @@ const custom: Custom = {
   fields: [
     { kind: 'int', key: 'c', label: 'Columns of sub-blocks', word: 'blockCols', min: 2, max: 31, role: 'dim' },
     { kind: 'int', key: 'r', label: 'Rows of sub-blocks', word: 'blockRows', min: 1, max: 15, role: 'dim' },
-    { kind: 'flag', key: 'x', label: '"X" (require every number in each main diagonal)', word: 'xtype' },
+    { kind: 'flag', key: 'xtype', label: '"X" (require every number in each main diagonal)', word: 'xtype' },
     { kind: 'flag', key: 'jigsaw', label: 'Jigsaw (irregularly shaped sub-blocks)', word: 'jigsaw' },
     { kind: 'flag', key: 'killer', label: 'Killer (digit sums)', word: 'killer' },
     {
@@ -76,7 +76,7 @@ const custom: Custom = {
   rules: [
     rule('solo.c:520', ['c', 'r'], (v) => v.c * v.r > 31),
     rule('solo.c:522', ['c', 'r', 'killer'], (v) => !!v.killer && v.c * v.r > 9),
-    rule('solo.c:524', ['c', 'r', 'x'], (v) => !!v.x && v.c * v.r < 4),
+    rule('solo.c:524', ['c', 'r', 'xtype'], (v) => !!v.xtype && v.c * v.r < 4),
   ],
 }
 

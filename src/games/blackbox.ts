@@ -20,7 +20,7 @@ const custom: Custom = {
     height(2),
     {
       kind: 'span',
-      keys: ['bmin', 'bmax'],
+      keys: ['minballs', 'maxballs'],
       label: 'No. of balls',
       words: ['ballsMin', 'ballsMax'],
       min: 1,
@@ -28,8 +28,8 @@ const custom: Custom = {
     },
   ],
   rules: [
-    rule('blackbox.c:203', ['bmin', 'bmax'], (v) => v.bmin > v.bmax),
-    rule('blackbox.c:205', ['bmin', 'w', 'h'], (v) => v.bmin >= v.w * v.h),
+    rule('blackbox.c:203', ['minballs', 'maxballs'], (v) => v.minballs > v.maxballs),
+    rule('blackbox.c:205', ['minballs', 'w', 'h'], (v) => v.minballs >= v.w * v.h),
   ],
 }
 

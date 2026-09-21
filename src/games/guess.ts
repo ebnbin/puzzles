@@ -57,13 +57,13 @@ const fixed = (
 // 是钉数 × 次数的格子,按棋盘规则各封 100。生成只是逐钉抽色,没有必然失败的组合。
 const custom: Custom = {
   fields: [
-    { kind: 'int', key: 'colours', label: 'Colours', word: 'colours', min: 2, max: 10, role: 'count' },
-    { kind: 'int', key: 'pegs', label: 'Pegs per guess', word: 'pegs', min: 2, max: BOARD_MAX, role: 'count' },
-    { kind: 'int', key: 'guesses', label: 'Guesses', word: 'guesses', min: 1, max: BOARD_MAX, role: 'count' },
-    { kind: 'flag', key: 'blank', label: 'Allow blanks', word: 'allowBlank' },
-    { kind: 'flag', key: 'multiple', label: 'Allow duplicates', word: 'allowDup' },
+    { kind: 'int', key: 'ncolours', label: 'Colours', word: 'colours', min: 2, max: 10, role: 'count' },
+    { kind: 'int', key: 'npegs', label: 'Pegs per guess', word: 'pegs', min: 2, max: BOARD_MAX, role: 'count' },
+    { kind: 'int', key: 'nguesses', label: 'Guesses', word: 'guesses', min: 1, max: BOARD_MAX, role: 'count' },
+    { kind: 'flag', key: 'allow_blank', label: 'Allow blanks', word: 'allowBlank' },
+    { kind: 'flag', key: 'allow_multiple', label: 'Allow duplicates', word: 'allowDup' },
   ],
-  rules: [rule('guess.c:227', ['colours', 'pegs', 'multiple'], (v) => !v.multiple && v.colours < v.pegs)],
+  rules: [rule('guess.c:227', ['ncolours', 'npegs', 'allow_multiple'], (v) => !v.allow_multiple && v.ncolours < v.npegs)],
 }
 
 const guess: Game = {

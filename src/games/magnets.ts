@@ -17,7 +17,7 @@ const custom: Custom = {
     width(2),
     height(2),
     difficulty(['easy', 'tricky']),
-    { kind: 'flag', key: 'strip', label: 'Strip clues', word: 'stripClues' },
+    { kind: 'flag', key: 'stripclues', label: 'Strip clues', word: 'stripClues' },
   ],
   rules: [
     rule('magnets.c:243', ['w', 'h', 'diff'], (v) => v.diff >= TRICKY && v.w < 5 && v.h < 5),

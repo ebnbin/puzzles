@@ -19,14 +19,14 @@ const custom: Custom = {
   fields: [
     width(1),
     height(1),
-    { kind: 'int', key: 'colours', label: 'No. of colours', word: 'coloursNo', min: 2, max: 9, role: 'count' },
-    { kind: 'pick', key: 'score', label: 'Scoring system', word: 'scoring', options: ['scoreN1', 'scoreN2'] },
+    { kind: 'int', key: 'ncols', label: 'No. of colours', word: 'coloursNo', min: 2, max: 9, role: 'count' },
+    { kind: 'pick', key: 'scoresub', label: 'Scoring system', word: 'scoring', options: ['scoreN1', 'scoreN2'] },
     { kind: 'flag', key: 'soluble', label: 'Ensure solubility', word: 'soluble' },
   ],
   rules: [
-    rule('samegame.c:300', ['colours', 'soluble'], (v) => !!v.soluble && v.colours < 3),
+    rule('samegame.c:300', ['ncols', 'soluble'], (v) => !!v.soluble && v.ncols < 3),
     rule('samegame.c:302', ['w', 'h', 'soluble'], (v) => !!v.soluble && v.w * v.h <= 1),
-    rule('samegame.c:309', ['colours', 'w', 'h', 'soluble'], (v) => !v.soluble && v.w * v.h < v.colours * 2),
+    rule('samegame.c:309', ['ncols', 'w', 'h', 'soluble'], (v) => !v.soluble && v.w * v.h < v.ncols * 2),
   ],
 }
 

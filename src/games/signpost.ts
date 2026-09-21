@@ -70,7 +70,7 @@ const custom: Custom = {
   fields: [
     width(1),
     height(1),
-    { kind: 'flag', key: 'corners', label: 'Start and end in corners', word: 'corners' },
+    { kind: 'flag', key: 'force_corner_start', label: 'Start and end in corners', word: 'corners' },
   ],
   rules: [rule('signpost.c:436', ['w', 'h'], (v) => v.w === 1 && v.h === 1)],
 }

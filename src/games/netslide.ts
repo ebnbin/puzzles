@@ -15,12 +15,12 @@ import { act, cross } from './util/pad'
 // 那条(315)在 100 以内碰不到。
 const custom: Custom = {
   fields: [
-    width(2),
-    height(2),
-    { kind: 'flag', key: 'wrap', label: 'Walls wrap around', word: 'wrap' },
+    width(2, 'width'),
+    height(2, 'height'),
+    { kind: 'flag', key: 'wrapping', label: 'Walls wrap around', word: 'wrap' },
     {
       kind: 'float',
-      key: 'barrier',
+      key: 'barrier_probability',
       label: 'Barrier probability',
       word: 'barrier',
       min: 0,
