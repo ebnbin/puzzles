@@ -344,7 +344,8 @@
     "order": "大小 (s*s)",
     "recursive": "递归",
     "gridSize": "网格大小",
-    "multiplyOnly": "仅乘法"
+    "multiplyOnly": "仅乘法",
+    "stripClues": "去除线索"
   },
 
   "notFound": {
