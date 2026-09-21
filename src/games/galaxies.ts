@@ -14,7 +14,7 @@ const WORDS = ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', '
 // validate_params galaxies.c:328-341:宽高各 ≥ 3;INT_MAX 那条在 100 以内碰不到。生成是
 // 难度不符就 goto 重来的重试(galaxies.c:1500-1516),只有 3×3 配 Unreasonable 永远不符:
 // solver_state 只在「唯一解且普通推理卡住」时才报 Unreasonable(2473-2553),3×3 的每种
-// 圆点布局要么普通推理推完要么多解,没有一种卡住;3×4 起实测都能生成。
+// 圆点布局要么普通推理推完要么多解,没有一种卡住。
 const UNREASONABLE = 1
 const custom: Custom = {
   fields: [width(3), height(3), difficulty(['normal', 'unreasonable'])],
