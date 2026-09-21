@@ -304,7 +304,9 @@
     "dominoMax": "骨牌上的最大数字",
     "hard": "困难",
     "ambiguous": "有歧义",
-    "points": "点数"
+    "points": "点数",
+    "ballsMin": "最少球数",
+    "ballsMax": "最多球数"
   },
 
   "notFound": {
