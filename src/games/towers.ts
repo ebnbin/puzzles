@@ -21,7 +21,7 @@ const LOOK: Prefer = {
   glyphs: ['towersFlat', 'towersTall'],
 }
 
-// validate_params towers.c:249-256:网格 3..9。3×3 的 Hard 以上上游自己压到 Hard
+// validate_params towers.c:248-255:网格 3..9。3×3 的 Hard 以上上游自己压到 Hard
 // (towers.c:678),是降级不是失败;其余是概率重试。
 const custom: Custom = {
   fields: [

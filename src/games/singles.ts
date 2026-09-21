@@ -19,10 +19,11 @@ const BLACK_NUMS: Prefer = {
   glyph: 'numberBlack',
 }
 
-// validate_params singles.c:264-274:宽高 2..62(数字只有 0-9、a-z、A-Z 六十二个可写,
-// singles.c:267),比自家的 100 小,照上游。宽或高不足 4 的 Tricky 上游自己降成 Easy
-// (singles.c:1331),是降级不是失败;其余是 goto 重来的概率重试。
-const SINGLES_MAX = 10 + 26 + 26
+// validate_params singles.c:264-274:宽高上游放到 62(singles.c:267),这里封 61——数字从
+// 1 起到 max(w,h),而 n2c 只写得出 0..61(singles.c:323-331),62 会写成 '[',new_game
+// 解不回来(singles.c:356、1450),每个种子都撞上。宽或高不足 4 的 Tricky 上游自己降成
+// Easy(singles.c:1331),是降级不是失败;其余是 goto 重来的概率重试。
+const SINGLES_MAX = 10 + 26 + 26 - 1
 const custom: Custom = {
   fields: [
     { kind: 'int', key: 'w', label: 'Width', word: 'width', min: 2, max: SINGLES_MAX, role: 'width' },

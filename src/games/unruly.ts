@@ -10,7 +10,7 @@ import { act, cross } from './util/pad'
 
 const WORDS = ['Black', 'White', 'Empty']
 
-// validate_params unruly.c:287-330:宽高都是偶数且 ≥ 6;行列不重复模式下,宽为 2n 时高
+// validate_params unruly.c:287-329:宽高都是偶数且 ≥ 6;行列不重复模式下,宽为 2n 时高
 // 不超过 A177790[n](长 2n 且不三连的行只有这么多种),反之亦然;INT_MAX 那条在 100
 // 以内碰不到。奇数刻度靠规则挡住,slider 松手吸附到相邻的偶数。
 const A177790 = [1, 2, 6, 14, 34, 84, 208, 518, 1296, 3254, 8196, 20700, 52404, 132942,
@@ -25,9 +25,9 @@ const custom: Custom = {
   rules: [
     rule('unruly.c:289', ['w'], (v) => v.w % 2 !== 0),
     rule('unruly.c:289', ['h'], (v) => v.h % 2 !== 0),
-    rule('unruly.c:319', ['h', 'w', 'unique'], (v) =>
+    rule('unruly.c:316', ['h', 'w', 'unique'], (v) =>
       !!v.unique && v.w < 2 * A177790.length && v.h > A177790[v.w / 2]),
-    rule('unruly.c:323', ['w', 'h', 'unique'], (v) =>
+    rule('unruly.c:320', ['w', 'h', 'unique'], (v) =>
       !!v.unique && v.h < 2 * A177790.length && v.w > A177790[v.h / 2]),
   ],
 }

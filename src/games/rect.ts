@@ -60,7 +60,8 @@ const duo = (spec: Pick<ActSpec<Facts>, 'id' | 'slot' | 'key' | 'idle'>) =>
 // 明显变味、再高就生不出几个矩形,量程取 0..3、步长 0.1。
 // 生成期多一条:宽或高为 1 时扩展因子必须是 0——基础网格按 w/(1+e) 取整会变成 0,
 // 只有 ≥ 2 的那一维才被托底(rect.c:1165-1168),随后 snewn(params2->h - 1) 是负数,
-// smalloc 报 fatal 后返回空指针,必然炸(rect.c:1461、malloc.c:19)。
+// fatal 只弹框不退出(emcc.c:152-164),紧接着 random_upto(rs, -1)(rect.c:1473)在
+// random.c:275 的 assert(bits < 32) 上必炸。
 const custom: Custom = {
   fields: [
     width(1),

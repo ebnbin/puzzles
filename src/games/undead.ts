@@ -30,11 +30,11 @@ const FACES = [
   { letter: 'Z', image: 'zombie' },
 ] as const
 
-// validate_params undead.c:219-225:宽高各 ≥ 3,宽不超过 54 整除高(面积最多 54)。生成
+// validate_params undead.c:214-221:宽高各 ≥ 3,宽不超过 54 整除高(面积最多 54)。生成
 // 是路径铺不出来就重来的概率重试。
 const custom: Custom = {
   fields: [width(3), height(3), difficulty(['easy', 'normal', 'tricky'])],
-  rules: [rule('undead.c:222', ['w', 'h'], (v) => v.w > Math.floor(54 / v.h))],
+  rules: [rule('undead.c:218', ['w', 'h'], (v) => v.w > Math.floor(54 / v.h))],
 }
 
 const undead: Game = {

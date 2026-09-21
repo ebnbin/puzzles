@@ -65,7 +65,7 @@ const brushKey = (
 
 // validate_params pattern.c:183-192,不看 full:宽高 > 0 且面积 ≥ 2;INT_MAX 那条(186)
 // 在 100 以内碰不到。生成器对每种尺寸都是概率终止:不足 3 格的行列免掉「必须两色都有」
-// (pattern.c:686-706),2×N 关掉了平滑(pattern.c:290),没有必然失败的组合。
+// (pattern.c:695-711),2×N 关掉了平滑(pattern.c:301),没有必然失败的组合。
 const custom: Custom = {
   fields: [width(1), height(1)],
   rules: [rule('pattern.c:189', ['w', 'h'], (v) => v.w * v.h < 2)],
