@@ -306,7 +306,8 @@
     "ambiguous": "有歧义",
     "points": "点数",
     "ballsMin": "最少球数",
-    "ballsMax": "最多球数"
+    "ballsMax": "最多球数",
+    "easy": "简单"
   },
 
   "notFound": {

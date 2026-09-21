@@ -306,7 +306,8 @@
     "ambiguous": "Ambiguous",
     "points": "Number of points",
     "ballsMin": "Min. balls",
-    "ballsMax": "Max. balls"
+    "ballsMax": "Max. balls",
+    "easy": "Easy"
   },
 
   "notFound": {
