@@ -2,10 +2,23 @@
 // 解完之后两个一起灰(上游自己不报了)。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Black', 'White', 'Empty']
+
+// validate_params mosaic.c:240-249:宽高各 ≥ 3,面积不超过 10000 格(100×100 正好够)。
+// 生成是解不出就重来的概率重试。
+const custom: Custom = {
+  fields: [
+    width(3),
+    height(3),
+    { kind: 'flag', key: 'aggressive', label: 'Aggressive generation (longer)', word: 'aggressive' },
+  ],
+  rules: [rule('mosaic.c:245', ['w', 'h'], (v) => v.h > Math.floor(10000 / v.w))],
+}
 
 const mosaic: Game = {
   id: 'mosaic',
@@ -13,7 +26,7 @@ const mosaic: Game = {
   touch: { hold: 'right' },
   dark: { keep: [3, 4, 5] },
   pages: samePages('mosaic'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
