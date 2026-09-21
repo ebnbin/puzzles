@@ -2,11 +2,24 @@
 // 线索格上一起灰(两词俱空)。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Fill', 'Dot', 'Empty']
+
+// validate_params range.c:918-932:宽高各 ≥ 1;宽加高不超过 128(线索存在 signed char
+// 里,range.c:923),100 封顶下仍碰得到;full 下 1×1、1×2、2×1、2×2 造不出来。生成是
+// 去线索失败就重来的概率重试。
+const custom: Custom = {
+  fields: [width(1), height(1)],
+  rules: [
+    rule('range.c:923', ['w', 'h'], (v) => v.w > 127 - (v.h - 1)),
+    rule('range.c:927', ['w', 'h'], (v) => v.w <= 2 && v.h <= 2),
+  ],
+}
 
 const range: Game = {
   id: 'range',
@@ -14,7 +27,7 @@ const range: Game = {
   touch: { hold: 'right' },
   dark: { keep: [1], paper: true },
   pages: samePages('range'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [hintKey()],
   arrows: {
