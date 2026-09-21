@@ -313,7 +313,26 @@
     "rotational4": "4 重旋转",
     "tricky": "棘手",
     "regions": "区域数",
-    "normal": "普通"
+    "normal": "普通",
+    "gridType": "网格类型",
+    "squares": "方形",
+    "triangular": "三角形",
+    "honeycomb": "蜂窝",
+    "snubSquare": "扭棱方形",
+    "cairo": "开罗",
+    "greatHexagonal": "大六边形",
+    "octagonal": "八边形",
+    "kites": "风筝",
+    "floret": "小花",
+    "dodecagonal": "十二边形",
+    "greatDodecagonal": "大十二边形",
+    "penroseP2": "彭罗斯(风筝/飞镖)",
+    "penroseP3": "彭罗斯(菱形)",
+    "greatGreatDodecagonal": "大大十二边形",
+    "kagome": "笼目",
+    "compassDodecagonal": "罗盘十二边形",
+    "hats": "帽子",
+    "spectres": "幽灵"
   },
 
   "notFound": {

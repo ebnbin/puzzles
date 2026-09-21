@@ -313,7 +313,26 @@
     "rotational4": "4-way rotational",
     "tricky": "Tricky",
     "regions": "Regions",
-    "normal": "Normal"
+    "normal": "Normal",
+    "gridType": "Grid type",
+    "squares": "Squares",
+    "triangular": "Triangular",
+    "honeycomb": "Honeycomb",
+    "snubSquare": "Snub-Square",
+    "cairo": "Cairo",
+    "greatHexagonal": "Great-Hexagonal",
+    "octagonal": "Octagonal",
+    "kites": "Kites",
+    "floret": "Floret",
+    "dodecagonal": "Dodecagonal",
+    "greatDodecagonal": "Great-Dodecagonal",
+    "penroseP2": "Penrose (kite/dart)",
+    "penroseP3": "Penrose (rhombs)",
+    "greatGreatDodecagonal": "Great-Great-Dodecagonal",
+    "kagome": "Kagome",
+    "compassDodecagonal": "Compass-Dodecagonal",
+    "hats": "Hats",
+    "spectres": "Spectres"
   },
 
   "notFound": {
