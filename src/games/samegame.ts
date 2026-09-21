@@ -4,8 +4,29 @@
 // 选块上,镜像光标睡着时永不开。
 import type { Game } from './game'
 import { still } from './game'
+import type { Custom } from './util/custom'
+import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWordsAwake } from './util/pad'
+
+// validate_params samegame.c:289-315,不看 full:宽高 ≥ 1;颜色最多 9(297);确保有解时
+// 颜色 ≥ 3 且面积 > 1(300-303),不要求时颜色 ≥ 2 且面积至少是颜色数的两倍(305-310,
+// 每种颜色得凑够两格)。INT_MAX 那条(293)在 100 以内碰不到。有解生成器是概率重试:
+// 起手 2 或 3 格同色,之后往列里插两格团,面积奇偶和起手数一致,任何尺寸都填得满。
+const custom: Custom = {
+  fields: [
+    width(1),
+    height(1),
+    { kind: 'int', key: 'colours', label: 'No. of colours', word: 'colours', min: 2, max: 9, role: 'count' },
+    { kind: 'pick', key: 'score', label: 'Scoring system', word: 'scoring', options: ['scoreN1', 'scoreN2'] },
+    { kind: 'flag', key: 'soluble', label: 'Ensure solubility', word: 'soluble' },
+  ],
+  rules: [
+    rule('samegame.c:300', ['colours', 'soluble'], (v) => !!v.soluble && v.colours < 3),
+    rule('samegame.c:302', ['w', 'h', 'soluble'], (v) => !!v.soluble && v.w * v.h <= 1),
+    rule('samegame.c:309', ['colours', 'w', 'h', 'soluble'], (v) => !v.soluble && v.w * v.h < v.colours * 2),
+  ],
+}
 
 const WORDS = ['Select', 'Remove', 'Unselect']
 
@@ -21,7 +42,7 @@ const samegame: Game = {
   touch: { hold: 'right' },
   dark: { relief: [[12, 13]] },
   pages: samePages('samegame'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
