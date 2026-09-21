@@ -1300,20 +1300,6 @@ p.notice-intro button:active {
 
 .sheet-custom {
   margin-top: 1rem;
-  animation: custom-in var(--dur) var(--ease);
-}
-
-@keyframes custom-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.3rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet-custom {
-    animation: none;
-  }
 }
 
 .sheet-custom .dialog-string,

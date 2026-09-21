@@ -85,16 +85,23 @@ export function useConfigBox(
     [apiRef, dialog],
   )
 
-  const closeInline = useCallback(() => {
-    apiRef.current?.dialogCancel()
-  }, [apiRef])
-
-  // 提交完 box 要是关上了就再开一次:面板一直挂在 Types/Menu 里,得有活的控件。
+  // 提交完 box 要是关上了就再开一次:面板一直挂着,得有活的控件。
   const reopen = useCallback((api: PuzzleApi, kind: InlineKind) => {
     if (inlineRef.current) return
     inlinePending.current = kind
     ask(api, kind)
   }, [])
+
+  // 挂着的 inline 退掉、再要一份同类的:发完牌之后表里要的是引擎此刻的参数,发牌全程
+  // 开着的那份装的还是旧的。只换同类——发牌途中面板可能已经换成别的(换壳、换面板),
+  // 那份 box 不归这次发牌管;没有 box 就什么都不做,对着空 box 发 cancel 会让 wasm trap。
+  const refreshInline = useCallback((kind: InlineKind) => {
+    const api = apiRef.current
+    if (!api || inlineRef.current?.kind !== kind) return
+    api.dialogCancel()
+    inlinePending.current = kind
+    ask(api, kind)
+  }, [apiRef])
 
   const commitInline = useCallback(() => {
     const api = apiRef.current
@@ -114,28 +121,25 @@ export function useConfigBox(
         if (outcome.status === 'failed') return setInlineError(outcome.error)
         // busy 说明还有一次发牌在路上,由它去收尾,这里动手会把它的现场掀了。
         if (outcome.status === 'busy') return
-        // 发牌途中面板可能已经卸载(窗口跨过停靠断点会换壳),box 随之退掉了:对着
-        // 空 box 发 cancel / ok,上游 cfg_end 不查空指针,wasm 当场 trap。没了就只接手
-        // 那一局,不碰对话框。
-        const held = inlineRef.current?.kind === 'custom'
         if (outcome.status === 'unavailable') {
-          if (!held) return
+          // 发牌途中面板可能已经卸载(窗口跨过停靠断点会换壳),box 随之退掉了:
+          // 对着空 box 发 ok 会让 wasm trap,没了就算了。
+          if (inlineRef.current?.kind !== 'custom') return
           live.dialogOk()
           return reopen(live, 'custom')
         }
         // done 和 cancelled 都要把玩家改过的那份 cfg 丢掉——它从没提交过。不丢的话
         // 取消之后框里留着一个改了却没生效的值,和引擎里的参数对不上,是会撒谎的界面。
         // 重开一份是问引擎现在的参数要的,两种情况显示的都是真话。
-        if (held) live.dialogCancel()
         if (outcome.status === 'done') live.loadGame(outcome.save)
-        if (held) reopen(live, 'custom')
+        refreshInline('custom')
       })
       return
     }
 
     api.dialogOk()
     reopen(api, open.kind)
-  }, [acted, apiRef, deal, reopen])
+  }, [acted, apiRef, deal, reopen, refreshInline])
 
   // 借一次偏好 box:拿到的 controls 是与 C 共享的活对象,use 就地改、返回改没改。
   // 改了走 dialogOk 提交(引擎顺手写回存档),没改就 cancel;两条路都把新值喂回视图。
@@ -192,7 +196,7 @@ export function useConfigBox(
     tookDialog,
     tookError,
     openInline,
-    closeInline,
+    refreshInline,
     commitInline,
     readPrefs,
     writePrefs,
