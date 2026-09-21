@@ -344,7 +344,8 @@
     "order": "Size (s*s)",
     "recursive": "Recursive",
     "gridSize": "Grid size",
-    "multiplyOnly": "Multiplication only"
+    "multiplyOnly": "Multiplication only",
+    "stripClues": "Strip clues"
   },
 
   "notFound": {
