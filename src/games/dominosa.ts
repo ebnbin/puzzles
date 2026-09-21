@@ -5,11 +5,24 @@
 import type { Game, Key } from './game'
 import { still } from './game'
 import { fill } from '../i18n/fill'
+import type { Custom } from './util/custom'
+import { difficulty } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { charButton, leadingNumber, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
 const WORDS = ['Place', 'Remove', 'Line']
+
+// validate_params dominosa.c:247-258:最大点数 ≥ 1,INT_MAX 那条在 100 以内碰不到。棋盘
+// 是 (n+2)×(n+1),按棋盘规则封到 98。n 为 1、2 时上游把难度压到 Trivial / Basic
+// (dominosa.c:2243-2247),是降级不是失败;其余是等到指定难度为止的概率重试。
+const custom: Custom = {
+  fields: [
+    { kind: 'int', key: 'n', label: 'Maximum number on dominoes', word: 'dominoMax', min: 1, max: 98, role: 'dim' },
+    difficulty(['trivial', 'basic', 'hard', 'extreme', 'ambiguous']),
+  ],
+  rules: [],
+}
 
 const dominosa: Game = {
   id: 'dominosa',
@@ -23,7 +36,7 @@ const dominosa: Game = {
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('dominosa'),
-  types: { menu: verbatim },
+  types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   keypad: ({ params }) => {
     const n = leadingNumber(params)

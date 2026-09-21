@@ -300,7 +300,10 @@
     "allowDup": "Allow duplicates",
     "boardType": "Board type",
     "cross": "Cross",
-    "octagon": "Octagon"
+    "octagon": "Octagon",
+    "dominoMax": "Maximum number on dominoes",
+    "hard": "Hard",
+    "ambiguous": "Ambiguous"
   },
 
   "notFound": {
