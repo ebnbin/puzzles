@@ -9,6 +9,7 @@ import type { Strings } from '../i18n'
 import type { Dark } from '../engine/palette'
 import type { Drawn } from '../engine/renderer'
 import type { DialogControl, Preset } from '../engine/types'
+import type { Custom } from './util/custom'
 
 export type GameName =
   | 'net' | 'cube' | 'fifteen' | 'sixteen' | 'twiddle' | 'rect' | 'netslide'
@@ -61,7 +62,12 @@ export type { Dark }
 
 export type Pages = { manual: string; help: string; howto: string }
 
-export type Types = { menu(presets: readonly Preset[]): readonly Preset[] }
+export type Types = {
+  menu(presets: readonly Preset[]): readonly Preset[]
+  // 自定义参数的申报:字段按上游 label 认,规则是 validate_params(full) 的逐条移植
+  // (util/custom.ts)。缺省 = 还没申报,参数表退回文本框。
+  custom?: Custom
+}
 export type Prefs = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
   // 拿到的已经是宿主撤掉「键区已有按钮」那几条之后的剩余(见 Key.fronts)。

@@ -2,7 +2,6 @@
   "brand": "Puzzles",
   "tagline": "Think between vibes.",
   "close": "Close",
-
   "gallery": {
     "settings": "Settings",
     "hide": "Hide {game}",
@@ -240,6 +239,13 @@
     "cancel": "Cancel",
     "ok": "OK"
   },
+
+  "slider": {
+    "decrease": "Decrease",
+    "increase": "Increase"
+  },
+
+  "config": {},
 
   "notFound": {
     "title": "Not found",

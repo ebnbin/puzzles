@@ -430,6 +430,7 @@ export default function PuzzleHost({
         selected={engine.selected}
         standard={engine.standard}
         custom={inline?.kind === 'custom' ? inline.spec : null}
+        declared={game.types.custom}
         customError={inlineError}
         docked={docked}
         // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
