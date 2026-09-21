@@ -195,11 +195,15 @@ const REPAIR_STEPS = 32
 function repair(model: Model, start: Values, changed: string): Values | null {
   let values = start
   const floor = model.tier.get(changed) ?? 2
+  const movable = (k: string) => k !== changed && (model.tier.get(k) ?? 2) >= Math.max(1, floor)
+  // 坏掉的规则里只要有一条没有能动的字段,怎么修都修不好,直接答 null;不然先去修别的
+  // 规则会白搜一遍(blackbox 球数下限扫到格数以上时,每个刻度都要把上限扫一万格)。
+  if (model.rules.some((r) => r.bad(start) && !r.on.some(movable))) return null
   for (let i = 0; i < REPAIR_STEPS; i++) {
     const broken = model.rules.find((r) => r.bad(values))
     if (!broken) return values
     const targets = broken.on
-      .filter((k) => k !== changed && (model.tier.get(k) ?? 2) >= Math.max(1, floor))
+      .filter(movable)
       .sort((a, b) => (model.tier.get(b) ?? 2) - (model.tier.get(a) ?? 2))
     // 先找一步就把自身规则全满足的字段;都没有再退一步:只把这条坏规则修好,连带弄坏的
     // 留给下一轮换个字段修——「必须正方形」加上尺寸下限这种要两个字段一起动的,靠这一手。
