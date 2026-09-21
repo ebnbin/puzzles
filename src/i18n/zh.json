@@ -351,7 +351,8 @@
     "uniqueRows": "行列不重复",
     "extraMoves": "额外允许的步数",
     "noOnes": "不允许连续的 1 线索",
-    "regionSize": "区域大小"
+    "regionSize": "区域大小",
+    "aggressive": "激进生成(更慢)"
   },
 
   "notFound": {
