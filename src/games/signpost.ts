@@ -74,12 +74,7 @@ const custom: Custom<'signpost'> = {
 
 const signpost: Game<'signpost', Facts> = {
   id: 'signpost',
-  // 拖拽中两键同词(signpost.c:1483-1491 不分 which),三个词都可能成对出现。
-  upstream: {
-    labels: 'live',
-    echoes: ['From here', 'To here', 'Cancel'],
-    cursor: { kind: 'reported' },
-  },
+  upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('signpost'),

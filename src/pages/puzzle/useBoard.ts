@@ -168,21 +168,13 @@ export function useBoard(
 
   // ---------------------------------------------------- 引擎回调进来的几扇门
 
-  // 已发布的胶水在两词相同时把 space 抹成空串,按 upstream.echoes 在这里复原:
-  // 接口内部只见双词。
   const heard = useCallback(
-    (blanked: string, enter: string) => {
-      const space =
-        blanked !== ''
-          ? blanked
-          : enter && game.upstream.echoes?.includes(enter)
-            ? enter
-            : ''
+    (space: string, enter: string) => {
       labelsRef.current = { enter, space }
       if (!inGate.current) see({ spoke: labelsRef.current })
       setLabels(labelsRef.current)
     },
-    [game, see],
+    [see],
   )
 
   const moved = useCallback(() => {
