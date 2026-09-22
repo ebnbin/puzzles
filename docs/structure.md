@@ -33,7 +33,7 @@ wasm 产物)。
 
 | 文件 | 作用 |
 | --- | --- |
-| `puzzle-lib.js` | 上游 `emcclib.js` 的替身(`--js-library`):C 调出来的函数名字签名不变,只转发给宿主,不碰 DOM |
+| `puzzle-lib.js` | 上游 `emcclib.js` 的替身(`--js-library`):C 调出来的函数名字签名不变,只转发给宿主,不碰 DOM;上游唯一的预设子菜单(Loopy 的 `More...`)在这里铺平 |
 | `puzzle-pre.js` | 上游 `emccpre.js` 的替身(`--pre-js`):把请求转发给宿主对象;MODULARIZE 下只能往 Module 上并东西,不能整体赋值 |
 
 ## vendor/sgtpuzzles/ —— 上游
@@ -118,7 +118,7 @@ ground truth。
 | `PuzzleKeypad.tsx` | 上方键区渲染:键面、色钉、`prefer` 的亮态 |
 | `PuzzleActions.tsx` | 下方区域:固定键(撤销/重做/类型/菜单)+ 方向键块 |
 | `PuzzleMenu.tsx` | 菜单面板的内容:新局、重开、求解、偏好、game ID、seed;壳由 PuzzleHost 套 |
-| `PuzzleTypes.tsx` | 类型面板的内容:预设列表 + 常驻的自定义参数表(选中态由引擎判,命不中就一条不亮);壳由 PuzzleHost 套 |
+| `PuzzleTypes.tsx` | 类型面板的内容:预设列表(只画一层,子菜单在 `puzzle-lib.js` 里就铺平了)+ 常驻的自定义参数表(选中态由引擎判,命不中就一条不亮);壳由 PuzzleHost 套 |
 | `PuzzleDialog.tsx` | 后端模态对话框的兜底渲染 |
 | `ConfigFields.tsx` | config box 控件渲染(值原地写回 C 的活对象):有申报的参数表按申报画 slider / 分段按钮并经联动机器修值;没申报的按控件种类画,布尔勾选、枚举分段、文本框只在落定时提交 |
 | `usePuzzleFit.ts` | 棋盘尺寸适配:量可用空间、限缩放 |

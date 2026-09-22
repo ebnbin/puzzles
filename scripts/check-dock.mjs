@@ -10,6 +10,8 @@
 //       的偏好段和自定义参数段都还在。
 //   七、参数表常驻:列表里没有 Custom,点预设后表里变成它的参数、那条亮起来;参数
 //       命不中任何预设时一条都不亮。
+//   八、预设只画一层:上游唯一的子菜单(Loopy 的 More...)在胶水里铺平,23 条在同一个
+//       列表里、没有分组标题,原本收在 More 里的那条点了照样选中。
 // 改了 PuzzleHost 的面板状态、PuzzleTypes、ConfigFields、ui/Dock、ui/useMedia、usePanel、
 // useConfigBox 的 borrowPrefs / refreshInline,或 index.css 里 .dock / .puzzle[data-dock] 之后跑。
 //
@@ -221,6 +223,32 @@ say((await sheet.count()) === 0, 'Escape 关得掉 sheet')
 await page.setViewportSize(WIDE)
 await wait(400)
 say((await dock.count()) === 1 && (await dock.getAttribute('aria-label')) === 'Type', '再拉宽还是记忆里的那个')
+
+console.log('\n八、预设只画一层')
+// 上一段留下的记忆是 types,进 Loopy 就直接停靠着类型面板。
+await open(page, 'Loopy', { clear: ['puzzles.save.loopy'] })
+say((await dock.count()) === 1 && (await dock.getAttribute('aria-label')) === 'Type', 'Loopy 开着类型面板')
+{
+  const chips = page.locator('.dock .sheet-presets label')
+  say((await chips.count()) === 23, 'Loopy 的 23 条预设都在', `${await chips.count()}`)
+  say((await page.locator('.dock .sheet-presets ul').count()) === 0, '没有嵌套的第二层')
+  say((await page.locator('.dock .sheet-preset-group').count()) === 0, '没有分组标题')
+  say((await chips.filter({ hasText: 'More' }).count()) === 0, '「More...」本身不在列表里')
+  // 最后一条原本收在 More 里。Hard 的网格要算一会儿,等引擎报回选中项。
+  const last = chips.last()
+  const name = (await last.textContent()).trim()
+  await last.click()
+  await last.locator('..').page().waitForFunction(
+    () => {
+      const all = document.querySelectorAll('.dock .sheet-presets label')
+      return all[all.length - 1]?.dataset.selected === 'true'
+    },
+    null,
+    { timeout: 30000 },
+  ).catch(() => {})
+  say(await last.evaluate((el) => el.dataset.selected === 'true'), `点了 More 里的「${name}」,它亮了`)
+  say((await focusAt()) === 'puzzle-canvas', '点预设后焦点回棋盘', await focusAt())
+}
 
 await browser.close()
 console.log(bad === 0 ? '\n全绿' : `\n${bad} 处不对`)
