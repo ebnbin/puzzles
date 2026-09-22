@@ -57,7 +57,7 @@ mergeInto(LibraryManager.library, {
     js_update_key_labels: function(lsk_ptr, csk_ptr) {
         var lsk = UTF8ToString(lsk_ptr);
         var csk = UTF8ToString(csk_ptr);
-        PZ.onKeyLabels(lsk === csk ? '' : lsk, csk);
+        PZ.onKeyLabels(lsk, csk);
     },
 
     js_update_permalinks: function(desc, seed) {
