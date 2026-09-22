@@ -2,7 +2,7 @@
 import type { DialogControl } from '../../engine/types'
 import type { IconName } from '../../ui/Icon'
 import type { Board, GameName, Key, Stroke } from '../game'
-import type { Each, OptionKws, PrefKw } from './upstream'
+import type { ChoiceKw, Each, FlagKw, OptionKws, PrefKw } from './upstream'
 import { prefAt, prefFact } from './upstream'
 
 export const tap =
@@ -93,7 +93,7 @@ export const PENCIL_HIGHLIGHT = {
 export function flag<G extends GameName>(
   game: G,
   prefs: readonly DialogControl[],
-  kw: PrefKw<G>,
+  kw: FlagKw<G>,
 ): boolean {
   if (!prefs.length) return prefFact(game, kw).initial === true
   const control = prefs[prefAt(game, kw)]
@@ -104,7 +104,7 @@ export function flag<G extends GameName>(
 export function preference<G extends GameName>(
   game: G,
   prefs: readonly DialogControl[],
-  kw: PrefKw<G>,
+  kw: ChoiceKw<G>,
 ): number {
   if (!prefs.length) return Number(prefFact(game, kw).initial)
   const control = prefs[prefAt(game, kw)]
@@ -135,7 +135,7 @@ export function preferKeys<G extends GameName>(
           // on 管填充色,held 管 aria-pressed:开关键两样都要,不然读屏软件
           // 两个状态听起来一模一样(PuzzleActions 早就是这个分工)。
           face: (view) => {
-            const on = flag(game, view.prefs, kw)
+            const on = flag(game, view.prefs, kw as FlagKw<G>)
             return { art: { glyph: want.glyph }, on, held: on }
           },
           press: (board) =>
@@ -159,7 +159,9 @@ export function preferKeys<G extends GameName>(
         fronts: at,
         // 多选一没有「开」这一说,每一格都同样正当:状态全由脸说,不点亮。
         // 脸画的是「现在是哪一格」,不是「按下去会变成什么」(判据三)。
-        face: (view) => ({ art: { glyph: want.glyphs[preference(game, view.prefs, kw)] } }),
+        face: (view) => ({
+          art: { glyph: want.glyphs[preference(game, view.prefs, kw as ChoiceKw<G>)] },
+        }),
         press: (board) =>
           board.prefer((controls) => {
             const found = controls[at]

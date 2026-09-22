@@ -28,7 +28,7 @@ type EngineArgs = {
   setError: (message: string | null) => void
   theme: Resolved
   board: {
-    heard(blanked: string, enter: string): void
+    heard(space: string, enter: string): void
     moved(): void
     sleep(): void
     gated(): boolean

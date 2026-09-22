@@ -15,6 +15,8 @@ export type Configure<G extends GameName> = Facts[G]['configure']
 
 export type Pref<G extends GameName> = Facts[G]['prefs'][number]
 export type PrefKw<G extends GameName> = Pref<G>['kw']
+export type FlagKw<G extends GameName> = Extract<Pref<G>, { kind: 'boolean' }>['kw']
+export type ChoiceKw<G extends GameName> = Extract<Pref<G>, { kind: 'choices' }>['kw']
 export type Choice<G extends GameName, K extends PrefKw<G>> = Extract<Pref<G>, { kw: K }>
 export type OptionKws<G extends GameName, K extends PrefKw<G>> =
   Choice<G, K> extends { optionKws: infer O extends readonly string[] } ? O : never
@@ -31,8 +33,6 @@ export type ShortcutsLabel = Extract<
   Facts[GameName]['prefs'][number],
   { kw: 'one-key-shortcuts' }
 >['label']
-
-export type KeyButton<G extends GameName> = Facts[G]['keys'][number]['button']
 
 type PrefFact = {
   kw: string
@@ -55,7 +55,7 @@ export const prefFact = <G extends GameName>(game: G, kw: PrefKw<G>): PrefFact =
   prefsOf(game)[prefAt(game, kw)]
 
 // 多选一偏好里某个选项的下标(C 侧 choices.selected 的值)。
-export function optionAt<G extends GameName, K extends PrefKw<G>>(
+export function optionAt<G extends GameName, K extends ChoiceKw<G>>(
   game: G,
   kw: K,
   option: OptionKws<G, K>[number],
