@@ -32,8 +32,7 @@ export const line = (key: string, value: string) =>
 export const find = (lines: Field[], key: string) =>
   lines.find((f) => f.key === key)?.value
 
-// STATEPOS 之后的状态是被 undo 掉的,写回时丢弃是模仿 midend 自己的行为
-// (midend_purge_states 在新走子落上时同样扔掉 redo)——不是丢数据的 bug。
+// STATEPOS 之后的状态是被 undo 掉的,写回时丢弃,同 midend_purge_states。
 export function done(lines: Field[]): Field[] | null {
   const statepos = Number(find(lines, 'STATEPOS'))
   if (!Number.isInteger(statepos) || statepos < 1) return null
@@ -42,9 +41,8 @@ export function done(lines: Field[]): Field[] | null {
   return kept.length === statepos - 1 ? kept : null
 }
 
-// midend_deserialise 不走 midend_finish_move,从这扇门进去的走子不会闪。
-// 所以把最后一步留在 redo 列表里,loadGame 之后 redo() 落进同一条尾巴补闪;
-// redo 后后端吐出的存档和「全部走子已应用」那份逐字节相同。
+// midend_deserialise 不走 midend_finish_move,从这扇门进去的走子不会闪:把最后一步留在 redo
+// 尾巴,loadGame 之后 redo() 补闪。
 export function pending(save: string): string | null {
   const lines = fields(save)
   if (!lines) return null

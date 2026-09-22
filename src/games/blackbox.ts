@@ -1,7 +1,5 @@
-// Blackbox:光线反推小球。上游 blackbox.c。Enter 一个键四张脸(发射/猜球/
-// 取消/检查)。角上的「检查」有一格亮着按不动:上游标签比行为宽一格
-// (current_key_label 在角上无条件报 Check,干活的分支查 CAN_REVEAL)——
-// 修它要么读状态栏散文、要么自己数球,撞上的代价只是白按一下,不修。
+// Blackbox:光线反推小球。上游 blackbox.c。Enter 一个键四张脸(发射/猜球/取消/检查)。
+// 角上的「检查」亮着按不动:current_key_label 在角上无条件报 Check,干活的分支查 CAN_REVEAL;不修。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -9,9 +7,7 @@ import { AREA_MAX, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-// validate_params blackbox.c:191-208,不看 full:宽高 2..255(自家封 100);球数 ≥ 1,下限
-// 不超过上限,下限少于格数(201-206)。球数一格文本装的是 "a-b" 区间,画成两个 slider;
-// 上限上游没有上界,也没查它和格数的关系,量程取 10000。
+// validate_params blackbox.c:191-208,不看 full;宽高的 255 上限被自家的 100 盖住。
 const custom: Custom<'blackbox'> = {
   fields: [
     width(2),

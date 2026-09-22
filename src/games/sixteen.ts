@@ -1,7 +1,6 @@
-// Sixteen:整行整列循环滑动。上游 sixteen.c。
-// 光标可以停在棋盘外一圈,还有 lock_tile / lock_position 两档模式
-// (sixteen.c:564)。锁上任一档之后方向键推的是整行整列,图标和读法都换一套
-// ——从标签里的 Unlock 读出「锁着」,不自己记模式。
+// Sixteen:整行整列循环滑动。上游 sixteen.c。光标可以停在棋盘外一圈,还有 lock_tile / lock_position
+// 两档模式(sixteen.c:564);锁上任一档之后方向键推的是整行整列,图标和读法换一套,从标签里的
+// Unlock 读出「锁着」,不自己记模式。
 import type { ArrowKey, Game, Slot } from './game'
 import { still } from './game'
 import { height, shuffles, width } from './util/custom'
@@ -26,8 +25,7 @@ const sixteen: Game<'sixteen'> = {
   touch: { hold: 'right' },
   dark: { relief: [[2, 3]] },
   pages: samePages('sixteen'),
-  // validate_params sixteen.c:177-186,不看 full:宽高各 ≥ 2,打乱步数 ≥ 0(0 = 随机
-  // 打乱,sixteen.c:216);INT_MAX 那条在 100 以内碰不到。三者之间没有联动。
+  // validate_params sixteen.c:177-186,不看 full:宽高各 ≥ 2,打乱步数 ≥ 0(0 = 随机打乱,sixteen.c:216)。
   types: {
     menu: verbatim,
     custom: { fields: [width(2), height(2), shuffles()], rules: [] },

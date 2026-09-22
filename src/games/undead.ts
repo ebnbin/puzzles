@@ -1,6 +1,5 @@
-// Undead:镜子与三种怪物。上游 undead.c。
-// request_keys 报 G/V/Z/⌫(undead.c:1334);键面按偏好在图片和字母之间切换,
-// 而 'a' 键就能改这个偏好——所以偏好是 volatile 的,按键后要重读。
+// Undead:镜子与三种怪物。上游 undead.c。request_keys 报 G/V/Z/⌫(undead.c:1334);键面按偏好在图片和
+// 字母之间切换,a 键在棋盘上翻这条偏好:volatile。
 import type { Game, Key } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -25,8 +24,7 @@ const FACES = [
   { letter: 'Z', image: 'zombie' },
 ] as const
 
-// validate_params undead.c:214-221:宽高各 ≥ 3,宽不超过 54 整除高(面积最多 54)。生成
-// 是路径铺不出来就重来的概率重试。
+// validate_params undead.c:214-221:宽高各 ≥ 3,面积最多 54。
 const custom: Custom<'undead'> = {
   fields: [width(3), height(3), difficulty(['easy', 'normal', 'tricky'])],
   rules: [rule('undead.c:218', ['w', 'h'], (v) => v.w > Math.floor(54 / v.h))],

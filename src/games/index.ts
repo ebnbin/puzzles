@@ -1,6 +1,5 @@
-// 注册表:全项目唯一的「游戏名 → 行为」映射。顺序照上游收录序(Net 第一、
-// Mosaic 最后),和 games.json、手册章节一致。名单和 games.json 的对账由
-// vite.config.ts 里的构建期检查把守。
+// 注册表:全项目唯一的「游戏名 → 行为」映射。顺序照上游收录序(Net 第一、Mosaic 最后),和
+// games.json、手册章节一致;名单和 games.json 的对账由 vite.config.ts 里的构建期检查把守。
 import type { Game, GameName } from './game'
 
 import net from './net'

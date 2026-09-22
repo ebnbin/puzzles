@@ -1,6 +1,5 @@
-// Flood:同色泛滥全盘。上游 flood.c。current_key_label 不查可见性,光标由宿主
-// 镜像(只有方向键唤醒)。Advance 重放求解器下一步,按过求解才出现(第二层);
-// 它不在光标那儿干活(offCursor),镜像光标睡着也不灭,判层也不看光标。
+// Flood:同色泛滥全盘。上游 flood.c。current_key_label 不查可见性,光标由宿主镜像,只有方向键
+// 唤醒。Advance 重放求解器下一步,按过求解才出现(第二层),不看光标(offCursor)。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -8,8 +7,8 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWords } from './util/pad'
 
-// validate_params flood.c:218-231:面积 ≥ 2,宽高各 ≥ 1,颜色 3..10,额外步数 ≥ 0。额外步数
-// 上游没有上限,它只是加在求解器步数上的宽限,几十以上就没有区别,上限取 100。
+// validate_params flood.c:218-231:面积 ≥ 2,宽高各 ≥ 1,颜色 3..10,额外步数 ≥ 0;额外步数
+// 上游没有上限,取 100。
 const custom: Custom<'flood'> = {
   fields: [
     width(1),

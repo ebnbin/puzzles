@@ -1,6 +1,5 @@
-// Solo:数独(含 Killer、Jigsaw、X 变体)。上游 solo.c。
-// 数字键盘按参数推(重新实现 request_keys 的结果,emcc.c 不调用它),认不出的
-// 参数一律不显示键盘;对不对得上由 util/verify.ts 在构建期按 facts 的默认参数核。
+// Solo:数独(含 Killer、Jigsaw、X 变体)。上游 solo.c。数字键盘按参数推(emcc.c 不调用 request_keys),
+// 认不出的参数不显示键盘;和上游 request_keys 的对账由 util/verify.ts 在构建期做。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -51,12 +50,10 @@ function params(text: string): { c: number; r: number } | null {
   return { c, r }
 }
 
-// 自定义参数:validate_params solo.c:514-527(不看 full)加 custom_params solo.c:502-505
-// 的转换——勾了 Jigsaw 提交时列数变成列×行、行数变成 1,行数 1 本身就是拼图模式
-// (solo.c:3698)。于是规则全按乘积(阶数)写,两种模式一样:阶数 ≤ 31(520);Killer
-// 阶数 ≤ 9(522);X 阶数 ≥ 4(524);255 那条(518)被 31 盖住。校验只查了列数 ≥ 2
-// (516),行数 1 在拼图模式下合法;0 校验里漏了,但 0×0 的盘生不出来,下限取 1。2×2 和
-// 阶数小于 4 的拼图上游会把难度压到 Trivial(solo.c:3672),是降级不是失败。
+// validate_params solo.c:514-527(不看 full)加 custom_params solo.c:502-505 的转换:勾了 Jigsaw
+// 提交时列数变成列×行、行数变成 1(solo.c:3698)。规则全按乘积(阶数)写:阶数 ≤ 31(520);Killer
+// 阶数 ≤ 9(522);X 阶数 ≥ 4(524);255 那条(518)被 31 盖住。上游只查了列数 ≥ 2(516),行数下限
+// 取 1(拼图模式)。
 const custom: Custom<'solo'> = {
   fields: [
     { kind: 'int', key: 'c', word: 'blockCols', min: 2, max: 31, role: 'dim' },

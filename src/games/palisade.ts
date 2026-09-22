@@ -1,11 +1,7 @@
-// Palisade:切成等大块。上游 palisade.c。
-// current_key_label 注册 NULL,一个标签都不报:两个键的死活从每一帧画面里读——
-// 光标框的形状说明脚下能不能画墙,框底边的颜色说明那里是墙、「没有墙」的记号
-// 还是空(palisade.c:1228)。都是在猜别人的绘图代码,错了是静悄悄的:改这里
-// 跑 scripts/check-palisade.mjs。
-// 对方记号上一按替换(先擦后画,两条走子);Full-grid 光标模式下这两个键改当上膛
-// 键,把 Ctrl/Shift 交给下一次方向键——所以键面要读偏好。但不 volatile:它的两条
-// 偏好没有任何棋盘输入能翻,只有偏好面板能改,而那条路提交完自己会 setPrefs。
+// Palisade:切成等大块。上游 palisade.c。current_key_label 注册 NULL:两个键的死活从每一帧画面里
+// 读,光标框的形状说明脚下能不能画墙,框底边的颜色说明那里是墙、「没有墙」还是空(palisade.c:1228);
+// 改这里跑 scripts/check-palisade.mjs。对方记号上一按替换(先擦后画,两条走子);Full-grid 光标
+// 模式下这两个键改当上膛键,键面读偏好,但不 volatile:它的偏好没有棋盘输入能翻。
 import type { ArrowKey, Game, Mods, Slot, View } from './game'
 import type { Custom } from './util/custom'
 import { AREA_MAX, height, rule, width } from './util/custom'
@@ -19,8 +15,8 @@ import { cross } from './util/pad'
 const WALL = 2
 const MAYBE = 3
 const NO = 4
-// 颜色编号照 palisade.c:1162-1173 的 enum 顺序;ERROR(5)是「破坏了线索的墙」,
-// 语义仍是墙——必须留在过滤名单里并归入 'wall',漏掉它,凡标红的墙上按键全部失灵。
+// 颜色编号照 palisade.c:1162-1173 的 enum 顺序;ERROR(5)是「破坏了线索的墙」,语义仍是墙,
+// 必须留在过滤名单里并归入 'wall'。
 const ERROR = 5
 
 export type Border = 'wall' | 'no' | 'none'
@@ -29,9 +25,8 @@ export type Stand = { live: boolean; has: Border | null }
 
 const OUT: Stand = { live: false, has: null }
 
-// null 和 OUT 是两个答案:空 tape = 这一帧根本不是重画(无效按压什么都不画),
-// 返回 null 让调用方保留上一次读数;有重画而没有光标框才是 OUT。合并两者,
-// 每次无效按压都会把 stand 清掉,光标明明在边上两个键却灰掉。
+// null 和 OUT 是两个答案:空 tape = 这一帧不是重画(无效按压什么都不画),返回 null 让调用方保留
+// 上一次读数;有重画而没有光标框才是 OUT。
 export function readStand(tape: readonly Drawn[]): Stand | null {
   if (tape.length === 0) return null
 
@@ -71,9 +66,8 @@ type Facts = { stand: Stand | null }
 const fullGrid = (prefs: View<Facts>['prefs']) =>
   preference('palisade', prefs, 'cursor-mode') === optionAt('palisade', 'cursor-mode', 'full')
 
-// 同一个键在两种光标模式下是两套活。Half-grid:光标停在边上,一按就地翻转。
-// Full-grid:光标只停格心,确认键落在格心上游一律不受理(palisade.c:1076),边只能
-// 由 Ctrl/Shift+方向压出来(palisade.c:1026)——所以这里改当上膛键,自己不发走子。
+// Half-grid:光标停在边上,一按就地翻转。Full-grid:光标只停格心,确认键上游不受理
+// (palisade.c:1076),边由 Ctrl/Shift+方向压出来(palisade.c:1026):改当上膛键,自己不发走子。
 const borderKey = (
   id: string,
   slot: Slot,
@@ -119,9 +113,8 @@ const borderKey = (
 
 const TIDY: Prefer<'palisade'> = { kind: 'flag', kw: 'clear-complete-regions', glyph: 'clearRegion' }
 
-// validate_params palisade.c:164-185:宽高、区域大小各 ≥ 1;区域大小整除面积;full 下不能
-// 等于面积(界面没法赢),等于 2 时要有一维为 1。区域大小在计数层:改棋盘时它吸附到
-// 最近的约数,自己只能在约数之间跳。INT_MAX 那条在 100 以内碰不到。
+// validate_params palisade.c:164-185:宽高、区域大小各 ≥ 1;区域大小整除面积;full 下不能等于
+// 面积,等于 2 时要有一维为 1。
 const custom: Custom<'palisade'> = {
   fields: [
     width(1),

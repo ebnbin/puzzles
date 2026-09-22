@@ -1,6 +1,5 @@
-// 注册表的构建期不变量,vite.config.ts 在每次 build/dev 启动时跑(原
-// scripts/verify-palette.mjs 的继任:表搬进了四十个游戏文件,检查跟着搬)。
-// 返回问题清单,空数组 = 全部通过;报错文案要说清怎么修,不只说错了。
+// 注册表的构建期不变量,vite.config.ts 在每次 build/dev 启动时跑。返回问题清单,空数组 = 全部
+// 通过;报错文案要说清怎么修。
 import { BACKGROUND } from '../../engine/palette'
 import type { DialogControl } from '../../engine/types'
 import { facts } from '../facts'
@@ -37,8 +36,8 @@ export function verifyGames(
     if (game.id !== name)
       bad.push(`${name} 的 id 写成了 ${game.id}:注册名就是身份,两处必须一致`)
 
-    // 上游 request_keys 报出来的键,键区都得有:按默认那一局的参数算一遍 keypad。
-    // 上游报空的游戏,键全是我们自己加的,没有可核的。
+    // 上游 request_keys 报出来的键,键区都得有:按默认那一局的参数算一遍 keypad;上游报空的
+    // 游戏没有可核的。
     const wanted = facts[name].keys
     if (wanted.length) {
       const keys = game.keypad({ game: name, params: facts[name].params, prefs: controlsOf(name) })

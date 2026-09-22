@@ -1,15 +1,9 @@
-// 自定义参数的申报与联动机器。看不见游戏:字段按上游 game_configure 的顺序申报、按
-// 位置绑定(上游 custom_params 自己就是按 cfg[i] 读的),规则是各游戏 validate_params(full)
-// 的逐条移植,这里只负责把「改一个值」变成「一组合法的值」。
-//
-// 层级:mode(开关、具名枚举)> dim(尺寸)> count(由尺寸派生的计数、小数、数值枚举)。
-// 改动一个字段时,它自己不动,mode 永远不动,其余按层级修复:先动计数再动尺寸,每次
-// 只把一个字段挪到满足自身规则的最近值。尺寸之间对等:动了宽,高让位。搜索尺寸的
-// 新值时不看涉及计数的规则——计数随后自己会让。修不好即这一步不允许,slider 吸附到
-// 最近能修好的值。
-//
-// 两条自家规则住在这里,不进各游戏的规则表:宽高不超过 100,宽高比不超过 4:1;只对
-// role 为 width / height 的字段生效。
+// 自定义参数的申报与联动机器。看不见游戏:字段按上游 game_configure 的顺序申报、按位置绑定,
+// 规则是各游戏 validate_params(full) 的逐条移植,这里只负责把「改一个值」变成「一组合法的值」。
+// 层级:mode(开关、具名枚举)> dim(尺寸)> count(由尺寸派生的计数、小数、数值枚举)。改动的字段
+// 自己不动,mode 永远不动,其余按层级修到满足自身规则的最近值;修不好即这一步不允许。
+// 两条自家规则住在这里:宽高不超过 100,宽高比不超过 4:1;只对 role 为 width / height 的字段生效。
+// 上游各处的 INT_MAX 溢出检查在 100 以内都碰不到,申报里不写。
 import type { DialogControl } from '../../engine/types'
 import type { Strings } from '../../i18n'
 import type { GameName } from '../game'
@@ -43,9 +37,9 @@ export type FloatField = {
   step: number
   digits: number
 }
-// C_CHOICES 两种画法:pick 是具名枚举,分段按钮,选项逐个给词;scale 的选项本质是
-// 数("1"、"20%"),slider,当前值直接显示上游的选项原文。pick 的 options 数必须等于
-// 上游 choices 数——validate_params 里 diff >= DIFFCOUNT 那类拒绝就靠它封死,不另写 rule。
+// C_CHOICES 两种画法:pick 是具名枚举,分段按钮,选项逐个给词;scale 的选项本质是数,画 slider,
+// 当前值显示上游的选项原文。pick 的 options 数必须等于上游 choices 数,validate_params 里
+// diff >= DIFFCOUNT 那类拒绝靠它封死,不另写 rule。
 export type PickField<O extends readonly Word[] = readonly Word[]> = {
   kind: 'pick'
   key: string
@@ -218,8 +212,7 @@ function repair(model: Model, start: Values, changed: string): Values | null {
   let values = start
   const floor = model.tier.get(changed) ?? 2
   const movable = (k: string) => k !== changed && (model.tier.get(k) ?? 2) >= Math.max(1, floor)
-  // 坏掉的规则里只要有一条没有能动的字段,怎么修都修不好,直接答 null;不然先去修别的
-  // 规则会白搜一遍(blackbox 球数下限扫到格数以上时,每个刻度都要把上限扫一万格)。
+  // 坏掉的规则里只要有一条没有能动的字段,直接答 null。
   if (model.rules.some((r) => r.bad(start) && !r.on.some(movable))) return null
   for (let i = 0; i < REPAIR_STEPS; i++) {
     const broken = model.rules.find((r) => r.bad(values))
@@ -228,7 +221,7 @@ function repair(model: Model, start: Values, changed: string): Values | null {
       .filter(movable)
       .sort((a, b) => (model.tier.get(b) ?? 2) - (model.tier.get(a) ?? 2))
     // 先找一步就把自身规则全满足的字段;都没有再退一步:只把这条坏规则修好,连带弄坏的
-    // 留给下一轮换个字段修——「必须正方形」加上尺寸下限这种要两个字段一起动的,靠这一手。
+    // 留给下一轮换个字段修。
     let moved = false
     for (const strict of [true, false]) {
       for (const key of targets) {
@@ -309,9 +302,8 @@ export function neighbour(
 
 // ---------------------------------------------------------------- 常用字段
 
-// 多数游戏的棋盘宽高就叫 "Width" / "Height";键是上游 game_params 里的变量名,多数叫
-// w / h,叫别的(width、w2)由游戏传进来。上限由自家规则封在 100,这里只填上游的下限
-// (来源行号写在各游戏的申报旁)。
+// 键是上游 game_params 里的变量名,多数叫 w / h,叫别的由游戏传进来;上限由自家规则封在 100,
+// 这里只填上游的下限(来源行号写在各游戏的申报旁)。
 export const width = (min: number, key = 'w'): IntField => ({
   kind: 'int',
   key,
@@ -339,8 +331,7 @@ export const difficulty = <const O extends readonly Word[]>(options: O, key = 'd
   options,
 })
 
-// 打乱步数(sixteen / twiddle / netslide 同名同义):上游只要求非负,0 = 随机打乱。
-// 上限是自家取的实用值:步数过了行列数的量级就和随机打乱分不出来了。
+// 打乱步数(sixteen / twiddle / netslide 同名同义):上游只要求非负,0 = 随机打乱;上限是自家取的。
 export const shuffles = (): IntField => ({
   kind: 'int',
   key: 'movetarget',

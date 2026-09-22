@@ -1,12 +1,8 @@
 // Map:四色染图。上游 map.c。
-// 上游没有任何键能说出一个颜色,四个颜色键走存档门写走子(<颜色>:<区域>)。
-// 区域编号问引擎,不算几何——重写 map.c 几何的方案试过,错在对角线格子依赖
-// SHA-1 洗牌的访问顺序,一局约 1% 的格子错、错得很安静。现在先把每个区域刷上
-// 颜色再让引擎自己说(全涂色让「沉默」只剩「这是线索」一个意思),代价每按一次
-// 70–120ms。改这里跑 scripts/check-map.mjs 和 check-clues.mjs。
-// 光标坐标是全 app 唯一一份坐标镜像:调色板要往光标那格落色。敢记是因为
-// midend_deserialise 每次重建 game_ui、光标回原点,每按一次调色板就重新对齐。
-// 线索表从「发牌那一刻的录像」读出(readTape):光标站上线索时颜色键置灰。
+// 上游没有任何键能说出一个颜色,四个颜色键走存档门写走子(<颜色>:<区域>);区域编号问引擎,
+// 不算几何:先把每个区域刷上颜色再让引擎说。改这里跑 scripts/check-map.mjs 和 check-clues.mjs。
+// 光标坐标是全 app 唯一一份坐标镜像:midend_deserialise 每次重建 game_ui、光标回原点,每按一次
+// 调色板就重新对齐。线索表从发牌那一刻的录像读出(readTape),光标站上线索时颜色键置灰。
 import type { Board, Game, Gate, Key, View } from './game'
 import { keyOf, plain } from './game'
 import { fill } from '../i18n/fill'
@@ -95,8 +91,7 @@ const wording = (paint: Paint, at: { colour: number; pencil: number }, r: number
   return `${paint.colour < 0 ? 'C' : paint.colour}:${r}`
 }
 
-// 本函数必须在一次同步调用内做完,中间不能插 await 或分帧:探针盘(全涂色)和
-// 发牌盘都真的画上了 canvas,只靠浏览器来不及合成才不可见。
+// 必须在一次同步调用内做完,不能插 await 或分帧:探针盘真的画上了 canvas。
 export function paintRegion(gate: Gate, at: Spot, paint: Paint): void {
   const orig = gate.read()
   const lines = fields(orig)
@@ -112,9 +107,7 @@ export function paintRegion(gate: Gate, at: Spot, paint: Paint): void {
   if (!start || !stood) return
 
   const walk = (to: Spot) => {
-    // 这一记不多余:每次 loadGame 后 game_ui 重建、光标藏在原点没醒;map 的方向
-    // 键总是「移动 + 唤醒」,而 0 的左边没有格,ArrowLeft 是唯一原地唤醒的按法。
-    // 删掉它,to=(0,0) 时探针第一记 Enter 会被吃掉去唤醒,调色板静默哑掉。
+    // loadGame 后 game_ui 重建、光标藏在原点没醒;ArrowLeft 是唯一原地唤醒的按法(0 的左边没有格)。
     gate.send('ArrowLeft')
     for (let i = 0; i < to.x; i++) gate.send('ArrowRight')
     for (let i = 0; i < to.y; i++) gate.send('ArrowDown')
@@ -132,9 +125,8 @@ export function paintRegion(gate: Gate, at: Spot, paint: Paint): void {
     const m = /^C:(\d+)$/.exec(played[played.length - 1].value)
     if (m) region = +m[1]
   }
-  // given 检查不是冗余:存档门绕过 interpret_move,execute_move 对涂色走子只查
-  // 区域号在范围内(map.c:2638),线索区域照样被覆写;拒绝线索的守卫在
-  // interpret_move 那侧(map.c:2587),不在这条路径上,「不是线索」必须由这里证明。
+  // 存档门绕过 interpret_move,拒绝线索的守卫(map.c:2587)不在这条路上;execute_move 只查
+  // 区域号在范围内(map.c:2638),线索由这里拒。
   if (region === null || region >= grid.n || start.given[region]) return restore()
 
   const move = wording(paint, { colour: stood.colour[region], pencil: stood.pencil[region] }, region)
@@ -256,8 +248,7 @@ const swatchKey = (i: number): Key<Facts> => ({
   press: paintPress(i),
 })
 
-// 三条偏好摆两条:通关闪法不摆,它只在解完那零点几秒可见,那时手已经离开键区。
-// 「Number regions」和 L 键是同一个开关(map.c:2500),所以偏好申报 volatile。
+// 通关闪法那条不摆。L 键在棋盘上翻 show-numbers(map.c:2500):volatile。
 const NUMBERED: Prefer<'map'> = { kind: 'flag', kw: 'show-numbers', glyph: 'numberRegion' }
 
 const STIPPLES: Prefer<'map'> = {
@@ -266,9 +257,7 @@ const STIPPLES: Prefer<'map'> = {
   glyphs: ['stipple', 'stippleBig'],
 }
 
-// validate_params map.c:259-270:宽高 ≥ 2,区域 ≥ 5 且不超过格数;INT_MAX 那条在 100 以内
-// 碰不到。难度不够就重来(map.c:1583-1596):区域数 < 9 或 > 2/3 面积时 50 次后降到 Easy,
-// 夹在中间的没有兜底,但读代码证不了哪个尺寸必然生不出,照上游放行。
+// validate_params map.c:259-270:宽高 ≥ 2,区域 ≥ 5 且不超过格数。
 const custom: Custom<'map'> = {
   fields: [
     width(2),
@@ -335,8 +324,7 @@ const map: Game<'map', Facts> = {
       if ('deal' in saw) {
         const grid = mapSize(saw.deal.split(':')[0])
         if (!grid) return HOME
-        // 线索表从发牌那一刻的录像读:把 STATEPOS 拨回 1 载入一次,录像里
-        // 「有色的格」就是线索,读完把原盘放回去。
+        // 把 STATEPOS 拨回 1 载入一次,录像里有色的格就是线索;读完把原盘放回去。
         const save = saw.gate.read()
         const lines = fields(save)
         let read: Clues | null = null

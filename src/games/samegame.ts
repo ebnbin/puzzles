@@ -1,7 +1,5 @@
-// Same Game:整片消除同色块。上游 samegame.c。
-// current_key_label 不查可见性标志,光标由宿主镜像。「取消选中」不是选中键的
-// 工作(那个键的工作是「选中/消除脚下」),另开第二层;第二层 = 光标站在已
-// 选块上,镜像光标睡着时永不开。
+// Same Game:整片消除同色块。上游 samegame.c。current_key_label 不查可见性标志,光标由宿主镜像。
+// 「取消选中」不是选中键的工作,另开第二层;第二层 = 光标站在已选块上,镜像光标睡着时永不开。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -9,10 +7,8 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWordsAwake } from './util/pad'
 
-// validate_params samegame.c:289-317,不看 full:宽高 ≥ 1;颜色最多 9(296);确保有解时
-// 颜色 ≥ 3 且面积 > 1(300-303),不要求时颜色 ≥ 2 且面积至少是颜色数的两倍(305-310,
-// 每种颜色得凑够两格)。INT_MAX 那条(293)在 100 以内碰不到。有解生成器是概率重试:
-// 起手 2 或 3 格同色,之后往列里插两格团,面积奇偶和起手数一致,任何尺寸都填得满。
+// validate_params samegame.c:289-317,不看 full:宽高 ≥ 1;颜色最多 9(296);确保有解时颜色 ≥ 3 且
+// 面积 > 1(300-303),不要求时颜色 ≥ 2 且面积至少是颜色数的两倍(305-310)。
 const custom: Custom<'samegame'> = {
   fields: [
     width(1),

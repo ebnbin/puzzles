@@ -1,8 +1,6 @@
-// 方向键块的通用机器:方向键、常规功能键、上膛键、双层菜单、块的拼装。
-// 全部吃 View/Board,看不见任何游戏。标签是 midend 的两词原样双传,每个判断都以
-// 两词俱在为前提。
-// 逐游戏的奇异机制(rect 的拖拽记账、palisade 的画面读死活、guess 的三键……)
-// 不在这里:那些是游戏代码,住在各游戏文件里,用这里导出的原语拼。
+// 方向键块的通用机器:方向键、常规功能键、上膛键、双层菜单、块的拼装。全部吃 View/Board,看不见
+// 任何游戏;逐游戏的机制住在各游戏文件里,用这里的原语拼。标签是 midend 的两词原样双传,每个判断
+// 都以两词俱在为前提。
 import type { IconName } from '../../ui/Icon'
 import type {
   Armed,
@@ -54,8 +52,7 @@ const withMods = (stroke: Stroke, mods: Mods | undefined): Stroke => {
   return { ...base, ...(mods.shift ? { shift: true as const } : {}), ...(mods.ctrl ? { ctrl: true as const } : {}) }
 }
 
-// 上了膛的修饰键跟这一步一起发,发出去且真改了局面才卸膛——撞墙那一下没改成,
-// 膛得留着让人再走一次。
+// 上了膛的修饰键跟这一步一起发,发出去且真改了局面才卸膛。
 export function walk<F>(board: Board<F>, dir: Dir, mods?: Mods): void {
   const armed = board.view().armed
   const before = armed ? board.gate((g) => g.read()) : undefined
@@ -88,9 +85,7 @@ export const cross = <F>(): ArrowKey<F>[] => [
 
 export const labelsSilent = (labels: Labels) => !labels.enter && !labels.space
 
-// 这个键此刻按了有没有用。两词俱空 = 上游此刻不认确认键(光标隐藏之类);
-// Enter 之外的键(空格、字面键)沿用「两词俱空才算死」的口径——那些游戏的
-// 报空恰好都表示同一件事。
+// 这个键此刻按了有没有用:Enter 看自己的词,别的键两词俱空才算死。
 const doesNothing = (key: string, labels: Labels) =>
   key === 'Enter' ? !labels.enter : !labels.enter && !labels.space
 
@@ -130,8 +125,7 @@ export type ActSpec<F> = {
   switches?: string
   // 额外的激活判据(tents 读脚下),叠加在标签推导之上。
   on?: (view: View<F>) => boolean
-  // 幂等例外:键按下去无事发生也不灭(pattern 的三个颜色键,全 app 唯一)。
-  // 只豁免「幂等」,不豁免「无光标」——两词俱空照样灭。
+  // 幂等例外:按下去无事发生也不灭(pattern 的三个颜色键,全 app 唯一);只豁免幂等,两词俱空照样灭。
   lit?: true
   // 上游不报标签(current_key_label 注册 NULL)但键读别的路能用:恒可按。
   mute?: true
@@ -177,8 +171,7 @@ const clears = <F>(spec: ActSpec<F>, labels: Labels): string | null => {
   return spec.key === 'Enter' ? ' ' : 'Enter'
 }
 
-// 判决:能按就给要发的键,按不动给原因——「按不动」有四个不同的来源,一个
-// null 盖不住它们(pattern 的 lit 曾因此出过「没光标也全亮」的 bug):
+// 判决:能按就给要发的键,按不动给原因,一个 null 盖不住这几个来源:
 //   asleep   镜像光标睡着
 //   already  按结果命名的键要不到词 = 这一格已经是它(幂等)
 //   blank    当前词不在脸谱里
@@ -193,8 +186,7 @@ const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): Verdict => {
   if (spec.mute) return { send: spec.key }
   const { labels } = view
   if (spec.does) {
-    // 两词俱空先于 does 的解析定性:它是 silent 不是 already,否则 lit 的
-    // 幂等豁免会把「没光标」也放行(pattern 没光标时三个色键全亮的旧 bug)。
+    // 两词俱空先于 does 的解析定性:它是 silent 不是 already,lit 的幂等豁免不放行「没光标」。
     if (labelsSilent(labels)) return { mute: 'silent' }
     if (overwrites(spec, labels)) return { send: spec.key }
     const asks = holding(spec, labels) ? spec.instead : spec.does
@@ -239,8 +231,7 @@ export const act = <F>(spec: ActSpec<F>): ArrowKey<F> => ({
       tip: true,
       on: set,
       ring: spec.ring?.(view),
-      // lit 只豁免幂等(already):刷到一半按钮不许在拇指底下熄灭;
-      // 别的原因(两词俱空、光标睡着)照灭。
+      // lit 只豁免幂等(already),别的原因照灭。
       dead:
         !('send' in verdict) && !(spec.lit && verdict.mute === 'already'),
       held: spec.held
@@ -362,8 +353,8 @@ export function padButtons<F>(
         slot,
         row: rows + 1 - rowOf(slot),
         col: colOf(slot),
-        // 上膛时别的功能键退场,方向键和上膛键自己留着;位置留着(visibility 藏),
-        // iOS 上卸载再插回会画成残片。
+        // 上膛时别的功能键退场,方向键和上膛键留着;位置留着(visibility 藏,不卸载:iOS 上卸载
+        // 再插回会画成残片)。
         gone: !key.moves && view.armed !== null && view.armed.id !== key.id,
         face,
         press: () => key.press(board),

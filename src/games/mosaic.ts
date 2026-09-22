@@ -7,8 +7,7 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-// validate_params mosaic.c:240-249:宽高各 ≥ 3,面积不超过 10000 格(100×100 正好够)。
-// 生成是解不出就重来的概率重试。
+// validate_params mosaic.c:240-249:宽高各 ≥ 3,面积不超过 10000 格。
 const custom: Custom<'mosaic'> = {
   fields: [
     height(3, 'height'),

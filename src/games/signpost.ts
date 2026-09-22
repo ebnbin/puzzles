@@ -1,8 +1,6 @@
-// Signpost:按箭头连出访问序。上游 signpost.c。
-// 标签四态(signpost.c:1479):光标隐藏两词俱空;闲着 From here / To here;
-// 拖拽中两键同词——目标合法时报「落点方向」的词,不合法报 Cancel。
-// 「哪个键开的连接」标签说不出来,自己记一位;拖拽中开拖的键是勾(确认落点),
-// 另一键要么 Cancel(能取消)要么陪跑置灰。
+// Signpost:按箭头连出访问序。上游 signpost.c。标签四态(signpost.c:1479):光标隐藏两词俱空;闲着
+// From here / To here;拖拽中两键同词,目标合法时报「落点方向」的词,不合法报 Cancel。「哪个键开的
+// 连接」标签说不出来,自己记一位;拖拽中开拖的键是勾,另一键要么 Cancel 要么陪跑置灰。
 import type { Game, Labels, View } from './game'
 import { keyOf, plain } from './game'
 import type { Custom } from './util/custom'
@@ -61,8 +59,7 @@ const linkKey = (
     },
   })
 
-// validate_params signpost.c:430-440:宽高各 ≥ 1,full 下不能都是 1(界面没法把它从未解
-// 走到已解);INT_MAX 那条在 100 以内碰不到。生成是填不满就重来的概率重试。
+// validate_params signpost.c:430-440:宽高各 ≥ 1,full 下不能都是 1。
 const custom: Custom<'signpost'> = {
   fields: [
     width(1),

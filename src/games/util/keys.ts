@@ -22,7 +22,7 @@ export function leadingNumber(text: string | undefined): number | null {
 export const charButton = (shown: number) =>
   shown <= 9 ? '0'.charCodeAt(0) + shown : 'a'.charCodeAt(0) + shown - 10
 
-// unequal 超过 9 阶从 '0' 起标,为的是键面保持一字宽。
+// startAtZero:unequal 超过 9 阶从 '0' 起标,键面保持一字宽。
 export function digitKeys<F>(
   count: number,
   options: { startAtZero?: boolean } = {},
@@ -112,9 +112,8 @@ export function preference<G extends GameName>(
   return control.value
 }
 
-// 上游的偏好摆成第六类的键:脸读当前值,按一下翻转或走下一格,再写回。
-// 次序不听调用方的,按上游 get_prefs 报出来的先后排——键区上的顺序和偏好面板里
-// 的顺序永远一致(同宿主排六类:顺序是结构,不是各游戏手写的约定)。
+// 上游的偏好摆成第六类的键:脸读当前值,按一下翻转或走下一格,再写回。次序按上游 get_prefs
+// 报出来的先后排,不听调用方的。
 export function preferKeys<G extends GameName>(
   deal: { game: G; prefs: readonly DialogControl[] },
   wanted: readonly Prefer<G>[],
@@ -132,8 +131,7 @@ export function preferKeys<G extends GameName>(
         return {
           group: 'prefer',
           fronts: at,
-          // on 管填充色,held 管 aria-pressed:开关键两样都要,不然读屏软件
-          // 两个状态听起来一模一样(PuzzleActions 早就是这个分工)。
+          // on 管填充色,held 管 aria-pressed:开关键两样都要。
           face: (view) => {
             const on = flag(game, view.prefs, kw as FlagKw<G>)
             return { art: { glyph: want.glyph }, on, held: on }
@@ -157,8 +155,7 @@ export function preferKeys<G extends GameName>(
       return {
         group: 'prefer',
         fronts: at,
-        // 多选一没有「开」这一说,每一格都同样正当:状态全由脸说,不点亮。
-        // 脸画的是「现在是哪一格」,不是「按下去会变成什么」(判据三)。
+        // 多选一不点亮:状态全由脸说,脸画的是「现在是哪一格」。
         face: (view) => ({
           art: { glyph: want.glyphs[preference(game, view.prefs, kw as ChoiceKw<G>)] },
         }),

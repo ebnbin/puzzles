@@ -1,6 +1,5 @@
-// Untangle:拖顶点解开交叉。上游 untangle.c。
-// 上游有键盘光标却不实现 current_key_label(注册 NULL),照字面读标签两个按钮
-// 会整局灰着——它的 Enter 每条分支都做事,豁免是免费的:两个键恒可按(mute)。
+// Untangle:拖顶点解开交叉。上游 untangle.c。有键盘光标但 current_key_label 注册 NULL;它的 Enter
+// 每条分支都做事,两个键恒可按(mute)。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -15,9 +14,7 @@ const CROSSED: Prefer<'untangle'> = { kind: 'flag', kw: 'show-crossed-edges', gl
 
 const VERTICES: Prefer<'untangle'> = { kind: 'cycle', kw: 'vertex-style', glyphs: ['vertex', 'vertexNumber'] }
 
-// validate_params untangle.c:221-233:点数 ≥ 4,INT_MAX 那条碰不到。上游没有上限,画布
-// 上一百个点已经拖不动、找交叉又是平方级,上限取 100。生成是先在网格上连平面图再打乱
-// 到出现交叉为止,4 个点起都有可交叉的独立边,只是概率重试。
+// validate_params untangle.c:221-233:点数 ≥ 4;上游没有上限,取 100。
 const custom: Custom<'untangle'> = {
   fields: [{ kind: 'int', key: 'n', word: 'points', min: 4, max: 100, role: 'count' }],
   rules: [],

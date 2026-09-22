@@ -1,6 +1,5 @@
-// Loopy:围出单一闭环。上游 loopy.c。完全不接受键盘,源码原话是 "I think it's
-// only possible to play this game with mouse clicks, sorry"(loopy.c:3074);
-// current_key_label 注册 NULL。中键「未知」是快捷方式:点一下已画的线就是它。
+// Loopy:围出单一闭环。上游 loopy.c。完全不接受键盘(loopy.c:3074),current_key_label 注册 NULL;
+// 中键「未知」是快捷方式(点一下已画的线)。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom, Word } from './util/custom'
@@ -17,9 +16,8 @@ const FOLLOW: Prefer<'loopy'> = {
   glyphs: ['followOff', 'followGrid', 'followSmart'],
 }
 
-// validate_params loopy.c:699-721:每种网格各有最小尺寸(GRIDLIST loopy.c:276-294 的两个
-// 数):两维都不小于前一个,至少一维不小于后一个;grid.c 里各网格自己的校验全是防溢出,
-// 100 以内碰不到。难度是等到低一档解法解不动为止的概率重试。选项序同 GRIDLIST。
+// validate_params loopy.c:699-721:每种网格各有最小尺寸(GRIDLIST loopy.c:276-294 的两个数):
+// 两维都不小于前一个,至少一维不小于后一个。选项序同 GRIDLIST。
 const GRIDS = [
   ['squares', 3, 3], ['triangular', 3, 3], ['honeycomb', 3, 3], ['snubSquare', 3, 3],
   ['cairo', 3, 4], ['greatHexagonal', 3, 3], ['octagonal', 3, 3], ['kites', 3, 3],

@@ -16,7 +16,6 @@ import {
 import { act, cross } from './util/pad'
 
 // validate_params unequal.c:268-277:阶数 3..32;相邻模式下 Tricky 起的难度要阶数 ≥ 5。
-// 试够次数还造不出指定难度时上游自己降一档(unequal.c:1255),是降级不是失败。
 const ADJACENT = 1
 const SET = 2
 const custom: Custom<'unequal'> = {

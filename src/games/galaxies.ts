@@ -1,6 +1,5 @@
-// Galaxies:点对称星系分割。上游 galaxies.c。Enter 七个词一个键(它的标签
-// 不看是哪个键,第二个键会是复制)。提示键走一步显然推理,料在发牌时定死,
-// 第一按之后棋盘不再动。
+// Galaxies:点对称星系分割。上游 galaxies.c。Enter 七个词一个键(标签不看是哪个键,第二个键
+// 会是复制)。提示键只在第一按有效(料在发牌时定死)。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -9,8 +8,7 @@ import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
 
-// validate_params galaxies.c:328-345:宽高各 ≥ 3;INT_MAX 那条在 100 以内碰不到。生成是
-// 难度不符就 goto 重来的概率重试(galaxies.c:1500-1516)。
+// validate_params galaxies.c:328-345:宽高各 ≥ 3。
 const custom: Custom<'galaxies'> = {
   fields: [width(3), height(3), difficulty(['normal', 'unreasonable'])],
   rules: [],
