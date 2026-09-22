@@ -2,7 +2,24 @@
 // scripts/verify-palette.mjs 的继任:表搬进了四十个游戏文件,检查跟着搬)。
 // 返回问题清单,空数组 = 全部通过;报错文案要说清怎么修,不只说错了。
 import { BACKGROUND } from '../../engine/palette'
+import type { DialogControl } from '../../engine/types'
+import { facts } from '../facts'
 import type { Game, GameName } from '../game'
+
+// facts 里录的偏好整表,拼成引擎会交来的控件样子,给构建期算一次 keypad 用。
+const controlsOf = (name: GameName): DialogControl[] =>
+  (
+    facts[name].prefs as readonly {
+      kind: 'boolean' | 'choices'
+      label: string
+      initial: boolean | number
+      options?: readonly string[]
+    }[]
+  ).map((p) =>
+    p.kind === 'boolean'
+      ? { kind: 'boolean', label: p.label, value: p.initial === true }
+      : { kind: 'choices', label: p.label, choices: [...(p.options ?? [])], value: Number(p.initial) },
+  )
 
 export function verifyGames(
   // 注册表就是 Game<GameName, any>:F 逐游戏不同,这里只读申报组,不碰键。
@@ -20,9 +37,21 @@ export function verifyGames(
     if (!published.some((g) => g.name === name))
       bad.push(`注册表有 ${name},games.json 没有:它不是上游收录的游戏`)
 
-  for (const [name, game] of Object.entries(games)) {
+  for (const [name, game] of Object.entries(games) as [GameName, Game<GameName, unknown>][]) {
     if (game.id !== name)
       bad.push(`${name} 的 id 写成了 ${game.id}:注册名就是身份,两处必须一致`)
+
+    // 上游 request_keys 报出来的键,键区都得有:按默认那一局的参数算一遍 keypad。
+    // 上游报空的游戏,键全是我们自己加的,没有可核的。
+    const wanted = facts[name].keys
+    if (wanted.length) {
+      const keys = game.keypad({ game: name, params: facts[name].params, prefs: controlsOf(name) })
+      if (!keys) bad.push(`${name} 的 keypad() 认不出默认参数串 ${facts[name].params}`)
+      const have = new Set((keys ?? []).map((k) => k.button))
+      for (const { button, label } of wanted)
+        if (!have.has(button))
+          bad.push(`${name} 的键区缺上游 request_keys 报的 ${label ?? button}(button ${button}):补进 keypad()`)
+    }
 
     const { dark } = game
     if (dark.paper && dark.relief)

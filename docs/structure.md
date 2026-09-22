@@ -16,7 +16,7 @@ wasm 产物)。
 | `package.json` | 依赖与五个命令:`dev` / `build`(tsc + vite,唯一的自动检查)/ `preview` / `doc` / `verify-doc` |
 | `package-lock.json` | 依赖锁。playwright 故意不在里面,用时临时装 |
 | `tsconfig.json` | TypeScript 配置 |
-| `vite.config.ts` | 构建配置 + 构建期数据对账:注册表↔games.json(`games/util/verify.ts`)、两份文案键集与占位符(`i18n/verify.ts`),不过就不出包;另把这份构建的 commit 短 SHA define 进包(`src/version.ts` 接) |
+| `vite.config.ts` | 构建配置 + 构建期数据对账:注册表↔games.json、键区覆盖上游 request_keys(`games/util/verify.ts`)、两份文案键集与占位符(`i18n/verify.ts`),不过就不出包;另把这份构建的 commit 短 SHA define 进包(`src/version.ts` 接) |
 | `vercel.json` | 部署:SPA 重写、逐路径 Cache-Control(非内容寻址的 URL 不写 immutable,铁律) |
 | `.gitattributes` | 生成物与上游副本的名单(linguist-generated / vendored):哪些文件不许手改,以这里为准 |
 | `.gitignore` | `dist/`、`node_modules/` 等不入库 |
@@ -78,22 +78,24 @@ ground truth。
 
 | 文件 | 作用 |
 | --- | --- |
-| `game.ts` | 契约:`Game<F>` 十个必填成员(upstream / touch / dark / pages / types / prefs / keypad / arrows / observe)与 View / Board / Gate / Saw 类型;类型里不出现任何游戏名。`types.custom` 是自定义参数的申报 |
+| `game.ts` | 契约:`Game<G, F>` 十个必填成员(upstream / touch / dark / pages / types / prefs / keypad / arrows / observe)与 View / Board / Gate / Saw 类型;G 是游戏名,`types.custom` / `prefs.defaults` 的类型由它从 facts 取 |
 | `index.ts` | 注册表——全项目唯一的「游戏名 → 行为」映射 |
+| `facts.ts` | 生成物(`record-facts.mjs`):每个游戏引擎运行时报出来的静态事实——默认参数串、预设、自定义参数控件、偏好控件及 kw / 选项 kw、request_keys、调色板、能否求解;申报的类型和对账基准 |
 | `net.ts` … `mosaic.ts` × 40 | 每个游戏的完整自述:上游事实、触摸映射、深色申报、键区、方向键块、观察器 |
 
 `src/games/util/` 只放看不见游戏的机器(判据:参数与实现里没有游戏名):
 
 | 文件 | 作用 |
 | --- | --- |
-| `custom.ts` | 自定义参数的申报类型与联动机器:字段按上游 label 认,规则是各游戏 `validate_params(full)` 的逐条移植;改一个值时按「模式 > 尺寸 > 计数」的层级把其余字段修到最近合法值,尺寸之间对等让位;两条自家规则(宽高 ≤ 100、宽高比 ≤ 4:1)也住这里 |
+| `custom.ts` | 自定义参数的申报类型与联动机器:字段按上游 game_configure 的顺序申报、按位置绑定(`Custom<G>` 从 facts 取该游戏的控件元组,字段数、种类、pick 选项数都在类型里),规则是各游戏 `validate_params(full)` 的逐条移植;改一个值时按「模式 > 尺寸 > 计数」的层级把其余字段修到最近合法值,尺寸之间对等让位;两条自家规则(宽高 ≤ 100、宽高比 ≤ 4:1)也住这里 |
 | `declare.ts` | `verbatim` / `samePages` / `keepPencil` 申报速记 |
-| `prefs.ts` | 偏好面板的文案表:上游 get_prefs 的 label 和选项原文 → 词条;认不出的原样显示英文 |
-| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好匹配、偏好键(`preferKeys`:布尔按 label、多选一按答案表,一律按上游序排) |
+| `prefs.ts` | 偏好面板的文案表:上游 get_prefs 的 label 和选项原文 → 词条;键集由 facts 的联合类型钉死,缺一条编译不过 |
+| `keys.ts` | 上方键区构造器:数字键(阶数解析、`charButton` 字符换算)、清除键、上游的 `h`/`J`/`M`、偏好读取(`flag` / `preference`,按 kw)、偏好键(`preferKeys`:`Prefer<G>` 按 kw 申报,一律按上游序排) |
 | `mirror.ts` | 光标位置镜像的几何:夹边、不绕回,同上游 `move_cursor` 语义 |
 | `pad.ts` | 方向键块机器:标签推导(`wouldSend` 判决)、act / arm / latch / layer、`padButtons` 拼装 |
 | `save.ts` | 上游存档文件语法:字段读写、存档门内的改写与补闪 |
-| `verify.ts` | 构建期不变量:注册表与 games.json 双向对账、深色申报检查 |
+| `upstream.ts` | facts 的类型与查询:`Configure<G>` / `PrefKw<G>` / `PrefLabel` 等联合类型,`prefAt` / `optionAt` 按 kw 查下标,查不到 throw |
+| `verify.ts` | 构建期不变量:注册表与 games.json 双向对账、深色申报检查、键区覆盖上游 request_keys(按 facts 的默认参数算一遍 keypad) |
 
 ### src/pages/ —— 三个页面,一页一包
 
@@ -194,6 +196,7 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | --- | --- |
 | `build-games.sh` | 编译 vendor 40 个游戏为 wasm(要 emsdk/cmake/ninja),接 `engine/` 两份替身,产出 `public/engine/` |
 | `extract-games.mjs` | 从上游抽 `src/games.json` 与 `public/help/en.json` |
+| `record-facts.mjs` | 在 node 里裸跑 `public/engine/**`,录每个游戏的静态事实到 `src/games/facts.ts`(偏好 kw 靠 `js_save_prefs` 的 kw=value 行按序拉链) |
 | `build-doc.mjs` | halibut 出手册静态页,拼 `public/doc/doc.css` |
 | `verify-doc.mjs` | 校验 `doc-zh/` 翻译与上游手册结构一致(要 halibut,不在 build 里) |
 | `build-tiles.mjs` | 画廊磁贴。三套图是引擎 + 深色翻译的照片:改任一来源,tiles/howto/art 三套一起重画 |
@@ -201,14 +204,13 @@ URL 都是已发布契约(外站与缓存按址引用),改名之前先问。
 | `build-art.mjs` | undead 怪物图 |
 | `build-shot.mjs` | README 首图 `docs/gallery.png` 与分享卡 `og.png` |
 | `build-appicon.mjs` | 四个应用图标(maskable 留白规矩在注释里) |
-| `check-keys.mjs` | 六游戏键面与上游 `midend_request_keys` 对账,五个自造键盘断言上游为空 |
 | `check-cube.mjs` | cube 滚动置灰模型对引擎逐格验证(升级上游后必跑) |
 | `check-map.mjs` | map 调色板走存档门涂色:涂的区域 = 光标站的区域 |
 | `check-clues.mjs` | map 线索格判定与引擎逐格对账 |
 | `check-palisade.mjs` | palisade 从画面读键死活,与引擎走子逐按对账 |
 | `check-solved.mjs` | 完成判定四态:求解器不记、自己解记、沿重武装、不重复记 |
 | `check-focus.mjs` | 键盘不认焦点:一圈会抢焦点的操作走完,物理键盘每步都还到得了引擎 |
-| `check-prefer.mjs` | prefer 键:十六个游戏的偏好逐个还认得出、组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈 |
+| `check-prefer.mjs` | prefer 键:组序 prefer 收尾、按一下真写进偏好存档、多选一走得完一圈、默认值与存档的先后 |
 | `check-dock.mjs` | 停靠面板:让位不盖住、非模态下键盘与焦点、记忆的读写与复原、宽窄切换、挂着的 box 给键区让位 |
 | `lib/boot.mjs` | 契约测试共用开机礼:起浏览器、走首页进游戏、等引擎活 |
 | `lib/pictures.mjs` | 出图脚本共用:路径、主题、上游裁剪参数读取 |
