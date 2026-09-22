@@ -35,11 +35,6 @@ async function hintUntilSolved(limit = 400) {
 }
 
 await reopen()
-if ((await status()) === null) {
-  console.log('  引擎里没有 status(),是旧产物,跳过整份检查')
-  await browser.close()
-  process.exit(0)
-}
 
 // 一、求解器解出的不记,但浮层照抬——浮层认「结束」,不认「谁解的」。
 // 开局第一个动作就是求解,考的是启动时那次基线补得对不对。

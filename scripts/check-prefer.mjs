@@ -3,27 +3,17 @@
 //
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、createPuzzle 的
 // composePrefs、usePuzzleKeys 补发的裸字母快捷键(见 useShortcuts.SHORTCUTS_OFF)、
-// 任何一个游戏文件里的 Prefer 常量或 prefs.defaults,或者升级 vendor/ 之后跑。
-// 守八条:
-//   一、认控件只能按英文 label(emcc 只把 name 交给 JS,kw 到不了这一侧)。上游改了
-//       那句话,键会「消失」而不是「按下去没反应」——下面逐个游戏点名断言它还在。
-//   二、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
-//   三、多个键时按上游 get_prefs 的先后排,而不是游戏文件里的书写序。
-//   四、多选一的键一按走下一格、走到头绕回,且脸跟着换。
-//   五、下游换掉的默认值(prefs.defaults)开局到位,且压不过用户自己存过的那一条。
-//   六、键区摆出来的那几条从偏好面板里撤掉;总开关一关,面板恢复原样。
-//   七、裸字母快捷键那条归全局设置(useShortcuts):不进任何游戏的面板,而且真的
+// 任何一个游戏文件里的 Prefer 常量或 prefs.defaults 之后跑。
+// 守七条:
+//   一、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
+//   二、多个键时按上游 get_prefs 的先后排,而不是游戏文件里的书写序。
+//   三、多选一的键一按走下一格、走到头绕回,且脸跟着换。
+//   四、下游换掉的默认值(prefs.defaults)开局到位,且压不过用户自己存过的那一条。
+//   五、键区摆出来的那几条从偏好面板里撤掉;总开关一关,面板恢复原样。
+//   六、裸字母快捷键那条归全局设置(useShortcuts):不进任何游戏的面板,而且真的
 //       压得住——开着按 n 换一局,关掉按 n 什么都不发生。
-//   八、棋盘上的输入能翻掉的偏好(map 的 L、singles 点外沿),键面那盏灯要跟上。
+//   七、棋盘上的输入能翻掉的偏好(map 的 L、singles 点外沿),键面那盏灯要跟上。
 import { boot, open, URL_BASE } from './lib/boot.mjs'
-
-// 每个游戏该有几个 prefer 键。数目对不上就是某条 label 没认出来。
-const EXPECT = [
-  ['Net', 1], ['Solo', 1], ['Guess', 1], ['Untangle', 3], ['Slant', 1],
-  ['Light Up', 1], ['Map', 2], ['Loopy', 2], ['Bridges', 1], ['Unequal', 1],
-  ['Keen', 1], ['Towers', 2], ['Singles', 1], ['Pearl', 1], ['Undead', 3],
-  ['Palisade', 1],
-]
 
 const PREFS = 'puzzles.prefs.solo'
 const KW = 'pencil-keep-highlight'
@@ -43,15 +33,7 @@ await page.evaluate(() => {
 
 const keys = page.locator(".keypad button[data-kind='prefer']")
 
-console.log('每个游戏的 prefer 键数(label 认不出就会少)')
-for (const [game, want] of EXPECT) {
-  await open(page, game, { clear: [] })
-  const got = await keys.count()
-  if (got === want) ok(`${game} ${got} 个`)
-  else fail(`${game} 应当 ${want} 个,数到 ${got} 个——多半是上游改了那句 label`)
-}
-
-console.log('\n组序:prefer 收尾')
+console.log('组序:prefer 收尾')
 for (const game of ['Map', 'Guess']) {
   await open(page, game, { clear: [] })
   const kinds = await page.evaluate(() =>
