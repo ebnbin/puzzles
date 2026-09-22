@@ -7,8 +7,6 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Black', 'White', 'Empty']
-
 // validate_params mosaic.c:240-249:宽高各 ≥ 3,面积不超过 10000 格(100×100 正好够)。
 // 生成是解不出就重来的概率重试。
 const custom: Custom<'mosaic'> = {
@@ -37,7 +35,6 @@ const mosaic: Game<'mosaic'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'black', word: 'blackSquare' },
-        words: WORDS,
         does: 'Black',
         instead: 'Empty',
       }),
@@ -46,7 +43,6 @@ const mosaic: Game<'mosaic'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'white', word: 'whiteSquare' },
-        words: WORDS,
         does: 'White',
         instead: 'Empty',
       }),

@@ -8,8 +8,6 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, layerByWords, step } from './util/pad'
 
-const WORDS = ['Advance']
-
 // validate_params inertia.c:208-219:宽高各 ≥ 2,面积 ≥ 6(宝石数是面积的五分之一,至少
 // 得有一颗);INT_MAX 那条在 100 以内碰不到。
 const custom: Custom<'inertia'> = {
@@ -27,7 +25,7 @@ const inertia: Game<'inertia'> = {
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
-    layer: layerByWords(WORDS, ['Advance']),
+    layer: layerByWords(['Advance']),
     keys: [
       step('downLeft', 1), step('down', 2), step('downRight', 3),
       step('left', 4), step('right', 6),
@@ -38,7 +36,6 @@ const inertia: Game<'inertia'> = {
         key: 'Enter',
         layer: 2,
         idle: { glyph: 'advance', word: 'advance' },
-        words: WORDS,
         faces: { Advance: { glyph: 'advance', word: 'advance' } },
       }),
     ],

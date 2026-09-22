@@ -11,8 +11,6 @@ import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PAINT, act, arrowFace, labelsSilent, walk } from './util/pad'
 
-const WORDS = ['Black', 'White', 'Grey']
-
 const BRUSHES: { id: string; mods: Mods }[] = [
   { id: 'black', mods: { ctrl: true } },
   { id: 'white', mods: { shift: true } },
@@ -55,7 +53,6 @@ const brushKey = (
     slot,
     key: does === 'White' ? ' ' : 'Enter',
     idle: { glyph, word: glyph },
-    words: WORDS,
     does,
     lit: true,
     aside: (board) => pick(board, id),

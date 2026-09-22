@@ -8,8 +8,6 @@ import { difficulty, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Black', 'White', 'Empty']
-
 // validate_params unruly.c:287-329:宽高都是偶数且 ≥ 6;行列不重复模式下,宽为 2n 时高
 // 不超过 A177790[n](长 2n 且不三连的行只有这么多种),反之亦然;INT_MAX 那条在 100
 // 以内碰不到。奇数刻度靠规则挡住,slider 松手吸附到相邻的偶数。
@@ -49,7 +47,6 @@ const unruly: Game<'unruly'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'black', word: 'blackSquare' },
-        words: WORDS,
         does: 'Black',
         instead: 'Empty',
       }),
@@ -58,7 +55,6 @@ const unruly: Game<'unruly'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'white', word: 'whiteSquare' },
-        words: WORDS,
         does: 'White',
         instead: 'Empty',
       }),

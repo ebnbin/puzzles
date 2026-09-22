@@ -7,8 +7,6 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Select', 'Cancel']
-
 // validate_params pegs.c:190-229,full 下宽高都 ≥ 4(192);十字只支持上游列出的八对
 // 尺寸(206-217):宽高都在 {5,7,9} 里、且不是 5×5——按机器的规则契约拆成三条,每条改
 // 一个字段就能满足;八边形只有 7×7(225-227),同样拆成宽、高两条;随机形状任意。
@@ -49,7 +47,6 @@ const pegs: Game<'pegs'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'jump', word: 'jump' },
-        words: WORDS,
         faces: {
           Select: { glyph: 'jump', word: 'jump' },
           Cancel: { glyph: 'cancel', word: 'unjump', on: true },

@@ -13,8 +13,6 @@ import { act, cross, wordOf } from './util/pad'
 
 type Facts = { opened: string | null }
 
-const WORDS = ['From here', 'To here', 'Cancel']
-
 const PENDING = '\0pending'
 const IDLING = '\0idling'
 
@@ -53,7 +51,6 @@ const linkKey = (
     slot,
     key,
     idle,
-    words: WORDS,
     word: word(key),
     faces: {
       [idle.word === 'linkFrom' ? 'From here' : 'To here']: idle,

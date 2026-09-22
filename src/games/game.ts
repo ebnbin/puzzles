@@ -134,8 +134,8 @@ export type Slot = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 export type Arrows<F> = {
   keys: readonly ArrowKey<F>[]
-  // 双层菜单的判层;缺省恒 1。'both' = 标签词汇认不出,机器退让、两层都摆。
-  layer?(view: View<F>): 1 | 2 | 'both'
+  // 双层菜单的判层;缺省恒 1。
+  layer?(view: View<F>): 1 | 2
 }
 
 export type ArrowKey<F> = {

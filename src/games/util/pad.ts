@@ -88,9 +88,6 @@ export const cross = <F>(): ArrowKey<F>[] => [
 
 export const labelsSilent = (labels: Labels) => !labels.enter && !labels.space
 
-export const understood = (words: readonly string[], labels: Labels) =>
-  [labels.enter, labels.space].every((w) => !w || words.includes(w))
-
 // 这个键此刻按了有没有用。两词俱空 = 上游此刻不认确认键(光标隐藏之类);
 // Enter 之外的键(空格、字面键)沿用「两词俱空才算死」的口径——那些游戏的
 // 报空恰好都表示同一件事。
@@ -119,9 +116,6 @@ export type ActSpec<F> = {
   key: string
   idle: FaceSpec
   layer?: 1 | 2
-  // 本游戏两个确认键会报的词全集;报出词汇之外的词时机器整个退让
-  // (键回落到 doesNothing 判据),防上游升级换词后按错。
-  words?: readonly string[]
   // 按词换脸。词不在脸谱里就置灰戴默认脸——多张脸的判据见 docs/keys.md。
   faces?: Partial<Record<string, FaceSpec>>
   // 按结果命名:名字是结果,由标签反查此刻哪个键给出它。
@@ -198,29 +192,26 @@ const wouldSend = <F>(spec: ActSpec<F>, view: View<F>): Verdict => {
   if (gatedAsleep(spec, view)) return { mute: 'asleep' }
   if (spec.mute) return { send: spec.key }
   const { labels } = view
-  if (!spec.words || understood(spec.words, labels)) {
-    if (spec.does) {
-      // 两词俱空先于 does 的解析定性:它是 silent 不是 already,否则 lit 的
-      // 幂等豁免会把「没光标」也放行(pattern 没光标时三个色键全亮的旧 bug)。
-      if (labelsSilent(labels)) return { mute: 'silent' }
-      if (overwrites(spec, labels)) return { send: spec.key }
-      const asks = holding(spec, labels) ? spec.instead : spec.does
-      if (labels.enter === asks) return { send: 'Enter' }
-      if (labels.space === asks) return { send: ' ' }
-      return { mute: 'already' }
-    }
-    if (spec.faces) {
-      const face = spec.faces[mine(spec, view)]
-      if (face) return face.idle ? { mute: 'idle' } : { send: spec.key }
-      return clears(spec, labels) ? { send: spec.key } : { mute: 'blank' }
-    }
+  if (spec.does) {
+    // 两词俱空先于 does 的解析定性:它是 silent 不是 already,否则 lit 的
+    // 幂等豁免会把「没光标」也放行(pattern 没光标时三个色键全亮的旧 bug)。
+    if (labelsSilent(labels)) return { mute: 'silent' }
+    if (overwrites(spec, labels)) return { send: spec.key }
+    const asks = holding(spec, labels) ? spec.instead : spec.does
+    if (labels.enter === asks) return { send: 'Enter' }
+    if (labels.space === asks) return { send: ' ' }
+    return { mute: 'already' }
+  }
+  if (spec.faces) {
+    const face = spec.faces[mine(spec, view)]
+    if (face) return face.idle ? { mute: 'idle' } : { send: spec.key }
+    return clears(spec, labels) ? { send: spec.key } : { mute: 'blank' }
   }
   return doesNothing(spec.key, view.labels) ? { mute: 'silent' } : { send: spec.key }
 }
 
 const faceFor = <F>(spec: ActSpec<F>, view: View<F>): FaceSpec => {
-  const known =
-    (!spec.words || understood(spec.words, view.labels)) && !gatedAsleep(spec, view)
+  const known = !gatedAsleep(spec, view)
   const face = known ? spec.faces?.[mine(spec, view)] : undefined
   return face ?? spec.idle
 }
@@ -318,22 +309,17 @@ export const arm = <F>(spec: ArmSpec): ArrowKey<F> => ({
 
 // ---------------------------------------------------------------- 双层菜单
 
-// 第二层的语义是「光标正站在待定物上」:从标签里读哪层开着。词汇之外的词 =
-// 机器退让,两层都摆出来。
+// 第二层的语义是「光标正站在待定物上」:从标签里读哪层开着。
 export const layerByWords =
-  <F>(words: readonly string[], second: readonly string[]) =>
-  (view: View<F>): 1 | 2 | 'both' => {
-    if (!understood(words, view.labels)) return 'both'
-    return [view.labels.enter, view.labels.space].some((w) => !!w && second.includes(w))
-      ? 2
-      : 1
-  }
+  <F>(second: readonly string[]) =>
+  (view: View<F>): 1 | 2 =>
+    [view.labels.enter, view.labels.space].some((w) => !!w && second.includes(w)) ? 2 : 1
 
 // 镜像光标的游戏,光标睡着时第二层从不开(标签盲于可见性,词还挂在嘴上)。
 export const layerByWordsAwake =
-  <F>(words: readonly string[], second: readonly string[]) =>
-  (view: View<F>): 1 | 2 | 'both' =>
-    view.cursor ? layerByWords<F>(words, second)(view) : 1
+  <F>(second: readonly string[]) =>
+  (view: View<F>): 1 | 2 =>
+    view.cursor ? layerByWords<F>(second)(view) : 1
 
 // ---------------------------------------------------------------- 拼装
 
@@ -368,7 +354,7 @@ export function padButtons<F>(
   for (const slot of slots) {
     for (const key of arrows.keys) {
       if (key.slot !== slot) continue
-      if (key.layer !== undefined && layer !== 'both' && key.layer !== layer) continue
+      if (key.layer !== undefined && key.layer !== layer) continue
       const face = key.face(view)
       if (!face) continue
       buttons.push({

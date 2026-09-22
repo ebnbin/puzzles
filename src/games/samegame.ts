@@ -9,8 +9,6 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWordsAwake } from './util/pad'
 
-const WORDS = ['Select', 'Remove', 'Unselect']
-
 // validate_params samegame.c:289-317,不看 full:宽高 ≥ 1;颜色最多 9(296);确保有解时
 // 颜色 ≥ 3 且面积 > 1(300-303),不要求时颜色 ≥ 2 且面积至少是颜色数的两倍(305-310,
 // 每种颜色得凑够两格)。INT_MAX 那条(293)在 100 以内碰不到。有解生成器是概率重试:
@@ -46,7 +44,7 @@ const samegame: Game<'samegame'> = {
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
-    layer: layerByWordsAwake(WORDS, ['Remove']),
+    layer: layerByWordsAwake(['Remove']),
     keys: [
       ...cross(),
       act({
@@ -54,7 +52,6 @@ const samegame: Game<'samegame'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'select', word: 'select' },
-        words: WORDS,
         faces: {
           Select: { glyph: 'select', word: 'select' },
           Remove: { glyph: 'done', word: 'remove', on: true },
@@ -66,7 +63,6 @@ const samegame: Game<'samegame'> = {
         key: ' ',
         layer: 2,
         idle: { glyph: 'cancel', word: 'unselect' },
-        words: WORDS,
         does: 'Unselect',
       }),
     ],
