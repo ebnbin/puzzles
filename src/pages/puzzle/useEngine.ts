@@ -157,8 +157,8 @@ export function useEngine({
           moved()
           checkStatus()
         },
-        // emcc.c 先报 CURSOR_SELECT2 再报 CURSOR_SELECT,这里的形参序(space, enter)
-        // 是故意的;两词同词的抹空由 board.heard 按 echoes 复原。
+        // emcc.c 先报 CURSOR_SELECT2 再报 CURSOR_SELECT,heard 的形参序(space, enter)
+        // 是故意的。
         onKeyLabels: heard,
         onPermalinks: (desc, seed) => {
           arrived(desc)

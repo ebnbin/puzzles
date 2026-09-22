@@ -75,7 +75,7 @@ const custom: Custom<'rect'> = {
 const rect: Game<'rect', Facts> = {
   id: 'rect',
   // 拖拽没动过时两键同报 Cancel(rect.c:2374),要申报给边界复原。
-  upstream: { labels: 'live', echoes: ['Cancel'], cursor: { kind: 'reported' } },
+  upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
   dark: {},
   pages: samePages('rect'),
