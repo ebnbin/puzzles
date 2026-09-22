@@ -1,13 +1,17 @@
 #!/bin/bash
-# 远程容器的全局身份是 Claude,并用 Claude 账号的钥匙给提交签名。GitHub 的贡献图
-# 只看 author,签名校验只看 committer,所以只把 author 设成 owner:committer 留给
-# Claude,签名才继续有效;改 user.* 会把两者一起换掉,签名变成 Invalid。
+# SessionStart 在 resume 与 compact 时也会触发，本脚本只准备环境，不得切换分支。
 set -euo pipefail
+if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then exit 0; fi
+cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}"
 
-if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
-  exit 0
+if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+  git fetch --unshallow origin || echo "session-start: unshallow 失败，稍后手动 git fetch --unshallow origin" >&2
 fi
 
-cd "${CLAUDE_PROJECT_DIR:-$(pwd)}"
+# 作者是用户，提交者保持容器的 Claude 身份：只设 author.*，不改 user.*
 git config author.name "Bin Zhang"
 git config author.email "ebnbin@gmail.com"
+
+git config core.hooksPath "$(git rev-parse --show-toplevel)/.claude/hooks/git"
+
+npm install --no-audit --no-fund --no-save
