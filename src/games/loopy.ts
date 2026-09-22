@@ -1,5 +1,5 @@
 // Loopy:围出单一闭环。上游 loopy.c。完全不接受键盘,源码原话是 "I think it's
-// only possible to play this game with mouse clicks, sorry"(loopy.c:3070);
+// only possible to play this game with mouse clicks, sorry"(loopy.c:3074);
 // current_key_label 注册 NULL。中键「未知」是快捷方式:点一下已画的线就是它。
 import type { Game } from './game'
 import { still } from './game'

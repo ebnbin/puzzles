@@ -13,8 +13,8 @@ const WORDS = ['Black', 'White', 'Empty']
 // 生成是解不出就重来的概率重试。
 const custom: Custom = {
   fields: [
-    width(3, 'width'),
     height(3, 'height'),
+    width(3, 'width'),
     { kind: 'flag', key: 'aggressive', label: 'Aggressive generation (longer)', word: 'aggressive' },
   ],
   rules: [rule('mosaic.c:245', ['width', 'height'], (v) => v.height > Math.floor(10000 / v.width))],

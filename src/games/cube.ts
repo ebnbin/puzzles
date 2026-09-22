@@ -230,7 +230,7 @@ const custom: Custom = {
     rule('cube.c:553', ['d1', 'solid'], (v) => v.solid === CUBE && v.d1 <= 1),
     rule('cube.c:553', ['d2', 'solid'], (v) => v.solid === CUBE && v.d2 <= 1),
     rule('cube.c:558', ['d1', 'd2', 'solid'], (v) => v.solid !== CUBE && v.d1 <= 0 && v.d2 <= 0),
-    rule('cube.c:593', ['d1', 'd2', 'solid'], (v) => shortOfClass(v.solid, v.d1, v.d2)),
+    rule('cube.c:594', ['d1', 'd2', 'solid'], (v) => shortOfClass(v.solid, v.d1, v.d2)),
     rule('cube.c:597', ['d1', 'd2', 'solid'], (v) => area(v.solid, v.d1, v.d2) < FACES[v.solid] + 1),
     rule('house', ['d1', 'd2', 'solid'], (v) =>
       v.solid === CUBE && (v.d1 > ASPECT_MAX * v.d2 || v.d2 > ASPECT_MAX * v.d1)),

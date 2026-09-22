@@ -1,7 +1,7 @@
 // Dominosa:骨牌铺满。上游 dominosa.c。
 // current_key_label 不查可见性,光标由宿主镜像(只有方向键唤醒);半格网格,
 // 只有「正好一个坐标是奇数」的落点两个键才活。数字键只高亮不落子,文案换一套
-// 说法,是 assist。
+// 说法,是 assist;上游只认 0-9(dominosa.c:2868),n ≥ 10 也只发到 9。
 import type { Game, Key } from './game'
 import { still } from './game'
 import { fill } from '../i18n/fill'
@@ -41,7 +41,7 @@ const dominosa: Game = {
   keypad: ({ params }) => {
     const n = leadingNumber(params)
     if (n === null) return null
-    return Array.from({ length: n + 1 }, (_, i): Key<null> => {
+    return Array.from({ length: Math.min(n, 9) + 1 }, (_, i): Key<null> => {
       const button = charButton(i)
       const label = String.fromCharCode(button)
       return {

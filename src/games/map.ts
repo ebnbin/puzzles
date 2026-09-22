@@ -134,7 +134,7 @@ export function paintRegion(gate: Gate, at: Spot, paint: Paint): void {
   }
   // given 检查不是冗余:存档门绕过 interpret_move,execute_move 对涂色走子只查
   // 区域号在范围内(map.c:2638),线索区域照样被覆写;拒绝线索的守卫在
-  // interpret_move 那侧(map.c:2588),不在这条路径上,「不是线索」必须由这里证明。
+  // interpret_move 那侧(map.c:2587),不在这条路径上,「不是线索」必须由这里证明。
   if (region === null || region >= grid.n || start.given[region]) return restore()
 
   const move = wording(paint, { colour: stood.colour[region], pencil: stood.pencil[region] }, region)
