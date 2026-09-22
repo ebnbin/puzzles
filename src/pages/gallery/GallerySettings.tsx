@@ -35,8 +35,8 @@ export default function GallerySettings({
 
   const arm = (event: React.MouseEvent) => {
     window.clearTimeout(timer.current)
-    // click 的 detail===0 即键盘触发(Enter/Space 合成的 click):键盘用户不设
-    // 3 秒 disarm 倒计时并把焦点移给确认键——键盘追不上一个会自己消失的目标。
+    // click 的 detail===0 即键盘触发(Enter/Space 合成的 click):键盘用户不设 3 秒 disarm 倒计时,
+    // 焦点移给确认键。
     byKeyboard.current = event.detail === 0
     setAsking(true)
     if (byKeyboard.current) return

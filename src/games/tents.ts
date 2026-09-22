@@ -1,6 +1,6 @@
-// Tents:树旁扎营。上游 tents.c。T/N 是上游的绝对键;「脚下已经是自己那个值」
-// 时改发 B 清空——上游的词分不出帐篷和草,脚下是什么从走子表读(存档的只读
-// 半边:game_ui 不重建、光标不丢、照闪)。树上两个键一起灰(标签两词俱空)。
+// Tents:树旁扎营。上游 tents.c。T/N 是上游的绝对键;「脚下已经是自己那个值」时改发 B 清空:上游
+// 的词分不出帐篷和草,脚下是什么从走子表读(存档的只读半边,game_ui 不重建、光标不丢)。树上两个键
+// 一起灰(标签两词俱空)。
 import type { Game } from './game'
 import { keyOf, plain } from './game'
 import type { Custom } from './util/custom'
@@ -23,9 +23,8 @@ export function tentsGrid(params: string): { w: number; h: number } | null {
 
 const PLACE = /^([TNB])(\d+),(\d+)$/
 
-// STATEPOS 数的是状态数、发牌是第 1 个,已生效走子 = 前 STATEPOS-1 条,其后是
-// redo 尾巴;++played >= at 的 break 必须发生在处理该条之前,差一就把 redo 读进
-// 棋盘——撤销后 squareAt 报「未来」的值,两个开关方向反转。
+// STATEPOS 数的是状态数、发牌是第 1 个,已生效走子 = 前 STATEPOS-1 条,其后是 redo 尾巴;
+// ++played >= at 的 break 必须发生在处理该条之前。
 function written(save: string): Map<string, Square> | null {
   const lines = fields(save)
   if (!lines) return null
@@ -66,8 +65,7 @@ type Facts = {
   under: Square | null
 }
 
-// validate_params tents.c:414-417:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 及以下
-// 的 Tricky 上游自己降成 Easy(tents.c:978),是降级不是失败;其余是概率重试。
+// validate_params tents.c:414-417:宽高各 ≥ 4。
 const custom: Custom<'tents'> = {
   fields: [width(4), height(4), difficulty(['easy', 'tricky'])],
   rules: [],

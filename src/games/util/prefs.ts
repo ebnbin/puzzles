@@ -1,7 +1,6 @@
-// 偏好面板的文案:上游 get_prefs 报出来的 label 和选项原文对应到词条。翻译表按原文做
-// 键——翻译的是文案,不是 id(flash-type 一个 kw 在两个游戏里是两句不同的话);键集由
-// facts 的联合类型钉死,缺一条 tsc 就红。裸字母快捷键那条不在这里:它归全局设置,面板
-// 里不画。
+// 偏好面板的文案:上游 get_prefs 报出来的 label 和选项原文对应到词条。翻译表按原文做键,不按 kw
+// (flash-type 一个 kw 在两个游戏里是两句不同的话);键集由 facts 的联合类型钉死。裸字母快捷键
+// 那条归全局设置,不在这里。
 import type { Word } from './custom'
 import type { PrefLabel, PrefOption, ShortcutsLabel } from './upstream'
 

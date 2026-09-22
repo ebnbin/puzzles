@@ -1,6 +1,5 @@
-// 发牌门面。三条会走到 midend_new_game 的路(New Game、选预设、自定义参数)全部
-// 无条件走镜像——一局要生成多久事先算不出来,所以不分流。主线程那局在镜像算完之前
-// 一动不动:失败和取消都只是「什么都不做」,屏幕上仍是上一局,连 undo 栈都在。
+// 发牌门面。三条会走到 midend_new_game 的路(New Game、选预设、自定义参数)全部走镜像,不分流。
+// 主线程那局在镜像算完之前一动不动:失败和取消都只是「什么都不做」。
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DealAction } from '../../engine/deal'
 import { composePrefs } from '../../engine/createPuzzle'
@@ -9,8 +8,7 @@ import type { PuzzleApi } from '../../engine/types'
 import type { Game, GameName } from '../../games/game'
 import { SHORTCUTS_OFF } from './useShortcuts'
 
-// 加载态立刻透明地拦住输入,过了这个点才把对话框摆出来:多数发牌只要几毫秒,
-// 每次都闪一个模态比偶尔卡一下更烦人。
+// 加载态立刻透明地拦住输入,过了这个点才把对话框摆出来。
 const SHOW_AFTER_MS = 400
 // 摆出来了就至少留这么久,免得在阈值边缘一闪而过。
 const KEEP_MS = 300
@@ -31,8 +29,8 @@ export function useDeal(
   const dealerRef = useRef<Dealer | null>(null)
   const busy = useRef(false)
 
-  // 偏好在局内可以改(菜单里那一段),所以每次重开镜像都现读一遍,不抓快照。
-  // 两边必须是同一份:偏好住在 game_ui 里,而 decode_ui 跑在 apply_prefs 之后。
+  // 偏好在局内可以改,每次重开镜像都现读一遍;两边必须是同一份(偏好住在 game_ui 里,decode_ui
+  // 跑在 apply_prefs 之后)。
   const prefsRef = useRef<() => string | null>(() => null)
   prefsRef.current = () => composePrefs(name, game.prefs.defaults, SHORTCUTS_OFF)
 

@@ -2,13 +2,10 @@
 // (要 vite preview + playwright,build 里没有)。
 import { done, fields } from '../games/util/save'
 
-// 「玩家自己解出」的判据抄上游 flash 那一套(midend_finish_move 加各游戏的
-// flash_length):解出且没求解过。midend_status() 只答前半句——它读的是当前状态,
-// 用求解器解出来同样返回 +1,所以后半句要自己从存档里读。
-//
-// RESTART 会把 cheated 洗掉(midend_restart_game 从 state 0 重新复制),所以只看
-// 最后一个 RESTART 之后有没有 SOLVE,不是整段历史。这一条和上游的 flash 一致。
-// 读不懂的存档就按「求解过」算:宁可漏记一次,也别把求解器的成果记成玩家的。
+// 「玩家自己解出」= 解出且没求解过,同上游 flash 的判据(midend_finish_move 加各游戏的 flash_length)。
+// midend_status() 用求解器解出来同样返回 +1,「没求解过」要自己从存档里读;RESTART 会洗掉 cheated
+// (midend_restart_game 从 state 0 重新复制),所以只看最后一个 RESTART 之后有没有 SOLVE。
+// 读不懂的存档按「求解过」算。
 export function usedSolver(save: string): boolean {
   const lines = fields(save)
   if (!lines) return true

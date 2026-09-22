@@ -1,8 +1,6 @@
-// Net:旋转管道拼出连通网络。上游 net.c。
-// current_key_label 不查自己的可见性标志(net.c:2124 只看锁定),所以光标可见性
-// 由宿主镜像;能唤醒光标的键抄自 interpret_move 键盘那半边(方向、确认、ASDF)。
-// 触摸长按借中键:上游触摸右键(MOD_STYLUS)是锁定,而这个前端发不出 MOD_STYLUS,
-// 中键的锁定与之等价(net.c:2205-2213)。
+// Net:旋转管道拼出连通网络。上游 net.c。current_key_label 不查可见性(net.c:2124),光标由宿主
+// 镜像,唤醒键抄自 interpret_move 键盘那半边(方向、确认、ASDF)。触摸长按借中键:这个前端发不出
+// MOD_STYLUS,中键的锁定与上游触摸右键的锁定等价(net.c:2205-2213)。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -14,8 +12,8 @@ import { act, cross } from './util/pad'
 
 const LOOPS: Prefer<'net'> = { kind: 'flag', kw: 'unlocked-loops', glyph: 'loopWarn' }
 
-// 自定义参数:validate_params net.c:320-382。宽高 ≥ 1(322);概率 0..1(328-331),
-// 上游用 %g 显示,0.05 步进往返无损;INT_MAX 那条(326)在 100 以内碰不到。
+// validate_params net.c:320-382:宽高 ≥ 1(322);概率 0..1(328-331),上游用 %g 显示,0.05 步进
+// 往返无损。
 const custom: Custom<'net'> = {
   fields: [
     width(1, 'width'),

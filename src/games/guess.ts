@@ -1,18 +1,12 @@
 // Guess:猜色版 Mastermind。上游 guess.c。
-// 只自己造了一样东西:一键选色——一按 = 上下把调色板光标顶到那个颜色 + Enter,
-// 正是上游「上下选色、确认落子」那条路缩成一个键(move_cursor 夹边不绕回,
-// 连按 ncolours 次「上」必到第一格:推导,不是记忆;取近的那一头顶)。落完光标
-// 不动,和上游的 CURSOR_SELECT 一致;数字键那条路(落色并前进)不用,两条路
-// 混着走会让「按一下到底动了什么」说不清。
-// 三个功能键的死活全由标签定(guess.c 的 current_key_label 报什么就是什么):
-//   光标在钉子上   Place / Hold   → 保留、删除亮,看结果灰
+// 一键选色是这里唯一自造的键:一按 = 上下把调色板光标顶到那个颜色 + Enter(move_cursor 夹边
+// 不绕回,连按 ncolours 次「上」必到第一格),落完光标不动;数字键那条路(落色并前进)不用。
+// 三个功能键和颜色钉的死活全由标签定:
+//   光标在钉子上   Place / Hold   → 保留、删除、颜色钉亮,看结果灰
 //   光标在看结果位 Submit / ""    → 只有看结果亮
 //   解出来了       "" / ""        → 全灰
-// ⌫ 在「看结果」位会读写 pegs[npegs](数组外,guess.c 唯独没防这一支),
-// 置灰是唯一一道拦;labels.enter !== 'Place' 就是那个传感器。
-// 颜色钉在「看结果」位一起灰:那时 Enter 是交卷,不灰就成了「按颜色变成交卷」。
-// 按下之前再问一次标签,挡的是状态刚变、按钮还没重画完那一瞬间的点击。
-// 'l' 键能切换「数字标签」偏好,所以偏好 volatile。
+// ⌫ 在「看结果」位会读写 pegs[npegs](数组外,guess.c 没防这一支),置灰是唯一一道拦。
+// l 键在棋盘上翻「数字标签」偏好:volatile。
 import type { ArrowKey, Game, Key, Slot } from './game'
 import { still } from './game'
 import { fill } from '../i18n/fill'
@@ -27,8 +21,6 @@ import { step } from './util/pad'
 const COL_FRAME = 1
 const COL_1 = 6
 
-// 全靠颜色分辨的唯一一个游戏,手机上钉子还小:把上游默认的「不标数字」翻过来。
-// 数字同时落在棋盘的钉子和键区的色钉上(下面 swatch 的 label 读的是同一个真值)。
 const NUMBERED = { 'show-labels': 'true' } as const
 
 const fixed = (
@@ -50,9 +42,7 @@ const fixed = (
   press: (board) => board.send(sends),
 })
 
-// validate_params guess.c:217-230,不看 full:颜色 2..10(219、223),钉数 ≥ 2(219),猜测
-// ≥ 1(225);不允许重复时颜色数不能少于钉数(227)。钉数和猜测次数上游没有上限,猜测板
-// 是钉数 × 次数的格子,按棋盘规则各封 100。生成只是逐钉抽色,没有必然失败的组合。
+// validate_params guess.c:217-230,不看 full;钉数和猜测次数上游没有上限,各封 100。
 const custom: Custom<'guess'> = {
   fields: [
     { kind: 'int', key: 'ncolours', word: 'colours', min: 2, max: 10, role: 'count' },
@@ -102,8 +92,7 @@ const guess: Game<'guess'> = {
           press: (board) => {
             for (let k = 0; k < n; k++) board.send(home)
             for (let k = 0; k < at; k++) board.send(walk)
-            // 顶完再问一次标签:上下只动调色板光标,钉子光标没动,答案照样准。
-            // 光标要是停在「看结果」位,这一下 Enter 就是交卷了——那时什么都不发。
+            // 顶完再问一次标签:光标在「看结果」位时 Enter 是交卷,不发。
             if (board.view().labels.enter === 'Place') board.send('\r')
           },
         }

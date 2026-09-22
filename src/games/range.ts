@@ -8,9 +8,8 @@ import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
 
-// validate_params range.c:918-932:宽高各 ≥ 1;宽加高不超过 128(线索存在 signed char
-// 里,range.c:923),100 封顶下仍碰得到;full 下 1×1、1×2、2×1、2×2 造不出来。生成是
-// 去线索失败就重来的概率重试。
+// validate_params range.c:918-932:宽高各 ≥ 1;宽加高不超过 128(线索存在 signed char 里,
+// range.c:923);full 下 1×1、1×2、2×1、2×2 造不出来。
 const custom: Custom<'range'> = {
   fields: [width(1), height(1)],
   rules: [

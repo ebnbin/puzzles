@@ -8,7 +8,6 @@ import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
 // validate_params magnets.c:236-250:宽高各 ≥ 2;Tricky 要宽或高至少 5,Easy 要至少 3。
-// INT_MAX 那条在 100 以内碰不到。生成是难度不符就重来的概率重试(magnets.c:1719)。
 const TRICKY = 1
 const custom: Custom<'magnets'> = {
   fields: [

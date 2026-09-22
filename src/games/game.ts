@@ -1,10 +1,12 @@
 // 统一游戏接口:四十个游戏各默认导出一份 Game,index.ts 的注册表是全项目唯一的
-// 「游戏名 → 行为」映射。规矩三条,违者即是设计回退:
-//   1. 接口和宿主里不出现任何游戏名;能力用通用形态表达,特殊游戏只是取值不同。
-//   2. 一个游戏 = 一个文件。util 的判据是「看不见游戏」——参数与实现里没有游戏名,
-//      也没有任何一个游戏的参数/存档/走子语法。
-//   3. 逐游戏的上游事实(控件、偏好 kw、键码、调色板)以引擎录的 facts.ts 为准,升级
-//      vendor 时重录;行为语义读 vendor/ 的 C 源码,docs/inputs.md 是索引。
+// 「游戏名 → 行为」映射。
+//   1. 接口、宿主和 util 里不出现任何游戏名,也不出现任何游戏的参数、存档、走子语法。
+//   2. 一个游戏 = 一个文件。
+//   3. 上游事实(控件、偏好 kw、键码、调色板)以引擎录的 facts.ts 为准;行为语义读 vendor/ 的 C 源码。
+//   4. 一个键做成按钮,当且仅当它做的事没有任何手势能做到(上游没那条路,或这一侧没转发);
+//      判之前读完整个 interpret_move。
+//   5. arrow 和 pick 与方向键同一个开关。
+//   6. arrow 跟着上游的光标走;图标只画「这个键此刻是什么」,不画方向、位置和按下的结果。
 import type { IconName, ImageName } from '../ui/Icon'
 import type { Strings } from '../i18n'
 import type { Dark } from '../engine/palette'
@@ -50,12 +52,10 @@ export type Upstream = {
     | { kind: 'mirrored'; wakes: readonly string[] }
 }
 
-// 长按折算的鼠标键。上游触摸长按 = 右键;个别游戏的右键行为在无 MOD_STYLUS 的
-// 前端到不了,改借等价的中键。
+// 长按折算的鼠标键。上游触摸长按 = 右键;右键行为在无 MOD_STYLUS 的前端到不了的游戏借等价的中键。
 export type Touch = { hold: 'right' | 'middle' }
 
-// 深色申报的类型与翻译引擎同住 engine/palette.ts,这里转口:申报是引擎的
-// 参数语言,类型跟着机器走,依赖只许从 games 指向 engine。
+// 深色申报的类型住在 engine/palette.ts,这里转口;依赖只许从 games 指向 engine。
 export type { Dark }
 
 export type Pages = { manual: string; help: string; howto: string }
@@ -70,10 +70,9 @@ export type Prefs<G extends GameName> = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
   // 拿到的已经是宿主撤掉「键区已有按钮」那几条之后的剩余(见 Key.fronts)。
   panel(controls: readonly DialogControl[]): readonly DialogControl[]
-  // 棋盘上的一次输入就能翻掉自己偏好的游戏(guess 的 l、map 的 l、undead 的 a、
-  // bridges 的 g、singles 点棋盘外沿),宿主在每次按键和每次手势之后重读一遍。
-  // 偏好面板那条路不看这一位(提交完自己会 setPrefs);开局那一次读也不看,
-  // view.prefs 对谁都是真的。写多了不是保险,是每次输入都白借一次偏好 box。
+  // 棋盘上的一次输入就能翻掉自己偏好的游戏(guess 的 l、map 的 l、undead 的 a、bridges 的 g、
+  // singles 点棋盘外沿):宿主在每次按键和每次手势之后重读一遍。偏好面板那条路和开局那一次读
+  // 不看这一位。
   volatile: boolean
   // 换掉上游偏好的默认值:按 kw 申报,开局垫在存档下面(用户存过的那几条赢)。
   // 只给 kw 和值,行由 createPuzzle 拼——有一行解析不了会让整份偏好静默作废。
@@ -114,8 +113,7 @@ export type Key<F> = {
   face: Face | ((view: View<F>) => Face)
   // 构建期对账用(util/verify.ts):这个键等价于上游 request_keys 的哪个按钮码。
   button?: number
-  // 这个键顶的是 view.prefs 里第几条。宿主据此把那一行从偏好面板里撤掉——同一个
-  // 开关不在两处各占一行。只有 preferKeys 填这一格。
+  // 这个键顶的是 view.prefs 里第几条,宿主据此把那一行从偏好面板里撤掉;只有 preferKeys 填这一格。
   fronts?: number
   press(board: Board<F>): void
 }

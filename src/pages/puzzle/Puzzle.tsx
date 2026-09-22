@@ -23,8 +23,7 @@ export default function Puzzle({ name }: { name: string }) {
 
   return (
     <PuzzleHost
-      // key 不冗余:PuzzleHost 每次挂载只起一个后端,没有它 React 会复用已挂载
-      // 的 host,换谜题后旧谜题原地留着。
+      // key 不冗余:PuzzleHost 每次挂载只起一个后端,没有它换谜题会复用已挂载的 host。
       key={game.name}
       name={game.name}
       title={game.displayName}

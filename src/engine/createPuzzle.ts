@@ -2,10 +2,9 @@ import type { Dark } from './palette'
 import { CanvasRenderer } from './renderer'
 import type { Preset, PuzzleApi, PuzzleCallbacks } from './types'
 
-// 三层,上游逐行赋值、后写的盖先写的,所以位置就是语义:申报的默认值垫在存档
-// 下面(用户改得动),全局的强制值压在存档上面(用户改不动)。整份只要有一行解析
-// 不了,上游把它全丢掉(midend.c:3223),所以行只许在这里拼。镜像也要同一份:
-// 偏好住在 game_ui 里,而 decode_ui 跑在 apply_prefs 之后。
+// 三层,上游逐行赋值、后写的盖先写的:申报的默认值垫在存档下面(用户改得动),全局的强制值压在
+// 存档上面(用户改不动)。整份只要有一行解析不了,上游把它全丢掉(midend.c:3223),行只许在这里拼。
+// 镜像也要同一份:偏好住在 game_ui 里,decode_ui 跑在 apply_prefs 之后。
 export function composePrefs(
   name: string,
   defaults?: Readonly<Record<string, string>>,

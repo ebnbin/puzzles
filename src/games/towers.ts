@@ -17,8 +17,7 @@ import { act, cross } from './util/pad'
 
 const LOOK: Prefer<'towers'> = { kind: 'cycle', kw: 'appearance', glyphs: ['towersFlat', 'towersTall'] }
 
-// validate_params towers.c:248-255:网格 3..9。3×3 的 Hard 以上上游自己压到 Hard
-// (towers.c:678),是降级不是失败;其余是概率重试。
+// validate_params towers.c:248-255:网格 3..9。
 const custom: Custom<'towers'> = {
   fields: [
     { kind: 'int', key: 'w', word: 'gridSize', min: 3, max: 9, role: 'dim' },

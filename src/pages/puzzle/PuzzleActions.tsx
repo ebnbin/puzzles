@@ -92,10 +92,8 @@ export default function PuzzleActions({
       >
         <Icon name="redo" />
       </button>
-      {/* 上游要等 wasm 起来才报得出预设,所以这个键先摆上、灰着,ready 之后才活:
-          否则这一块会从三个键跳成四个,菜单键还跟着换一格。真的没有类型可选的
-          游戏(npresets ≤ 1 且不能自定义,emcc.c 那时会撤掉整个下拉)才不画——
-          那种游戏今天一个都没有,但 presets 的类型允许,不能当它不存在。 */}
+      {/* 类型键先摆上、灰着,ready 之后才活(上游要等 wasm 起来才报得出预设)。npresets ≤ 1 且
+          不能自定义的游戏才不画:今天一个都没有,但 presets 的类型允许。 */}
       {typesShown && (
         <button
           type="button"
@@ -141,10 +139,9 @@ export default function PuzzleActions({
             aria-hidden="true"
             style={{ gridRow: `1 / span ${pad.rows}` }}
           />
-          {/* 固定键在左、方向键在右,所以 DOM 也这个顺序:tab 跟着屏幕从左到右走。
-              display:contents 让方向键直接落进上面那张网格,同时留住那一层的 role
-              和名字。一条渲染路径管所有键,摆哪儿由 util/pad 的格子号算好。
-              方向键不给 tip:它要连着点,长按问一句会把连点打断。 */}
+          {/* 固定键在左、方向键在右,DOM 也这个顺序。display:contents 让方向键直接落进上面那张
+              网格,同时留住那一层的 role 和名字;摆哪儿由 util/pad 的格子号算好。方向键不给 tip:
+              它要连着点。 */}
           {fixedKeys}
           <div className="puzzle-arrows" role="group" aria-label={t.puzzle.arrows.group}>
             {pad.buttons.map((key) =>

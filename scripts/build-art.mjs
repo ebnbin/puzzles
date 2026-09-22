@@ -26,8 +26,8 @@ const grab = (page) =>
     return { w: c.width, h: c.height, data: [...d.data] }
   })
 
-// 后端只在启动报色时读一次页面背景(frontend_default_colour):强制背景必须在
-// 进谜题前生效——先落画廊、addStyleTag,再点进 undead;棋盘起来后再加样式后端听不见。
+// 后端只在启动报色时读一次页面背景(frontend_default_colour):强制背景必须在进谜题前生效,
+// 先落画廊、addStyleTag,再点进 undead。
 async function renderOn(browser, ground) {
   const context = await browser.newContext({
     viewport: VIEWPORT,

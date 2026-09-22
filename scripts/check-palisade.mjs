@@ -7,8 +7,8 @@ await open(page, 'Palisade', { settle: 900 })
 
 const at = () =>
   page.evaluate(() => {
-    // 「已应用步数」要读 STATEPOS、不能数 MOVE 行:序列化带完整链、含被 undo 的
-    // 走子,新走子顶替 redo 尾巴时行数不变——数行会让检查与坏的实现互相同意。
+    // 「已应用步数」要读 STATEPOS、不能数 MOVE 行:序列化带完整链、含被 undo 的走子,新走子顶替
+    // redo 尾巴时行数不变。
     const m = /STATEPOS\s*:\d+:(\d+)/.exec(window.__puzzle.saveGame())
     return m ? Number(m[1]) : NaN
   })

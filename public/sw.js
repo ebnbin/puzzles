@@ -56,8 +56,7 @@ self.addEventListener('fetch', (event) => {
         }
         return response
       })
-      // 命中也要让 fresh 在后面刷新条目:/engine/** 是同地址换内容的 URL,
-      // 纯 cache-first 会把旧引擎永久钉死;这样陈旧度被限成「一次访问深」。
+      // 命中也要让 fresh 在后面刷新条目:/engine/** 是同地址换内容的 URL,陈旧度限成「一次访问深」。
       if (!hit) return fresh
       event.waitUntil(fresh.catch(() => {}))
       return hit

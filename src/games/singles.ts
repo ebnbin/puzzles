@@ -9,14 +9,11 @@ import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
-// 点在棋盘外沿(BORDER 那一圈)就翻这条偏好(singles.c:1561-1562)——全 app 唯一一个
-// 被指针翻的偏好,所以 volatile,而且重读得挂在手势上,不能只挂按键。
+// 点棋盘外沿翻这条偏好(singles.c:1561-1562):volatile,重读挂在手势上。
 const BLACK_NUMS: Prefer<'singles'> = { kind: 'flag', kw: 'show-black-nums', glyph: 'numberBlack' }
 
-// validate_params singles.c:264-274:宽高上游放到 62(singles.c:267),这里封 61——数字从
-// 1 起到 max(w,h),而 n2c 只写得出 0..61(singles.c:323-331),62 会写成 '[',new_game
-// 解不回来(singles.c:356、1450),每个种子都撞上。宽或高不足 4 的 Tricky 上游自己降成
-// Easy(singles.c:1331),是降级不是失败;其余是 goto 重来的概率重试。
+// validate_params singles.c:264-274:宽高上游放到 62(singles.c:267),这里封 61:n2c 只写得出 0..61
+// (singles.c:323-331),62 的盘 new_game 解不回来。
 const SINGLES_MAX = 10 + 26 + 26 - 1
 const custom: Custom<'singles'> = {
   fields: [

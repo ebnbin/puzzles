@@ -1,5 +1,4 @@
-// 换屏幕和画廊收卡都走这里:feature test、reduced-motion、把 React 渲染塞进
-// 被捕获帧的 flushSync,三样别在别处写第二遍。
+// 换屏幕和画廊收卡都走这里:feature test、reduced-motion、被捕获帧里的 flushSync,不在别处写第二遍。
 import { flushSync } from 'react-dom'
 
 type ViewTransition = { finished: Promise<void> }

@@ -1,8 +1,8 @@
 //   npm run build && npm exec -- vite preview --port 4173 --strictPort &
 //   npm i --no-save playwright && node scripts/check-solved.mjs
 //
-// 被测选 Fifteen 是有讲究的:它的 'h' 是提示键,每按一次替玩家走一步合法的子,
-// 存档里记成 MOVE——所以能在不碰求解器的前提下把一局真解出来。
+// 被测选 Fifteen:它的 'h' 是提示键,每按一次替玩家走一步合法的子,存档里记成 MOVE,能在不碰
+// 求解器的前提下把一局真解出来。
 import { boot, open } from './lib/boot.mjs'
 
 const SOLVED = 'puzzles.solved'
@@ -36,8 +36,7 @@ async function hintUntilSolved(limit = 400) {
 
 await reopen()
 
-// 一、求解器解出的不记,但浮层照抬——浮层认「结束」,不认「谁解的」。
-// 开局第一个动作就是求解,考的是启动时那次基线补得对不对。
+// 一、求解器解出的不记,但浮层照抬。开局第一个动作就是求解,考的是启动时那次基线。
 await page.evaluate(() => window.__puzzle.solve())
 await page.evaluate(() => window.__puzzle.tick(1))
 await page.waitForTimeout(300)

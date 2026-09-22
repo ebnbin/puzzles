@@ -1,6 +1,5 @@
-// Light Up:放灯照亮全盘。上游 lightup.c。放灯、打叉是上游自己的绝对键;
-// 对方的记号上一按替换(先发对方的键擦掉再落自己)。第二下必然落得下:能挡它
-// 的只有黑格,而黑格上邻居一个字不报。黑格上两个一起灰。
+// Light Up:放灯照亮全盘。上游 lightup.c。放灯、打叉是上游自己的绝对键;对方的记号上一按替换;
+// 黑格上两个一起灰。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -12,10 +11,8 @@ import { act, cross } from './util/pad'
 
 const LIT_BLOBS: Prefer<'lightup'> = { kind: 'flag', kw: 'show-lit-blobs', glyph: 'litBlob' }
 
-// validate_params lightup.c:355-376:宽高 ≥ 2;full 下黑格百分比 5..100(362),4 重旋转
-// 只许正方形(365-367),4 重对称宽高至少一维 ≥ 3(368)。INT_MAX 那条在 100 以内碰不到。
-// 百分比只是提示,生成器造不出来会每 20 次加 5,加到 90 为止(lightup.c:1609);难度是
-// 等到低一档解法解不动为止的重试(1595-1601)。
+// validate_params lightup.c:355-376:宽高 ≥ 2;full 下黑格百分比 5..100(362),4 重旋转只许
+// 正方形(365-367),4 重对称宽高至少一维 ≥ 3(368)。
 const ROT4 = 4
 const REF4 = 3
 const custom: Custom<'lightup'> = {

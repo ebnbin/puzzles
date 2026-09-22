@@ -263,7 +263,7 @@ export class CanvasRenderer {
     return midpoint
   }
 
-  // text 永远查表、不走 ink():按 figure 例外回浅色的那张表是被有意撤掉的方案,不要恢复。
+  // text 永远查表、不走 ink()。
   text(
     x: number,
     y: number,

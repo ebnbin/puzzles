@@ -1,12 +1,8 @@
-// 从编好的引擎(public/engine/**)录每个游戏的静态事实,写成 src/games/facts.ts。
-// build-games.sh 装完引擎就跑它;单独跑:node scripts/record-facts.mjs。
-//
-// 录的是引擎运行时真报出来的东西,不是读 C 源码抄的:默认参数串、预设、自定义参数的
-// 控件、偏好控件及其 kw / 选项 kw、request_keys、调色板、能否求解。它是申报(src/games/*.ts)
-// 的对账基准,也是运行时按 kw 找偏好下标的表。
-//
-// 偏好的 kw 对话框里拿不到(emcc.c 只传 name),靠 js_save_prefs 写出的 kw=value 行
-// 按序拉链;选项的 kw 逐个选中再存一遍读出来。
+// 从编好的引擎(public/engine/**)录每个游戏的静态事实,写成 src/games/facts.ts:默认参数串、预设、
+// 自定义参数的控件、偏好控件及其 kw / 选项 kw、request_keys、调色板、能否求解。build-games.sh 装完
+// 引擎就跑它;单独跑:node scripts/record-facts.mjs。
+// 偏好的 kw 对话框里拿不到(emcc.c 只传 name),靠 js_save_prefs 写出的 kw=value 行按序拉链;选项的
+// kw 逐个选中再存一遍读出来。
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -15,8 +11,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ENGINE = join(ROOT, 'public/engine')
 const OUT = join(ROOT, 'src/games/facts.ts')
 
-// 胶水按 ENVIRONMENT_IS_WEB 编的,只会 fetch:这里把 wasm 从磁盘喂给 instantiateWasm,
-// 画布和计时器全用空桩——录事实不需要画。
+// 胶水按 ENVIRONMENT_IS_WEB 编的,只会 fetch:这里把 wasm 从磁盘喂给 instantiateWasm,画布和计时器
+// 全用空桩。
 globalThis.window = {
   requestAnimationFrame: () => 0,
   cancelAnimationFrame: () => {},

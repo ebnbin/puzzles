@@ -1,12 +1,10 @@
-// 键盘不认焦点:走完一圈会抢焦点的操作,物理键盘每一步都还到得了引擎。
-// 守的是 usePuzzleKeys 的判据——改动那里、给谜题页加会抢焦点的部件、或者动
-// Manual 那句 capture + stopPropagation 之后必跑。
+// 键盘不认焦点:走完一圈会抢焦点的操作,物理键盘每一步都还到得了引擎。改动 usePuzzleKeys、
+// 给谜题页加会抢焦点的部件、或者动 Manual 那句 capture + stopPropagation 之后跑。
 //
 //   npm run build && npx vite preview --port 4173 &
 //   npm i --no-save playwright && node scripts/check-focus.mjs
 //
-// 判据是「api.key 被调到了没有」,不是画面:上方键区和方向键块走的是 board.send,
-// 从不经过 DOM 焦点,只有物理键盘会被焦点卡住。
+// 判据是「api.key 被调到了没有」,不是画面:只有物理键盘会被焦点卡住。
 import { boot, open } from './lib/boot.mjs'
 
 const GAME = 'Solo'
@@ -146,8 +144,8 @@ console.log('\n覆盖层盖着的时候要让路')
 await deaf(page, '菜单开着', async () => {
   await page.locator('.puzzle-acts button.is-menu').click()
   await page.waitForTimeout(300)
-  // 焦点归还只许发生在覆盖层全关上的那一刻:sheet 开着时把焦点抢到盖住的棋盘上,
-  // 等于把焦点扔到 aria-modal 外面(closeTypes 里带 focus() 时踩过)。
+  // 焦点归还只许发生在覆盖层全关上的那一刻:sheet 开着时把焦点抢到盖住的棋盘上,等于把焦点扔到
+  // aria-modal 外面。
   const stolen = await page.evaluate(
     () => document.activeElement?.className === 'puzzle-canvas',
   )

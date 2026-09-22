@@ -1,8 +1,6 @@
-// Pearl:黑白珠上画环。上游 pearl.c。两层各两个键:闲着「起笔 · 打叉」
-// (叉是一次性上膛),画着「停笔 · 放弃」。起笔后一格没走时勾是灰的:标签说
-// 不出「走没走过格」,存档不带,自己记一位——错的那个角(贴边起笔按朝外)
-// 代价是勾亮着按下去等于旁边的叉。6 号格两个租客轮流住,一次只有一个的
-// face 活着。Ctrl 画线不给:拖拽到得了,按压更少。
+// Pearl:黑白珠上画环。上游 pearl.c。两层各两个键:闲着「起笔 · 打叉」(叉是一次性上膛),画着
+// 「停笔 · 放弃」。起笔后一格没走时勾是灰的:标签说不出「走没走过格」,存档不带,自己记一位。
+// 6 号格两个租客轮流住。Ctrl 画线不给(拖拽到得了)。
 import type { Game, View } from './game'
 import { keyOf, plain } from './game'
 import type { Custom } from './util/custom'
@@ -18,8 +16,7 @@ const UNTRODDEN = '\0untrodden'
 
 const LOOK: Prefer<'pearl'> = { kind: 'cycle', kw: 'appearance', glyphs: ['masyuStyle', 'loopyStyle'] }
 
-// validate_params pearl.c:286-297:宽高各 ≥ 5;Tricky 要宽加高至少 11(即一维 ≥ 6);
-// INT_MAX 那条在 100 以内碰不到。
+// validate_params pearl.c:286-297:宽高各 ≥ 5;Tricky 要宽加高至少 11。
 const TRICKY = 1
 const custom: Custom<'pearl'> = {
   fields: [

@@ -1,7 +1,6 @@
-// Dominosa:骨牌铺满。上游 dominosa.c。
-// current_key_label 不查可见性,光标由宿主镜像(只有方向键唤醒);半格网格,
-// 只有「正好一个坐标是奇数」的落点两个键才活。数字键只高亮不落子,文案换一套
-// 说法,是 assist;上游只认 0-9(dominosa.c:2868),n ≥ 10 也只发到 9。
+// Dominosa:骨牌铺满。上游 dominosa.c。current_key_label 不查可见性,光标由宿主镜像,只有
+// 方向键唤醒;半格网格,只有「正好一个坐标是奇数」的落点两个键才活。数字键只高亮不落子
+// (assist);上游只认 0-9(dominosa.c:2868),n ≥ 10 也只发到 9。
 import type { Game, Key } from './game'
 import { still } from './game'
 import { fill } from '../i18n/fill'
@@ -11,9 +10,7 @@ import { samePages, verbatim } from './util/declare'
 import { charButton, leadingNumber, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
-// validate_params dominosa.c:247-258:最大点数 ≥ 1,INT_MAX 那条在 100 以内碰不到。棋盘
-// 是 (n+2)×(n+1),按棋盘规则封到 98。n 为 1、2 时上游把难度压到 Trivial / Basic
-// (dominosa.c:2243-2247),是降级不是失败;其余是等到指定难度为止的概率重试。
+// validate_params dominosa.c:247-258:最大点数 ≥ 1;棋盘是 (n+2)×(n+1),按棋盘规则封到 98。
 const custom: Custom<'dominosa'> = {
   fields: [
     { kind: 'int', key: 'n', word: 'dominoMax', min: 1, max: 98, role: 'dim' },

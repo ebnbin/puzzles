@@ -20,8 +20,7 @@ import Slider from '../../ui/Slider'
 
 const word = (t: Strings, w: Word): string => t.config[w]
 
-// 没申报的控件(偏好)按上游原文查词条。表的键集由 facts 钉死,查不到只能是生成物和
-// 申报脱节。
+// 没申报的控件(偏好)按上游原文查词条;表的键集由 facts 钉死。
 const said = (t: Strings, table: Readonly<Record<string, Word>>, text: string): string => {
   const w = table[text]
   if (w === undefined) throw new Error(`no word for preference text "${text}"`)
@@ -45,8 +44,7 @@ export default function ConfigFields({
   // done = 这个控件的输入已经结束,不管是指针还是键盘都该离开它;缺省只在指针操作后还。
   onSettle?: (done?: boolean) => void
 }) {
-  // controls 是与 C 共享的活对象,后端 accept 时直接从这些对象上读 value:
-  // 编辑必须原地赋值 + 手动 redraw,拷进 React state 会让对话框永远提交初始值。
+  // controls 是与 C 共享的活对象,后端 accept 时从这些对象上读 value:编辑必须原地赋值 + 手动 redraw。
   const [, redraw] = useReducer((n: number) => n + 1, 0)
   const t = useStrings()
 
@@ -59,8 +57,7 @@ export default function ConfigFields({
     onSettle?.()
   }
 
-  // 改一个字段:联动机器以它为准修出整组合法的值,变了的字段一起写回活对象。修不好
-  // 说明申报和上游脱节,这一步不生效。
+  // 改一个字段:联动机器以它为准修出整组合法的值,变了的字段一起写回活对象;修不好这一步不生效。
   const apply = (key: string, next: number) => {
     if (!declared || !bound || !values) return
     const fixed = change(declared, values, key, next)
@@ -168,8 +165,7 @@ export default function ConfigFields({
         return (
           <label key={i} className="dialog-string">
             {control.label}
-            {/* text 只在落定时(blur/Enter)commit,不在 onChange:宽度从 5 改到
-                12 的路上会经过 1,没人想要 1;checkbox/picker 每次 change 即落定。 */}
+            {/* text 只在落定时(blur/Enter)commit,不在 onChange;checkbox/picker 每次 change 即落定。 */}
             <input
               type="text"
               autoFocus={autoFocus && i === 0}

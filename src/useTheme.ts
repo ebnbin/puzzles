@@ -1,6 +1,5 @@
-// 主题解析和 index.html 内联脚本、build-doc.mjs 里的同一段联动改。只认 dark:
-// 老用户存的 system(已删掉的第三档)和一切垃圾值都当 light 并规范化写回——
-// 手册读同一个 key,不写回两边会对同一个读者给出不同答案。
+// 主题解析和 index.html 内联脚本、build-doc.mjs 里的同一段联动改。只认 dark:别的值(含老用户
+// 存的 system)都当 light 并规范化写回,手册读同一个 key。
 import { useSyncExternalStore } from 'react'
 
 export type Theme = 'light' | 'dark'

@@ -1,5 +1,5 @@
 // 类型面板的内容:预设列表 + 常驻的自定义参数表。壳(底部 sheet 还是停靠栏)由 PuzzleHost
-// 按屏幕宽度套,这里不知道自己住在哪种壳里,只在停靠时省掉一个重复的标题。
+// 按屏幕宽度套,这里只在停靠时省掉一个重复的标题。
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
 import type { DialogSpec, Preset } from '../../engine/types'
@@ -7,8 +7,7 @@ import type { CustomShape } from '../../games/util/custom'
 import { useStrings } from '../../i18n'
 import Notice from '../../ui/Notice'
 
-// 上游把「自定义」也塞在预设列表里,值是负数(emcc.c:1022)。不画它:参数表常驻之后
-// 它没有动作可做;它在不在,只用来判断这个游戏能不能自定义。
+// 上游把「自定义」也塞在预设列表里,值是负数(emcc.c:1022)。不画它,只用来判断这个游戏能不能自定义。
 const isCustom = (preset: Preset) => preset.value < 0
 
 export default function PuzzleTypes({

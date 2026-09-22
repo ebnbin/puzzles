@@ -15,10 +15,8 @@ import { useResolvedTheme } from '../../useTheme'
 const HOLD_MS = 450
 
 function swallowTapAfterHold() {
-  // 长按 450ms 生效时磁贴已经离场,松手的 click 按「当下指下的元素」结算,落在
-  // 滑进来的另一张卡上(实测长按 Cube 隐藏了 Cube、打开了 Fifteen):吞 click
-  // 必须吊在 window 捕获阶段,挂在磁贴自己身上吃不到;click 不来时靠 pointerup
-  // 延时清监听,不许留着吃下一次点击。
+  // 长按生效时磁贴已经离场,松手的 click 按当下指下的元素结算,会落在滑进来的另一张卡上:吞 click
+  // 必须吊在 window 捕获阶段;click 不来时靠 pointerup 延时清监听。
   const eat = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -290,9 +288,8 @@ function Tile({
         onClick={() => openPuzzle(game.name)}
       >
         <span className="games-art">
-          {/* 故意不加 loading="lazy":服务器对 /tiles 回 no-cache,lazy 图在滚入
-              视口那一刻付一次 revalidation 往返,从游戏返回画廊还要再付;
-              四十张小 PNG 比空白便宜。 */}
+          {/* 故意不加 loading="lazy":服务器对 /tiles 回 no-cache,lazy 图每次滚入视口都付一次
+              revalidation。 */}
           <img
             src={`/tiles/${game.name}-${theme}.png`}
             alt=""

@@ -1,7 +1,5 @@
-// 镜像发牌的协议。主线程和 worker 各持一个引擎实例,两边之间流动的只有存档:
-// 交接必须是整份存档而不是 Game ID——descriptive ID 会清掉 aux_info(netslide/
-// untangle 的 Solve 会直接拒绝)、丢掉 seedstr(菜单里的随机种子栏会空),而且它
-// 的参数段是非全量编码,难度之类只在生成时有用的字段补不回来。
+// 镜像发牌的协议。主线程和 worker 各持一个引擎实例,两边之间只流动整份存档,不是 Game ID:
+// descriptive ID 会清掉 aux_info、丢掉 seedstr,参数段也是非全量编码。
 export type DealAction =
   | { kind: 'newGame' }
   | { kind: 'preset'; index: number }

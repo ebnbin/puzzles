@@ -1,9 +1,6 @@
-// Cube:滚动多面体收集蓝格。上游 cube.c。
-// new_ui 返回 NULL(cube.c:1032):没有光标、没有标签,方向键直接就是走子。
-// 滚不过去的方向要置灰,而引擎不报——把上游的网格几何在这一侧重写一遍,
-// 从存档推出当前落点和它的邻格。模型漂了的表现是「能按的键被灰掉」,错灰和
-// 该灰长得一模一样,读者报不上来:升级 vendor/sgtpuzzles 后必须跑
-// scripts/check-cube.mjs。
+// Cube:滚动多面体收集蓝格。上游 cube.c。new_ui 返回 NULL(cube.c:1032):没有光标、没有标签,
+// 方向键直接就是走子。滚不过去的方向置灰,引擎不报,由这一侧重写的网格几何从存档推出;
+// 升级 vendor/sgtpuzzles 后必须跑 scripts/check-cube.mjs。
 import type { ArrowKey, Game } from './game'
 import type { Custom } from './util/custom'
 import { ASPECT_MAX, BOARD_MAX, rule } from './util/custom'
@@ -12,9 +9,8 @@ import { done, fields, find } from './util/save'
 import type { Way } from './util/pad'
 import { DIRS, arrowFace, walk } from './util/pad'
 
-// ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);
-// MOVES 的字母和每个 Square.dirs 的下标都按同一套编号,不可为可读性重排——
-// rolls() 末行用下标当方向过滤,重排后灰键落到错误方向而 build 全绿。
+// ARROWS 的顺序就是上游 directions 数组的编号(LEFT=0, RIGHT=1, UP=2, DOWN=3);MOVES 的字母和
+// 每个 Square.dirs 的下标都按同一套编号,不可重排:rolls() 末行用下标当方向。
 const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'] as const
 const LEFT = 0
 const RIGHT = 1
@@ -36,9 +32,8 @@ export function parseParams(text: string): Params | null {
   return { solid: m[1], d1, d2 }
 }
 
-// 输出顺序必须逐格等于上游 enum_grid_squares 的回调顺序(cube.c:325-467):
-// 数组下标就是 DESC 里的起始格号和走子所指的格号;三角网格每行先下三角、后上
-// 三角,即上游两个循环的先后。改遍历顺序 = 模型与引擎的格号静默错位。
+// 输出顺序必须逐格等于上游 enum_grid_squares 的回调顺序(cube.c:325-467):数组下标就是 DESC 里
+// 的起始格号和走子所指的格号;三角网格每行先下三角、后上三角。
 function squares({ solid, d1, d2 }: Params): Square[] {
   const out: Square[] = []
   if (solid === 'c') {
@@ -155,9 +150,8 @@ const CUBE = 1
 const FACES = [4, 6, 8, 20]
 const CLASSES = [4, 1, 2, 1]
 
-// validate_params cube.c:593-595 的移植:按 enum_grid_squares(cube.c:325-467)给每格
-// 分类,某一类的格数不够放它那份蓝面就不行。四面体按 tetra_class 分四类,八面体按
-// 朝向分两类,其余一类;分类公式和 firstix 的取法逐字照抄,& 对负数两边都是补码。
+// validate_params cube.c:593-595 的移植:按 enum_grid_squares(cube.c:325-467)给每格分类,某一类
+// 的格数不够放它那份蓝面就不行。分类公式和 firstix 的取法逐字照抄;& 对负数两边都是补码。
 function shortOfClass(solid: number, d1: number, d2: number): boolean {
   const nclasses = CLASSES[solid]
   const need = Math.floor(FACES[solid] / nclasses)
@@ -193,8 +187,8 @@ const area = (solid: number, d1: number, d2: number) =>
 
 type Facts = { rolls: Set<string> | null }
 
-// 置灰的分界:棋盘自己会说的(顶到边界),我们不说;棋盘盖住了的(三角朝向被
-// 多面体压住),我们说。模型读不懂时 rolls 为 null,四个键全亮——错亮好过错灰。
+// 只对棋盘盖住的方向置灰(三角朝向被多面体压住),顶到边界的由棋盘自己说;rolls 为 null 时
+// 四个键全亮。
 const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
   id: dir,
   slot,
@@ -210,10 +204,9 @@ const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
   press: (board) => walk(board, dir),
 })
 
-// validate_params cube.c:541-602,不看 full。两维在立方体下是矩形宽高(≥ 2,
-// cube.c:553),三角网格下是六边形的两组边长(可以为 0 但不能都为 0,cube.c:558),
-// 所以两条自家规则在这里按多面体分开写:宽高比只管立方体;三角网格的行数和最宽行
-// 都是 d1+d2,「不超过 100」按它算。INT_MAX 那两条(555、574)在 100 以内碰不到。
+// validate_params cube.c:541-602,不看 full。两维在立方体下是矩形宽高(cube.c:553),三角网格下是
+// 六边形的两组边长(cube.c:558),两条自家规则按多面体分开写:宽高比只管立方体,三角网格的
+// 「不超过 100」按 d1+d2 算。
 const custom: Custom<'cube'> = {
   fields: [
     {

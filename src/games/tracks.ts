@@ -1,8 +1,6 @@
-// Tracks:铺轨连站。上游 tracks.c。铺轨、打叉是上游的绝对键;对方记号上一按
-// 替换,但替换保证不了落得下(边的出口可能已占满)——act 的 replaces 机制发完
-// 会重读标签,落不下就 undo 撤回,代价是那次撤回会点亮重做键。它的 Clear 两个
-// 键都报、含义不同(清轨/清叉),does 会擦错东西,只能用 faces。h 提示在
-// #if 0 里,死代码,别照着加。
+// Tracks:铺轨连站。上游 tracks.c。铺轨、打叉是上游的绝对键;对方记号上一按替换,但替换保证不了
+// 落得下(边的出口可能已占满),replaces 发完重读标签、落不下就 undo。它的 Clear 两个键都报、含义
+// 不同(清轨/清叉),does 会擦错东西,只能用 faces。h 提示在 #if 0 里,死代码,别照着加。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
@@ -10,8 +8,7 @@ import { difficulty, height, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-// validate_params tracks.c:196-207:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 的
-// Easy 以上上游自己降成 Easy(tracks.c:735),是降级不是失败;其余是 goto 重来的概率重试。
+// validate_params tracks.c:196-207:宽高各 ≥ 4。
 const custom: Custom<'tracks'> = {
   fields: [
     width(4),
