@@ -9,7 +9,7 @@ import Notice from '../../ui/Notice'
 
 // 上游把「自定义」也塞在预设列表里,值是负数(emcc.c:1022)。不画它:参数表常驻之后
 // 它没有动作可做;它在不在,只用来判断这个游戏能不能自定义。
-const isCustom = (preset: Preset) => preset.value !== null && preset.value < 0
+const isCustom = (preset: Preset) => preset.value < 0
 
 export default function PuzzleTypes({
   presets,
@@ -106,28 +106,16 @@ function PresetList({
           const isStandard = standard !== null && standard === preset.value
           return (
             <li key={i}>
-              {preset.submenu ? (
-                <>
-                  <span className="sheet-preset-group">{preset.name}</span>
-                  <PresetList
-                    presets={preset.submenu}
-                    chosen={chosen}
-                    standard={standard}
-                    onSelect={onSelect}
-                  />
-                </>
-              ) : (
-                <label data-selected={isChosen} data-standard={isStandard || undefined}>
-                  <input
-                    type="radio"
-                    name="preset"
-                    checked={isChosen}
-                    onChange={() => onSelect(preset.value as number)}
-                  />
-                  {preset.name}
-                  {isStandard && <span className="sheet-preset-tag">{t.types.standard}</span>}
-                </label>
-              )}
+              <label data-selected={isChosen} data-standard={isStandard || undefined}>
+                <input
+                  type="radio"
+                  name="preset"
+                  checked={isChosen}
+                  onChange={() => onSelect(preset.value)}
+                />
+                {preset.name}
+                {isStandard && <span className="sheet-preset-tag">{t.types.standard}</span>}
+              </label>
             </li>
           )
         })}
