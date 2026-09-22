@@ -16,16 +16,16 @@ import { act, cross } from './util/pad'
 
 // validate_params keen.c:225-232:网格 3..9。3×3 的 Hard 以上上游自己压到 Normal
 // (keen.c:936),是降级不是失败;其余是概率重试。
-const custom: Custom = {
+const custom: Custom<'keen'> = {
   fields: [
-    { kind: 'int', key: 'w', label: 'Grid size', word: 'gridSize', min: 3, max: 9, role: 'dim' },
+    { kind: 'int', key: 'w', word: 'gridSize', min: 3, max: 9, role: 'dim' },
     difficulty(['easy', 'normal', 'hard', 'extreme', 'unreasonable']),
-    { kind: 'flag', key: 'multiplication_only', label: 'Multiplication only', word: 'multiplyOnly' },
+    { kind: 'flag', key: 'multiplication_only', word: 'multiplyOnly' },
   ],
   rules: [],
 }
 
-const keen: Game = {
+const keen: Game<'keen'> = {
   id: 'keen',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

@@ -15,12 +15,12 @@ const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
 // 不到;上游文本框接受的 "n%" 写法 slider 不会产生。布局在首次点击时才生成,有解模式是
 // 无限重试(mines.c:1865-1971),101 次起开放整片搬雷(1432-1440、1946),角/边首点的最高
 // 密度也靠它收敛;内部首点则 3×3 之外全是雷,一步解完。没有必然失败的组合。
-const custom: Custom = {
+const custom: Custom<'mines'> = {
   fields: [
     width(1),
     height(1),
-    { kind: 'int', key: 'n', label: 'Mines', word: 'mines', min: 1, max: AREA_MAX - 9, role: 'count' },
-    { kind: 'flag', key: 'unique', label: 'Ensure solubility', word: 'soluble' },
+    { kind: 'int', key: 'n', word: 'mines', min: 1, max: AREA_MAX - 9, role: 'count' },
+    { kind: 'flag', key: 'unique', word: 'soluble' },
   ],
   rules: [
     rule('mines.c:290', ['w', 'unique'], (v) => !!v.unique && v.w <= 2),
@@ -29,7 +29,7 @@ const custom: Custom = {
   ],
 }
 
-const mines: Game = {
+const mines: Game<'mines'> = {
   id: 'mines',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

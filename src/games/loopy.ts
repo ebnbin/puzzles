@@ -3,7 +3,7 @@
 // current_key_label 注册 NULL。中键「未知」是快捷方式:点一下已画的线就是它。
 import type { Game } from './game'
 import { still } from './game'
-import type { Custom } from './util/custom'
+import type { Custom, Word } from './util/custom'
 import { difficulty, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
@@ -31,11 +31,18 @@ const GRIDS = [
   ['penroseP2', 3, 3], ['penroseP3', 3, 3], ['greatGreatDodecagonal', 2, 2],
   ['kagome', 3, 3], ['compassDodecagonal', 2, 2], ['hats', 6, 6], ['spectres', 6, 6],
 ] as const
-const custom: Custom = {
+// 选项数要对上上游 choices 数,类型层面得是元组:从 GRIDS 逐位取词(映射的源必须是裸
+// 类型参数,TS 才保留元组形态)。
+const heads = <T extends readonly (readonly [Word, number, number])[]>(rows: T) =>
+  rows.map((r) => r[0]) as {
+    readonly [I in keyof T]: T[I] extends readonly [infer W, ...unknown[]] ? W : never
+  }
+const GRID_WORDS = heads(GRIDS)
+const custom: Custom<'loopy'> = {
   fields: [
     width(1),
     height(1),
-    { kind: 'pick', key: 'type', label: 'Grid type', word: 'gridType', options: GRIDS.map((g) => g[0]) },
+    { kind: 'pick', key: 'type', word: 'gridType', options: GRID_WORDS },
     difficulty(['easy', 'normal', 'tricky', 'hard']),
   ],
   rules: [
@@ -45,7 +52,7 @@ const custom: Custom = {
   ],
 }
 
-const loopy: Game = {
+const loopy: Game<'loopy'> = {
   id: 'loopy',
   upstream: { labels: 'none', cursor: { kind: 'none' } },
   touch: { hold: 'right' },

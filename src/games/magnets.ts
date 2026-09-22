@@ -12,12 +12,12 @@ const WORDS = ['+', '-', 'X', '?', 'Clear']
 // validate_params magnets.c:236-250:宽高各 ≥ 2;Tricky 要宽或高至少 5,Easy 要至少 3。
 // INT_MAX 那条在 100 以内碰不到。生成是难度不符就重来的概率重试(magnets.c:1719)。
 const TRICKY = 1
-const custom: Custom = {
+const custom: Custom<'magnets'> = {
   fields: [
     width(2),
     height(2),
     difficulty(['easy', 'tricky']),
-    { kind: 'flag', key: 'stripclues', label: 'Strip clues', word: 'stripClues' },
+    { kind: 'flag', key: 'stripclues', word: 'stripClues' },
   ],
   rules: [
     rule('magnets.c:243', ['w', 'h', 'diff'], (v) => v.diff >= TRICKY && v.w < 5 && v.h < 5),
@@ -25,7 +25,7 @@ const custom: Custom = {
   ],
 }
 
-const magnets: Game = {
+const magnets: Game<'magnets'> = {
   id: 'magnets',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

@@ -24,16 +24,16 @@ const BLACK_NUMS: Prefer = {
 // 解不回来(singles.c:356、1450),每个种子都撞上。宽或高不足 4 的 Tricky 上游自己降成
 // Easy(singles.c:1331),是降级不是失败;其余是 goto 重来的概率重试。
 const SINGLES_MAX = 10 + 26 + 26 - 1
-const custom: Custom = {
+const custom: Custom<'singles'> = {
   fields: [
-    { kind: 'int', key: 'w', label: 'Width', word: 'width', min: 2, max: SINGLES_MAX, role: 'width' },
-    { kind: 'int', key: 'h', label: 'Height', word: 'height', min: 2, max: SINGLES_MAX, role: 'height' },
+    { kind: 'int', key: 'w', word: 'width', min: 2, max: SINGLES_MAX, role: 'width' },
+    { kind: 'int', key: 'h', word: 'height', min: 2, max: SINGLES_MAX, role: 'height' },
     difficulty(['easy', 'tricky']),
   ],
   rules: [],
 }
 
-const singles: Game = {
+const singles: Game<'singles'> = {
   id: 'singles',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

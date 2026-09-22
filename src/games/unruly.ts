@@ -15,11 +15,11 @@ const WORDS = ['Black', 'White', 'Empty']
 // 以内碰不到。奇数刻度靠规则挡住,slider 松手吸附到相邻的偶数。
 const A177790 = [1, 2, 6, 14, 34, 84, 208, 518, 1296, 3254, 8196, 20700, 52404, 132942,
   337878, 860142, 2192902, 5598144, 14308378, 36610970, 93770358, 240390602, 616787116, 1583765724]
-const custom: Custom = {
+const custom: Custom<'unruly'> = {
   fields: [
     width(6, 'w2'),
     height(6, 'h2'),
-    { kind: 'flag', key: 'unique', label: 'Unique rows and columns', word: 'uniqueRows' },
+    { kind: 'flag', key: 'unique', word: 'uniqueRows' },
     difficulty(['trivial', 'easy', 'normal']),
   ],
   rules: [
@@ -32,7 +32,7 @@ const custom: Custom = {
   ],
 }
 
-const unruly: Game = {
+const unruly: Game<'unruly'> = {
   id: 'unruly',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

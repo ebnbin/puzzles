@@ -13,12 +13,12 @@ const WORDS = ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', '
 
 // validate_params galaxies.c:328-345:宽高各 ≥ 3;INT_MAX 那条在 100 以内碰不到。生成是
 // 难度不符就 goto 重来的概率重试(galaxies.c:1500-1516)。
-const custom: Custom = {
+const custom: Custom<'galaxies'> = {
   fields: [width(3), height(3), difficulty(['normal', 'unreasonable'])],
   rules: [],
 }
 
-const galaxies: Game = {
+const galaxies: Game<'galaxies'> = {
   id: 'galaxies',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

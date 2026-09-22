@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import ConfigFields from './ConfigFields'
 import type { DialogSpec, Preset } from '../../engine/types'
-import type { Custom } from '../../games/util/custom'
+import type { CustomShape } from '../../games/util/custom'
 import { useStrings } from '../../i18n'
 import Notice from '../../ui/Notice'
 
@@ -32,7 +32,7 @@ export default function PuzzleTypes({
   standard: number | null
   custom: DialogSpec | null
   // 这个游戏对参数表的申报(范围、联动、词);没申报的游戏画文本框。
-  declared: Custom | undefined
+  declared: CustomShape | undefined
   customError: string | null
   docked: boolean
   onSelectPreset: (value: number) => void

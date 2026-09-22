@@ -15,12 +15,12 @@ const FADE: Prefer = { kind: 'flag', label: 'Fade grounded components', glyph: '
 // validate_params slant.c:229-244,不看 full:宽高各 ≥ 2,上游自己说明 1 的一维做不出
 // 困难题所以干脆禁掉;INT_MAX 那条在 100 以内碰不到。困难题是等到简单解法解不动为止
 // 的概率重试。
-const custom: Custom = {
+const custom: Custom<'slant'> = {
   fields: [width(2), height(2), difficulty(['easy', 'hard'])],
   rules: [],
 }
 
-const slant: Game = {
+const slant: Game<'slant'> = {
   id: 'slant',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

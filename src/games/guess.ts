@@ -55,18 +55,18 @@ const fixed = (
 // validate_params guess.c:217-230,不看 full:颜色 2..10(219、223),钉数 ≥ 2(219),猜测
 // ≥ 1(225);不允许重复时颜色数不能少于钉数(227)。钉数和猜测次数上游没有上限,猜测板
 // 是钉数 × 次数的格子,按棋盘规则各封 100。生成只是逐钉抽色,没有必然失败的组合。
-const custom: Custom = {
+const custom: Custom<'guess'> = {
   fields: [
-    { kind: 'int', key: 'ncolours', label: 'Colours', word: 'colours', min: 2, max: 10, role: 'count' },
-    { kind: 'int', key: 'npegs', label: 'Pegs per guess', word: 'pegs', min: 2, max: BOARD_MAX, role: 'count' },
-    { kind: 'int', key: 'nguesses', label: 'Guesses', word: 'guesses', min: 1, max: BOARD_MAX, role: 'count' },
-    { kind: 'flag', key: 'allow_blank', label: 'Allow blanks', word: 'allowBlank' },
-    { kind: 'flag', key: 'allow_multiple', label: 'Allow duplicates', word: 'allowDup' },
+    { kind: 'int', key: 'ncolours', word: 'colours', min: 2, max: 10, role: 'count' },
+    { kind: 'int', key: 'npegs', word: 'pegs', min: 2, max: BOARD_MAX, role: 'count' },
+    { kind: 'int', key: 'nguesses', word: 'guesses', min: 1, max: BOARD_MAX, role: 'count' },
+    { kind: 'flag', key: 'allow_blank', word: 'allowBlank' },
+    { kind: 'flag', key: 'allow_multiple', word: 'allowDup' },
   ],
   rules: [rule('guess.c:227', ['ncolours', 'npegs', 'allow_multiple'], (v) => !v.allow_multiple && v.ncolours < v.npegs)],
 }
 
-const guess: Game = {
+const guess: Game<'guess'> = {
   id: 'guess',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

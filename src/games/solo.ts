@@ -57,17 +57,16 @@ function params(text: string): { c: number; r: number } | null {
 // 阶数 ≤ 9(522);X 阶数 ≥ 4(524);255 那条(518)被 31 盖住。校验只查了列数 ≥ 2
 // (516),行数 1 在拼图模式下合法;0 校验里漏了,但 0×0 的盘生不出来,下限取 1。2×2 和
 // 阶数小于 4 的拼图上游会把难度压到 Trivial(solo.c:3672),是降级不是失败。
-const custom: Custom = {
+const custom: Custom<'solo'> = {
   fields: [
-    { kind: 'int', key: 'c', label: 'Columns of sub-blocks', word: 'blockCols', min: 2, max: 31, role: 'dim' },
-    { kind: 'int', key: 'r', label: 'Rows of sub-blocks', word: 'blockRows', min: 1, max: 15, role: 'dim' },
-    { kind: 'flag', key: 'xtype', label: '"X" (require every number in each main diagonal)', word: 'xtype' },
-    { kind: 'flag', key: 'jigsaw', label: 'Jigsaw (irregularly shaped sub-blocks)', word: 'jigsaw' },
-    { kind: 'flag', key: 'killer', label: 'Killer (digit sums)', word: 'killer' },
+    { kind: 'int', key: 'c', word: 'blockCols', min: 2, max: 31, role: 'dim' },
+    { kind: 'int', key: 'r', word: 'blockRows', min: 1, max: 15, role: 'dim' },
+    { kind: 'flag', key: 'xtype', word: 'xtype' },
+    { kind: 'flag', key: 'jigsaw', word: 'jigsaw' },
+    { kind: 'flag', key: 'killer', word: 'killer' },
     {
       kind: 'pick',
       key: 'symm',
-      label: 'Symmetry',
       word: 'symmetry',
       options: ['none', 'rot2', 'rot4', 'mirror2', 'diag2', 'mirror4', 'diag4', 'mirror8'],
     },
@@ -80,7 +79,7 @@ const custom: Custom = {
   ],
 }
 
-const solo: Game = {
+const solo: Game<'solo'> = {
   id: 'solo',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

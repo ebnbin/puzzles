@@ -14,14 +14,13 @@ const WORDS = ['Fire', 'Ball', 'Clear', 'Check', 'Lock', 'Unlock']
 // validate_params blackbox.c:191-208,不看 full:宽高 2..255(自家封 100);球数 ≥ 1,下限
 // 不超过上限,下限少于格数(201-206)。球数一格文本装的是 "a-b" 区间,画成两个 slider;
 // 上限上游没有上界,也没查它和格数的关系,量程取 10000。
-const custom: Custom = {
+const custom: Custom<'blackbox'> = {
   fields: [
     width(2),
     height(2),
     {
       kind: 'span',
       keys: ['minballs', 'maxballs'],
-      label: 'No. of balls',
       words: ['ballsMin', 'ballsMax'],
       min: 1,
       max: AREA_MAX,
@@ -33,7 +32,7 @@ const custom: Custom = {
   ],
 }
 
-const blackbox: Game = {
+const blackbox: Game<'blackbox'> = {
   id: 'blackbox',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

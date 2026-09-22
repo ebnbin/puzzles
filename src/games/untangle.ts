@@ -26,12 +26,12 @@ const VERTICES: Prefer = {
 // validate_params untangle.c:221-233:点数 ≥ 4,INT_MAX 那条碰不到。上游没有上限,画布
 // 上一百个点已经拖不动、找交叉又是平方级,上限取 100。生成是先在网格上连平面图再打乱
 // 到出现交叉为止,4 个点起都有可交叉的独立边,只是概率重试。
-const custom: Custom = {
-  fields: [{ kind: 'int', key: 'n', label: 'Number of points', word: 'points', min: 4, max: 100, role: 'count' }],
+const custom: Custom<'untangle'> = {
+  fields: [{ kind: 'int', key: 'n', word: 'points', min: 4, max: 100, role: 'count' }],
   rules: [],
 }
 
-const untangle: Game = {
+const untangle: Game<'untangle'> = {
   id: 'untangle',
   upstream: { labels: 'none', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

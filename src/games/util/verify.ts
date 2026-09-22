@@ -5,9 +5,9 @@ import { BACKGROUND } from '../../engine/palette'
 import type { Game, GameName } from '../game'
 
 export function verifyGames(
-  // 注册表就是 Game<any>:F 逐游戏不同,这里只读申报组,不碰键。
+  // 注册表就是 Game<GameName, any>:F 逐游戏不同,这里只读申报组,不碰键。
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  games: Readonly<Record<GameName, Game<any>>>,
+  games: Readonly<Record<GameName, Game<GameName, any>>>,
   published: readonly { name: string }[],
 ): string[] {
   const bad: string[] = []

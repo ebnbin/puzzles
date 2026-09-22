@@ -22,7 +22,7 @@ const shove = (dir: Way, slot: Slot): ArrowKey<null> => ({
   press: (board) => walk(board, dir),
 })
 
-const sixteen: Game = {
+const sixteen: Game<'sixteen'> = {
   id: 'sixteen',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

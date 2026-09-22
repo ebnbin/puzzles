@@ -24,15 +24,14 @@ const LIT_BLOBS: Prefer = {
 // 等到低一档解法解不动为止的重试(1595-1601)。
 const ROT4 = 4
 const REF4 = 3
-const custom: Custom = {
+const custom: Custom<'lightup'> = {
   fields: [
     width(2),
     height(2),
-    { kind: 'int', key: 'blackpc', label: '%age of black squares', word: 'blackPc', min: 5, max: 100, role: 'count', suffix: '%' },
+    { kind: 'int', key: 'blackpc', word: 'blackPc', min: 5, max: 100, role: 'count', suffix: '%' },
     {
       kind: 'pick',
       key: 'symm',
-      label: 'Symmetry',
       word: 'symmetry',
       options: ['none', 'mirror2', 'rotational2', 'mirror4', 'rotational4'],
     },
@@ -44,7 +43,7 @@ const custom: Custom = {
   ],
 }
 
-const lightup: Game = {
+const lightup: Game<'lightup'> = {
   id: 'lightup',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

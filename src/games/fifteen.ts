@@ -8,7 +8,7 @@ import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { cross } from './util/pad'
 
-const fifteen: Game = {
+const fifteen: Game<'fifteen'> = {
   id: 'fifteen',
   upstream: { labels: 'none', cursor: { kind: 'none' } },
   touch: { hold: 'right' },

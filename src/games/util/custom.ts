@@ -1,5 +1,6 @@
-// 自定义参数的申报与联动机器。看不见游戏:字段按 C 给的 label 认,规则是各游戏
-// validate_params(full) 的逐条移植,这里只负责把「改一个值」变成「一组合法的值」。
+// 自定义参数的申报与联动机器。看不见游戏:字段按上游 game_configure 的顺序申报、按
+// 位置绑定(上游 custom_params 自己就是按 cfg[i] 读的),规则是各游戏 validate_params(full)
+// 的逐条移植,这里只负责把「改一个值」变成「一组合法的值」。
 //
 // 层级:mode(开关、具名枚举)> dim(尺寸)> count(由尺寸派生的计数、小数、数值枚举)。
 // 改动一个字段时,它自己不动,mode 永远不动,其余按层级修复:先动计数再动尺寸,每次
@@ -11,6 +12,8 @@
 // role 为 width / height 的字段生效。
 import type { DialogControl } from '../../engine/types'
 import type { Strings } from '../../i18n'
+import type { GameName } from '../game'
+import type { Configure, Each } from './upstream'
 
 export type Word = keyof Strings['config']
 
@@ -19,50 +22,69 @@ export type Values = Readonly<Record<string, number>>
 
 export type Role = 'width' | 'height' | 'dim' | 'count'
 
-export type Field =
-  // zero:0 有特殊含义时(打乱步数 0 = 随机)显示成这个词而不是数字。suffix 跟在数字后面
-  // 显示(百分比的 %),不进 C 的值。
-  | {
-      kind: 'int'
-      key: string
-      label: string
-      word: Word
-      min: number
-      max: number
-      role: Role
-      zero?: Word
-      suffix?: string
-    }
-  | {
-      kind: 'float'
-      key: string
-      label: string
-      word: Word
-      min: number
-      max: number
-      step: number
-      digits: number
-    }
-  // C_CHOICES 两种画法:pick 是具名枚举,分段按钮,选项逐个给词;scale 的选项本质是
-  // 数("1"、"20%"),slider,当前值直接显示上游的选项原文。
-  | { kind: 'pick'; key: string; label: string; word: Word; options: readonly Word[] }
-  | { kind: 'scale'; key: string; label: string; word: Word }
-  | { kind: 'flag'; key: string; label: string; word: Word }
-  // 一个文本控件装着 "a-b" 区间(blackbox 的球数),画成两个 slider;相等时写成 "a"。
-  | {
-      kind: 'span'
-      keys: readonly [string, string]
-      label: string
-      words: readonly [Word, Word]
-      min: number
-      max: number
-    }
+// zero:0 有特殊含义时(打乱步数 0 = 随机)显示成这个词而不是数字。suffix 跟在数字后面
+// 显示(百分比的 %),不进 C 的值。
+export type IntField = {
+  kind: 'int'
+  key: string
+  word: Word
+  min: number
+  max: number
+  role: Role
+  zero?: Word
+  suffix?: string
+}
+export type FloatField = {
+  kind: 'float'
+  key: string
+  word: Word
+  min: number
+  max: number
+  step: number
+  digits: number
+}
+// C_CHOICES 两种画法:pick 是具名枚举,分段按钮,选项逐个给词;scale 的选项本质是
+// 数("1"、"20%"),slider,当前值直接显示上游的选项原文。pick 的 options 数必须等于
+// 上游 choices 数——validate_params 里 diff >= DIFFCOUNT 那类拒绝就靠它封死,不另写 rule。
+export type PickField<O extends readonly Word[] = readonly Word[]> = {
+  kind: 'pick'
+  key: string
+  word: Word
+  options: O
+}
+export type ScaleField = { kind: 'scale'; key: string; word: Word }
+export type FlagField = { kind: 'flag'; key: string; word: Word }
+// 一个文本控件装着 "a-b" 区间(blackbox 的球数),画成两个 slider;相等时写成 "a"。
+export type SpanField = {
+  kind: 'span'
+  keys: readonly [string, string]
+  words: readonly [Word, Word]
+  min: number
+  max: number
+}
+
+export type Field = IntField | FloatField | PickField | ScaleField | FlagField | SpanField
+
+// 每个上游控件允许的申报形态:string 控件装数,choices 装枚举(pick 的选项数跟着上游),
+// boolean 装开关。
+type FieldFor<C> = C extends { kind: 'boolean' }
+  ? FlagField
+  : C extends { kind: 'choices'; options: infer O extends readonly string[] }
+    ? PickField<Each<O, Word>> | ScaleField
+    : IntField | FloatField | SpanField
+type FieldsOf<T extends readonly unknown[]> = { readonly [I in keyof T]: FieldFor<T[I]> }
+export type Fields<G extends GameName> = FieldsOf<Configure<G>>
 
 // bad 为真即上游会回绝这组值;on 列出它读的字段,每条只应靠改其中一个字段就能满足
 // (上游 w < 2 || h < 2 这种要拆成两条)。at 是来源行号,给读代码的人对账用。
 export type Rule = { at: string; on: readonly string[]; bad: (v: Values) => boolean }
 
-export type Custom = { fields: readonly Field[]; rules: readonly Rule[] }
+// 申报的严格形态:fields 是该游戏上游控件的逐位元组,长度、种类、选项数都由 facts 定;
+// 条件分发让 Custom<GameName> 成为四十份的联合。机器只认松散的 CustomShape。
+export type Custom<G extends GameName = GameName> = G extends GameName
+  ? { fields: Fields<G>; rules: readonly Rule[] }
+  : never
+export type CustomShape = { fields: readonly Field[]; rules: readonly Rule[] }
 
 export const rule = (at: string, on: readonly string[], bad: (v: Values) => boolean): Rule => ({
   at,
@@ -121,16 +143,16 @@ function scaleOf(field: Field): Scale | null {
 // ---------------------------------------------------------------- 模型
 
 type Model = {
-  custom: Custom
+  custom: CustomShape
   fieldOf: ReadonlyMap<string, Field>
   tier: ReadonlyMap<string, Tier>
   scale: ReadonlyMap<string, Scale>
   rules: readonly Rule[]
 }
 
-const models = new WeakMap<Custom, Model>()
+const models = new WeakMap<CustomShape, Model>()
 
-function modelOf(custom: Custom): Model {
+function modelOf(custom: CustomShape): Model {
   const known = models.get(custom)
   if (known) return known
   const fieldOf = new Map<string, Field>()
@@ -226,15 +248,15 @@ function repair(model: Model, start: Values, changed: string): Values | null {
 // ---------------------------------------------------------------- 对外
 
 // 把 key 改成 unit 刻度上的值(或开关、枚举的取值),连带修好其余字段。
-export function change(custom: Custom, values: Values, key: string, next: number): Values | null {
+export function change(custom: CustomShape, values: Values, key: string, next: number): Values | null {
   const model = modelOf(custom)
   return repair(model, { ...values, [key]: next }, key)
 }
 
-export const unitOf = (custom: Custom, key: string, value: number): number =>
+export const unitOf = (custom: CustomShape, key: string, value: number): number =>
   modelOf(custom).scale.get(key)?.unit(value) ?? value
 
-export const valueOf = (custom: Custom, key: string, unit: number): number =>
+export const valueOf = (custom: CustomShape, key: string, unit: number): number =>
   modelOf(custom).scale.get(key)?.value(unit) ?? unit
 
 const allowed = (model: Model, values: Values, key: string, unit: number): boolean => {
@@ -244,7 +266,7 @@ const allowed = (model: Model, values: Values, key: string, unit: number): boole
 }
 
 // slider 两端:在其余字段能让位的前提下,这个字段够得着的最小和最大刻度。
-export function extent(custom: Custom, values: Values, key: string): { lo: number; hi: number } {
+export function extent(custom: CustomShape, values: Values, key: string): { lo: number; hi: number } {
   const model = modelOf(custom)
   const s = model.scale.get(key)
   if (!s) return { lo: 0, hi: 0 }
@@ -256,7 +278,7 @@ export function extent(custom: Custom, values: Values, key: string): { lo: numbe
 }
 
 // 松手落在不允许的刻度上时吸附到最近能修好的刻度;等距时取更小的那边。
-export function snap(custom: Custom, values: Values, key: string, unit: number): number | null {
+export function snap(custom: CustomShape, values: Values, key: string, unit: number): number | null {
   const model = modelOf(custom)
   const s = model.scale.get(key)
   if (!s) return null
@@ -271,7 +293,7 @@ export function snap(custom: Custom, values: Values, key: string, unit: number):
 
 // 加减键:沿 dir 方向下一个允许的刻度。
 export function neighbour(
-  custom: Custom,
+  custom: CustomShape,
   values: Values,
   key: string,
   dir: 1 | -1,
@@ -290,20 +312,18 @@ export function neighbour(
 // 多数游戏的棋盘宽高就叫 "Width" / "Height";键是上游 game_params 里的变量名,多数叫
 // w / h,叫别的(width、w2)由游戏传进来。上限由自家规则封在 100,这里只填上游的下限
 // (来源行号写在各游戏的申报旁)。
-export const width = (min: number, key = 'w'): Field => ({
+export const width = (min: number, key = 'w'): IntField => ({
   kind: 'int',
   key,
-  label: 'Width',
   word: 'width',
   min,
   max: BOARD_MAX,
   role: 'width',
 })
 
-export const height = (min: number, key = 'h'): Field => ({
+export const height = (min: number, key = 'h'): IntField => ({
   kind: 'int',
   key,
-  label: 'Height',
   word: 'height',
   min,
   max: BOARD_MAX,
@@ -312,20 +332,18 @@ export const height = (min: number, key = 'h'): Field => ({
 
 // 难度:多数游戏的 DIFFCONFIG 都叫 "Difficulty",上游变量多数叫 diff,叫 difficulty 的
 // 由游戏传进来;选项逐游戏给词。
-export const difficulty = (options: readonly Word[], key = 'diff'): Field => ({
+export const difficulty = <const O extends readonly Word[]>(options: O, key = 'diff'): PickField<O> => ({
   kind: 'pick',
   key,
-  label: 'Difficulty',
   word: 'difficulty',
   options,
 })
 
 // 打乱步数(sixteen / twiddle / netslide 同名同义):上游只要求非负,0 = 随机打乱。
 // 上限是自家取的实用值:步数过了行列数的量级就和随机打乱分不出来了。
-export const shuffles = (): Field => ({
+export const shuffles = (): IntField => ({
   kind: 'int',
   key: 'movetarget',
-  label: 'Number of shuffling moves',
   word: 'shuffles',
   min: 0,
   max: 1000,
@@ -339,32 +357,34 @@ export type Bound = ReadonlyMap<number, Field>
 
 const SPAN = /^(\d+)-(\d+)$/
 
-// 字段按 label 认到控件上,种类要对得上;有一条对不上就整份不绑(回退到旧控件),
-// 这说明申报和上游脱节了,不能带着半份申报去修值。
-export function bind(custom: Custom, controls: readonly DialogControl[]): Bound | null {
+// 第 i 个字段就是第 i 个控件,种类要对得上。对不上只能是申报抄错(上游钉死),直接
+// throw,不带着半份申报去修值。
+export function bind(custom: CustomShape, controls: readonly DialogControl[]): Bound {
+  if (custom.fields.length !== controls.length)
+    throw new Error(
+      `custom params: declared ${custom.fields.length} fields, engine has ${controls.length} controls`,
+    )
   const bound = new Map<number, Field>()
-  for (const field of custom.fields) {
-    const at = controls.findIndex((c) => c.label === field.label)
+  custom.fields.forEach((field, at) => {
     const control = controls[at]
     const ok =
-      control !== undefined &&
-      (field.kind === 'pick'
+      field.kind === 'pick'
         ? control.kind === 'choices' && control.choices.length === field.options.length
         : field.kind === 'scale'
           ? control.kind === 'choices'
           : field.kind === 'flag'
             ? control.kind === 'boolean'
-            : control.kind === 'string')
-    if (!ok || bound.has(at)) {
-      console.warn(`custom params: cannot bind "${field.label}"`)
-      return null
-    }
+            : control.kind === 'string'
+    if (!ok)
+      throw new Error(
+        `custom params: field ${at} (${keysOf(field).join('/')}) is ${field.kind}, engine control is ${control.kind}`,
+      )
     bound.set(at, field)
     if (field.kind === 'scale' && control.kind === 'choices') {
       const s = modelOf(custom).scale.get(field.key)
       if (s) s.hi = control.choices.length - 1
     }
-  }
+  })
   return bound
 }
 

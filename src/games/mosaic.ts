@@ -11,16 +11,16 @@ const WORDS = ['Black', 'White', 'Empty']
 
 // validate_params mosaic.c:240-249:宽高各 ≥ 3,面积不超过 10000 格(100×100 正好够)。
 // 生成是解不出就重来的概率重试。
-const custom: Custom = {
+const custom: Custom<'mosaic'> = {
   fields: [
     height(3, 'height'),
     width(3, 'width'),
-    { kind: 'flag', key: 'aggressive', label: 'Aggressive generation (longer)', word: 'aggressive' },
+    { kind: 'flag', key: 'aggressive', word: 'aggressive' },
   ],
   rules: [rule('mosaic.c:245', ['width', 'height'], (v) => v.height > Math.floor(10000 / v.width))],
 }
 
-const mosaic: Game = {
+const mosaic: Game<'mosaic'> = {
   id: 'mosaic',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },
