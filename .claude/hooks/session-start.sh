@@ -9,5 +9,5 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
 fi
 
 cd "${CLAUDE_PROJECT_DIR:-$(pwd)}"
-git config author.name "ebnbin"
+git config author.name "Bin Zhang"
 git config author.email "ebnbin@gmail.com"
