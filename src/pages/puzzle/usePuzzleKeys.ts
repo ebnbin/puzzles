@@ -1,7 +1,5 @@
-// 谜题页唯一的物理键盘通路。判据是「这一按该不该归谜题」,不是「谁有焦点」:
-// 焦点不承重,棋盘丢了焦点照样能玩。不要改回 canvas 的 onKeyDown——那条路上
-// 每加一个会抢焦点的按钮就得记得把焦点还回来,漏了不报错,build 照样绿
-// (会安静地坏掉的那一类,见 docs/keys.md)。守在 scripts/check-focus.mjs。
+// 谜题页唯一的物理键盘通路。判据是「这一按该不该归谜题」,不认焦点;不要改回
+// canvas 的 onKeyDown。守在 scripts/check-focus.mjs。
 import { useEffect } from 'react'
 import type { PuzzleApi } from '../../engine/types'
 import type { Stroke } from '../../games/game'

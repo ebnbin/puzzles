@@ -53,8 +53,8 @@ npm run preview    # 预览 dist/
 | `public/` | 编译好的 wasm、手册、图片 |
 | `scripts/` | 构建脚本 |
 
-wasm、手册、缩略图这些产物都已经提交进仓库，日常开发不用重新生成。真要重新生成，步骤
-和依赖在 [CLAUDE.md](CLAUDE.md)。
+wasm、手册、缩略图这些产物都已经提交进仓库，日常开发不用重新生成。真要重新生成，入口
+是 `scripts/build-games.sh`。
 
 ## 许可与致谢
 

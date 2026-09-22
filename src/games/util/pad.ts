@@ -116,7 +116,7 @@ export type ActSpec<F> = {
   key: string
   idle: FaceSpec
   layer?: 1 | 2
-  // 按词换脸。词不在脸谱里就置灰戴默认脸——多张脸的判据见 docs/keys.md。
+  // 按词换脸;词不在脸谱里就置灰、戴默认脸。多张脸 = 同一份工作在不同地方的样子。
   faces?: Partial<Record<string, FaceSpec>>
   // 按结果命名:名字是结果,由标签反查此刻哪个键给出它。
   does?: string
