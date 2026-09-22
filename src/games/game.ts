@@ -3,7 +3,8 @@
 //   1. 接口和宿主里不出现任何游戏名;能力用通用形态表达,特殊游戏只是取值不同。
 //   2. 一个游戏 = 一个文件。util 的判据是「看不见游戏」——参数与实现里没有游戏名,
 //      也没有任何一个游戏的参数/存档/走子语法。
-//   3. 逐游戏事实(光标、标签、键)以 vendor/ 的 C 源码为准,docs/inputs.md 是索引。
+//   3. 逐游戏的上游事实(控件、偏好 kw、键码、调色板)以引擎录的 facts.ts 为准,升级
+//      vendor 时重录;行为语义读 vendor/ 的 C 源码,docs/inputs.md 是索引。
 import type { IconName, ImageName } from '../ui/Icon'
 import type { Strings } from '../i18n'
 import type { Dark } from '../engine/palette'
@@ -19,18 +20,18 @@ export type GameName =
   | 'towers' | 'singles' | 'magnets' | 'signpost' | 'range' | 'pearl' | 'undead'
   | 'unruly' | 'flood' | 'tracks' | 'palisade' | 'mosaic'
 
-export type Game<F = null> = {
-  id: GameName
+export type Game<G extends GameName, F = null> = {
+  id: G
 
   upstream: Upstream
   touch: Touch
   dark: Dark
   pages: Pages
-  types: Types
+  types: Types<G>
   prefs: Prefs
 
   // 上方键区。null = 这一局的参数认不出,整排不画;[] = 这个游戏没有上方键区。
-  keypad(deal: Deal): Key<F>[] | null
+  keypad(deal: Deal<G>): Key<F>[] | null
   // 方向键块。null = 无键盘玩法。
   arrows: Arrows<F> | null
   observe: Observe<F>
@@ -62,11 +63,11 @@ export type { Dark }
 
 export type Pages = { manual: string; help: string; howto: string }
 
-export type Types = {
+export type Types<G extends GameName> = {
   menu(presets: readonly Preset[]): readonly Preset[]
-  // 自定义参数的申报:字段按上游 label 认,规则是 validate_params(full) 的逐条移植
-  // (util/custom.ts)。
-  custom: Custom
+  // 自定义参数的申报:字段按上游 game_configure 的顺序、按位置绑定,规则是
+  // validate_params(full) 的逐条移植(util/custom.ts)。
+  custom: Custom<G>
 }
 export type Prefs = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
@@ -105,7 +106,11 @@ export type Face = {
 
 // ---------------------------------------------------------------- 上方键区
 
-export type Deal = { params: string; prefs: readonly DialogControl[] }
+export type Deal<G extends GameName = GameName> = {
+  game: G
+  params: string
+  prefs: readonly DialogControl[]
+}
 
 export type Key<F> = {
   group: 'entry' | 'pick' | 'assist' | 'prefer'

@@ -44,9 +44,9 @@ import tracks from './tracks'
 import palisade from './palisade'
 import mosaic from './mosaic'
 
-// F 逐游戏不同,表里只能收敛到 Game<any>;每个文件内部自身是全类型检查的。
+// F 逐游戏不同,表里只能收敛到 Game<GameName, any>;每个文件内部自身是全类型检查的。
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Readonly<Record<GameName, Game<any>>> = {
+export const GAMES: Readonly<Record<GameName, Game<GameName, any>>> = {
   net, cube, fifteen, sixteen, twiddle, rect, netslide, pattern, solo, mines,
   samegame, flip, guess, pegs, dominosa, untangle, blackbox, slant, lightup,
   map, loopy, inertia, tents, bridges, unequal, galaxies, filling, keen,
@@ -54,5 +54,5 @@ export const GAMES: Readonly<Record<GameName, Game<any>>> = {
   tracks, palisade, mosaic,
 }
 
-export const gameOf = (name: string): Game<unknown> | null =>
-  Object.hasOwn(GAMES, name) ? (GAMES[name as GameName] as Game<unknown>) : null
+export const gameOf = (name: string): Game<GameName, unknown> | null =>
+  Object.hasOwn(GAMES, name) ? (GAMES[name as GameName] as Game<GameName, unknown>) : null

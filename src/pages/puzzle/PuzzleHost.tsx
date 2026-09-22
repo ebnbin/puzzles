@@ -189,7 +189,7 @@ export default function PuzzleHost({
   // 上方区域的顺序是结构,不是各游戏手写出来的约定:entry 在前、pick 居中、
   // assist 再后、prefer 收尾;sort 稳定,组内保留声明序。
   const keys = useMemo(() => {
-    const dealt = game.keypad({ params: id.split(':')[0], prefs })
+    const dealt = game.keypad({ game: game.id, params: id.split(':')[0], prefs })
     if (!dealt) return []
     const shown: Record<Key<unknown>['group'], boolean> = {
       entry: true,

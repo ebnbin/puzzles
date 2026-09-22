@@ -6,7 +6,7 @@ import type { DealAction } from '../../engine/deal'
 import { composePrefs } from '../../engine/createPuzzle'
 import { Dealer, type DealOutcome } from '../../engine/dealer'
 import type { PuzzleApi } from '../../engine/types'
-import type { Game } from '../../games/game'
+import type { Game, GameName } from '../../games/game'
 import { SHORTCUTS_OFF } from './useShortcuts'
 
 // 加载态立刻透明地拦住输入,过了这个点才把对话框摆出来:多数发牌只要几毫秒,
@@ -23,7 +23,7 @@ const wait = (ms: number) => new Promise((done) => window.setTimeout(done, ms))
 
 export function useDeal(
   name: string,
-  game: Game<unknown>,
+  game: Game<GameName, unknown>,
   apiRef: React.RefObject<PuzzleApi | null>,
 ) {
   const [dealing, setDealing] = useState(false)

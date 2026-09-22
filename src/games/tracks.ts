@@ -14,17 +14,17 @@ const WORDS = ['Track', 'X', 'Clear']
 
 // validate_params tracks.c:196-207:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 的
 // Easy 以上上游自己降成 Easy(tracks.c:735),是降级不是失败;其余是 goto 重来的概率重试。
-const custom: Custom = {
+const custom: Custom<'tracks'> = {
   fields: [
     width(4),
     height(4),
     difficulty(['easy', 'tricky', 'hard']),
-    { kind: 'flag', key: 'single_ones', label: 'Disallow consecutive 1 clues', word: 'noOnes' },
+    { kind: 'flag', key: 'single_ones', word: 'noOnes' },
   ],
   rules: [],
 }
 
-const tracks: Game = {
+const tracks: Game<'tracks'> = {
   id: 'tracks',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

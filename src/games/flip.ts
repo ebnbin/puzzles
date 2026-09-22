@@ -9,16 +9,16 @@ import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
 // validate_params flip.c:191-198,不看 full:宽高 > 0;两条 INT_MAX 在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'flip'> = {
   fields: [
     width(1),
     height(1),
-    { kind: 'pick', key: 'matrix_type', label: 'Shape type', word: 'shape', options: ['crosses', 'random'] },
+    { kind: 'pick', key: 'matrix_type', word: 'shape', options: ['crosses', 'random'] },
   ],
   rules: [],
 }
 
-const flip: Game = {
+const flip: Game<'flip'> = {
   id: 'flip',
   upstream: {
     labels: 'live',

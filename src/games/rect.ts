@@ -61,12 +61,12 @@ const duo = (spec: Pick<ActSpec<Facts>, 'id' | 'slot' | 'key' | 'idle'>) =>
 // 只有 ≥ 2 的那一维才被托底(rect.c:1165-1168),随后 snewn(params2->h - 1) 是负数,
 // fatal 只弹框不退出(emcc.c:152-164),紧接着 random_upto(rs, -1)(rect.c:1473)在
 // random.c:275 的 assert(bits < 32) 上必炸。
-const custom: Custom = {
+const custom: Custom<'rect'> = {
   fields: [
     width(1),
     height(1),
-    { kind: 'float', key: 'expandfactor', label: 'Expansion factor', word: 'expand', min: 0, max: 100, step: 0.1, digits: 1 },
-    { kind: 'flag', key: 'unique', label: 'Ensure unique solution', word: 'unique' },
+    { kind: 'float', key: 'expandfactor', word: 'expand', min: 0, max: 100, step: 0.1, digits: 1 },
+    { kind: 'flag', key: 'unique', word: 'unique' },
   ],
   rules: [
     rule('rect.c:227', ['w', 'h'], (v) => v.w * v.h < 2),
@@ -75,7 +75,7 @@ const custom: Custom = {
   ],
 }
 
-const rect: Game<Facts> = {
+const rect: Game<'rect', Facts> = {
   id: 'rect',
   // 拖拽没动过时两键同报 Cancel(rect.c:2374),要申报给边界复原。
   upstream: { labels: 'live', echoes: ['Cancel'], cursor: { kind: 'reported' } },

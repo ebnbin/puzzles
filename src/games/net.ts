@@ -20,22 +20,21 @@ const LOOPS: Prefer = {
 
 // 自定义参数:validate_params net.c:320-382。宽高 ≥ 1(322);概率 0..1(328-331),
 // 上游用 %g 显示,0.05 步进往返无损;INT_MAX 那条(326)在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'net'> = {
   fields: [
     width(1, 'width'),
     height(1, 'height'),
-    { kind: 'flag', key: 'wrapping', label: 'Walls wrap around', word: 'wrap' },
+    { kind: 'flag', key: 'wrapping', word: 'wrap' },
     {
       kind: 'float',
       key: 'barrier_probability',
-      label: 'Barrier probability',
       word: 'barrier',
       min: 0,
       max: 1,
       step: 0.05,
       digits: 2,
     },
-    { kind: 'flag', key: 'unique', label: 'Ensure unique solution', word: 'unique' },
+    { kind: 'flag', key: 'unique', word: 'unique' },
   ],
   rules: [
     rule('net.c:324', ['width', 'height'], (v) => v.width <= 1 && v.height <= 1),
@@ -45,7 +44,7 @@ const custom: Custom = {
   ],
 }
 
-const net: Game = {
+const net: Game<'net'> = {
   id: 'net',
   upstream: {
     labels: 'live',

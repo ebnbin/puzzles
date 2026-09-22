@@ -1,6 +1,6 @@
 import { useMemo, useReducer } from 'react'
 import type { DialogControl } from '../../engine/types'
-import type { Custom, Field } from '../../games/util/custom'
+import type { CustomShape, Field } from '../../games/util/custom'
 import {
   bind,
   change,
@@ -34,9 +34,9 @@ export default function ConfigFields({
   onSettle,
 }: {
   controls: DialogControl[]
-  // 自定义参数的申报;给了且绑得上,数值画成 slider、枚举按申报画,值经联动机器修好
-  // 再写回。没给(偏好、模态兜底)或绑不上就按控件种类画:布尔勾选、枚举分段、文本框。
-  declared?: Custom
+  // 自定义参数的申报;给了就按位置绑定,数值画成 slider、枚举按申报画,值经联动机器修好
+  // 再写回。没给(偏好、模态)就按控件种类画:布尔勾选、枚举分段、文本框。
+  declared?: CustomShape
   autoFocus?: boolean
   onCommit?: () => void
   // 一次输入收尾了(勾选、选定、文本框按了 Enter):停靠面板拿它把焦点还给棋盘。

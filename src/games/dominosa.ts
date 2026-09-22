@@ -16,15 +16,15 @@ const WORDS = ['Place', 'Remove', 'Line']
 // validate_params dominosa.c:247-258:最大点数 ≥ 1,INT_MAX 那条在 100 以内碰不到。棋盘
 // 是 (n+2)×(n+1),按棋盘规则封到 98。n 为 1、2 时上游把难度压到 Trivial / Basic
 // (dominosa.c:2243-2247),是降级不是失败;其余是等到指定难度为止的概率重试。
-const custom: Custom = {
+const custom: Custom<'dominosa'> = {
   fields: [
-    { kind: 'int', key: 'n', label: 'Maximum number on dominoes', word: 'dominoMax', min: 1, max: 98, role: 'dim' },
+    { kind: 'int', key: 'n', word: 'dominoMax', min: 1, max: 98, role: 'dim' },
     difficulty(['trivial', 'basic', 'hard', 'extreme', 'ambiguous']),
   ],
   rules: [],
 }
 
-const dominosa: Game = {
+const dominosa: Game<'dominosa'> = {
   id: 'dominosa',
   upstream: {
     labels: 'live',

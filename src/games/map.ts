@@ -269,17 +269,17 @@ const STIPPLES: Prefer = {
 // validate_params map.c:259-270:宽高 ≥ 2,区域 ≥ 5 且不超过格数;INT_MAX 那条在 100 以内
 // 碰不到。难度不够就重来(map.c:1583-1596):区域数 < 9 或 > 2/3 面积时 50 次后降到 Easy,
 // 夹在中间的没有兜底,但读代码证不了哪个尺寸必然生不出,照上游放行。
-const custom: Custom = {
+const custom: Custom<'map'> = {
   fields: [
     width(2),
     height(2),
-    { kind: 'int', key: 'n', label: 'Regions', word: 'regions', min: 5, max: AREA_MAX, role: 'count' },
+    { kind: 'int', key: 'n', word: 'regions', min: 5, max: AREA_MAX, role: 'count' },
     difficulty(['easy', 'normal', 'hard', 'unreasonable']),
   ],
   rules: [rule('map.c:267', ['n', 'w', 'h'], (v) => v.n > v.w * v.h)],
 }
 
-const map: Game<Facts> = {
+const map: Game<'map', Facts> = {
   id: 'map',
   upstream: {
     labels: 'live',

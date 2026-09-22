@@ -8,7 +8,7 @@ import { samePages, verbatim } from './util/declare'
 import { clearKey, digitKeys } from './util/keys'
 import { cross } from './util/pad'
 
-const filling: Game = {
+const filling: Game<'filling'> = {
   id: 'filling',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

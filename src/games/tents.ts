@@ -68,12 +68,12 @@ type Facts = {
 
 // validate_params tents.c:414-417:宽高各 ≥ 4;INT_MAX 那条在 100 以内碰不到。4×4 及以下
 // 的 Tricky 上游自己降成 Easy(tents.c:978),是降级不是失败;其余是概率重试。
-const custom: Custom = {
+const custom: Custom<'tents'> = {
   fields: [width(4), height(4), difficulty(['easy', 'tricky'])],
   rules: [],
 }
 
-const tents: Game<Facts> = {
+const tents: Game<'tents', Facts> = {
   id: 'tents',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

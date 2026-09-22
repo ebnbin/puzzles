@@ -13,15 +13,14 @@ import { act, cross } from './util/pad'
 // 步进往返无损),打乱步数 ≥ 0(0 = 默认打乱量 2(w−1)(h−1) 步,netslide.c:575)。没有唯一解开关,所以也没有
 // net 那条「回绕时不能是 2」;打乱只避开正中的行列,2×N 也总有可走的一步。INT_MAX
 // 那条(315)在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'netslide'> = {
   fields: [
     width(2, 'width'),
     height(2, 'height'),
-    { kind: 'flag', key: 'wrapping', label: 'Walls wrap around', word: 'wrap' },
+    { kind: 'flag', key: 'wrapping', word: 'wrap' },
     {
       kind: 'float',
       key: 'barrier_probability',
-      label: 'Barrier probability',
       word: 'barrier',
       min: 0,
       max: 1,
@@ -33,7 +32,7 @@ const custom: Custom = {
   rules: [],
 }
 
-const netslide: Game = {
+const netslide: Game<'netslide'> = {
   id: 'netslide',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

@@ -13,7 +13,7 @@ const WORDS = ['Fill', 'Dot', 'Empty']
 // validate_params range.c:918-932:宽高各 ≥ 1;宽加高不超过 128(线索存在 signed char
 // 里,range.c:923),100 封顶下仍碰得到;full 下 1×1、1×2、2×1、2×2 造不出来。生成是
 // 去线索失败就重来的概率重试。
-const custom: Custom = {
+const custom: Custom<'range'> = {
   fields: [width(1), height(1)],
   rules: [
     rule('range.c:923', ['w', 'h'], (v) => v.w > 127 - (v.h - 1)),
@@ -21,7 +21,7 @@ const custom: Custom = {
   ],
 }
 
-const range: Game = {
+const range: Game<'range'> = {
   id: 'range',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

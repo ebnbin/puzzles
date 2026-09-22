@@ -27,17 +27,17 @@ const LOOK: Prefer = {
 // validate_params pearl.c:286-297:宽高各 ≥ 5;Tricky 要宽加高至少 11(即一维 ≥ 6);
 // INT_MAX 那条在 100 以内碰不到。
 const TRICKY = 1
-const custom: Custom = {
+const custom: Custom<'pearl'> = {
   fields: [
     width(5),
     height(5),
     difficulty(['easy', 'tricky'], 'difficulty'),
-    { kind: 'flag', key: 'nosolve', label: 'Allow unsoluble', word: 'allowUnsoluble' },
+    { kind: 'flag', key: 'nosolve', word: 'allowUnsoluble' },
   ],
   rules: [rule('pearl.c:294', ['w', 'h', 'difficulty'], (v) => v.difficulty >= TRICKY && v.w + v.h < 11)],
 }
 
-const pearl: Game<Facts> = {
+const pearl: Game<'pearl', Facts> = {
   id: 'pearl',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

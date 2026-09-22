@@ -17,11 +17,11 @@ const WORDS = ['Select', 'Cancel']
 const CROSS = 0
 const OCTAGON = 1
 const CROSS_SIDES = [5, 7, 9]
-const custom: Custom = {
+const custom: Custom<'pegs'> = {
   fields: [
     width(4),
     height(4),
-    { kind: 'pick', key: 'type', label: 'Board type', word: 'boardType', options: ['cross', 'octagon', 'random'] },
+    { kind: 'pick', key: 'type', word: 'boardType', options: ['cross', 'octagon', 'random'] },
   ],
   rules: [
     rule('pegs.c:207', ['w', 'type'], (v) => v.type === CROSS && !CROSS_SIDES.includes(v.w)),
@@ -32,7 +32,7 @@ const custom: Custom = {
   ],
 }
 
-const pegs: Game = {
+const pegs: Game<'pegs'> = {
   id: 'pegs',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

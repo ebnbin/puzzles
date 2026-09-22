@@ -126,11 +126,11 @@ const TIDY: Prefer = {
 // validate_params palisade.c:164-185:宽高、区域大小各 ≥ 1;区域大小整除面积;full 下不能
 // 等于面积(界面没法赢),等于 2 时要有一维为 1。区域大小在计数层:改棋盘时它吸附到
 // 最近的约数,自己只能在约数之间跳。INT_MAX 那条在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'palisade'> = {
   fields: [
     width(1),
     height(1),
-    { kind: 'int', key: 'k', label: 'Region size', word: 'regionSize', min: 1, max: AREA_MAX, role: 'count' },
+    { kind: 'int', key: 'k', word: 'regionSize', min: 1, max: AREA_MAX, role: 'count' },
   ],
   rules: [
     rule('palisade.c:174', ['k', 'w', 'h'], (v) => (v.w * v.h) % v.k !== 0),
@@ -139,7 +139,7 @@ const custom: Custom = {
   ],
 }
 
-const palisade: Game<Facts> = {
+const palisade: Game<'palisade', Facts> = {
   id: 'palisade',
   upstream: { labels: 'none', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

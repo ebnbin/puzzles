@@ -9,6 +9,7 @@ import type {
   Armed,
   Board,
   Game,
+  GameName,
   Gate,
   Labels,
   Saw,
@@ -27,7 +28,7 @@ const strokeArgs = (s: Stroke): [number, string, string, number, number, number]
     : [0, s.key, '', s.pad ? 3 : 0, s.shift ? 1 : 0, s.ctrl ? 1 : 0]
 
 export function useBoard(
-  game: Game<unknown>,
+  game: Game<GameName, unknown>,
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   acted: () => void,

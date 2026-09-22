@@ -32,12 +32,12 @@ const FACES = [
 
 // validate_params undead.c:214-221:宽高各 ≥ 3,宽不超过 54 整除高(面积最多 54)。生成
 // 是路径铺不出来就重来的概率重试。
-const custom: Custom = {
+const custom: Custom<'undead'> = {
   fields: [width(3), height(3), difficulty(['easy', 'normal', 'tricky'])],
   rules: [rule('undead.c:218', ['w', 'h'], (v) => v.w > Math.floor(54 / v.h))],
 }
 
-const undead: Game = {
+const undead: Game<'undead'> = {
   id: 'undead',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

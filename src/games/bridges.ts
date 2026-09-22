@@ -26,20 +26,20 @@ const SHOW_LANES = { 'show-hints': 'true' } as const
 // 取值就是选项本身(1..4、5%..30%、0%..100%),校验永远过;INT_MAX 那条在 100 以内碰不到。
 // 三个数值型枚举画成 slider,当前值显示选项原文。生成是 goto 重来的重试(bridges.c:1856-
 // 2002),铺不够岛时连续 50 次失败也会带着现有的岛往下走,没有任何组合被代码本身挡死。
-const custom: Custom = {
+const custom: Custom<'bridges'> = {
   fields: [
     width(3),
     height(3),
     difficulty(['easy', 'medium', 'hard'], 'difficulty'),
-    { kind: 'flag', key: 'allowloops', label: 'Allow loops', word: 'allowLoops' },
-    { kind: 'scale', key: 'maxb', label: 'Max. bridges per direction', word: 'maxBridges' },
-    { kind: 'scale', key: 'islands', label: '%age of island squares', word: 'islandPc' },
-    { kind: 'scale', key: 'expansion', label: 'Expansion factor (%age)', word: 'expansionPc' },
+    { kind: 'flag', key: 'allowloops', word: 'allowLoops' },
+    { kind: 'scale', key: 'maxb', word: 'maxBridges' },
+    { kind: 'scale', key: 'islands', word: 'islandPc' },
+    { kind: 'scale', key: 'expansion', word: 'expansionPc' },
   ],
   rules: [],
 }
 
-const bridges: Game = {
+const bridges: Game<'bridges'> = {
   id: 'bridges',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

@@ -11,7 +11,7 @@ import {
   writeSave,
 } from '../../engine/saves'
 import type { DialogSpec, Preset, PuzzleApi } from '../../engine/types'
-import type { Game } from '../../games/game'
+import type { Game, GameName } from '../../games/game'
 import type { Resolved } from '../../useTheme'
 import { SHORTCUTS_OFF } from './useShortcuts'
 
@@ -19,7 +19,7 @@ export const START_FAILED = '\0start'
 
 type EngineArgs = {
   name: string
-  game: Game<unknown>
+  game: Game<GameName, unknown>
   canvasRef: React.RefObject<HTMLCanvasElement | null>
   areaRef: React.RefObject<HTMLDivElement | null>
   apiRef: React.RefObject<PuzzleApi | null>

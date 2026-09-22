@@ -11,13 +11,13 @@ import { act, cross } from './util/pad'
 // 允许,整盘一块是上游特判过的合法情形),打乱步数 ≥ 0(0 = 随机,twiddle.c:338)。
 // 宽高的下限 2 是经旋转块传出来的。旋转块在计数层:缩小棋盘时它跟着缩,它自己只能在
 // min(宽, 高) 以内滑。INT_MAX 那条(220)在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'twiddle'> = {
   fields: [
     width(2),
     height(2),
-    { kind: 'int', key: 'n', label: 'Rotating block size', word: 'block', min: 2, max: BOARD_MAX, role: 'count' },
-    { kind: 'flag', key: 'rowsonly', label: 'One number per row', word: 'rowsOnly' },
-    { kind: 'flag', key: 'orientable', label: 'Orientation matters', word: 'orientable' },
+    { kind: 'int', key: 'n', word: 'block', min: 2, max: BOARD_MAX, role: 'count' },
+    { kind: 'flag', key: 'rowsonly', word: 'rowsOnly' },
+    { kind: 'flag', key: 'orientable', word: 'orientable' },
     shuffles(),
   ],
   rules: [
@@ -26,7 +26,7 @@ const custom: Custom = {
   ],
 }
 
-const twiddle: Game = {
+const twiddle: Game<'twiddle'> = {
   id: 'twiddle',
   upstream: { labels: 'live', cursor: { kind: 'reported' } },
   touch: { hold: 'right' },

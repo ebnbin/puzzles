@@ -214,17 +214,16 @@ const roll = (dir: Way, slot: 1 | 2 | 3 | 5): ArrowKey<Facts> => ({
 // cube.c:553),三角网格下是六边形的两组边长(可以为 0 但不能都为 0,cube.c:558),
 // 所以两条自家规则在这里按多面体分开写:宽高比只管立方体;三角网格的行数和最宽行
 // 都是 d1+d2,「不超过 100」按它算。INT_MAX 那两条(555、574)在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'cube'> = {
   fields: [
     {
       kind: 'pick',
       key: 'solid',
-      label: 'Type of solid',
       word: 'solid',
       options: ['tetrahedron', 'cube', 'octahedron', 'icosahedron'],
     },
-    { kind: 'int', key: 'd1', label: 'Width / top', word: 'widthTop', min: 0, max: BOARD_MAX, role: 'dim' },
-    { kind: 'int', key: 'd2', label: 'Height / bottom', word: 'heightBottom', min: 0, max: BOARD_MAX, role: 'dim' },
+    { kind: 'int', key: 'd1', word: 'widthTop', min: 0, max: BOARD_MAX, role: 'dim' },
+    { kind: 'int', key: 'd2', word: 'heightBottom', min: 0, max: BOARD_MAX, role: 'dim' },
   ],
   rules: [
     rule('cube.c:553', ['d1', 'solid'], (v) => v.solid === CUBE && v.d1 <= 1),
@@ -238,7 +237,7 @@ const custom: Custom = {
   ],
 }
 
-const cube: Game<Facts> = {
+const cube: Game<'cube', Facts> = {
   id: 'cube',
   upstream: { labels: 'none', cursor: { kind: 'none' } },
   touch: { hold: 'right' },

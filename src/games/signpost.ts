@@ -66,16 +66,16 @@ const linkKey = (
 
 // validate_params signpost.c:430-440:宽高各 ≥ 1,full 下不能都是 1(界面没法把它从未解
 // 走到已解);INT_MAX 那条在 100 以内碰不到。生成是填不满就重来的概率重试。
-const custom: Custom = {
+const custom: Custom<'signpost'> = {
   fields: [
     width(1),
     height(1),
-    { kind: 'flag', key: 'force_corner_start', label: 'Start and end in corners', word: 'corners' },
+    { kind: 'flag', key: 'force_corner_start', word: 'corners' },
   ],
   rules: [rule('signpost.c:436', ['w', 'h'], (v) => v.w === 1 && v.h === 1)],
 }
 
-const signpost: Game<Facts> = {
+const signpost: Game<'signpost', Facts> = {
   id: 'signpost',
   // 拖拽中两键同词(signpost.c:1483-1491 不分 which),三个词都可能成对出现。
   upstream: {

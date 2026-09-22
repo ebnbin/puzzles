@@ -12,12 +12,12 @@ const WORDS = ['Advance']
 
 // validate_params inertia.c:208-219:宽高各 ≥ 2,面积 ≥ 6(宝石数是面积的五分之一,至少
 // 得有一颗);INT_MAX 那条在 100 以内碰不到。
-const custom: Custom = {
+const custom: Custom<'inertia'> = {
   fields: [width(2), height(2)],
   rules: [rule('inertia.c:219', ['w', 'h'], (v) => v.w * v.h < 6)],
 }
 
-const inertia: Game = {
+const inertia: Game<'inertia'> = {
   id: 'inertia',
   upstream: { labels: 'live', cursor: { kind: 'none' } },
   touch: { hold: 'right' },
