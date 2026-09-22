@@ -11,7 +11,7 @@ import { act, cross } from './util/pad'
 
 const WORDS = ['Black', 'Circle', 'Restore', 'Remove']
 
-// 点在棋盘外沿(BORDER 那一圈)就翻这条偏好(singles.c:1560)——全 app 唯一一个
+// 点在棋盘外沿(BORDER 那一圈)就翻这条偏好(singles.c:1561-1562)——全 app 唯一一个
 // 被指针翻的偏好,所以 volatile,而且重读得挂在手势上,不能只挂按键。
 const BLACK_NUMS: Prefer = {
   kind: 'flag',

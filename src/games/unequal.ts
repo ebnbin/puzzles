@@ -25,7 +25,7 @@ const custom: Custom = {
     { kind: 'int', key: 'order', label: 'Size (s*s)', word: 'order', min: 3, max: 32, role: 'dim' },
     difficulty(['trivial', 'easy', 'tricky', 'extreme', 'recursive']),
   ],
-  rules: [rule('unequal.c:274', ['order', 'mode', 'diff'], (v) => v.order < 5 && v.mode === ADJACENT && v.diff >= SET)],
+  rules: [rule('unequal.c:273', ['order', 'mode', 'diff'], (v) => v.order < 5 && v.mode === ADJACENT && v.diff >= SET)],
 }
 
 const unequal: Game = {

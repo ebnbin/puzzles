@@ -1,6 +1,6 @@
 // Sixteen:整行整列循环滑动。上游 sixteen.c。
 // 光标可以停在棋盘外一圈,还有 lock_tile / lock_position 两档模式
-// (sixteen.c:566)。锁上任一档之后方向键推的是整行整列,图标和读法都换一套
+// (sixteen.c:564)。锁上任一档之后方向键推的是整行整列,图标和读法都换一套
 // ——从标签里的 Unlock 读出「锁着」,不自己记模式。
 import type { ArrowKey, Game, Slot } from './game'
 import { still } from './game'

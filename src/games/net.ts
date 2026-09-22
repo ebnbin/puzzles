@@ -2,7 +2,7 @@
 // current_key_label 不查自己的可见性标志(net.c:2124 只看锁定),所以光标可见性
 // 由宿主镜像;能唤醒光标的键抄自 interpret_move 键盘那半边(方向、确认、ASDF)。
 // 触摸长按借中键:上游触摸右键(MOD_STYLUS)是锁定,而这个前端发不出 MOD_STYLUS,
-// 中键的锁定与之等价(net.c:2300)。
+// 中键的锁定与之等价(net.c:2205-2213)。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
