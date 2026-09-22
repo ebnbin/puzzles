@@ -80,9 +80,9 @@ export default function Slider({
         >
           <Icon name="add" size={16} />
         </button>
-        <output className="slider-value" htmlFor={id}>
+        <span className="slider-value" aria-hidden="true">
           {display(shown)}
-        </output>
+        </span>
       </div>
     </div>
   )

@@ -198,10 +198,11 @@ export class CanvasRenderer {
     return this.ink(outline)
   }
 
+  // 上游会传负半径(小格子上的 blackbox、mines、singles),canvas 的 arc 不接受。
   circle(x: number, y: number, r: number, fill: number, outline: number) {
     const { ctx } = this
     ctx.beginPath()
-    ctx.arc(x + 0.5, y + 0.5, r, 0, 2 * Math.PI)
+    ctx.arc(x + 0.5, y + 0.5, Math.max(0, r), 0, 2 * Math.PI)
     if (fill >= 0) {
       ctx.fillStyle = this.ink(fill)
       ctx.fill()

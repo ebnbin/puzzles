@@ -9,7 +9,8 @@ const OUT_MS = 180
 const BACK_MS = 220
 // 必须和 index.css 里 sheet 变居中 dialog 的断点(48em)一致,两处一起改。
 const DESKTOP = '(min-width: 48em)'
-const CONTROLS = 'button, a, input, select, textarea, label'
+// 只有自己吃拖动的控件(滑杆、文本框、下拉)不参与手势,其余任何位置往下拉都是关闭。
+const OWN_DRAG = 'input:not([type="checkbox"]):not([type="radio"]), select, textarea'
 
 type Drag = {
   id: number
@@ -23,6 +24,7 @@ type Drag = {
 function useSheetDrag(onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null)
   const drag = useRef<Drag | null>(null)
+  const swallow = useRef(false)
 
   const offset = (y: number, ms = 0) => {
     const el = ref.current
@@ -38,7 +40,7 @@ function useSheetDrag(onClose: () => void) {
     if (window.matchMedia(DESKTOP).matches) return
 
     const target = e.target as HTMLElement
-    if (target.closest(CONTROLS)) return
+    if (target.closest(OWN_DRAG)) return
     if (!target.closest('.sheet-handle') && el.scrollTop > 0) return
 
     drag.current = {
@@ -77,6 +79,10 @@ function useSheetDrag(onClose: () => void) {
       drag.current = null
       if (!el || !d.live) return offset(0)
 
+      // 鼠标松手后 click 仍会落在起手的元素上,拖过的这一下要吞掉。
+      swallow.current = true
+      window.setTimeout(() => (swallow.current = false), 0)
+
       const travelled = Math.max(0, d.lastY - d.from)
       if (travelled > DISMISS_PX || d.velocity > DISMISS_VELOCITY) {
         offset(el.getBoundingClientRect().height, OUT_MS)
@@ -88,6 +94,13 @@ function useSheetDrag(onClose: () => void) {
     [onClose],
   )
 
+  const onClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!swallow.current) return
+    swallow.current = false
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
   return {
     ref,
     handlers: {
@@ -95,6 +108,7 @@ function useSheetDrag(onClose: () => void) {
       onPointerMove,
       onPointerUp,
       onPointerCancel: onPointerUp,
+      onClickCapture,
     },
   }
 }
