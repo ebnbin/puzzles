@@ -1,8 +1,8 @@
 // 从编好的引擎(public/engine/**)录每个游戏的静态事实,写成 src/games/facts.ts。
 // build-games.sh 装完引擎就跑它;单独跑:node scripts/record-facts.mjs。
 //
-// 录的是引擎运行时真报出来的东西,不是读 C 源码抄的:预设、自定义参数的控件、偏好
-// 控件及其 kw / 选项 kw、request_keys、调色板、能否求解。它是申报(src/games/*.ts)
+// 录的是引擎运行时真报出来的东西,不是读 C 源码抄的:默认参数串、预设、自定义参数的
+// 控件、偏好控件及其 kw / 选项 kw、request_keys、调色板、能否求解。它是申报(src/games/*.ts)
 // 的对账基准,也是运行时按 kw 找偏好下标的表。
 //
 // 偏好的 kw 对话框里拿不到(emcc.c 只传 name),靠 js_save_prefs 写出的 kw=value 行
@@ -144,7 +144,15 @@ async function record(name) {
     prefs.push(entry)
   }
 
+  // 默认那一局的参数串(存档 PARAMS 行):构建期拿它算一次 keypad,核 request_keys 覆盖。
+  const save = api.saveGame()
+  const at = save.indexOf('PARAMS')
+  const m = /^PARAMS\s*:(\d+):/.exec(save.slice(at))
+  if (!m) throw new Error(`${name}: no PARAMS line in save`)
+  const params = save.slice(at + m[0].length, at + m[0].length + Number(m[1]))
+
   return {
+    params,
     presets: game.presets,
     configure,
     prefs,
