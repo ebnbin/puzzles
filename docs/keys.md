@@ -378,7 +378,7 @@ NULL 却每条分支都干活的键(untangle):恒可按,不看标签。
 
 `prefer` 键**不需要** `prefs.volatile`。`borrowPrefs` 读写两条路都把新值 `setPrefs` 回去,
 键面上那盏灯自己就跟上了;偏好面板改完也一样(`commitInline` 会重问一遍)。`volatile` 是给
-「**物理按键**会改偏好」的游戏留的——guess 的 `l`、undead 的 `a`、bridges 的 `g` 三家。
+「**物理按键或指针**会改偏好」的游戏留的——bridges 的 `g`、guess 的 `l`、map 的 `l`、undead 的 `a`、singles 点棋盘外沿五家。
 给别的游戏写上它不是保险,是每敲一个键都白借一次偏好 box。
 
 **上了键区就退出面板。** 同一个开关不在两处各占一行:键区摆出来的那几条,宿主在
@@ -520,6 +520,7 @@ kw(`SHORTCUTS_KW`,经 facts 查到面板里的下标)。
   不受打扰。面板挂着的 config box 占着 C 侧唯一的位置,键区借偏好时它先让位、借完要回来
   (`useConfigBox.borrowPrefs`)。守在 `scripts/check-dock.mjs`。
 
-九个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade` /
-`check-keys` / `check-solved` / `check-focus` / `check-prefer` / `check-dock`)何时跑、守什么,
-见各脚本和被测文件的头部注释。
+八个 check 脚本(`check-cube` / `check-map` / `check-clues` / `check-palisade` /
+`check-solved` / `check-focus` / `check-prefer` / `check-dock`)何时跑、守什么,见各脚本和
+被测文件的头部注释。键区覆盖上游 `request_keys` 的对账在构建期(`games/util/verify.ts`),
+`npm run build` 里跑。

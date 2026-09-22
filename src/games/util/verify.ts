@@ -7,18 +7,14 @@ import { facts } from '../facts'
 import type { Game, GameName } from '../game'
 
 // facts 里录的偏好整表,拼成引擎会交来的控件样子,给构建期算一次 keypad 用。
+type PrefFact =
+  | { kind: 'boolean'; label: string; initial: boolean }
+  | { kind: 'choices'; label: string; options: readonly string[]; initial: number }
 const controlsOf = (name: GameName): DialogControl[] =>
-  (
-    facts[name].prefs as readonly {
-      kind: 'boolean' | 'choices'
-      label: string
-      initial: boolean | number
-      options?: readonly string[]
-    }[]
-  ).map((p) =>
+  (facts[name].prefs as readonly PrefFact[]).map((p) =>
     p.kind === 'boolean'
-      ? { kind: 'boolean', label: p.label, value: p.initial === true }
-      : { kind: 'choices', label: p.label, choices: [...(p.options ?? [])], value: Number(p.initial) },
+      ? { kind: 'boolean', label: p.label, value: p.initial }
+      : { kind: 'choices', label: p.label, choices: [...p.options], value: p.initial },
   )
 
 export function verifyGames(
@@ -54,6 +50,17 @@ export function verifyGames(
     }
 
     const { dark } = game
+    // dark 申报里的槽号不能超出引擎报的调色板(facts.colours 是 js_set_colour 录的)。
+    const slots = facts[name].colours.length
+    const referenced = [
+      ...(dark.keep ?? []),
+      ...(dark.relief ?? []).flat(),
+      ...Object.entries(dark.frame ?? {}).flatMap(([k, v]) => [Number(k), v]),
+      ...(dark.strokes ?? []),
+    ]
+    for (const slot of referenced)
+      if (!Number.isInteger(slot) || slot < 0 || slot >= slots)
+        bad.push(`${name} 的 dark 申报引用了 ${slot} 号槽,引擎的调色板只有 ${slots} 个`)
     if (dark.paper && dark.relief)
       bad.push(
         `${name} 既转纸面(paper)又有亮影对(relief):棋盘抬走了,浮雕留在原地。` +

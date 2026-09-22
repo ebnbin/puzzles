@@ -112,7 +112,7 @@ export type Deal<G extends GameName = GameName> = {
 export type Key<F> = {
   group: 'entry' | 'pick' | 'assist' | 'prefer'
   face: Face | ((view: View<F>) => Face)
-  // 契约测试用:这个键等价于上游 request_keys 的哪个按钮码(check-keys 对账)。
+  // 构建期对账用(util/verify.ts):这个键等价于上游 request_keys 的哪个按钮码。
   button?: number
   // 这个键顶的是 view.prefs 里第几条。宿主据此把那一行从偏好面板里撤掉——同一个
   // 开关不在两处各占一行。只有 preferKeys 填这一格。

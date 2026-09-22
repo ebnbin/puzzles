@@ -1,6 +1,6 @@
 // Solo:数独(含 Killer、Jigsaw、X 变体)。上游 solo.c。
 // 数字键盘按参数推(重新实现 request_keys 的结果,emcc.c 不调用它),认不出的
-// 参数一律不显示键盘;对不对得上由 scripts/check-keys.mjs 去问引擎。
+// 参数一律不显示键盘;对不对得上由 util/verify.ts 在构建期按 facts 的默认参数核。
 import type { Game } from './game'
 import { still } from './game'
 import type { Custom } from './util/custom'
