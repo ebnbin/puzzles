@@ -95,6 +95,9 @@ done
 echo "==> extracting game metadata"
 node "$ROOT/scripts/extract-games.mjs"
 
+echo "==> recording engine facts"
+node "$ROOT/scripts/record-facts.mjs"
+
 echo "==> rendering pictures"
 npm --prefix "$ROOT" run build
 npm --prefix "$ROOT" exec -- vite preview --port 4173 --strictPort &
