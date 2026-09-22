@@ -14,8 +14,7 @@ export default function ThemeToggle({ className }: { className: string }) {
       aria-label={next === 'dark' ? t.settings.themeDark : t.settings.themeLight}
       onClick={() => setTheme(next)}
     >
-      {/* 图形表示「按下会变成什么」,不是当前状态;方向抄自手册工具条
-          (build-doc.mjs),读者刚从那边过来,同一图形不能反义。 */}
+      {/* 图形表示「按下会变成什么」,不是当前状态;方向同手册工具条(build-doc.mjs),两处一致。 */}
       <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
     </button>
   )

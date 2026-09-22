@@ -10,8 +10,7 @@ export type DialogControl =
 
 export interface DialogSpec {
   title: string
-  // 与 C 共享的活对象:dialogOk 时 puzzle-lib 的闭包从原对象上读回 value,
-  // 编辑必须原地赋 control.value;拷贝或重建会让对话框永远提交初始值。
+  // 与 C 共享的活对象,dialogOk 从原对象读回 value,只能原地改。
   controls: DialogControl[]
 }
 
@@ -53,10 +52,9 @@ export interface PuzzleApi {
   // 丢弃 puzzle 前必须调用:wasm 没有 teardown,计时中的 rAF 链会抓着死实例永远跑。
   stopTimer(): void
 
-  // 以下三个是后开的洞(build-games.sh 的 EXPORTS 为此多导出四个 C 符号:
-  // midend_status / midend_request_keys / free_keys / midend_freeze_timer)。全部可选,因为
-  // sw.js 对 /engine/** 是 stale-while-revalidate:老用户第一次访问跑的是上一版
-  // 引擎,那时它们不存在。每个调用点都要能降级,不能假设有。
+  // 这三个是后开的洞(build-games.sh 的 EXPORTS 为此多导出 midend_status / midend_request_keys /
+  // free_keys / midend_freeze_timer)。全部可选:sw.js 对 /engine/** 是 stale-while-revalidate,老用户
+  // 第一次访问跑的是上一版引擎;每个调用点都要能降级。
   status?(): number
   requestKeys?(): { button: number; label: string | null }[]
   freezeTimer?(proportion: number): void

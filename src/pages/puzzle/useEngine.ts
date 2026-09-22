@@ -95,9 +95,8 @@ export function useEngine({
     setPlaying(true)
   }, [name])
 
-  // StrictMode 在开发下同步跑 effect→cleanup→effect,而 wasm 没有 teardown:
-  // startedRef 挡住第二次启动;cleanup 用 microtask 缓期执行——真卸载没有下一次
-  // 运行来翻案,被 StrictMode 立刻复活的则什么都不杀。
+  // StrictMode 在开发下同步跑 effect→cleanup→effect,而 wasm 没有 teardown:startedRef 挡住第二次
+  // 启动;cleanup 用 microtask 缓期,被 StrictMode 立刻复活的什么都不杀。
   useEffect(() => {
     effectAlive.current = true
     liveRef.current = true
@@ -122,9 +121,7 @@ export function useEngine({
           apiRef.current = api
           if (!liveRef.current) return api.stopTimer()
           window.__puzzle = api
-          // 有存档就照原样复原,走没走过子都一样:上一次留下的那一局就是这一局。
-          // 装不进去(存档太旧、认不出来)的那份在 onError 里被丢掉,留着 main()
-          // 按默认参数发的那一局兜底。
+          // 有存档就照原样复原;装不进去的那份在 onError 里丢掉,留着 main() 按默认参数发的那一局。
           if (saved) {
             restoring.current = true
             try {
@@ -136,10 +133,8 @@ export function useEngine({
           setPresets(list && [...game.types.menu(list)])
           setReady(true)
           moved()
-          // 补一次基线:main() 里的 post_move() 早于 js_post_init(),那一次
-          // onUndoRedo 到达时 apiRef 还是空的,checkStatus 什么都没记下。不补的话
-          // 「这一局的第一次观察」会落在玩家的第一个动作上,那个动作要是直接把
-          // 局面走完(比如开局就求解),沿就丢了。
+          // 补一次基线:main() 里的 post_move() 早于 js_post_init(),那一次 onUndoRedo 到达时 apiRef
+          // 还是空的。
           checkStatus()
         },
         onError: (message) => {
@@ -166,9 +161,8 @@ export function useEngine({
           queueSave()
           if (!gated()) sleep()
         },
-        // 第一次报的一定是默认预设:emcc.c 建菜单时先调 select_appropriate_preset(),
-        // 读存档和玩家选择都在其后,所以「第一个赢」拿到的就是 default_params()。
-        // 四十个游戏里二十个的默认不是列表第一项,这个值不能猜。
+        // 第一次报的一定是默认预设:emcc.c 建菜单时先调 select_appropriate_preset(),读存档和玩家
+        // 选择都在其后。这个值不能猜,二十个游戏的默认不是列表第一项。
         onPresetSelected: (index) => {
           setStandard((first) => first ?? index)
           setSelected(index)
@@ -203,9 +197,8 @@ export function useEngine({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name])
 
-  // 发牌事件:desc 换了才算新一局(restart 不换 desc、也不该重置观察)。放在
-  // effect 里而不是 onPermalinks 回调里,是因为观察器可能借 gate 探测(map 的
-  // 线索表要重放发牌),那是对引擎的重入,不能发生在引擎回调栈上。
+  // 发牌事件:desc 换了才算新一局(restart 不换 desc)。放在 effect 里而不是 onPermalinks 回调里:
+  // 观察器可能借 gate 探测,那是对引擎的重入,不能发生在引擎回调栈上。
   const dealtRef = useRef<string | null>(null)
   useEffect(() => {
     if (!ready || !permalink) return

@@ -46,8 +46,8 @@ import { usePuzzlePointer } from './usePuzzlePointer'
 
 const NO_SWATCHES: ReadonlyMap<number, string> = new Map()
 
-// 够宽的屏幕上,类型 / 菜单面板停靠成右侧栏:棋盘让出宽度,不被盖住。只看宽度,
-// 横屏平板也停靠;窄一档(48em 起)sheet 仍是居中卡片,再窄从底部拉起。
+// 够宽的屏幕上类型 / 菜单面板停靠成右侧栏,棋盘让出宽度。只看宽度;窄一档(48em 起)sheet 是居中
+// 卡片,再窄从底部拉起。
 const DOCK = '(min-width: 64em)'
 
 export default function PuzzleHost({
@@ -59,8 +59,7 @@ export default function PuzzleHost({
   title: string
   objective: string
 }) {
-  // Puzzle 页已按 games.json 把过关,注册表和 games.json 的一致由构建期检查
-  // 把守,这里不可能拿不到。
+  // 注册表和 games.json 的一致由构建期检查把守,这里不可能拿不到。
   const game = gameOf(name)
   if (!game) throw new Error(`no game registered as ${name}`)
 
@@ -96,10 +95,8 @@ export default function PuzzleHost({
   const outcome = useOutcome(name, apiRef)
   const dealer = useDeal(name, game, apiRef)
 
-  // 发牌:镜像算完才让主线程 loadGame 接手。失败弹提示,取消什么都不做——主线程
-  // 那一局从头到尾没被碰过,回滚就是原地不动。load_game 不像 command(2)/(5) 那样
-  // 自己收焦点(emcc.c),这里补上,不然发完牌键盘玩法要等玩家先点一下棋盘。
-  // 返回结局,给要在发完之后收尾的调用方(类型面板刷新参数表)。
+  // 发牌:镜像算完才让主线程 loadGame 接手。失败弹提示,取消什么都不做。load_game 不像
+  // command(2)/(5) 那样自己收焦点(emcc.c),这里补上。返回结局给要在发完之后收尾的调用方。
   const runDeal = useCallback(
     async (action: DealAction, direct: (api: PuzzleApi) => void) => {
       const outcome = await dealer.deal(action)
@@ -116,8 +113,7 @@ export default function PuzzleHost({
     [dealer.deal],
   )
 
-  // 自定义参数的提交也走镜像。包一层 useCallback 是为了让 commitInline 的身份
-  // 稳住:这个页面重渲染很勤(readPrefs 一路的 setState)。
+  // 自定义参数的提交也走镜像。包一层 useCallback 让 commitInline 的身份稳住(这个页面重渲染很勤)。
   const dealCustom = useCallback(
     (values: readonly (string | number | boolean)[]) =>
       dealer.deal({ kind: 'custom', values }),
@@ -173,8 +169,7 @@ export default function PuzzleHost({
   }, [wide])
 
   const panel: Panel = wide ? remembered : sheet
-  // 类型面板要有预设才画得出内容。引擎起来之前壳先摆上:棋盘从第一帧就按让出的宽度
-  // 量尺寸,不会先铺满再跳一下;真没有预设的游戏(今天一个都没有)才不画。
+  // 引擎起来之前壳先摆上,棋盘从第一帧就按让出的宽度量尺寸;真没有预设的游戏才不画。
   const shown: Panel = panel === 'types' && ready && !engine.presets ? null : panel
   const docked = wide && shown !== null
   const sheetOpen = !wide && shown !== null
@@ -187,8 +182,7 @@ export default function PuzzleHost({
 
   const id = permalink ? decodeURIComponent(permalink.desc) : ''
   const prefs = board.view.prefs
-  // 上方区域的顺序是结构,不是各游戏手写出来的约定:entry 在前、pick 居中、
-  // assist 再后、prefer 收尾;sort 稳定,组内保留声明序。
+  // 上方区域的顺序是结构:entry、pick、assist、prefer;sort 稳定,组内保留声明序。
   const keys = useMemo(() => {
     const dealt = game.keypad({ game: game.id, params: id.split(':')[0], prefs })
     if (!dealt) return []
@@ -233,9 +227,8 @@ export default function PuzzleHost({
   )
 
   const [swatches, setSwatches] = useState<ReadonlyMap<number, string>>(NO_SWATCHES)
-  // 必须是 effect,且要跑在 useEngine 里翻主题的 effect 之后(effect 按 hook
-  // 调用序跑,useEngine 在上面):那边才把 renderer 的调色表翻面,这里是新颜色
-  // 存在的第一刻;memo 会读到旧主题。
+  // 必须是 effect,且跑在 useEngine 里翻主题的 effect 之后(effect 按 hook 调用序跑):那边才把
+  // renderer 的调色表翻面;memo 会读到旧主题。
   useEffect(() => {
     const renderer = rendererRef.current
     if (!renderer || !ready) return
@@ -262,8 +255,7 @@ export default function PuzzleHost({
     [dialog, acted],
   )
 
-  // act 的发牌版:同样的守卫和 acted(),只是动手的是镜像。direct 是没有镜像时
-  // (起不了模块 worker)在主线程上直接做的那件事——会卡,但不会没得玩。
+  // act 的发牌版:同样的守卫和 acted(),动手的是镜像;direct 是没有镜像时在主线程上直接做的那件事。
   // 守卫挡下的答 null,发了的答结局。
   const deal = useCallback(
     (
@@ -277,14 +269,12 @@ export default function PuzzleHost({
     [dialog, acted, runDeal],
   )
 
-  // 偏好变了就卸膛:上膛键的含义是偏好给的(palisade 切回 Half-grid 之后,原来那
-  // 支 Ctrl 上膛既画不出边、也因为走不成而永远不自动卸,同伴键还一直藏着)。
+  // 偏好变了就卸膛:上膛键的含义是偏好给的(palisade 的光标模式)。
   useEffect(() => {
     board.handle.arm(null)
   }, [board.handle, prefs])
 
-  // 开局读一次。键面形状看偏好的游戏都要这一份(prefer 的亮灭、guess 的色钉标号、
-  // palisade 的光标模式);volatile 只多管一件事——物理按键之后再重读一遍。
+  // 开局读一次,键面形状看偏好的游戏都要这一份;volatile 只多管物理按键之后再重读一遍。
   useEffect(() => {
     if (ready) readPrefs()
   }, [ready, game, readPrefs])
@@ -338,12 +328,10 @@ export default function PuzzleHost({
     settle(true)
   }, [wide, settle])
 
-  // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃。停靠的面板
-  // 不是覆盖层。手册也是覆盖层,但它自己在 window 捕获阶段 stopPropagation,不必
-  // 再报一位进来。
+  // 键盘不认焦点,只认「这一刻谜题该不该吃这一按」:覆盖层盖着就不吃;停靠的面板不是覆盖层;手册
+  // 自己在 window 捕获阶段 stopPropagation,不必报进来。
   const covered = !!dialog || helpOpen || sheetOpen
-  // 上游那三个裸字母快捷键由我们补发,理由和判据都在 useShortcuts.SHORTCUTS_OFF。
-  // n 走镜像,u / r 本来就不发牌,照旧同步。
+  // 上游那三个裸字母快捷键由我们补发(useShortcuts.SHORTCUTS_OFF);n 走镜像,u / r 同步。
   const onShortcut = useCallback(
     (which: Shortcut) => {
       if (which === 'newGame') deal({ kind: 'newGame' }, (a) => a.newGame())
@@ -364,9 +352,8 @@ export default function PuzzleHost({
     onShortcut,
   })
 
-  // 覆盖层全关上的那一刻把焦点还给棋盘。键盘不靠焦点活,但焦点留在触发键上会让
-  // Space 再开一次那扇门,而 Space 在多数谜题里是走子键。要 effect 不要逐个
-  // close 回调:两个 sheet 互相替换时不该收焦点,拖拽关闭和点 scrim 也得算上。
+  // 覆盖层全关上的那一刻把焦点还给棋盘:焦点留在触发键上会让 Space 再开一次那扇门。要 effect
+  // 不要逐个 close 回调:两个 sheet 互相替换时不该收焦点,拖拽关闭和点 scrim 也得算上。
   const wasCovered = useRef(false)
   useEffect(() => {
     if (wasCovered.current && !covered) canvasRef.current?.focus()
@@ -378,8 +365,7 @@ export default function PuzzleHost({
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key !== 'Escape') return
-      // 发牌期间 Escape 什么都不关:拦截层挡得住指针,挡不住键盘,而关掉底下那张
-      // sheet 会把还开着的参数 box 一起退掉,发牌回来就没地方落。
+      // 发牌期间 Escape 什么都不关:关掉底下那张 sheet 会把还开着的参数 box 一起退掉。
       if (dealer.dealing) return
       // 停靠的面板不归 Escape 管:它是布局的一部分,不是盖在棋盘上的东西。
       if (!sheetOpen) return
@@ -401,14 +387,10 @@ export default function PuzzleHost({
 
   const arrowPad = game.arrows ? padButtons(game.arrows, board.view, board.handle) : null
 
-  // 面板上撤两样。一、键区已经摆出来的那几条:同一个开关不在两处各占一行,依据是
-  // 这一局真的显示出来的键(总开关关着就一条都不撤)。
-  // 下标在两次借用之间稳:两边都是 midend_get_prefs() 的整表。二、裸字母快捷键那条:
-  // 它归全局设置管(useShortcuts),开局压在存档上面,留着这一行会是个会撒谎的勾
-  // ——点得动、下次开局又被压回去。撤空了整段不画(PuzzleMenu 自己判 length)。
-  // memo 是必需的,不是优化:裸字母那条每个游戏都在,所以每次都会滤掉东西、每次都
-  // 造新数组。这个页面每次重渲染(readPrefs 一路的 setState 很勤)都要走到这儿,
-  // 不 memo 就每次给 ConfigFields 递一份新的 spec。
+  // 面板上撤两样:键区已经摆出来的那几条(依据是这一局真的显示出来的键;下标在两次借用之间稳,
+  // 两边都是 midend_get_prefs() 的整表),和裸字母快捷键那条(归全局设置,开局压在存档上面,留着
+  // 会是个会撒谎的勾)。撤空了整段不画(PuzzleMenu 自己判 length)。memo 是必需的:裸字母那条
+  // 每个游戏都在,每次都造新数组,不 memo 就每次给 ConfigFields 递一份新的 spec。
   const panelled = useMemo(() => {
     if (inline?.kind !== 'prefs') return null
     const fronted = new Set<number>()
@@ -434,12 +416,8 @@ export default function PuzzleHost({
         declared={game.types.custom}
         customError={inlineError}
         docked={docked}
-        // 不抢先把选中项挪过去:发牌可能被取消,那时引擎的参数一动没动,抢先
-        // 挪过去就成了一个和棋盘对不上的勾。接手之后 load_game 会调
-        // select_appropriate_preset,选中项由引擎自己报回来。
-        // 参数表常驻,发牌全程开着的那份 box 装的是旧参数:发完再要一份,表里才是
-        // 引擎此刻的参数(取消、失败也一样,要回来的就是原值)。busy 是别人的发牌
-        // 在路上,由它收尾。
+        // 不抢先把选中项挪过去:发牌可能被取消,选中项由引擎接手后自己报回来。发完再要一份 box,
+        // 表里才是引擎此刻的参数;busy 是别人的发牌在路上,由它收尾。
         onSelectPreset={(value) => {
           void deal({ kind: 'preset', index: value }, (a) => a.selectPreset(value)).then(
             (status) => {

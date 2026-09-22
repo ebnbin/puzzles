@@ -1,6 +1,5 @@
-// 深色主题 = 把后端报上来的颜色表整表翻译一遍,wasm 全程不知情。逐游戏的槽位
-// 语义(keep/relief/frame/strokes/paper)由各游戏文件的 dark 申报,这里是
-// 游戏无关的翻译机器和申报的类型;申报的不变量由 games/util/verify.ts 在构建期强制。
+// 深色主题 = 把后端报上来的颜色表整表翻译一遍,wasm 全程不知情。逐游戏的槽位语义由各游戏文件的
+// dark 申报;申报的不变量由 games/util/verify.ts 在构建期强制。
 
 // 深色 = 浅色表的逐槽翻译;字段全缺省 = 纯翻转。
 export type Dark = {
@@ -86,8 +85,8 @@ function format({ h, s, l }: { h: number; s: number; l: number }): string {
   return `#${channel(h + 1 / 3)}${channel(h)}${channel(h - 1 / 3)}`
 }
 
-// flip 和 compress 共享 FLOOR/CEILING、方向相反,端点必然重合:两个不同浅色落到
-// 同一暗色是量过并接受的(Mines 的 1 和 4 同蓝),不要为此加扰动。
+// flip 和 compress 共享 FLOOR/CEILING、方向相反,端点必然重合:两个不同浅色落到同一暗色是接受的
+// (Mines 的 1 和 4 同蓝),不要加扰动。
 const flip = (l: number) => FLOOR + (1 - l) * (CEILING - FLOOR)
 
 const compress = (l: number) => FLOOR + l * (CEILING - FLOOR)
@@ -161,9 +160,8 @@ export function forDarkBoard(light: readonly string[], dark: Dark = {}): string[
     ;[flipped[lit], flipped[shade]] = [flipped[shade], flipped[lit]]
   }
 
-  // 这个 pass 不冗余:所有规则同色入同色出,唯一能打破的是 relief 交换(值在槽位
-  // 间搬家),所以用交换过的对播种、同浅色槽跟走;keep 槽故意豁免(Pattern
-  // 的两个黑本该分开)。
+  // 所有规则同色入同色出,唯一能打破的是 relief 交换:用交换过的对播种、同浅色槽跟走;keep 槽
+  // 豁免(Pattern 的两个黑本该分开)。
   const settled = new Map<string, string>()
   for (const index of dark.relief?.flat() ?? [])
     if (!semantic?.includes(index)) settled.set(light[index], flipped[index])

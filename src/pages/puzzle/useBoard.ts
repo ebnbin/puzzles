@@ -1,7 +1,5 @@
-// 棋盘通道:五项每游戏状态(标签、事实、光标镜像、粘滞键、上膛)和喂它们的
-// 全部管道。存档门的重入计数私有在这里,引擎回调只能走 heard/moved/sleep/
-// dealt/frame 进来——门内的载入/按键是探测和改写的机械动作,不是棋局事件,
-// 一律不喂观察器;门关上之后如果真载入过存档,补一个 {moved}。
+// 棋盘通道:五项每游戏状态(标签、事实、光标镜像、粘滞键、上膛)和喂它们的管道。存档门的重入
+// 计数私有在这里:门内的载入、按键不喂观察器;门关上之后如果真载入过存档,补一个 {moved}。
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { CanvasRenderer, Drawn } from '../../engine/renderer'
 import type { DialogControl, PuzzleApi } from '../../engine/types'
@@ -32,8 +30,7 @@ export function useBoard(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   acted: () => void,
-  // 偏好写回住在 config box 那边(借用 box 的机械动作在那儿),而 config box 要等
-  // 这只手柄先造好——所以从宿主转一道 ref 进来,不是这里自己能拿到的东西。
+  // 偏好写回住在 config box 那边,而 config box 要等这只手柄先造好,所以从宿主转一道 ref 进来。
   preferRef: React.RefObject<((use: (prefs: DialogControl[]) => boolean) => void) | null>,
 ) {
   const [labels, setLabels] = useState<Labels>({ enter: '', space: '' })
@@ -199,9 +196,8 @@ export function useBoard(
 
   const gated = useCallback(() => inGate.current > 0, [])
 
-  // 发牌事件。观察器可能借 gate 探测(map 的线索表要重放发牌),那是对引擎的
-  // 重入,只能从 effect 进来,不能发生在引擎回调栈上——effect 归 useEngine,
-  // 门的包装归这里。
+  // 发牌事件。观察器可能借 gate 探测(map 的线索表要重放发牌),那是对引擎的重入,只能从 effect
+  // 进来,不能发生在引擎回调栈上。
   const dealt = useCallback(
     (id: string, api: PuzzleApi) => {
       inGate.current += 1

@@ -1,6 +1,5 @@
-// 镜像发牌的主线程一侧。发牌一律走这里,不按「这次大概快不快」分流——快慢事先
-// 判断不出来,分流就等于赌。取消只有 terminate 一条路:镜像正卡在同步的 C 循环
-// 里,收不到消息,所以取消之后要重开一个;主线程那局全程没被碰过,取消即原地不动。
+// 镜像发牌的主线程一侧。发牌一律走这里,不分流。取消只有 terminate 一条路(镜像卡在同步的 C 循环
+// 里,收不到消息),取消之后重开一个;主线程那局全程没被碰过。
 import type { DealAction, FromWorker, ToWorker } from './deal'
 
 export type DealOutcome =
@@ -17,8 +16,7 @@ export class Dealer {
   private worker: Worker | null = null
   private pending = new Map<number, (outcome: DealOutcome) => void>()
   private next = 1
-  // 起不来就别一直重开:模块 worker 太老的浏览器不支持,循环重开会把它烧穿。
-  // 归零在每次成功发牌之后,所以偶发的一次崩溃不会把镜像永久关掉。
+  // 起不来就别一直重开(模块 worker 太老的浏览器不支持);每次成功发牌后归零。
   private broken = 0
 
   constructor(name: string, prefs: () => string | null) {
@@ -32,8 +30,8 @@ export class Dealer {
     return this.worker !== null
   }
 
-  // 挂载即开,不等第一次发牌:sw.js 对 /engine/** 是 stale-while-revalidate,晚开
-  // 的镜像可能拿到刚刷新的新引擎,和主线程手里的旧引擎交换存档。
+  // 挂载即开,不等第一次发牌:sw.js 对 /engine/** 是 stale-while-revalidate,晚开的镜像可能拿到
+  // 新引擎,和主线程手里的旧引擎交换存档。
   private spawn() {
     if (this.broken >= BROKEN_LIMIT) return
     let worker: Worker

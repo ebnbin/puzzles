@@ -32,8 +32,7 @@ export function clearSave(name: string): void {
   }
 }
 
-// 记「哪一局已经报过完成」,一个游戏只记最近一局的 desc。存在的理由是跨重载去重:
-// 完成后 undo 再 redo 会让 status 重新走一次 0→+1,只有会话内的闩锁挡不住重载。
+// 记「哪一局已经报过完成」,一个游戏只记最近一局的 desc;跨重载去重,会话内的闩锁挡不住重载。
 export function alreadySolved(name: string, desc: string): boolean {
   try {
     const stored = JSON.parse(window.localStorage.getItem(SOLVED) ?? '{}')
@@ -134,8 +133,7 @@ export function markIntroduced(name: string): void {
 
 export function forgetEverything(): void {
   try {
-    // 先收集完 key 再删:边枚举边 removeItem 会让 store.key(i) 实时重新编号,
-    // 隔一个跳一个,「全部忘掉」只删一半。
+    // 先收集完 key 再删:边枚举边 removeItem 会让 store.key(i) 实时重新编号。
     const store = window.localStorage
     const mine: string[] = []
     for (let i = 0; i < store.length; i++) {

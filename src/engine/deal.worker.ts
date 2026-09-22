@@ -1,11 +1,9 @@
-// 镜像引擎:和主线程同一份 wasm 的第二个实例,只发牌、不画画。发牌是引擎里唯一
-// 会跑成几十秒的同步循环(new_desc 的「造盘→验难度→重来」),放在这里主线程才
-// 有空画加载态;取消只能靠 terminate 整个 worker,同步的 C 循环没有别的打断口。
+// 镜像引擎:和主线程同一份 wasm 的第二个实例,只发牌、不画画。发牌是引擎里唯一会跑成几十秒的
+// 同步循环;取消只能靠 terminate 整个 worker。
 import type { DealAction, FromWorker, ToWorker } from './deal'
 import type { DialogControl, DialogSpec, PuzzleApi } from './types'
 
-// wasm 胶水以为自己在页面里,但它只碰 window 的这三个属性、一个 document 都不碰
-// (public/engine/*.js 里可验证)。这份桩必须在 import 引擎模块之前就位。
+// wasm 胶水只碰 window 的这三个属性,不碰 document。这份桩必须在 import 引擎模块之前就位。
 Object.defineProperty(globalThis, 'window', {
   value: {
     requestAnimationFrame: () => 0,
@@ -20,8 +18,7 @@ const ctx = self as unknown as {
   onmessage: ((event: MessageEvent<ToWorker>) => void) | null
 }
 
-// 画布桩。preferredSize 必须答 null 而不是编一个尺寸:emcc 的 resize() 拿到 false
-// 就用游戏自己的默认尺寸,而一个算不出来的尺寸会让 keen 在 draw_tile 里断言。
+// 画布桩。preferredSize 必须答 null:emcc 的 resize() 拿到 false 才用游戏自己的默认尺寸。
 const draw = new Proxy(
   {},
   {
@@ -38,8 +35,7 @@ let dialog: DialogSpec | null = null
 let complaint: string | null = null
 let booted: Promise<void> | null = null
 
-// 经函数读,不直接读变量:引擎的回调是同步回灌的,TypeScript 的窄化看不见这件事,
-// 直接读会被窄成赋值那一刻的类型。
+// 经函数读,不直接读变量:引擎的回调同步回灌,直接读会被 TypeScript 窄成赋值那一刻的类型。
 const openDialog = () => dialog
 const lastComplaint = () => complaint
 
@@ -66,8 +62,7 @@ function boot(name: string, prefs: string | null): Promise<void> {
     },
     onTimer: () => {},
     focusCanvas: () => {},
-    // 偏好影响不了发牌(new_desc 看不见 game_ui),同步过来是为了 encode_ui:
-    // 它跑在 apply_prefs 之后,上游哪天往里塞一个偏好值就会盖掉主线程那份。
+    // 偏好要和主线程同一份:encode_ui 跑在 apply_prefs 之后,存档里带着它。
     loadPrefs: () => prefs,
     savePrefs: () => {},
   }
@@ -116,8 +111,7 @@ ctx.onmessage = (event: MessageEvent<ToWorker>) => {
       const bound = api
       if (!bound) throw new Error('the mirror did not attach')
       complaint = null
-      // 每次发牌前先装一遍主线程的存档:参数由它对齐,镜像不必自己跟踪主线程
-      // 走到了哪一步,也就没有漂开的余地。
+      // 每次发牌前先装一遍主线程的存档:参数由它对齐,镜像不跟踪主线程。
       bound.loadGame(save)
       const stale = lastComplaint()
       if (stale !== null) throw new Error(stale)

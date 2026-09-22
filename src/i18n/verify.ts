@@ -1,5 +1,4 @@
-// 两份文案 JSON 的构建期对账:键集全等、逐键占位符集合全等。类型只保得住
-// 形状(zh 少键会报,多键和占位符不会),这两条要在这里看守。
+// 两份文案 JSON 的构建期对账:键集全等、逐键占位符集合全等(类型只保得住形状)。
 type Tree = { [key: string]: string | Tree }
 
 const holes = (text: string) =>

@@ -20,8 +20,7 @@ export function usePuzzlePointer(
   apiRef: React.RefObject<PuzzleApi | null>,
   rendererRef: React.RefObject<CanvasRenderer | null>,
   hold: number = RIGHT_BUTTON,
-  // 一次手势结束。偏好会被指针改掉的游戏拿它重读(singles 点棋盘外沿就翻一条,
-  // singles.c:1560);别的游戏不传,一次都不多借。
+  // 一次手势结束。偏好会被指针改掉的游戏拿它重读(singles 点棋盘外沿,singles.c:1560)。
   settled?: () => void,
 ) {
   const held = useRef<Map<number, number>>(new Map())

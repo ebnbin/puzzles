@@ -14,8 +14,8 @@ const emit = () => {
   for (const listener of listeners) listener()
 }
 
-// halibut 把跨页链接写成 <file>.html#<file>,自家名字的锚指着 h1、跟过去会滚过
-// 页头,所以它等于「回到页顶」——和独立手册页头部脚本是同一条规则,联动改。
+// halibut 把跨页链接写成 <file>.html#<file>,自家名字的锚等于「回到页顶」;和独立手册页头部脚本是
+// 同一条规则,联动改。
 const parse = (target: string): { file: string; frag: string | null } => {
   const [file, frag = ''] = target.split('#')
   return { file, frag: frag && frag !== file.replace(/\.html$/, '') ? frag : null }
@@ -95,8 +95,7 @@ function Viewer({ file, depth }: { file: string; depth: number }) {
   const scroller = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // capture + stopPropagation:手册开着时按键不许漏给底下的谜题。谜题的键盘
-    // 通路(usePuzzleKeys)挂在 window 冒泡阶段、不认焦点,这一句是它唯一的闸。
+    // capture + stopPropagation:手册开着时按键不许漏给底下的谜题,这是 usePuzzleKeys 唯一的闸。
     const onKey = (event: KeyboardEvent) => {
       event.stopPropagation()
       if (event.key !== 'Escape') return

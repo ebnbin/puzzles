@@ -1,6 +1,5 @@
-// 停靠在屏幕右缘的面板壳,和 Sheet(底部拉起)、Dialog(居中卡片)并列的第三种。
-// 非模态是它的全部要点:没有 scrim、不锁滚动、不收焦点,开着的时候页面照常能用。
-// 让出宽度的是外面那层(.puzzle[data-dock] 的右内边距),这里只管画。
+// 停靠在屏幕右缘的面板壳,和 Sheet(底部拉起)、Dialog(居中卡片)并列。非模态:没有 scrim、不锁
+// 滚动、不收焦点。让出宽度的是外面那层(.puzzle[data-dock] 的右内边距),这里只管画。
 import Icon from './Icon'
 import { useStrings } from '../i18n'
 

@@ -420,9 +420,8 @@ p.notice-toast {
   box-shadow: var(--shadow-2);
   pointer-events: none;
   transform: translateX(-50%);
-  /* 没有规则引用这个名字,但它是 toast 盖住飞行 tile 的唯一机制:tile 被命名后
-     提入 view-transition 层,z-index 对该层无效;快照按文档序堆叠,所以 toast
-     还必须是画廊最后渲染的元素。 */
+  /* toast 盖住飞行 tile 的唯一机制:tile 被命名后提入 view-transition 层,z-index 对该层无效;
+     快照按文档序堆叠,toast 必须是画廊最后渲染的元素。 */
   view-transition-name: toast;
   animation: toast-in var(--dur) var(--ease);
 }
@@ -456,13 +455,11 @@ footer p {
   --key-gap: 0.25rem;
   /* 底板往键外撑半道缝:撑满一道两块就贴上了,这 2px 是方向键和功能键之间的净空。 */
   --key-rim: calc(var(--key-gap) / 2);
-  /* 底板色。按不动的键也填它——键面整个沉进板里,只剩一个淡图标浮着,是这一块
-     里最强的一个「现在按不动」的信号。两处必须同值,所以走同一个变量。 */
+  /* 底板色。按不动的键也填它,两处必须同值。 */
   --pad-bg: var(--surface-2);
   /* 底板圆角 = 键的圆角 + rim,两层才同心。方向键是正圆,圆角取一半:40/2 + 2。 */
   --pad-r: calc(var(--tap-w) / 2 + var(--key-rim));
-  /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽。这条等式就是
-     --act-w 这个定义的全部用处。 */
+  /* 两个固定键加一道缝正好等于三个方向键格(都是 128):两块等宽。 */
   --act-w: calc(1.5 * var(--tap-w) + var(--key-gap) / 2);
   /* 键盘总宽 = 3×tap-w + 2×act-w + 5×gap + 2×rim = 6×tap-w + 7×gap = 268。
      五道缝:两块之间两道(acts 内部一道 + 那条 margin),四列网格之间三道。 */
@@ -487,8 +484,7 @@ footer p {
   visibility: hidden;
 }
 
-/* 面板停靠时棋盘不是被盖住,而是让出宽度:这一条内边距就是全部的让位,里面的
-   .puzzle-board 照旧量自己的可用空间(usePuzzleFit 的 ResizeObserver 会接到)。
+/* 面板停靠时棋盘让出宽度:这一条内边距就是全部的让位,.puzzle-board 照旧量自己的可用空间。
    停不停靠由 PuzzleHost 的媒体查询定,这里只认它写上来的属性。 */
 .puzzle[data-dock='true'] {
   padding-right: calc(var(--dock-w) + env(safe-area-inset-right));
@@ -671,8 +667,8 @@ p.notice-error.is-floating {
   pointer-events: none;
 }
 
-/* 一局走到头之后贴着棋盘底边浮出来,正好落在按键区上方。绝对定位不是装饰:进文档流
-   会把棋盘挤小,areaRef 上的 ResizeObserver 会跟着重排一次,棋盘在收尾时抖一下。 */
+/* 一局走到头之后贴着棋盘底边浮出来。绝对定位不是装饰:进文档流会把棋盘挤小,ResizeObserver
+   会跟着重排一次。 */
 .puzzle-over {
   position: absolute;
   right: 0.6rem;
@@ -855,20 +851,16 @@ p.notice-intro button:active {
 
 /* 六类,三种键面。形状分三档、填充分三档,两档合起来才认得出一类:
      act    无边框 · --surface-2
-     entry  无边框 · --surface-2(靠区域和 act 分开:一个在下方,一个在上方)
-     assist 无边框 · --accent-soft,和 Menu 同一套——「这个键在帮忙,不是在落子」
+     entry  无边框 · --surface-2(靠区域和 act 分开)
+     assist 无边框 · --accent-soft,和 Menu 同一套
      prefer 有边框 · --surface,字色淡一档,--r-sm 圆角矩形
      arrow  键面同 prefer,形状是正圆
-     pick   和 arrow 同一套:同样的键面、同样的正圆。它跟 arrow 是一伙的却挤在
-            上方区域里,圆就是把它和邻座的 entry/assist/prefer 分开的唯一记号
-   上方区域的 entry / assist / prefer 都是 --r-sm 的圆角矩形;arrow 和 pick 不论在
-   哪都是正圆。底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 games/game.ts。
+     pick   和 arrow 同一套,圆是把它和邻座的 entry/assist/prefer 分开的唯一记号
+   底板圆角跟着键走,规则写在 --pad-r 上。名字的出处见 games/game.ts。
 
-   entry 和 assist 只差填充色,不差形状——这是有意的一笔,不是漏掉的:下方区域的
-   act 和 Menu 早就是这个关系。蓝对灰在红绿色觉差异下保得住,是这套里唯一一处
-   把颜色当主要记号的地方。 */
+   entry 和 assist 只差填充色,不差形状,是有意的:这套里唯一一处把颜色当主要记号的地方。 */
 
-/* entry 回到重构之前:无边框的实心浅灰。 */
+/* entry:无边框的实心浅灰。 */
 .keypad button[data-kind='entry'] {
   border: 0;
 }
@@ -890,9 +882,8 @@ p.notice-intro button:active {
   background: var(--accent-soft-hover);
 }
 
-/* prefer 接手 assist 原来那身皮:白键面 + 一圈边框、字色淡一档。于是有边框的那一档
-   仍是 --surface(prefer、arrow、pick):白在 --bg 上只差 2%,读出「这是个键」靠的是
-   边框,不是那层填充。 */
+/* prefer:白键面 + 一圈边框、字色淡一档。有边框的那一档都是 --surface(prefer、arrow、pick):
+   白在 --bg 上只差 2%,读出「这是个键」靠边框。 */
 .keypad button[data-kind='prefer'] {
   background: var(--surface);
   color: var(--text-2);
@@ -923,8 +914,7 @@ p.notice-intro button:active {
   background: var(--accent-hover);
 }
 
-/* pick 挤在上方区域里,键面同 arrow,形状是正圆——邻座的 entry / assist / prefer 都是
-   圆角矩形,圆是「这个键跟方向键是一伙的」唯一的记号。 */
+/* pick 键面同 arrow,形状是正圆:圆是「这个键跟方向键是一伙的」唯一的记号。 */
 .keypad button[data-kind='pick'] {
   border-radius: var(--r-full);
   background: var(--surface);
@@ -934,11 +924,8 @@ p.notice-intro button:active {
   opacity: 0.35;
 }
 
-/* 按不动的键填底板色,边框照旧:键面和底板齐平、轮廓还在——读作「这儿有个键,
-   现在按不动」,而不是「这儿没有键」。底色必须和底板同值,所以两处都走 --pad-bg。
-   opacity 是把上面 .puzzle-actions button:disabled 那条挡回去:方向键有底板可沉,
-   禁用已经说清楚了,再叠一层半透明只会把这里唯一的轮廓也淡掉。两条选择器同权,
-   靠的是这条排在后面。
+/* 按不动的键填底板色,边框照旧;底色必须和底板同值,两处都走 --pad-bg。opacity 是把上面
+   .puzzle-actions button:disabled 那条挡回去,两条选择器同权,靠的是这条排在后面。
    这条要排在 [data-on] 前面:亮着但暂时按不动的键继续亮着。 */
 .puzzle-arrows button:disabled {
   opacity: 1;
@@ -1005,8 +992,7 @@ p.notice-intro button:active {
   padding: 0.3rem 0.4rem 0.4rem;
 }
 
-/* padding 和 .puzzle-arrows 的一样,只是这一块不画底板:两块内边距对称,里面的键
-   才会按构造对齐。底板那块少了这一圈,方向键会整体高出 4px。 */
+/* padding 和 .puzzle-arrows 的一样,只是这一块不画底板:两块内边距对称,里面的键才会按构造对齐。 */
 .puzzle-acts {
   display: flex;
   gap: var(--key-gap);
@@ -1051,8 +1037,7 @@ p.notice-intro button:active {
   grid-row: span 2 / -1;
   grid-column: acts;
   gap: var(--key-gap);
-  /* 固定键那一列比这一块宽一道缝,靠这条把它顶到远离方向键的那头:两块之间
-     因此是两道缝。 */
+  /* 固定键那一列比这一块宽一道缝,靠这条把它顶到远离方向键的那头。 */
   margin-right: var(--key-gap);
   padding: 0;
 }
@@ -1081,9 +1066,7 @@ p.notice-intro button:active {
   background: var(--surface);
 }
 
-/* 暂时退场的键用 visibility,不能改条件渲染或 display:none:iOS 真机上按钮卸载
-   再插回会画成残片(字形被裁、无背景);visibility 保住盒子,回来只是重画,
-   且照样退出命中与无障碍树。 */
+/* 暂时退场的键用 visibility,不能改条件渲染或 display:none:iOS 真机上按钮卸载再插回会画成残片。 */
 .puzzle-arrows button[data-off] {
   visibility: hidden;
 }
@@ -1600,9 +1583,8 @@ p.notice-intro button:active {
   transform: scale(0.96);
 }
 
-/* 停靠在右缘的面板:占满整个高度,头部和顶栏同高、共用一条底线。非模态,z-index 只
-   压过对局页自己的几层(1),在所有覆盖层(sheet 20 起)之下。宽度和 .puzzle 让出的
-   那条内边距同一个变量。 */
+/* 停靠在右缘的面板:占满整个高度,头部和顶栏同高。非模态,z-index 只压过对局页自己的几层(1),
+   在所有覆盖层(sheet 20 起)之下。宽度和 .puzzle 让出的那条内边距同一个变量。 */
 .dock {
   position: fixed;
   top: 0;
@@ -2163,8 +2145,8 @@ p.notice-intro button:active {
   cursor: pointer;
 }
 
-/* 发牌拦截层。z-index 要压过 sheet(20)和 dialog(30):发牌可以从它们里面发起,
-   拦不住就等于没拦。先只是透明的挡板,过了阈值才由 data-waiting 变成模态。 */
+/* 发牌拦截层。z-index 要压过 sheet(20)和 dialog(30):发牌可以从它们里面发起。先只是透明的
+   挡板,过了阈值才由 data-waiting 变成模态。 */
 .deal-block {
   position: fixed;
   inset: 0;
@@ -2182,8 +2164,7 @@ p.notice-intro button:active {
   animation: scrim-in var(--dur) var(--ease) backwards;
 }
 
-/* 一张方卡:环在正中,叉在右上角,和玩法弹窗同一个 .dialog-close。除了「还在转」
-   和「可以停」没有别的要说,所以卡片里也没有别的东西。 */
+/* 一张方卡:环在正中,叉在右上角,和玩法弹窗同一个 .dialog-close。 */
 .deal-card {
   position: relative;
   display: grid;
@@ -2224,8 +2205,7 @@ p.notice-intro button:active {
   stroke: var(--surface-3);
 }
 
-/* 转和「弧长伸缩」是两条各管各的动画:只转不伸缩看着像匀速空转,加上伸缩才有
-   「在使劲」的样子。dashoffset 一路往前走,弧头才不会原地折返。 */
+/* 转和「弧长伸缩」是两条各管各的动画;dashoffset 一路往前走,弧头才不会原地折返。 */
 .deal-ring-arc {
   stroke: var(--accent);
   animation: deal-spin 1.4s linear infinite, deal-arc 1.4s ease-in-out infinite;
