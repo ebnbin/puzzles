@@ -12,11 +12,7 @@ import { act, cross } from './util/pad'
 
 const WORDS = ['Light', 'Mark', 'Clear']
 
-const LIT_BLOBS: Prefer = {
-  kind: 'flag',
-  label: 'Draw non-light marks even when lit',
-  glyph: 'litBlob',
-}
+const LIT_BLOBS: Prefer<'lightup'> = { kind: 'flag', kw: 'show-lit-blobs', glyph: 'litBlob' }
 
 // validate_params lightup.c:355-376:宽高 ≥ 2;full 下黑格百分比 5..100(362),4 重旋转
 // 只许正方形(365-367),4 重对称宽高至少一维 ≥ 3(368)。INT_MAX 那条在 100 以内碰不到。
@@ -51,7 +47,7 @@ const lightup: Game<'lightup'> = {
   pages: samePages('lightup'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ prefs }) => preferKeys(prefs, [LIT_BLOBS]),
+  keypad: (deal) => preferKeys(deal, [LIT_BLOBS]),
   arrows: {
     keys: [
       ...cross(),

@@ -33,14 +33,15 @@ const keen: Game<'keen'> = {
   pages: samePages('keen'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
-  keypad: ({ params, prefs }) => {
+  keypad: (deal) => {
+    const { params } = deal
     const size = leadingNumber(params)
     if (!size) return null
     return [
       ...digitKeys(size),
       clearKey(),
       marksKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
+      ...preferKeys(deal, [PENCIL_HIGHLIGHT]),
     ]
   },
   arrows: {

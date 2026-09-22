@@ -13,6 +13,7 @@ import { samePages, verbatim } from './util/declare'
 import type { Drawn } from '../engine/renderer'
 import type { Prefer } from './util/keys'
 import { preference, preferKeys } from './util/keys'
+import { optionAt } from './util/upstream'
 import { cross } from './util/pad'
 
 const WALL = 2
@@ -67,9 +68,8 @@ export function readStand(tape: readonly Drawn[]): Stand | null {
 
 type Facts = { stand: Stand | null }
 
-const CURSOR_MODE = ['Half-grid', 'Full-grid']
-
-const fullGrid = (prefs: View<Facts>['prefs']) => preference(prefs, CURSOR_MODE) === 1
+const fullGrid = (prefs: View<Facts>['prefs']) =>
+  preference('palisade', prefs, 'cursor-mode') === optionAt('palisade', 'cursor-mode', 'full')
 
 // 同一个键在两种光标模式下是两套活。Half-grid:光标停在边上,一按就地翻转。
 // Full-grid:光标只停格心,确认键落在格心上游一律不受理(palisade.c:1076),边只能
@@ -117,11 +117,7 @@ const borderKey = (
   },
 })
 
-const TIDY: Prefer = {
-  kind: 'flag',
-  label: 'Automatically clear edges in completed regions',
-  glyph: 'clearRegion',
-}
+const TIDY: Prefer<'palisade'> = { kind: 'flag', kw: 'clear-complete-regions', glyph: 'clearRegion' }
 
 // validate_params palisade.c:164-185:宽高、区域大小各 ≥ 1;区域大小整除面积;full 下不能
 // 等于面积(界面没法赢),等于 2 时要有一维为 1。区域大小在计数层:改棋盘时它吸附到
@@ -147,7 +143,7 @@ const palisade: Game<'palisade', Facts> = {
   pages: samePages('palisade'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ prefs }) => preferKeys<Facts>(prefs, [TIDY]),
+  keypad: (deal) => preferKeys(deal, [TIDY]),
   arrows: {
     keys: [
       ...cross<Facts>(),

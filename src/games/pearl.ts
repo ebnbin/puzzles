@@ -18,11 +18,7 @@ const WORDS = ['Start', 'Stop', 'Cancel']
 
 const UNTRODDEN = '\0untrodden'
 
-const LOOK: Prefer = {
-  kind: 'cycle',
-  answers: ['Traditional', 'Loopy-style'],
-  glyphs: ['masyuStyle', 'loopyStyle'],
-}
+const LOOK: Prefer<'pearl'> = { kind: 'cycle', kw: 'appearance', glyphs: ['masyuStyle', 'loopyStyle'] }
 
 // validate_params pearl.c:286-297:宽高各 ≥ 5;Tricky 要宽加高至少 11(即一维 ≥ 6);
 // INT_MAX 那条在 100 以内碰不到。
@@ -45,7 +41,7 @@ const pearl: Game<'pearl', Facts> = {
   pages: samePages('pearl'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ prefs }) => [hintKey(), ...preferKeys<Facts>(prefs, [LOOK])],
+  keypad: (deal) => [hintKey(), ...preferKeys(deal, [LOOK])],
   arrows: {
     layer: layerByWords(WORDS, ['Stop']),
     keys: [

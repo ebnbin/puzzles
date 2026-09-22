@@ -8,19 +8,14 @@ import { difficulty, height, rule, width } from './util/custom'
 import { keepPencil, samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { PENCIL_HIGHLIGHT, clearKey, marksKey, preference, preferKeys, tap } from './util/keys'
+import { optionAt } from './util/upstream'
 import { act, cross } from './util/pad'
 
-const PICTURES = ['Pictures', 'Letters']
+const MONSTERS: Prefer<'undead'> = { kind: 'cycle', kw: 'monsters', glyphs: ['asPicture', 'asLetter'] }
 
-const MONSTERS: Prefer = {
+const COUNTS: Prefer<'undead'> = {
   kind: 'cycle',
-  answers: PICTURES,
-  glyphs: ['asPicture', 'asLetter'],
-}
-
-const COUNTS: Prefer = {
-  kind: 'cycle',
-  answers: ['Total', 'Remaining', 'Placed/Total'],
+  kw: 'count-style',
   glyphs: ['countTotal', 'countLeft', 'countBoth'],
 }
 
@@ -45,8 +40,10 @@ const undead: Game<'undead'> = {
   pages: samePages('undead'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true, defaults: keepPencil },
-  keypad: ({ prefs }) => {
-    const letters = preference(prefs, PICTURES) === PICTURES.indexOf('Letters')
+  keypad: (deal) => {
+    const { prefs } = deal
+    const letters =
+      preference('undead', prefs, 'monsters') === optionAt('undead', 'monsters', 'letters')
     return [
       ...FACES.map(
         ({ letter, image }): Key<null> => ({
@@ -58,7 +55,7 @@ const undead: Game<'undead'> = {
       ),
       clearKey(),
       marksKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT, MONSTERS, COUNTS]),
+      ...preferKeys(deal, [PENCIL_HIGHLIGHT, MONSTERS, COUNTS]),
     ]
   },
   arrows: {

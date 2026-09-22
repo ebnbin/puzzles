@@ -258,11 +258,11 @@ const swatchKey = (i: number): Key<Facts> => ({
 
 // 三条偏好摆两条:通关闪法不摆,它只在解完那零点几秒可见,那时手已经离开键区。
 // 「Number regions」和 L 键是同一个开关(map.c:2500),所以偏好申报 volatile。
-const NUMBERED: Prefer = { kind: 'flag', label: 'Number regions', glyph: 'numberRegion' }
+const NUMBERED: Prefer<'map'> = { kind: 'flag', kw: 'show-numbers', glyph: 'numberRegion' }
 
-const STIPPLES: Prefer = {
+const STIPPLES: Prefer<'map'> = {
   kind: 'cycle',
-  answers: ['Small', 'Large'],
+  kw: 'stipple-style',
   glyphs: ['stipple', 'stippleBig'],
 }
 
@@ -293,9 +293,9 @@ const map: Game<'map', Facts> = {
   pages: samePages('map'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true },
-  keypad: ({ prefs }) => [
+  keypad: (deal) => [
     ...Array.from({ length: COLOURS }, (_, i) => swatchKey(i)),
-    ...preferKeys<Facts>(prefs, [NUMBERED, STIPPLES]),
+    ...preferKeys(deal, [NUMBERED, STIPPLES]),
   ],
   arrows: {
     keys: [

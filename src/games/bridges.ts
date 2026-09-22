@@ -11,11 +11,7 @@ import { hintKey, preferKeys } from './util/keys'
 import { act, arm, cross } from './util/pad'
 
 // 'g'/'G' 当场翻这条偏好(bridges.c:2589),所以偏好是 volatile 的:按完键要重读。
-const HINTS: Prefer = {
-  kind: 'flag',
-  label: 'Show possible bridge locations',
-  glyph: 'maybeBridge',
-}
+const HINTS: Prefer<'bridges'> = { kind: 'flag', kw: 'show-hints', glyph: 'maybeBridge' }
 
 // 上游默认不画候选桥位(bridges.c:2145),这边翻过来:between_island 是纯几何——
 // 只问「这两个岛在同一行列上、中间没别的岛」,不看数字、不看已架的桥,画出来的就是
@@ -47,7 +43,7 @@ const bridges: Game<'bridges'> = {
   pages: samePages('bridges'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true, defaults: SHOW_LANES },
-  keypad: ({ prefs }) => [hintKey(), ...preferKeys(prefs, [HINTS])],
+  keypad: (deal) => [hintKey(), ...preferKeys(deal, [HINTS])],
   arrows: {
     keys: [
       ...cross(),
