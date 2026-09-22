@@ -11,8 +11,6 @@ import { samePages, verbatim } from './util/declare'
 import { charButton, leadingNumber, tap } from './util/keys'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Place', 'Remove', 'Line']
-
 // validate_params dominosa.c:247-258:最大点数 ≥ 1,INT_MAX 那条在 100 以内碰不到。棋盘
 // 是 (n+2)×(n+1),按棋盘规则封到 98。n 为 1、2 时上游把难度压到 Trivial / Basic
 // (dominosa.c:2243-2247),是降级不是失败;其余是等到指定难度为止的概率重试。
@@ -63,7 +61,6 @@ const dominosa: Game<'dominosa'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'domino', word: 'domino' },
-        words: WORDS,
         faces: {
           Place: { glyph: 'domino', word: 'domino' },
           Remove: { glyph: 'dominoOn', word: 'undomino', on: true },
@@ -74,7 +71,6 @@ const dominosa: Game<'dominosa'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'line', word: 'line' },
-        words: WORDS,
         faces: {
           Line: { glyph: 'line', word: 'line' },
           Remove: { glyph: 'lineOn', word: 'unline', on: true },

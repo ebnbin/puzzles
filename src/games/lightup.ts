@@ -10,8 +10,6 @@ import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Light', 'Mark', 'Clear']
-
 const LIT_BLOBS: Prefer<'lightup'> = { kind: 'flag', kw: 'show-lit-blobs', glyph: 'litBlob' }
 
 // validate_params lightup.c:355-376:宽高 ≥ 2;full 下黑格百分比 5..100(362),4 重旋转
@@ -56,7 +54,6 @@ const lightup: Game<'lightup'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'lamp', word: 'light' },
-        words: WORDS,
         faces: {
           Light: { glyph: 'lamp', word: 'light' },
           Clear: { glyph: 'lamp', word: 'unlight', on: true },
@@ -68,7 +65,6 @@ const lightup: Game<'lightup'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'dotSquare', word: 'cannot' },
-        words: WORDS,
         faces: {
           Mark: { glyph: 'dotSquare', word: 'cannot' },
           Clear: { glyph: 'dotSquare', word: 'uncannot', on: true },

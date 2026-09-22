@@ -14,8 +14,6 @@ import { act, arm, cross, layerByWords, wordOf } from './util/pad'
 
 type Facts = { walked: boolean }
 
-const WORDS = ['Start', 'Stop', 'Cancel']
-
 const UNTRODDEN = '\0untrodden'
 
 const LOOK: Prefer<'pearl'> = { kind: 'cycle', kw: 'appearance', glyphs: ['masyuStyle', 'loopyStyle'] }
@@ -43,7 +41,7 @@ const pearl: Game<'pearl', Facts> = {
   prefs: { panel: verbatim, volatile: false },
   keypad: (deal) => [hintKey(), ...preferKeys(deal, [LOOK])],
   arrows: {
-    layer: layerByWords(WORDS, ['Stop']),
+    layer: layerByWords(['Stop']),
     keys: [
       ...cross<Facts>(),
       act({
@@ -51,7 +49,6 @@ const pearl: Game<'pearl', Facts> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'drawLine', word: 'startLoop' },
-        words: WORDS,
         word: (view: View<Facts>) => {
           const own = wordOf('Enter', view.labels)
           return own === 'Stop' && !view.facts.walked ? UNTRODDEN : own
@@ -76,7 +73,6 @@ const pearl: Game<'pearl', Facts> = {
         key: ' ',
         layer: 2,
         idle: { glyph: 'cancel', word: 'cancelLoop' },
-        words: WORDS,
         faces: { Cancel: { glyph: 'cancel', word: 'cancelLoop', on: true } },
       }),
     ],

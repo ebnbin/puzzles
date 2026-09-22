@@ -9,8 +9,6 @@ import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
 
-const WORDS = ['New arrow', 'Move arrow', 'Place', 'Remove', 'Cancel', 'Edge', 'Clear']
-
 // validate_params galaxies.c:328-345:宽高各 ≥ 3;INT_MAX 那条在 100 以内碰不到。生成是
 // 难度不符就 goto 重来的概率重试(galaxies.c:1500-1516)。
 const custom: Custom<'galaxies'> = {
@@ -35,7 +33,6 @@ const galaxies: Game<'galaxies'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'edge', word: 'drawEdge' },
-        words: WORDS,
         faces: {
           Edge: { glyph: 'edge', word: 'drawEdge' },
           Clear: { glyph: 'noEdge', word: 'clearEdge', on: true },

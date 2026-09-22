@@ -8,8 +8,6 @@ import { height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross, layerByWords } from './util/pad'
 
-const WORDS = ['Fill', 'Advance']
-
 // validate_params flood.c:218-231:面积 ≥ 2,宽高各 ≥ 1,颜色 3..10,额外步数 ≥ 0。额外步数
 // 上游没有上限,它只是加在求解器步数上的宽限,几十以上就没有区别,上限取 100。
 const custom: Custom<'flood'> = {
@@ -38,7 +36,7 @@ const flood: Game<'flood'> = {
   prefs: { panel: verbatim, volatile: false },
   keypad: () => [],
   arrows: {
-    layer: layerByWords(WORDS, ['Advance']),
+    layer: layerByWords(['Advance']),
     keys: [
       ...cross(),
       act({
@@ -46,7 +44,6 @@ const flood: Game<'flood'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'floodFill', word: 'floodFill' },
-        words: WORDS,
         faces: { Fill: { glyph: 'floodFill', word: 'floodFill' } },
       }),
       act({
@@ -56,7 +53,6 @@ const flood: Game<'flood'> = {
         layer: 2,
         offCursor: true,
         idle: { glyph: 'advance', word: 'advance' },
-        words: WORDS,
         faces: { Advance: { glyph: 'advance', word: 'advance' } },
       }),
     ],

@@ -8,8 +8,6 @@ import { AREA_MAX, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Uncover', 'Clear', 'Mark', 'Unmark']
-
 // validate_params mines.c:274-323:宽高 ≥ 1(292),确保有解时都 > 2(290,full);雷数
 // 1 到 面积 − 9(307-310),留出首次点开的 3×3。SHRT_MAX 和 2^28 那两条在 100 以内碰
 // 不到;上游文本框接受的 "n%" 写法 slider 不会产生。布局在首次点击时才生成,有解模式是
@@ -46,7 +44,6 @@ const mines: Game<'mines'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'uncover', word: 'uncover' },
-        words: WORDS,
         faces: {
           Uncover: { glyph: 'uncover', word: 'uncover' },
           Clear: { glyph: 'chord', word: 'chord' },
@@ -57,7 +54,6 @@ const mines: Game<'mines'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'flag', word: 'flag' },
-        words: WORDS,
         faces: {
           Mark: { glyph: 'flag', word: 'flag' },
           Unmark: { glyph: 'flag', word: 'unflag' },

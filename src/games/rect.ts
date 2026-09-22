@@ -13,8 +13,6 @@ import { act, cross, wordOf } from './util/pad'
 
 type Facts = { opened: string | null }
 
-const WORDS = ['Mark', 'Erase', 'Done', 'Cancel']
-
 // 拖拽中还没动过(两键同报 Cancel)时,开拖的那一侧亮的是灰勾:承诺的是
 // 「这里将来落 Done」,不是现在能按。
 const PENDING = '\0pending'
@@ -45,7 +43,6 @@ const dragging = (view: View<Facts>, key: string) => {
 const duo = (spec: Pick<ActSpec<Facts>, 'id' | 'slot' | 'key' | 'idle'>) =>
   act<Facts>({
     ...spec,
-    words: WORDS,
     word: (view) => dragging(view, spec.key),
     faces: {
       [spec.idle.word === 'mark' ? 'Mark' : 'Erase']: spec.idle,

@@ -7,8 +7,6 @@ import { difficulty, height, rule, width } from './util/custom'
 import { samePages, verbatim } from './util/declare'
 import { act, cross } from './util/pad'
 
-const WORDS = ['+', '-', 'X', '?', 'Clear']
-
 // validate_params magnets.c:236-250:宽高各 ≥ 2;Tricky 要宽或高至少 5,Easy 要至少 3。
 // INT_MAX 那条在 100 以内碰不到。生成是难度不符就重来的概率重试(magnets.c:1719)。
 const TRICKY = 1
@@ -42,7 +40,6 @@ const magnets: Game<'magnets'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'plusSquare', word: 'plus' },
-        words: WORDS,
         faces: {
           '+': { glyph: 'plusSquare', word: 'plus' },
           '-': { glyph: 'minusSquare', word: 'minus' },
@@ -54,7 +51,6 @@ const magnets: Game<'magnets'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'crossSquare', word: 'blankDomino' },
-        words: WORDS,
         faces: {
           X: { glyph: 'crossSquare', word: 'blankDomino' },
           '?': { glyph: 'questionSquare', word: 'notBlankDomino' },

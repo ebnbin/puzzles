@@ -9,8 +9,6 @@ import { samePages, verbatim } from './util/declare'
 import type { Way } from './util/pad'
 import { PUSH, act, arrowFace, walk } from './util/pad'
 
-const WORDS = ['Slide', 'Back', 'Lock tile', 'Lock pos', 'Unlock']
-
 const shove = (dir: Way, slot: Slot): ArrowKey<null> => ({
   id: dir,
   slot,
@@ -44,7 +42,6 @@ const sixteen: Game<'sixteen'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'lockTile', word: 'carryTile' },
-        words: WORDS,
         faces: {
           'Lock tile': { glyph: 'lockTile', word: 'carryTile' },
           Unlock: { glyph: 'lockTileOn', word: 'carryTile', on: true },
@@ -56,7 +53,6 @@ const sixteen: Game<'sixteen'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'lockPlace', word: 'holdPlace' },
-        words: WORDS,
         faces: {
           'Lock pos': { glyph: 'lockPlace', word: 'holdPlace' },
           Unlock: { glyph: 'lockPlaceOn', word: 'holdPlace', on: true },

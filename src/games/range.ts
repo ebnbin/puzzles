@@ -8,8 +8,6 @@ import { samePages, verbatim } from './util/declare'
 import { hintKey } from './util/keys'
 import { act, cross } from './util/pad'
 
-const WORDS = ['Fill', 'Dot', 'Empty']
-
 // validate_params range.c:918-932:宽高各 ≥ 1;宽加高不超过 128(线索存在 signed char
 // 里,range.c:923),100 封顶下仍碰得到;full 下 1×1、1×2、2×1、2×2 造不出来。生成是
 // 去线索失败就重来的概率重试。
@@ -38,7 +36,6 @@ const range: Game<'range'> = {
         slot: 4,
         key: 'Enter',
         idle: { glyph: 'black', word: 'fillSquare' },
-        words: WORDS,
         does: 'Fill',
         instead: 'Empty',
       }),
@@ -47,7 +44,6 @@ const range: Game<'range'> = {
         slot: 6,
         key: ' ',
         idle: { glyph: 'dotSquare', word: 'dotSquare' },
-        words: WORDS,
         does: 'Dot',
         instead: 'Empty',
       }),
