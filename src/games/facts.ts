@@ -2,6 +2,7 @@
 // 不手改。每个游戏引擎运行时报出来的静态事实,申报(各 src/games/*.ts)对着它核。
 export const facts = {
   net: {
+    params: '5x5',
     presets: [
       { name: '5x5', value: 0 },
       { name: '7x7', value: 1 },
@@ -31,6 +32,7 @@ export const facts = {
     solvable: true,
   },
   cube: {
+    params: 'c4x4',
     presets: [
       { name: 'Cube', value: 0 },
       { name: 'Tetrahedron', value: 1 },
@@ -56,6 +58,7 @@ export const facts = {
     solvable: false,
   },
   fifteen: {
+    params: '4x4',
     presets: [
       { name: '4x4', value: 0 },
       { name: 'Custom...', value: -1 },
@@ -80,6 +83,7 @@ export const facts = {
     solvable: true,
   },
   sixteen: {
+    params: '4x4',
     presets: [
       { name: '3x3', value: 0 },
       { name: '4x3', value: 1 },
@@ -101,6 +105,7 @@ export const facts = {
     solvable: true,
   },
   twiddle: {
+    params: '3x3n2',
     presets: [
       { name: '3x3 rows only', value: 0 },
       { name: '3x3 normal', value: 1 },
@@ -128,6 +133,7 @@ export const facts = {
     solvable: true,
   },
   rect: {
+    params: '7x7',
     presets: [
       { name: '7x7', value: 0 },
       { name: '9x9', value: 1 },
@@ -152,6 +158,7 @@ export const facts = {
     solvable: true,
   },
   netslide: {
+    params: '3x3b1',
     presets: [
       { name: '3x3 easy', value: 0 },
       { name: '3x3 medium', value: 1 },
@@ -179,6 +186,7 @@ export const facts = {
     solvable: true,
   },
   pattern: {
+    params: '15x15',
     presets: [
       { name: '10x10', value: 0 },
       { name: '15x15', value: 1 },
@@ -199,6 +207,7 @@ export const facts = {
     solvable: true,
   },
   solo: {
+    params: '3x3',
     presets: [
       { name: '2x2 Trivial', value: 0 },
       { name: '2x3 Basic', value: 1 },
@@ -257,6 +266,7 @@ export const facts = {
     solvable: true,
   },
   mines: {
+    params: '9x9n10',
     presets: [
       { name: '9x9, 10 mines', value: 0 },
       { name: '9x9, 35 mines', value: 1 },
@@ -280,6 +290,7 @@ export const facts = {
     solvable: true,
   },
   samegame: {
+    params: '5x5c3s2',
     presets: [
       { name: '5x5, 3 colours', value: 0 },
       { name: '10x5, 3 colours', value: 1 },
@@ -308,6 +319,7 @@ export const facts = {
     solvable: false,
   },
   flip: {
+    params: '5x5c',
     presets: [
       { name: '3x3 Crosses', value: 0 },
       { name: '4x4 Crosses', value: 1 },
@@ -335,6 +347,7 @@ export const facts = {
     solvable: true,
   },
   guess: {
+    params: 'c6p4g10Bm',
     presets: [
       { name: 'Standard', value: 0 },
       { name: 'Super', value: 1 },
@@ -356,6 +369,7 @@ export const facts = {
     solvable: true,
   },
   pegs: {
+    params: '7x7cross',
     presets: [
       { name: 'Cross 5x7', value: 0 },
       { name: 'Cross 7x7', value: 1 },
@@ -386,6 +400,7 @@ export const facts = {
     solvable: false,
   },
   dominosa: {
+    params: '6db',
     presets: [
       { name: 'Order 3, Trivial', value: 0 },
       { name: 'Order 4, Trivial', value: 1 },
@@ -418,6 +433,7 @@ export const facts = {
     solvable: true,
   },
   untangle: {
+    params: '10',
     presets: [
       { name: '6 points', value: 0 },
       { name: '10 points', value: 1 },
@@ -447,6 +463,7 @@ export const facts = {
     solvable: true,
   },
   blackbox: {
+    params: 'w8h8m5M5',
     presets: [
       { name: '5x5, 3 balls', value: 0 },
       { name: '8x8, 5 balls', value: 1 },
@@ -468,6 +485,7 @@ export const facts = {
     solvable: true,
   },
   slant: {
+    params: '8x8de',
     presets: [
       { name: '5x5 Easy', value: 0 },
       { name: '5x5 Hard', value: 1 },
@@ -504,6 +522,7 @@ export const facts = {
     solvable: true,
   },
   lightup: {
+    params: '7x7b20s4d0',
     presets: [
       { name: '7x7 easy', value: 0 },
       { name: '7x7 tricky', value: 1 },
@@ -542,6 +561,7 @@ export const facts = {
     solvable: true,
   },
   map: {
+    params: '20x15n30dn',
     presets: [
       { name: '20x15, 30 regions, Easy', value: 0 },
       { name: '20x15, 30 regions, Normal', value: 1 },
@@ -587,6 +607,7 @@ export const facts = {
     solvable: true,
   },
   loopy: {
+    params: '10x10t0de',
     presets: [
       { name: '7x7 Squares - Easy', value: 0 },
       { name: '10x10 Squares - Easy', value: 1 },
@@ -646,6 +667,7 @@ export const facts = {
     solvable: true,
   },
   inertia: {
+    params: '10x8',
     presets: [
       { name: '10x8', value: 0 },
       { name: '15x12', value: 1 },
@@ -664,6 +686,7 @@ export const facts = {
     solvable: true,
   },
   tents: {
+    params: '8x8de',
     presets: [
       { name: '8x8 Easy', value: 0 },
       { name: '8x8 Tricky', value: 1 },
@@ -691,6 +714,7 @@ export const facts = {
     solvable: true,
   },
   bridges: {
+    params: '7x7i30e10m2d0',
     presets: [
       { name: '7x7 easy', value: 0 },
       { name: '7x7 medium', value: 1 },
@@ -741,6 +765,7 @@ export const facts = {
     solvable: true,
   },
   unequal: {
+    params: '4de',
     presets: [
       { name: 'Unequal: 4x4 Easy', value: 0 },
       { name: 'Unequal: 5x5 Easy', value: 1 },
@@ -786,6 +811,7 @@ export const facts = {
     solvable: true,
   },
   galaxies: {
+    params: '7x7dn',
     presets: [
       { name: '7x7 Normal', value: 0 },
       { name: '7x7 Unreasonable', value: 1 },
@@ -813,6 +839,7 @@ export const facts = {
     solvable: true,
   },
   filling: {
+    params: '13x9',
     presets: [
       { name: '9x7', value: 0 },
       { name: '13x9', value: 1 },
@@ -842,6 +869,7 @@ export const facts = {
     solvable: true,
   },
   keen: {
+    params: '6dn',
     presets: [
       { name: '4x4 Easy', value: 0 },
       { name: '5x5 Easy', value: 1 },
@@ -882,6 +910,7 @@ export const facts = {
     solvable: true,
   },
   towers: {
+    params: '5de',
     presets: [
       { name: '4x4 Easy', value: 0 },
       { name: '5x5 Easy', value: 1 },
@@ -925,6 +954,7 @@ export const facts = {
     solvable: true,
   },
   singles: {
+    params: '5x5de',
     presets: [
       { name: '5x5 Easy', value: 0 },
       { name: '5x5 Tricky', value: 1 },
@@ -957,6 +987,7 @@ export const facts = {
     solvable: true,
   },
   magnets: {
+    params: '6x5dtS',
     presets: [
       { name: '6x5 Easy', value: 0 },
       { name: '6x5 Tricky', value: 1 },
@@ -987,6 +1018,7 @@ export const facts = {
     solvable: true,
   },
   signpost: {
+    params: '4x4c',
     presets: [
       { name: '4x4', value: 0 },
       { name: '4x4, free ends', value: 1 },
@@ -1017,6 +1049,7 @@ export const facts = {
     solvable: true,
   },
   range: {
+    params: '9x6',
     presets: [
       { name: '9 x 6', value: 0 },
       { name: '12 x 8', value: 1 },
@@ -1044,6 +1077,7 @@ export const facts = {
     solvable: true,
   },
   pearl: {
+    params: '8x8dt',
     presets: [
       { name: '6x6 Easy', value: 0 },
       { name: '6x6 Tricky', value: 1 },
@@ -1082,6 +1116,7 @@ export const facts = {
     solvable: true,
   },
   undead: {
+    params: '4x4dn',
     presets: [
       { name: '4x4 Easy', value: 0 },
       { name: '4x4 Normal', value: 1 },
@@ -1133,6 +1168,7 @@ export const facts = {
     solvable: true,
   },
   unruly: {
+    params: '8x8dt',
     presets: [
       { name: '8x8 Trivial', value: 0 },
       { name: '8x8 Easy', value: 1 },
@@ -1162,6 +1198,7 @@ export const facts = {
     solvable: true,
   },
   flood: {
+    params: '12x12c6m5',
     presets: [
       { name: '12x12 Easy', value: 0 },
       { name: '12x12 Medium', value: 1 },
@@ -1186,6 +1223,7 @@ export const facts = {
     solvable: true,
   },
   tracks: {
+    params: '8x8dt',
     presets: [
       { name: '8x8 Easy', value: 0 },
       { name: '8x8 Tricky', value: 1 },
@@ -1220,6 +1258,7 @@ export const facts = {
     solvable: true,
   },
   palisade: {
+    params: '5x5n5',
     presets: [
       { name: '5 x 5, regions of size 5', value: 0 },
       { name: '8 x 6, regions of size 6', value: 1 },
@@ -1249,6 +1288,7 @@ export const facts = {
     solvable: true,
   },
   mosaic: {
+    params: '10x10',
     presets: [
       { name: 'Size: 3x3', value: 0 },
       { name: 'Size: 5x5', value: 1 },
