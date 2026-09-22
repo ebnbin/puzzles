@@ -26,10 +26,23 @@ export type PrefOption = Extract<
   { options: readonly string[] }
 >['options'][number]
 
+// 裸字母快捷键那条是 midend 塞进每个游戏偏好表头的,归全局设置,翻译表里不收它。
+export type ShortcutsLabel = Extract<
+  Facts[GameName]['prefs'][number],
+  { kw: 'one-key-shortcuts' }
+>['label']
+
 export type KeyButton<G extends GameName> = Facts[G]['keys'][number]['button']
 
-const prefsOf = (game: GameName) =>
-  facts[game].prefs as readonly { kw: string; optionKws?: readonly string[] }[]
+type PrefFact = {
+  kw: string
+  kind: 'boolean' | 'choices'
+  initial: boolean | number
+  optionKws?: readonly string[]
+}
+const prefsOf = (game: GameName) => facts[game].prefs as readonly PrefFact[]
+
+export const prefKwAt = (game: GameName, index: number): string => prefsOf(game)[index].kw
 
 // 偏好在 midend_get_prefs() 整表里的下标。
 export function prefAt<G extends GameName>(game: G, kw: PrefKw<G>): number {
@@ -37,6 +50,9 @@ export function prefAt<G extends GameName>(game: G, kw: PrefKw<G>): number {
   if (at < 0) throw new Error(`${game}: no preference ${kw}`)
   return at
 }
+
+export const prefFact = <G extends GameName>(game: G, kw: PrefKw<G>): PrefFact =>
+  prefsOf(game)[prefAt(game, kw)]
 
 // 多选一偏好里某个选项的下标(C 侧 choices.selected 的值)。
 export function optionAt<G extends GameName, K extends PrefKw<G>>(

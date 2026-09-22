@@ -87,7 +87,8 @@ const solo: Game<'solo'> = {
   pages: samePages('solo'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
-  keypad: ({ params: p, prefs }) => {
+  keypad: (deal) => {
+    const { params: p } = deal
     const parsed = params(p)
     if (!parsed) return null
     const cr = parsed.c * parsed.r
@@ -95,7 +96,7 @@ const solo: Game<'solo'> = {
       ...digitKeys(cr),
       clearKey(),
       marksKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
+      ...preferKeys(deal, [PENCIL_HIGHLIGHT]),
     ]
   },
   arrows: {

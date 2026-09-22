@@ -1,7 +1,9 @@
 // 上方键区的通用构造器。全部看不见游戏:数字有几个、从哪起标,都由游戏文件说了算。
 import type { DialogControl } from '../../engine/types'
 import type { IconName } from '../../ui/Icon'
-import type { Board, Key, Stroke } from '../game'
+import type { Board, GameName, Key, Stroke } from '../game'
+import type { Each, OptionKws, PrefKw } from './upstream'
+import { prefAt, prefFact } from './upstream'
 
 export const tap =
   <F>(stroke: Stroke) =>
@@ -67,101 +69,105 @@ export const marksKey = <F>(): Key<F> => ({
   press: tap('M'),
 })
 
-// 上游 get_prefs 里的一条偏好,和它在键面上的样子。两种,认法不同:
-//   flag  布尔,按英文 label 认——emcc 只把 name 交给 JS,kw 到不了这一侧。
-//   cycle 多选一,按答案表逐项认(同下面的 preference:上游改名仍读对);一按走
-//         下一格、走到头绕回。每个答案一张脸,长度必须和答案表一样。
-export type Prefer =
-  | { kind: 'flag'; label: string; glyph: IconName }
-  | { kind: 'cycle'; answers: readonly string[]; glyphs: readonly IconName[] }
+// 上游 get_prefs 里的一条偏好,和它在键面上的样子。按 kw 认——偏好存档本来就是 kw
+// 格式,下标从 facts 查;多选一每个选项一张脸,张数由 facts 的选项数定。
+export type Prefer<G extends GameName = GameName> = {
+  [K in PrefKw<G>]: [OptionKws<G, K>] extends [never]
+    ? { kind: 'flag'; kw: K; glyph: IconName }
+    : { kind: 'cycle'; kw: K; glyphs: Each<OptionKws<G, K>, IconName> }
+}[PrefKw<G>]
 
-// solo / keen / towers / unequal / undead 五家共用同一条,字面一模一样(各 .c 的
-// get_prefs);字面是唯一的钥匙,改这个串等于把五个游戏的键一起摘掉。
-export const PENCIL_HIGHLIGHT: Prefer = {
+type PreferShape =
+  | { kind: 'flag'; kw: string; glyph: IconName }
+  | { kind: 'cycle'; kw: string; glyphs: readonly IconName[] }
+
+// solo / keen / towers / unequal / undead 五家共用同一条(各 .c 的 get_prefs 同一个 kw)。
+export const PENCIL_HIGHLIGHT = {
   kind: 'flag',
-  label: 'Keep mouse highlight after changing a pencil mark',
+  kw: 'pencil-keep-highlight',
   glyph: 'pencilHold',
+} as const
+
+// 偏好表在开局借到之前是空的(useBoard 的初值),那一刻按上游默认答;借到之后是
+// midend_get_prefs() 的整表,下标一定在、种类一定对,不对就是申报错了。
+export function flag<G extends GameName>(
+  game: G,
+  prefs: readonly DialogControl[],
+  kw: PrefKw<G>,
+): boolean {
+  if (!prefs.length) return prefFact(game, kw).initial === true
+  const control = prefs[prefAt(game, kw)]
+  if (control?.kind !== 'boolean') throw new Error(`${game}: preference ${kw} is not boolean`)
+  return control.value
 }
 
-const sameList = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((x, i) => x === b[i])
-
-const findAt = (prefs: readonly DialogControl[], want: Prefer) =>
-  prefs.findIndex((c) =>
-    want.kind === 'flag'
-      ? c.kind === 'boolean' && c.label === want.label
-      : c.kind === 'choices' && sameList(c.choices, want.answers),
-  )
+export function preference<G extends GameName>(
+  game: G,
+  prefs: readonly DialogControl[],
+  kw: PrefKw<G>,
+): number {
+  if (!prefs.length) return Number(prefFact(game, kw).initial)
+  const control = prefs[prefAt(game, kw)]
+  if (control?.kind !== 'choices') throw new Error(`${game}: preference ${kw} is not choices`)
+  return control.value
+}
 
 // 上游的偏好摆成第六类的键:脸读当前值,按一下翻转或走下一格,再写回。
 // 次序不听调用方的,按上游 get_prefs 报出来的先后排——键区上的顺序和偏好面板里
 // 的顺序永远一致(同宿主排六类:顺序是结构,不是各游戏手写的约定)。
-// 认不出的那条一个键都不发:上游改了名是「键消失」,不是「键失灵」。
-export function preferKeys<F>(
-  prefs: readonly DialogControl[],
-  wanted: readonly Prefer[],
-): Key<F>[] {
-  return wanted
-    .map((want) => ({ want, at: findAt(prefs, want) }))
-    .filter(({ at }) => at >= 0)
+export function preferKeys<G extends GameName>(
+  deal: { game: G; prefs: readonly DialogControl[] },
+  wanted: readonly Prefer<G>[],
+): Key<unknown>[] {
+  const { game, prefs } = deal
+  if (!prefs.length) return []
+  return (wanted as readonly PreferShape[])
+    .map((want) => ({ want, kw: want.kw as PrefKw<G>, at: prefAt(game, want.kw as PrefKw<G>) }))
     .sort((a, b) => a.at - b.at)
-    .map(({ want, at }): Key<F> =>
-      want.kind === 'flag'
-        ? {
-            group: 'prefer',
-            fronts: at,
-            // on 管填充色,held 管 aria-pressed:开关键两样都要,不然读屏软件
-            // 两个状态听起来一模一样(PuzzleActions 早就是这个分工)。
-            face: (view) => {
-              const on = flag(view.prefs, want.label)
-              return { art: { glyph: want.glyph }, on, held: on }
-            },
-            press: (board) =>
-              board.prefer((controls) => {
-                const found = controls[findAt(controls, want)]
-                if (found?.kind !== 'boolean') return false
-                found.value = !found.value
-                return true
-              }),
-          }
-        : {
-            group: 'prefer',
-            fronts: at,
-            // 多选一没有「开」这一说,每一格都同样正当:状态全由脸说,不点亮。
-            // 脸画的是「现在是哪一格」,不是「按下去会变成什么」(判据三)。
-            face: (view) => ({
-              art: { glyph: want.glyphs[preference(view.prefs, want.answers) ?? 0] },
-            }),
-            press: (board) =>
-              board.prefer((controls) => {
-                const found = controls[findAt(controls, want)]
-                if (found?.kind !== 'choices') return false
-                found.value = (found.value + 1) % want.answers.length
-                return true
-              }),
+    .map(({ want, kw, at }): Key<unknown> => {
+      const control = prefs[at]
+      if (want.kind === 'flag') {
+        if (control?.kind !== 'boolean')
+          throw new Error(`${game}: preference ${kw} is not boolean`)
+        return {
+          group: 'prefer',
+          fronts: at,
+          // on 管填充色,held 管 aria-pressed:开关键两样都要,不然读屏软件
+          // 两个状态听起来一模一样(PuzzleActions 早就是这个分工)。
+          face: (view) => {
+            const on = flag(game, view.prefs, kw)
+            return { art: { glyph: want.glyph }, on, held: on }
           },
-    )
-}
-
-// 偏好控件的匹配。故意按 answers 列表逐项匹配、不按名字(keyword 过不了边界):
-// 上游改名仍读对;答案增删换序时宁可漏配(回落默认脸)也不把 value 对到换过序的
-// 表上。flag 是被迫按 label 匹配的唯一例外——boolean 没有答案可匹配。
-export function preference(
-  prefs: readonly DialogControl[],
-  answers: readonly string[],
-): number | null {
-  for (const control of prefs)
-    if (
-      control.kind === 'choices' &&
-      control.choices.length === answers.length &&
-      control.choices.every((answer, i) => answer === answers[i])
-    )
-      return control.value
-  return null
-}
-
-export function flag(prefs: readonly DialogControl[], label: string): boolean {
-  for (const control of prefs)
-    if (control.kind === 'boolean' && control.label === label) return control.value
-  return false
+          press: (board) =>
+            board.prefer((controls) => {
+              const found = controls[at]
+              if (found?.kind !== 'boolean')
+                throw new Error(`${game}: preference ${kw} is not boolean`)
+              found.value = !found.value
+              return true
+            }),
+        }
+      }
+      if (control?.kind !== 'choices')
+        throw new Error(`${game}: preference ${kw} is not choices`)
+      if (control.choices.length !== want.glyphs.length)
+        throw new Error(
+          `${game}: preference ${kw} has ${control.choices.length} options, ${want.glyphs.length} faces`,
+        )
+      return {
+        group: 'prefer',
+        fronts: at,
+        // 多选一没有「开」这一说,每一格都同样正当:状态全由脸说,不点亮。
+        // 脸画的是「现在是哪一格」,不是「按下去会变成什么」(判据三)。
+        face: (view) => ({ art: { glyph: want.glyphs[preference(game, view.prefs, kw)] } }),
+        press: (board) =>
+          board.prefer((controls) => {
+            const found = controls[at]
+            if (found?.kind !== 'choices')
+              throw new Error(`${game}: preference ${kw} is not choices`)
+            found.value = (found.value + 1) % want.glyphs.length
+            return true
+          }),
+      }
+    })
 }

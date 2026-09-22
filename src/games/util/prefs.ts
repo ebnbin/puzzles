@@ -1,9 +1,11 @@
-// 偏好面板的文案:上游 get_prefs 报出来的 label 和选项原文对应到词条。emcc 只把 name
-// 交给 JS,kw 到不了这一侧,所以只能按英文原文认;认不出的(上游改了措辞)原样显示
-// 英文,不会坏。裸字母快捷键那条不在这里:它归全局设置,面板里不画。
+// 偏好面板的文案:上游 get_prefs 报出来的 label 和选项原文对应到词条。翻译表按原文做
+// 键——翻译的是文案,不是 id(flash-type 一个 kw 在两个游戏里是两句不同的话);键集由
+// facts 的联合类型钉死,缺一条 tsc 就红。裸字母快捷键那条不在这里:它归全局设置,面板
+// 里不画。
 import type { Word } from './custom'
+import type { PrefLabel, PrefOption, ShortcutsLabel } from './upstream'
 
-export const PREF_LABELS: Readonly<Record<string, Word>> = {
+export const PREF_WORDS: Readonly<Record<Exclude<PrefLabel, ShortcutsLabel>, Word>> = {
   'Show possible bridge locations': 'bridgeHints',
   'Sense of arrow keys': 'arrowSense',
   'Label colours with numbers': 'labelColours',
@@ -29,7 +31,7 @@ export const PREF_LABELS: Readonly<Record<string, Word>> = {
   'Display style for vertices': 'vertexStyle',
 }
 
-export const PREF_OPTIONS: Readonly<Record<string, Word>> = {
+export const OPTION_WORDS: Readonly<Record<PrefOption, Word>> = {
   'Move the tile': 'moveTile',
   'Move the gap': 'moveGap',
   No: 'no',

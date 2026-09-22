@@ -13,11 +13,7 @@ const WORDS = ['Black', 'Circle', 'Restore', 'Remove']
 
 // 点在棋盘外沿(BORDER 那一圈)就翻这条偏好(singles.c:1561-1562)——全 app 唯一一个
 // 被指针翻的偏好,所以 volatile,而且重读得挂在手势上,不能只挂按键。
-const BLACK_NUMS: Prefer = {
-  kind: 'flag',
-  label: 'Show numbers on black squares',
-  glyph: 'numberBlack',
-}
+const BLACK_NUMS: Prefer<'singles'> = { kind: 'flag', kw: 'show-black-nums', glyph: 'numberBlack' }
 
 // validate_params singles.c:264-274:宽高上游放到 62(singles.c:267),这里封 61——数字从
 // 1 起到 max(w,h),而 n2c 只写得出 0..61(singles.c:323-331),62 会写成 '[',new_game
@@ -41,7 +37,7 @@ const singles: Game<'singles'> = {
   pages: samePages('singles'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: true },
-  keypad: ({ prefs }) => preferKeys(prefs, [BLACK_NUMS]),
+  keypad: (deal) => preferKeys(deal, [BLACK_NUMS]),
   arrows: {
     keys: [
       ...cross(),

@@ -12,11 +12,7 @@ import type { Prefer } from './util/keys'
 import { jumbleKey, preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
-const LOOPS: Prefer = {
-  kind: 'flag',
-  label: 'Highlight loops involving unlocked squares',
-  glyph: 'loopWarn',
-}
+const LOOPS: Prefer<'net'> = { kind: 'flag', kw: 'unlocked-loops', glyph: 'loopWarn' }
 
 // 自定义参数:validate_params net.c:320-382。宽高 ≥ 1(322);概率 0..1(328-331),
 // 上游用 %g 显示,0.05 步进往返无损;INT_MAX 那条(326)在 100 以内碰不到。
@@ -60,7 +56,7 @@ const net: Game<'net'> = {
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
   // J 重排没有鼠标入口(net.c:2331),是这里唯一够不着的键。
-  keypad: ({ prefs }) => [jumbleKey(), ...preferKeys(prefs, [LOOPS])],
+  keypad: (deal) => [jumbleKey(), ...preferKeys(deal, [LOOPS])],
   arrows: {
     keys: [
       ...cross(),

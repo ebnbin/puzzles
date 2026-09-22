@@ -3,13 +3,12 @@
 // 于是四十份互不相干的副本。它管的是 midend 自己、不是某一局,逐游戏分开没有意义,
 // 所以这里收成一个全局开关:开局压在每个游戏的偏好存档上面,面板里那一行撤掉。
 // 默认开,跟上游(midend.c:242)。
+import type { GameName } from '../../games/game'
+import type { PrefKw } from '../../games/util/upstream'
 import { makeFlag } from '../../store'
 
-// 上游那两个字面:kw 用来拼强制值那一行,label 用来把它从偏好面板里认出来撤掉。
-// 上游改了任一个,对应那一半失效——kw 变了强制值落空(回落上游默认,还是开),
-// label 变了那一行会重新露面。两种都是「没管住」,不是「管坏了」。
-export const SHORTCUTS_KW = 'one-key-shortcuts'
-export const SHORTCUTS_LABEL = 'Keyboard shortcuts without Ctrl'
+// 上游的 kw:拼强制值那一行,也用来把它那一行从偏好面板里撤掉。
+export const SHORTCUTS_KW = 'one-key-shortcuts' satisfies PrefKw<GameName>
 
 // 在引擎里一律关掉,这几个键改由 usePuzzleKeys 补发。原因只有一个:里头的 n 会
 // 走到 midend_new_game(midend.c:1005),而发牌不能在主线程上跑。判据照抄上游的

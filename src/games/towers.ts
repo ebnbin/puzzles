@@ -15,11 +15,7 @@ import {
 } from './util/keys'
 import { act, cross } from './util/pad'
 
-const LOOK: Prefer = {
-  kind: 'cycle',
-  answers: ['2D', '3D'],
-  glyphs: ['towersFlat', 'towersTall'],
-}
+const LOOK: Prefer<'towers'> = { kind: 'cycle', kw: 'appearance', glyphs: ['towersFlat', 'towersTall'] }
 
 // validate_params towers.c:248-255:网格 3..9。3×3 的 Hard 以上上游自己压到 Hard
 // (towers.c:678),是降级不是失败;其余是概率重试。
@@ -39,14 +35,15 @@ const towers: Game<'towers'> = {
   pages: samePages('towers'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
-  keypad: ({ params, prefs }) => {
+  keypad: (deal) => {
+    const { params } = deal
     const size = leadingNumber(params)
     if (!size) return null
     return [
       ...digitKeys(size),
       clearKey(),
       marksKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT, LOOK]),
+      ...preferKeys(deal, [PENCIL_HIGHLIGHT, LOOK]),
     ]
   },
   arrows: {

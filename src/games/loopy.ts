@@ -9,15 +9,11 @@ import { samePages, verbatim } from './util/declare'
 import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 
-const FAINT: Prefer = {
-  kind: 'flag',
-  label: 'Draw excluded grid lines faintly',
-  glyph: 'faintLine',
-}
+const FAINT: Prefer<'loopy'> = { kind: 'flag', kw: 'draw-faint-lines', glyph: 'faintLine' }
 
-const FOLLOW: Prefer = {
+const FOLLOW: Prefer<'loopy'> = {
   kind: 'cycle',
-  answers: ['No', 'Based on grid only', 'Based on grid and game state'],
+  kw: 'auto-follow',
   glyphs: ['followOff', 'followGrid', 'followSmart'],
 }
 
@@ -60,7 +56,7 @@ const loopy: Game<'loopy'> = {
   pages: samePages('loopy'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ prefs }) => preferKeys(prefs, [FAINT, FOLLOW]),
+  keypad: (deal) => preferKeys(deal, [FAINT, FOLLOW]),
   arrows: null,
   observe: still,
 }

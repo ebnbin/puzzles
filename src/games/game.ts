@@ -11,6 +11,7 @@ import type { Dark } from '../engine/palette'
 import type { Drawn } from '../engine/renderer'
 import type { DialogControl, Preset } from '../engine/types'
 import type { Custom } from './util/custom'
+import type { PrefKw } from './util/upstream'
 
 export type GameName =
   | 'net' | 'cube' | 'fifteen' | 'sixteen' | 'twiddle' | 'rect' | 'netslide'
@@ -28,7 +29,7 @@ export type Game<G extends GameName, F = null> = {
   dark: Dark
   pages: Pages
   types: Types<G>
-  prefs: Prefs
+  prefs: Prefs<G>
 
   // 上方键区。null = 这一局的参数认不出,整排不画;[] = 这个游戏没有上方键区。
   keypad(deal: Deal<G>): Key<F>[] | null
@@ -69,7 +70,7 @@ export type Types<G extends GameName> = {
   // validate_params(full) 的逐条移植(util/custom.ts)。
   custom: Custom<G>
 }
-export type Prefs = {
+export type Prefs<G extends GameName> = {
   // 只许换序/隐藏,必须保持元素身份:对话框提交时 C 侧闭包从原对象读回 value。
   // 拿到的已经是宿主撤掉「键区已有按钮」那几条之后的剩余(见 Key.fronts)。
   panel(controls: readonly DialogControl[]): readonly DialogControl[]
@@ -80,7 +81,7 @@ export type Prefs = {
   volatile: boolean
   // 换掉上游偏好的默认值:按 kw 申报,开局垫在存档下面(用户存过的那几条赢)。
   // 只给 kw 和值,行由 createPuzzle 拼——有一行解析不了会让整份偏好静默作废。
-  defaults?: Readonly<Record<string, string>>
+  defaults?: { readonly [K in PrefKw<G>]?: string }
 }
 
 // ---------------------------------------------------------------- 键面
@@ -177,7 +178,7 @@ export type Board<F> = {
   send(s: Stroke): void
   gate<T>(run: (g: Gate) => T): T
   // 借一次上游的偏好对话框:就地改活对象再提交,返回 false = 什么都没动、撤回。
-  // 控件只能按英文 label 认——emcc 只把 name 交给 JS,kw 到不了这一侧(emcc.c:628)。
+  // 控件按下标认:这是 midend_get_prefs() 的整表,和 View.prefs 同一份,下标从 facts 查。
   prefer(use: (prefs: DialogControl[]) => boolean): void
   undo(): void
   arm(armed: Armed | null): void

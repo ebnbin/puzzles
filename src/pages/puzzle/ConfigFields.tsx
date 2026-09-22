@@ -1,6 +1,6 @@
 import { useMemo, useReducer } from 'react'
 import type { DialogControl } from '../../engine/types'
-import type { CustomShape, Field } from '../../games/util/custom'
+import type { CustomShape, Field, Word } from '../../games/util/custom'
 import {
   bind,
   change,
@@ -12,18 +12,20 @@ import {
   valueOf,
   write,
 } from '../../games/util/custom'
-import { PREF_LABELS, PREF_OPTIONS } from '../../games/util/prefs'
+import { OPTION_WORDS, PREF_WORDS } from '../../games/util/prefs'
 import { useStrings } from '../../i18n'
 import type { Strings } from '../../i18n'
 import Picker from '../../ui/Picker'
 import Slider from '../../ui/Slider'
 
-const word = (t: Strings, w: string): string => (t.config as Record<string, string>)[w] ?? w
+const word = (t: Strings, w: Word): string => t.config[w]
 
-// 没申报的控件(偏好)按上游原文查词条,查不到就原样显示英文。
-const said = (t: Strings, table: Readonly<Record<string, string>>, text: string): string => {
+// 没申报的控件(偏好)按上游原文查词条。表的键集由 facts 钉死,查不到只能是生成物和
+// 申报脱节。
+const said = (t: Strings, table: Readonly<Record<string, Word>>, text: string): string => {
   const w = table[text]
-  return w === undefined ? text : word(t, w)
+  if (w === undefined) throw new Error(`no word for preference text "${text}"`)
+  return word(t, w)
 }
 
 export default function ConfigFields({
@@ -145,7 +147,7 @@ export default function ConfigFields({
                   settled()
                 }}
               />
-              {said(t, PREF_LABELS, control.label)}
+              {said(t, PREF_WORDS, control.label)}
             </label>
           )
         }
@@ -153,8 +155,8 @@ export default function ConfigFields({
           return (
             <Picker
               key={i}
-              label={said(t, PREF_LABELS, control.label)}
-              options={control.choices.map((choice) => said(t, PREF_OPTIONS, choice))}
+              label={said(t, PREF_WORDS, control.label)}
+              options={control.choices.map((choice) => said(t, OPTION_WORDS, choice))}
               value={control.value}
               onChange={(index) => {
                 control.value = index

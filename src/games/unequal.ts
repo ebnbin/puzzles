@@ -36,7 +36,8 @@ const unequal: Game<'unequal'> = {
   pages: samePages('unequal'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false, defaults: keepPencil },
-  keypad: ({ params, prefs }) => {
+  keypad: (deal) => {
+    const { params } = deal
     const order = leadingNumber(params)
     if (!order) return null
     return [
@@ -44,7 +45,7 @@ const unequal: Game<'unequal'> = {
       clearKey(),
       marksKey(),
       hintKey(),
-      ...preferKeys(prefs, [PENCIL_HIGHLIGHT]),
+      ...preferKeys(deal, [PENCIL_HIGHLIGHT]),
     ]
   },
   arrows: {

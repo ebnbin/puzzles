@@ -9,19 +9,11 @@ import type { Prefer } from './util/keys'
 import { preferKeys } from './util/keys'
 import { act, cross } from './util/pad'
 
-const SNAP: Prefer = { kind: 'flag', label: 'Snap points to a grid', glyph: 'snapGrid' }
+const SNAP: Prefer<'untangle'> = { kind: 'flag', kw: 'snap-to-grid', glyph: 'snapGrid' }
 
-const CROSSED: Prefer = {
-  kind: 'flag',
-  label: 'Show edges that cross another edge',
-  glyph: 'crossedEdge',
-}
+const CROSSED: Prefer<'untangle'> = { kind: 'flag', kw: 'show-crossed-edges', glyph: 'crossedEdge' }
 
-const VERTICES: Prefer = {
-  kind: 'cycle',
-  answers: ['Circles', 'Numbers'],
-  glyphs: ['vertex', 'vertexNumber'],
-}
+const VERTICES: Prefer<'untangle'> = { kind: 'cycle', kw: 'vertex-style', glyphs: ['vertex', 'vertexNumber'] }
 
 // validate_params untangle.c:221-233:点数 ≥ 4,INT_MAX 那条碰不到。上游没有上限,画布
 // 上一百个点已经拖不动、找交叉又是平方级,上限取 100。生成是先在网格上连平面图再打乱
@@ -39,7 +31,7 @@ const untangle: Game<'untangle'> = {
   pages: samePages('untangle'),
   types: { menu: verbatim, custom },
   prefs: { panel: verbatim, volatile: false },
-  keypad: ({ prefs }) => preferKeys(prefs, [SNAP, CROSSED, VERTICES]),
+  keypad: (deal) => preferKeys(deal, [SNAP, CROSSED, VERTICES]),
   arrows: {
     keys: [
       ...cross(),
