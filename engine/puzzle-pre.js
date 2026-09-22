@@ -15,9 +15,8 @@ var timer_callback;
 var dlg_return_sval, dlg_return_ival;
 var prefs_load_callback;
 
-/* midend 指针:上游只在 js_load_prefs 这一处把它交给 JS(为的是让 JS 再传回
-   prefs_load_callback)。下面几个 midend_* 直调都靠它,所以取值只能在调用那一刻,
-   attach 的时候它还是 0。 */
+/* midend 指针:上游只在 js_load_prefs 这一处把它交给 JS。下面几个 midend_* 直调都靠它,取值只能在
+   调用那一刻,attach 的时候它还是 0。 */
 var puzzle_me = 0;
 var midend_status, midend_request_keys, free_keys, midend_freeze_timer;
 

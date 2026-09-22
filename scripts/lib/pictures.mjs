@@ -45,16 +45,14 @@ export async function openBoard(browser, { game, theme, viewport = { width: 900,
       localStorage.clear()
       localStorage.setItem('puzzles.recent', name)
       localStorage.setItem('puzzles.playing', '1')
-      // 主题必须写 puzzles.theme:app 自己解析主题、不问系统,context 的
-      // colorScheme 对它无效,漏写则暗色图静默拍成亮图。introduced 要预置,
-      // 否则首访的介绍浮层会被拍进棋盘。
+      // 主题必须写 puzzles.theme:app 自己解析主题、不问系统,context 的 colorScheme 对它无效。
+      // introduced 要预置,否则首访的介绍浮层会被拍进棋盘。
       localStorage.setItem('puzzles.theme', want)
       localStorage.setItem('puzzles.introduced', JSON.stringify([name]))
     },
     { name: game, want: theme },
   )
-  // 写完 localStorage 必须经 about:blank 再回来:对同一地址的第二次 goto
-  // 不会重新加载,种下的状态到不了 app。
+  // 写完 localStorage 必须经 about:blank 再回来:对同一地址的第二次 goto 不会重新加载。
   await page.goto('about:blank')
   await page.goto(BASE, { waitUntil: 'load' })
   await page.waitForFunction(() => document.querySelector('.puzzle-canvas')?.width > 0, null, {
@@ -72,9 +70,7 @@ export async function dealIconPosition(page, { game, redos }) {
   const proportion = redos.get(game)
   if (proportion === undefined) return { proportion }
 
-  // freezeTimer 直接把动画按比例定在某一帧(midend_freeze_timer 设 anim_pos 后
-  // 重画并停表)。以前要先按 0.01 秒一步测出动画多长、再重放到比例点,量出来的
-  // 长度还带着一个量化误差。
+  // freezeTimer 直接把动画按比例定在某一帧(midend_freeze_timer 设 anim_pos 后重画并停表)。
   await page.evaluate((p) => {
     const api = window.__puzzle
     api.redo()
@@ -90,8 +86,8 @@ export const boardSize = (page) =>
     return { w: c.width, h: c.height }
   })
 
-// 补方底色取棋盘左上角的实际像素,不能查调色板:Untangle 的角是外边距 #e6e6e6
-// 而非它的 COL_BACKGROUND #bbbbbb,查表会在缩略图两侧露缝。
+// 补方底色取棋盘左上角的实际像素,不能查调色板:Untangle 的角是外边距 #e6e6e6 而非它的
+// COL_BACKGROUND #bbbbbb。
 export const cornerColour = (page) =>
   page.evaluate(() => {
     const d = document.querySelector('.puzzle-canvas').getContext('2d').getImageData(0, 0, 1, 1).data

@@ -1,18 +1,11 @@
 //   npm run build && npm exec -- vite preview --port 4173 --strictPort &
 //   npm i --no-save playwright && node scripts/check-prefer.mjs
 //
+// prefer 键的契约测试:真写进上游的偏好存档、按上游 get_prefs 排序、多选一循环、prefs.defaults
+// 压不过用户存档、上了键区的从面板撤掉、裸字母快捷键归全局设置、棋盘输入翻掉的偏好键面跟上。
 // 改了 games/util/keys.ts 的 preferKeys、useConfigBox 的 borrowPrefs、createPuzzle 的
-// composePrefs、usePuzzleKeys 补发的裸字母快捷键(见 useShortcuts.SHORTCUTS_OFF)、
-// 任何一个游戏文件里的 Prefer 常量或 prefs.defaults 之后跑。
-// 守七条:
-//   一、按一下真的写进了上游的偏好存档,不是只把键面点亮(Solo 走完整一圈)。
-//   二、多个键时按上游 get_prefs 的先后排,而不是游戏文件里的书写序。
-//   三、多选一的键一按走下一格、走到头绕回,且脸跟着换。
-//   四、下游换掉的默认值(prefs.defaults)开局到位,且压不过用户自己存过的那一条。
-//   五、键区摆出来的那几条从偏好面板里撤掉;总开关一关,面板恢复原样。
-//   六、裸字母快捷键那条归全局设置(useShortcuts):不进任何游戏的面板,而且真的
-//       压得住——开着按 n 换一局,关掉按 n 什么都不发生。
-//   七、棋盘上的输入能翻掉的偏好(map 的 L、singles 点外沿),键面那盏灯要跟上。
+// composePrefs、usePuzzleKeys 补发的裸字母快捷键(见 useShortcuts.SHORTCUTS_OFF)、任何一个游戏
+// 文件里的 Prefer 常量或 prefs.defaults 之后跑。
 import { boot, open, URL_BASE } from './lib/boot.mjs'
 
 const PREFS = 'puzzles.prefs.solo'
@@ -46,8 +39,8 @@ for (const game of ['Map', 'Guess']) {
 }
 
 console.log('\n下游换掉的默认值')
-// 五个数独族游戏的 pencil-keep-highlight(declare.ts 的 keepPencil)、guess 的
-// show-labels、bridges 的 show-hints,上游默认都是 false,这边都翻成 true。
+// 五个数独族游戏的 pencil-keep-highlight(declare.ts 的 keepPencil)、guess 的 show-labels、
+// bridges 的 show-hints,上游默认都是 false,这边都翻成 true。
 for (const game of ['Solo', 'Unequal', 'Keen', 'Towers', 'Undead', 'Guess', 'Bridges']) {
   await open(page, game, { clear: [`puzzles.prefs.${game.toLowerCase()}`] })
   if ((await keys.first().getAttribute('data-on')) === 'true') ok(`${game} 开局就是亮的`)
@@ -80,8 +73,8 @@ else fail('再按之后没亮')
 if (new RegExp(`${KW}=true`).test((await saved()) ?? '')) ok(`存档里 ${KW}=true`)
 else fail('存档没写回 true:', await saved())
 
-// 键区已经摆出来的那条要从面板里撤掉。Solo 的游戏偏好只有这一条,裸字母那条又
-// 归全局设置,所以整个偏好设置栏都不该画出来。
+// 键区已经摆出来的那条要从面板里撤掉。Solo 的游戏偏好只有这一条,裸字母那条又归全局设置,
+// 整个偏好设置栏都不该画出来。
 const panelRows = () => page.evaluate(() =>
   [...document.querySelectorAll('.sheet-prefs label')].map((l) => (l.textContent ?? '').trim()),
 )
@@ -148,8 +141,7 @@ await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
 await page.evaluate(() => localStorage.removeItem('puzzles.shortcuts'))
 
 console.log('\n偏好被棋盘上的输入翻掉时,键面那盏灯要跟上(prefs.volatile)')
-// map 的 L 和 singles 点棋盘外沿都当场翻自己的偏好,引擎不会告诉 JS——不重读,
-// 灯就停在旧值上,按下去的效果和看到的相反。
+// map 的 L 和 singles 点棋盘外沿都当场翻自己的偏好,引擎不会告诉 JS。
 const lampOf = () => keys.first().getAttribute('data-on')
 
 await open(page, 'Map', { clear: ['puzzles.prefs.map', 'puzzles.save.map'] })

@@ -17,9 +17,8 @@ if (bad.length > 0) {
   throw new Error(`static data check failed (${bad.length})`)
 }
 
-// 版本号 = 这份构建的 commit,截成 GitHub 短 SHA 的 7 位(src/version.ts 拿它拼 URL)。
-// Vercel 的构建目录不保证是可用的 git 仓库,它注入的环境变量才准,git 只是本地回落;
-// 两头都没有就留空,设置里那行不出现——读不到版本号不许让 build 挂。
+// 版本号 = 这份构建的 commit,截成 GitHub 短 SHA 的 7 位(src/version.ts 拿它拼 URL)。Vercel 注入的
+// 环境变量优先,git 只是本地回落;两头都没有就留空,读不到版本号不许让 build 挂。
 function buildCommit(): string {
   let sha = process.env.VERCEL_GIT_COMMIT_SHA ?? ''
   if (sha === '') {

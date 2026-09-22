@@ -1,19 +1,7 @@
-// 停靠面板:够宽的屏幕(64em 起)上类型 / 菜单面板停靠成右侧栏。守六条:
-//   一、让位不盖住:面板 360 宽、贴右缘,棋盘右边不越过面板左边。
-//   二、非模态:面板开着,物理键盘照旧到得了引擎;Escape 不关它。
-//   三、焦点归棋盘:指针在面板里点完预设 / 勾选 / 复制,焦点回到棋盘;用键盘走进面板
-//       的人不被打扰,焦点留在原地。
-//   四、记忆:开、关、切换写进 puzzles.panel,刷新和换游戏都按它复原;默认两个都关。
-//   五、宽窄切换:收窄面板消失、不变成 sheet、记忆不动;拉宽按记忆回来;窄屏拉 sheet
-//       不写记忆。
-//   六、面板挂着的 config box 给键区让位:按 prefer 键、按会翻偏好的走子键之后,面板
-//       的偏好段和自定义参数段都还在。
-//   七、参数表常驻:列表里没有 Custom,点预设后表里变成它的参数、那条亮起来;参数
-//       命不中任何预设时一条都不亮。
-//   八、预设只画一层:上游唯一的子菜单(Loopy 的 More...)在胶水里铺平,23 条在同一个
-//       列表里、没有分组标题,原本收在 More 里的那条点了照样选中。
-// 改了 PuzzleHost 的面板状态、PuzzleTypes、ConfigFields、ui/Dock、ui/useMedia、usePanel、
-// useConfigBox 的 borrowPrefs / refreshInline,或 index.css 里 .dock / .puzzle[data-dock] 之后跑。
+// 停靠面板的契约测试:让位不盖住、非模态、焦点归棋盘、记忆、宽窄切换、挂着的 config box 给键区
+// 让位、参数表常驻、预设只画一层。改了 PuzzleHost 的面板状态、PuzzleTypes、ConfigFields、ui/Dock、
+// ui/useMedia、usePanel、useConfigBox 的 borrowPrefs / refreshInline,或 index.css 里 .dock /
+// .puzzle[data-dock] 之后跑。
 //
 //   npm run build && npm exec -- vite preview --port 4173 --strictPort &
 //   npm i --no-save playwright && node scripts/check-dock.mjs

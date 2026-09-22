@@ -1,5 +1,4 @@
-// 八个契约测试(check-*.mjs)共用的开机礼:起浏览器、从首页点进一个游戏、
-// 等引擎活过来。何时跑、守什么,钉在各被测文件的头部注释里。
+// 契约测试(check-*.mjs)共用的开机礼:起浏览器、从首页点进一个游戏、等引擎活过来。
 // 环境变量:PREVIEW 换地址,CHROME 指定浏览器可执行文件。
 import { chromium } from 'playwright'
 
@@ -15,8 +14,7 @@ export async function boot({ touch = false, viewport = { width: 390, height: 844
 }
 
 // 走首页点进去,不直接访问 /<game>:那条路由是客户端的,vite preview 会 404。
-// arrows 默认打开(测的多半是方向键块);check-solved 例外地关着:它不用
-// 方向键,而且按文档序在 role=group 里数按钮,开了就多出一个 group。
+// arrows 默认打开;check-solved 关着,它按文档序在 role=group 里数按钮,开了就多出一个 group。
 export async function open(
   page,
   shown,

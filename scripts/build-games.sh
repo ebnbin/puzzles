@@ -10,10 +10,8 @@ OUT_ENGINE="$ROOT/public/engine"
 
 EMSDK_VERSION=6.0.4
 
-# 上游 emcc_export_list 的逐字副本 + 我们额外要的几个。emcc 对 -sEXPORTED_FUNCTIONS
-# 是覆盖不是追加,所以只能整份重述;上游那 20 条少一条,JS 侧就会有入口凭空消失。
-# 两次构建喂同一份,cmp 才继续证明「换 JS 不动二进制」。
-# 加的这几个上游自己不调用,今天会被裁掉,导出即是把它们请回来(每个几百字节)。
+# 上游 emcc_export_list 的逐字副本 + 我们额外要的几个。emcc 对 -sEXPORTED_FUNCTIONS 是覆盖不是追加,
+# 只能整份重述,上游那 20 条一条不能少;两次构建喂同一份,cmp 才能证明「换 JS 不动二进制」。
 EXPORTS='
 _mouseup,_mousedown,_mousemove,_key,
 _timer_callback,_command,
@@ -26,9 +24,8 @@ _midend_status,_midend_request_keys,_free_keys,_midend_freeze_timer'
 EXPORTS="$(echo "$EXPORTS" | tr -d ' \n')"
 LINK_FLAGS="-sEXPORTED_FUNCTIONS=[$EXPORTS]"
 
-# emscripten 6.x 拒绝上游默认的老浏览器目标,这三条地板是编得过的最低值。
-# 产物和上游官网的二进制不同是正常的(他们开 assertions,体积约两倍):
-# cmp 保证的等同只存在于我们自己的两次构建之间。
+# emscripten 6.x 拒绝上游默认的老浏览器目标,这三条地板是编得过的最低值。cmp 保证的等同只存在于
+# 我们自己的两次构建之间,和上游官网的二进制不同。
 MIN_CHROME_VERSION=85
 MIN_FIREFOX_VERSION=79
 MIN_SAFARI_VERSION=150000
@@ -61,15 +58,13 @@ echo "==> building manual"
 node "$ROOT/scripts/build-doc.mjs"
 
 echo "==> building ES modules"
-# 不能用 --pre-js 附加我们的 wrapper:emcc 对它是追加不是替换,两份都会跑,
-# 上游对 Module 的整体赋值会丢掉宿主传入的对象。所以整树拷贝后换掉两个文件。
+# 不能用 --pre-js 附加我们的 wrapper:emcc 对它是追加不是替换,两份都会跑。整树拷贝后换掉两个文件。
 rm -rf "$BUILD/src-esm"
 cp -r "$SRC" "$BUILD/src-esm"
 cp "$ROOT/engine/puzzle-pre.js" "$BUILD/src-esm/emccpre.js"
 cp "$ROOT/engine/puzzle-lib.js" "$BUILD/src-esm/emcclib.js"
 
-# 链接参数必须走 CMAKE_EXE_LINKER_FLAGS:上游的 emscripten.cmake 会无条件
-# 覆盖 CMAKE_C_LINK_FLAGS,从命令行传后者等于没传。
+# 链接参数必须走 CMAKE_EXE_LINKER_FLAGS:上游的 emscripten.cmake 会无条件覆盖 CMAKE_C_LINK_FLAGS。
 emcmake cmake -S "$BUILD/src-esm" -B "$BUILD/esm" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DMIN_CHROME_VERSION="$MIN_CHROME_VERSION" \

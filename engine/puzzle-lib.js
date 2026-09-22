@@ -34,9 +34,8 @@ mergeInto(LibraryManager.library, {
         });
     },
 
-    // 上游只有 Loopy 建子菜单(loopy.c:608 的 "More...",网格种类太多塞不进一层)。
-    // 这里铺平:标题不收,返回父 menuid 让子项落进同一个数组。预设的身份是 value
-    // (上游的 entry->id),和画在第几层无关,所以铺平不改语义。
+    // 上游只有 Loopy 建子菜单(loopy.c:608 的 "More...")。这里铺平:标题不收,返回父 menuid 让子项
+    // 落进同一个数组;预设的身份是 value(上游的 entry->id),和画在第几层无关。
     js_add_preset_submenu: function(menuid, ptr, value) {
         return menuid;
     },
